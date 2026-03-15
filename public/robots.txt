@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /inbox
+Disallow: /contacts
+Disallow: /connections
+Disallow: /ai-chat
+Disallow: /analytics
+Disallow: /settings
+
+Sitemap: https://oneinbox.app/sitemap.xml

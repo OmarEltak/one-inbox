@@ -1,0 +1,67 @@
+##
+## Evolution API + PostgreSQL
+## Start:  docker compose -f docker-compose.evolution.yml up -d
+## Stop:   docker compose -f docker-compose.evolution.yml down
+## Logs:   docker compose -f docker-compose.evolution.yml logs -f evolution-api
+##
+
+services:
+  evolution-postgres:
+    image: postgres:16-alpine
+    container_name: evolution-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: evolution_secret
+    volumes:
+      - evolution_postgres_data:/var/lib/postgresql/data
+    networks:
+      - evolution-net
+
+  evolution-api:
+    image: atendai/evolution-api:v2.2.3
+    container_name: evolution-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"          # Internal only — not exposed to internet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # Lets Evolution reach Laravel on the host
+    depends_on:
+      - evolution-postgres
+    environment:
+      # Auth — must match EVOLUTION_API_KEY in Laravel .env
+      AUTHENTICATION_API_KEY: "85d97dedf44371d59d022bc0c042256896850929d0ac6f55"
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "true"
+
+      # Database
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: "postgresql://evolution:evolution_secret@evolution-postgres:5432/evolution?schema=public"
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_api
+
+      # Enable all entity saving
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+
+      # Server
+      SERVER_PORT: "8080"
+      SERVER_URL: "http://localhost:8080"
+
+      # Misc
+      DEL_INSTANCE: "false"
+      LANGUAGE: "en"
+    volumes:
+      - evolution_instances:/evolution/instances
+    networks:
+      - evolution-net
+
+volumes:
+  evolution_postgres_data:
+  evolution_instances:
+
+networks:
+  evolution-net:
+    driver: bridge
