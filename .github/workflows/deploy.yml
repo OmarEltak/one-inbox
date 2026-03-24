@@ -11,7 +11,7 @@ jobs:
     runs-on: [self-hosted, windows, server-a]
     steps:
       - name: Run deploy script
-        shell: powershell
+        shell: pwsh
         run: |
           Set-ExecutionPolicy Bypass -Scope Process -Force
           & "C:\Users\NanoChip\Herd\one-inbox\deploy.ps1"
