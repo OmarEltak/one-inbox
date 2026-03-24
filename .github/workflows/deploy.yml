@@ -11,10 +11,8 @@ jobs:
     runs-on: [self-hosted, windows, server-a]
     steps:
       - name: Run deploy script
-        shell: pwsh
-        run: |
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          & "C:\Users\NanoChip\Herd\one-inbox\deploy.ps1"
+        shell: cmd
+        run: powershell.exe -ExecutionPolicy Bypass -File "C:\Users\NanoChip\Herd\one-inbox\deploy.ps1"
 
   # ── Server B (SSH) — only runs when SERVER_B_ENABLED repo var is 'true' ──
   deploy-server-b:
