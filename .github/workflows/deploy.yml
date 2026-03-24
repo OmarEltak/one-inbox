@@ -11,7 +11,7 @@ jobs:
     runs-on: [self-hosted, windows, server-a]
     steps:
       - name: Run deploy script
-        shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -Command
+        shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File {0}
         run: |
           Set-Location "C:\Users\NanoChip\Herd\one-inbox"
           git pull origin main
