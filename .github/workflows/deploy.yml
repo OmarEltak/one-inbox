@@ -11,8 +11,19 @@ jobs:
     runs-on: [self-hosted, windows, server-a]
     steps:
       - name: Run deploy script
-        shell: cmd
-        run: powershell.exe -ExecutionPolicy Bypass -File "C:\Users\NanoChip\Herd\one-inbox\deploy.ps1"
+        shell: bash
+        run: |
+          cd /c/Users/NanoChip/Herd/one-inbox
+          git pull origin main
+          composer install --no-dev --optimize-autoloader
+          npm ci
+          npm run build
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          /c/Windows/System32/nssm.exe restart OneInboxQueue || true
+          /c/Windows/System32/nssm.exe restart OneInboxReverb || true
 
   # ── Server B (SSH) — only runs when SERVER_B_ENABLED repo var is 'true' ──
   deploy-server-b:
