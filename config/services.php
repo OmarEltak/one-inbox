@@ -90,6 +90,41 @@ return [
     |
     | Docs: /docs/whatsapp-gateway.md
     */
+    /*
+    |--------------------------------------------------------------------------
+    | TikTok Business Messaging
+    |--------------------------------------------------------------------------
+    */
+    /*
+    |--------------------------------------------------------------------------
+    | Snapchat
+    |--------------------------------------------------------------------------
+    */
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID', ''),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', ''),
+        'redirect'      => '/auth/google/callback',
+    ],
+
+    'snapchat' => [
+        // Marketing API OAuth 2.0 (Public Profile Messaging API)
+        // Register at: Snap Business Manager → Business Details → Marketing API
+        'marketing_client_id'     => env('SNAPCHAT_MARKETING_CLIENT_ID', ''),
+        'marketing_client_secret' => env('SNAPCHAT_MARKETING_CLIENT_SECRET', ''),
+        'redirect'                => env('SNAPCHAT_REDIRECT_URI', ''), // Must match redirect URI registered in Business Manager
+        'webhook_secret'          => env('SNAPCHAT_WEBHOOK_SECRET', ''),
+        // Legacy Snap Kit credentials (no longer used for primary flow)
+        'client_id'               => env('SNAPCHAT_CLIENT_ID', ''),
+        'public_client_id'        => env('SNAPCHAT_PUBLIC_CLIENT_ID', ''),
+        'client_secret'           => env('SNAPCHAT_CLIENT_SECRET', ''),
+    ],
+
+    'tiktok' => [
+        'client_key'     => env('TIKTOK_CLIENT_KEY', ''),
+        'client_secret'  => env('TIKTOK_CLIENT_SECRET', ''),
+        'webhook_secret' => env('TIKTOK_WEBHOOK_SECRET', ''),
+    ],
+
     'evolution' => [
         'url'        => env('EVOLUTION_API_URL', 'http://localhost:8080'),
         'api_key'    => env('EVOLUTION_API_KEY', ''),

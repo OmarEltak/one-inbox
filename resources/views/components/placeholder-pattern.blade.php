@@ -1,4 +1,4 @@
-@props([
+ /btw what are u doing @props([
     'id' => uniqid(),
 ])
 

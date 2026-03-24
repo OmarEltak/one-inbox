@@ -1,15 +1,43 @@
 # One Inbox — Launch Plan
 
-Last updated: 2026-03-15
+Last updated: 2026-03-23
+
+---
+
+## Phase 0: Laptop Server Hardening (Server A — do NOW)
+
+> Server A is your laptop. It IS the dev machine and the prod server at the same time.
+> These tasks make it survive reboots and not need open terminals.
+
+- [ ] **NSSM — install Reverb, Queue, Scheduler as Windows services** (see deployment-architecture.md § 6)
+      → Once done: no terminal needs to stay open. All 3 auto-start on boot.
+- [ ] Set `APP_DEBUG=false` in `.env` → run `php artisan config:cache`
+- [ ] Set up daily SQLite backup PowerShell script → schedule via Windows Task Scheduler
+- [ ] Enable Cloudflare WAF: dashboard → Security → WAF → Managed Rules → turn on
+- [ ] Rotate `META_WEBHOOK_VERIFY_TOKEN` to a random value → update in Meta console
+- [ ] Update Meta webhook URL to `https://ot1-pro.com/api/webhooks/meta` (if still on old ngrok)
 
 ---
 
 ## Phase 1: GitHub Private Repository
 - [ ] Verify .gitignore covers .env, vendor, node_modules
-- [ ] `git init` + initial commit
-- [ ] Create private GitHub repo (`one-inbox`)
-- [ ] Push code to main branch
-- [ ] Set up auto-deploy trigger in Forge later
+- [ ] Push current code to main branch on GitHub (initial commit already done — push any unpushed changes)
+- [ ] Confirm repo is private
+
+---
+
+## Phase 1.5: Auto-Deploy for Server B and C
+
+> Note: Server A (laptop) is updated manually — it's your dev machine, you control when code goes live on it.
+> Server B and C get auto-deployed from GitHub on every push to main.
+
+- [ ] Add GitHub Actions workflow: `.github/workflows/deploy.yml`
+      On push to `main` → SSH into Server B → git pull + composer install + npm build + artisan cache
+      Same for Server C in parallel
+- [ ] Set up SSH key: generate a deploy key on your laptop, add public key to Server B/C `authorized_keys`,
+      add private key as GitHub Actions secret (`DEPLOY_KEY_B`, `DEPLOY_KEY_C`)
+- [ ] Add GitHub secrets: `SERVER_B_HOST`, `SERVER_B_USER`, `SERVER_C_HOST`, `SERVER_C_USER`
+- [ ] Test: push a small change → confirm both servers update automatically
 
 ---
 

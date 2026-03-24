@@ -29,7 +29,7 @@
     <link rel="alternate" hreflang="es" href="{{ url()->current() }}?lang=es">
     <link rel="alternate" hreflang="x-default" href="{{ url()->current() }}">
 
-    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/logo.png" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Alpine.js + plugins for marketing pages (plugins must load before core) --}}
@@ -65,10 +65,8 @@
     <nav x-data="{ mobileOpen: false }" class="fixed top-0 z-50 w-full border-b border-zinc-200/50 bg-white/80 backdrop-blur-lg dark:border-zinc-800/50 dark:bg-zinc-950/80">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
             <a href="{{ route('home') }}" class="flex items-center gap-2 text-lg font-bold">
-                <div class="flex size-8 items-center justify-center rounded-lg bg-purple-600">
-                    <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
-                </div>
-                One Inbox
+                <img src="/logo.png" alt="OT1 Pro" class="size-8 rounded-lg object-cover" />
+                OT1 Pro
             </a>
 
             {{-- Desktop Nav Links --}}
@@ -208,10 +206,8 @@
                 {{-- Brand --}}
                 <div>
                     <div class="flex items-center gap-2 text-lg font-bold">
-                        <div class="flex size-8 items-center justify-center rounded-lg bg-purple-600">
-                            <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
-                        </div>
-                        One Inbox
+                        <img src="/logo.png" alt="OT1 Pro" class="size-8 rounded-lg object-cover" />
+                        OT1 Pro
                     </div>
                     <p class="mt-3 text-sm text-zinc-500">{{ __('Unified social inbox with AI-powered sales responder.') }}</p>
                 </div>
@@ -244,7 +240,7 @@
                 </div>
             </div>
             <div class="mt-8 border-t border-zinc-200 pt-8 text-center dark:border-zinc-800">
-                <p class="text-sm text-zinc-500">&copy; {{ date('Y') }} One Inbox. {{ __('All rights reserved.') }}</p>
+                <p class="text-sm text-zinc-500">&copy; {{ date('Y') }} OT1 Pro. {{ __('All rights reserved.') }}</p>
             </div>
         </div>
     </footer>

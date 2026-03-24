@@ -3,6 +3,10 @@
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 
+// Google OAuth
+Route::get('auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
@@ -59,10 +63,18 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('connections/instagram/callback', [\App\Http\Controllers\ConnectionController::class, 'instagramCallback'])->name('connections.instagram.callback');
         Route::post('connections/whatsapp/connect', [\App\Http\Controllers\ConnectionController::class, 'whatsappConnect'])->name('connections.whatsapp.connect');
         Route::post('connections/telegram/connect', [\App\Http\Controllers\ConnectionController::class, 'telegramConnect'])->name('connections.telegram.connect');
+        Route::get('connections/tiktok/redirect', [\App\Http\Controllers\ConnectionController::class, 'tiktokRedirect'])->name('connections.tiktok.redirect');
+        Route::get('connections/tiktok/callback', [\App\Http\Controllers\ConnectionController::class, 'tiktokCallback'])->name('connections.tiktok.callback');
+        Route::get('connections/snapchat/redirect', [\App\Http\Controllers\ConnectionController::class, 'snapchatRedirect'])->name('connections.snapchat.redirect');
+        Route::get('connections/snapchat/callback', [\App\Http\Controllers\ConnectionController::class, 'snapchatCallback'])->name('connections.snapchat.callback');
+        Route::post('connections/email/connect', [\App\Http\Controllers\ConnectionController::class, 'emailConnect'])->name('connections.email.connect');
     });
 
     // Campaigns
     Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware('permission:connections')->name('campaigns.index');
+
+    // Content
+    Route::get('content', \App\Livewire\Content\Index::class)->middleware('permission:connections')->name('content.index');
 
     // AI Chat
     Route::get('ai-chat', \App\Livewire\AiChat::class)->middleware('permission:ai-chat')->name('ai-chat');

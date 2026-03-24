@@ -47,6 +47,18 @@ class Index extends Component
         $this->selectedContactId = null;
     }
 
+    public function setLeadStatus(int $id, string $status): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $contact = Contact::where('team_id', $team->id)->findOrFail($id);
+        $contact->update(['lead_status' => $status]);
+        unset($this->selectedContact);
+    }
+
     #[Computed]
     public function selectedContact(): ?Contact
     {
@@ -67,7 +79,7 @@ class Index extends Component
             return collect();
         }
 
-        $query = Contact::with('platforms')
+        $query = Contact::with(['platforms', 'conversations' => fn ($q) => $q->with('page:id,name,platform')->select('id', 'contact_id', 'page_id', 'platform')])
             ->where('team_id', $team->id);
 
         if ($this->search) {

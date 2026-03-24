@@ -17,7 +17,12 @@
     <div wire:poll.30s class="flex-shrink-0 border-e border-zinc-200 dark:border-zinc-700 flex flex-col w-full md:w-80 {{ $selectedConversationId ? 'hidden md:flex' : 'flex' }}">
         {{-- Filters --}}
         <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 space-y-3">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" />
+            <div class="flex items-center gap-2">
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" class="flex-1" />
+                @if($pageId && optional(\App\Models\Page::find($pageId))->platform === 'email')
+                    <flux:button wire:click="openCompose" size="sm" variant="ghost" icon="pencil-square" title="Compose new email" />
+                @endif
+            </div>
 
             <div class="flex gap-1 flex-wrap items-center">
                 <flux:badge as="button" wire:click="setFilter('all')" :variant="$filter === 'all' ? 'solid' : 'outline'" color="zinc" size="sm">All</flux:badge>
@@ -59,11 +64,13 @@
 
         {{-- Conversation List --}}
         <div class="flex-1 overflow-y-auto" x-data="{ loading: false }" x-on:scroll.debounce.150ms="
-            if (!loading && $el.scrollTop + $el.clientHeight >= $el.scrollHeight - 200) {
-                @if($hasMoreConversations)
-                    loading = true;
-                    $wire.loadMoreConversations().then(() => { loading = false; });
-                @endif
+            if (loading) return;
+            if ($el.scrollTop + $el.clientHeight < $el.scrollHeight - 200) return;
+            if ($wire.hasMoreConversations) {
+                loading = true;
+                $wire.loadMoreConversations().then(() => { loading = false; });
+            } else if ($wire.hasMoreImapEmails) {
+                $wire.loadOlderEmailsFromInbox();
             }
         ">
             @forelse($this->conversations as $conversation)
@@ -137,6 +144,40 @@
                 </div>
                 <div class="p-1" wire:loading.remove wire:target="loadMoreConversations"></div>
             @endif
+
+            @if($hasMoreImapEmails)
+                <div wire:key="imap-load-btn"
+                     class="p-3 border-t border-zinc-100 dark:border-zinc-800 text-center"
+                     x-data="{ checking: false, timer: null }"
+                     x-init="$wire.$watch('hasMoreImapEmails', v => { if (!v && timer) { clearInterval(timer); timer = null; checking = false; } })"
+                >
+                    <template x-if="checking">
+                        <span class="text-xs text-zinc-400 flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                            Fetching older emails…
+                        </span>
+                    </template>
+                    <template x-if="!checking">
+                        <button
+                            wire:click="loadOlderEmailsFromInbox"
+                            x-on:click="
+                                checking = true;
+                                let attempts = 0;
+                                timer = setInterval(() => {
+                                    attempts++;
+                                    $wire.$refresh();
+                                    if (attempts >= 20) { clearInterval(timer); timer = null; checking = false; }
+                                }, 4000);
+                            "
+                            class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
+                        >
+                            <flux:icon name="arrow-path" class="w-3.5 h-3.5 animate-spin" wire:loading wire:target="loadOlderEmailsFromInbox" />
+                            <flux:icon name="arrow-up" class="w-3.5 h-3.5" wire:loading.remove wire:target="loadOlderEmailsFromInbox" />
+                            <span wire:loading.remove wire:target="loadOlderEmailsFromInbox">Load older emails</span>
+                        </button>
+                    </template>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -156,6 +197,9 @@
                     <flux:text size="xs">
                         {{ ucfirst($conv->platform) }}
                         @if($conv->page) &middot; {{ $conv->page->name }} @endif
+                        @if($conv->platform === 'email' && !empty($conv->metadata['subject']))
+                            &middot; <span class="font-medium text-zinc-600 dark:text-zinc-300">{{ $conv->metadata['subject'] }}</span>
+                        @endif
                     </flux:text>
                 </div>
 
@@ -215,6 +259,30 @@
                             </div>
                         </div>
                     </div>
+                @endif
+
+                {{-- Converted / Lost quick actions --}}
+                @if($conv->contact)
+                    @if($conv->contact->lead_status !== 'converted')
+                        <button
+                            wire:click="setContactLeadStatus({{ $conv->contact->id }}, 'converted')"
+                            class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                            title="Mark as Converted"
+                        >
+                            <flux:icon name="check-circle" class="w-3.5 h-3.5" />
+                            Converted
+                        </button>
+                    @endif
+                    @if($conv->contact->lead_status !== 'lost')
+                        <button
+                            wire:click="setContactLeadStatus({{ $conv->contact->id }}, 'lost')"
+                            class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                            title="Mark as Lost"
+                        >
+                            <flux:icon name="x-circle" class="w-3.5 h-3.5" />
+                            Lost
+                        </button>
+                    @endif
                 @endif
 
                 {{-- Assign to --}}
@@ -346,9 +414,15 @@
                 <div wire:loading.remove wire:target="selectConversation" class="flex flex-col space-y-3 mt-auto">
                 @if($hasOlderMessages)
                     <div class="text-center py-2">
-                        <button wire:click="loadOlderMessages" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer">
-                            <flux:icon name="arrow-path" class="w-4 h-4 inline animate-spin" wire:loading wire:target="loadOlderMessages" />
-                            <span wire:loading.remove wire:target="loadOlderMessages">Load older messages</span>
+                        <button wire:click="loadOlderMessages" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer flex items-center justify-center gap-1.5 mx-auto">
+                            <flux:icon name="arrow-path" class="w-4 h-4 animate-spin" wire:loading wire:target="loadOlderMessages" />
+                            <span wire:loading.remove wire:target="loadOlderMessages">
+                                @if($conv->platform === 'email')
+                                    Load older emails
+                                @else
+                                    Load older messages
+                                @endif
+                            </span>
                         </button>
                     </div>
                 @endif
@@ -507,4 +581,34 @@
             </div>
         @endif
     </div>
+
+    {{-- Compose Email Modal --}}
+    <flux:modal wire:model="showCompose" class="w-full max-w-lg">
+        <div class="p-6 space-y-4">
+            <flux:heading size="lg">New Email</flux:heading>
+            <flux:field>
+                <flux:label>To</flux:label>
+                <flux:input wire:model="composeTo" type="email" placeholder="recipient@example.com" />
+                <flux:error name="composeTo" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Subject</flux:label>
+                <flux:input wire:model="composeSubject" placeholder="Subject" />
+                <flux:error name="composeSubject" />
+            </flux:field>
+            <flux:field>
+                <flux:label>Message</flux:label>
+                <flux:textarea wire:model="composeBody" placeholder="Write your message..." rows="6" />
+                <flux:error name="composeBody" />
+            </flux:field>
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button wire:click="$set('showCompose', false)" variant="ghost">Cancel</flux:button>
+                <flux:button wire:click="sendCompose" variant="primary" wire:loading.attr="disabled" wire:target="sendCompose">
+                    <flux:icon name="paper-airplane" class="w-4 h-4 mr-1" wire:loading.remove wire:target="sendCompose" />
+                    <flux:icon name="arrow-path" class="w-4 h-4 mr-1 animate-spin" wire:loading wire:target="sendCompose" />
+                    Send
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

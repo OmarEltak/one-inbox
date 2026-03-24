@@ -71,7 +71,7 @@
             </flux:sidebar.nav>
         </flux:sidebar>
 
-        {{ $slot }}
+        {{ $slot }}0
 
         @fluxScripts
     </body>

@@ -52,11 +52,22 @@ class ProcessCampaign implements ShouldQueue
         }
 
         $conversations = $query->get();
-        $campaign->update(['total_contacts' => $conversations->count()]);
+        $totalContacts = $conversations->count();
+        $campaign->update(['total_contacts' => $totalContacts, 'sent_count' => 0]);
+
+        // Delay between messages (seconds) — prevents WhatsApp spam bans
+        $delaySeconds = (int) ($criteria['delay_seconds'] ?? 10);
+        $delaySeconds = max(3, min(60, $delaySeconds)); // clamp 3–60s
 
         $sent = 0;
 
-        foreach ($conversations as $conversation) {
+        foreach ($conversations->values() as $index => $conversation) {
+            // Re-check if campaign was paused/cancelled mid-run
+            $campaign->refresh();
+            if ($campaign->status !== 'active') {
+                break;
+            }
+
             $phone = $conversation->platform_conversation_id;
 
             if (! $phone) {
@@ -73,6 +84,8 @@ class ProcessCampaign implements ShouldQueue
 
                 if ($result) {
                     $sent++;
+                    // Update progress after every send
+                    $campaign->update(['sent_count' => $sent]);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Campaign send failed for conversation', [
@@ -80,6 +93,11 @@ class ProcessCampaign implements ShouldQueue
                     'conversation_id' => $conversation->id,
                     'error'           => $e->getMessage(),
                 ]);
+            }
+
+            // Wait between sends (skip delay after last message)
+            if ($index < $totalContacts - 1) {
+                sleep($delaySeconds);
             }
         }
 

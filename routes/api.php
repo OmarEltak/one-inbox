@@ -14,6 +14,14 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
     // Set EVOLUTION_WEBHOOK_URL=https://yourdomain.com/api/webhooks/evolution in .env
     Route::post('/evolution', [\App\Http\Controllers\Webhooks\EvolutionWebhookController::class, 'handle'])
         ->name('webhooks.evolution');
+
+    // TikTok Business Messaging — Set webhook in TikTok Developer Portal
+    Route::match(['get', 'post'], '/tiktok', [\App\Http\Controllers\Webhooks\TikTokWebhookController::class, 'handle'])
+        ->name('webhooks.tiktok');
+
+    // Snapchat — Set webhook in Snap Kit Developer Portal
+    Route::match(['get', 'post'], '/snapchat', [\App\Http\Controllers\Webhooks\SnapchatWebhookController::class, 'handle'])
+        ->name('webhooks.snapchat');
 });
 
 // Stripe webhook (uses Cashier's signature verification middleware)

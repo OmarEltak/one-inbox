@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Inbox;
 
+use App\Jobs\FetchOlderEmailsForPageJob;
 use App\Jobs\SendAiResponse;
 use App\Jobs\SendPlatformMessage;
 use App\Models\Conversation;
@@ -54,6 +55,13 @@ class Index extends Component
 
     public int $messageLimit = 30;
     public bool $hasOlderMessages = false;
+    public bool $hasMoreImapEmails = false;
+
+    // Email compose
+    public bool $showCompose    = false;
+    public string $composeTo      = '';
+    public string $composeSubject = '';
+    public string $composeBody    = '';
 
     // Cached in mount() to avoid recomputing on every render
     public $teamMembers;
@@ -118,6 +126,17 @@ class Index extends Component
 
         $this->hasMoreConversations = $conversations->count() > $this->conversationLimit;
 
+        // Check if the current email inbox has older emails not yet imported from IMAP
+        $this->hasMoreImapEmails = false;
+        if ($this->pageId) {
+            $emailPage = \App\Models\Page::find($this->pageId);
+            if ($emailPage && $emailPage->platform === 'email') {
+                $meta = $emailPage->metadata ?? [];
+                $this->hasMoreImapEmails = isset($meta['oldest_fetched_at'])
+                    && ($meta['has_more_imap'] ?? false);
+            }
+        }
+
         return $conversations->take($this->conversationLimit);
     }
 
@@ -152,6 +171,14 @@ class Index extends Component
         $totalMessages = $conversation->messages()->count();
         $this->hasOlderMessages = $totalMessages > $this->messageLimit;
 
+        // For email: also show "load older" when IMAP has un-imported messages
+        if (! $this->hasOlderMessages && $conversation->platform === 'email') {
+            $pageMeta = $conversation->page?->metadata ?? [];
+            // Show button once oldest_fetched_at is set (initial fetch done) and has_more_imap isn't false
+            $this->hasOlderMessages = isset($pageMeta['oldest_fetched_at'])
+                && ($pageMeta['has_more_imap'] ?? true);
+        }
+
         $messages = $conversation->messages()
             ->with('sentByUser')
             ->orderByRaw('COALESCE(platform_sent_at, created_at) DESC')
@@ -163,6 +190,18 @@ class Index extends Component
         $conversation->setRelation('messages', $messages);
 
         return $conversation;
+    }
+
+    public function setContactLeadStatus(int $contactId, string $status): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $contact = \App\Models\Contact::where('team_id', $team->id)->findOrFail($contactId);
+        $contact->update(['lead_status' => $status]);
+        unset($this->selectedConversation);
     }
 
     public function loadScoreHistory(int $contactId): void
@@ -182,7 +221,7 @@ class Index extends Component
     public function selectConversation(int $id): void
     {
         $this->selectedConversationId = $id;
-        $this->messageLimit = 30;
+        $this->messageLimit           = 30;
 
         $conversation = Conversation::with('page')->find($id);
 
@@ -213,16 +252,123 @@ class Index extends Component
         $this->conversationLimit += 30;
     }
 
+    public function loadOlderEmailsFromInbox(): void
+    {
+        if (! $this->pageId) {
+            return;
+        }
+
+        $emailPage = \App\Models\Page::find($this->pageId);
+        if (! $emailPage || $emailPage->platform !== 'email') {
+            return;
+        }
+
+        $meta = $emailPage->metadata ?? [];
+        if (isset($meta['oldest_fetched_at']) && ($meta['has_more_imap'] ?? false)) {
+            FetchOlderEmailsForPageJob::dispatch($emailPage->id);
+        }
+    }
+
+    public function openCompose(): void
+    {
+        $this->composeTo      = '';
+        $this->composeSubject = '';
+        $this->composeBody    = '';
+        $this->showCompose    = true;
+    }
+
+    public function sendCompose(): void
+    {
+        $this->validate([
+            'composeTo'      => 'required|email',
+            'composeSubject' => 'required|string|max:255',
+            'composeBody'    => 'required|string',
+        ]);
+
+        $page = \App\Models\Page::find($this->pageId);
+        if (! $page || $page->platform !== 'email') {
+            return;
+        }
+
+        $team = Auth::user()->currentTeam;
+
+        $contact = \App\Models\Contact::firstOrCreate(
+            ['team_id' => $team->id, 'email' => strtolower($this->composeTo)],
+            ['name' => $this->composeTo]
+        );
+
+        // Find or create the conversation for this recipient (one thread per email address per inbox)
+        $conversation = Conversation::firstOrCreate(
+            ['page_id' => $page->id, 'platform_conversation_id' => strtolower($this->composeTo)],
+            [
+                'team_id'    => $team->id,
+                'contact_id' => $contact->id,
+                'platform'   => 'email',
+                'status'     => 'open',
+                'metadata'   => [
+                    'subject'       => $this->composeSubject,
+                    'contact_email' => strtolower($this->composeTo),
+                ],
+            ]
+        );
+
+        $message = Message::create([
+            'conversation_id' => $conversation->id,
+            'direction'       => 'outbound',
+            'sender_type'     => 'user',
+            'sender_id'       => Auth::id(),
+            'content_type'    => 'text',
+            'content'         => $this->composeBody,
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => Str::limit($this->composeBody, 100),
+            'status'               => 'open',
+        ]);
+
+        SendPlatformMessage::dispatch($message->id);
+
+        $this->showCompose    = false;
+        $this->composeTo      = '';
+        $this->composeSubject = '';
+        $this->composeBody    = '';
+
+        unset($this->conversations);
+        $this->selectedConversationId = $conversation->id;
+    }
+
     public function loadOlderMessages(): void
     {
-        $this->messageLimit += 30;
+        $conversation = Conversation::with('page')->find($this->selectedConversationId);
+
+        if (! $conversation) {
+            return;
+        }
+
+        $totalInDb = $conversation->messages()->count();
+
+        // If DB still has more rows, just expand the window (instant)
+        if ($totalInDb > $this->messageLimit) {
+            $this->messageLimit += 30;
+            return;
+        }
+
+        // DB exhausted — for email, dispatch a job to pull the next batch from IMAP
+        if ($conversation->platform === 'email' && $conversation->page) {
+            $meta = $conversation->page->metadata ?? [];
+
+            if (isset($meta['oldest_fetched_at']) && ($meta['has_more_imap'] ?? true)) {
+                FetchOlderEmailsForPageJob::dispatch($conversation->page->id);
+            }
+        }
     }
 
     public function setFilter(string $filter): void
     {
-        $this->filter = $filter;
-        $this->selectedConversationId = null;
-        $this->conversationLimit = 30;
+        $this->filter                   = $filter;
+        $this->selectedConversationId   = null;
+        $this->conversationLimit        = 30;
     }
 
     public function setPage(?int $pageId): void

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Jobs\SendPlatformMessage;
 use App\Models\AiCommand;
+use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -23,6 +24,10 @@ class AiChat extends Component
     public string $message = '';
 
     public array $messages = [];
+
+    public ?array $pendingAction = null;
+
+    public string $pendingActionSummary = '';
 
     #[Validate('nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx')]
     public $attachment = null;
@@ -129,36 +134,165 @@ class AiChat extends Component
         $this->dispatch('message-sent');
     }
 
+    public function confirmAction(): void
+    {
+        if (! $this->pendingAction) {
+            return;
+        }
+
+        $team = Auth::user()->currentTeam;
+
+        if (! $team) {
+            return;
+        }
+
+        try {
+            $result = $this->runAction($this->pendingAction, $team->id);
+        } catch (\Throwable $e) {
+            Log::error('AI Chat confirmed action failed', ['error' => $e->getMessage(), 'action' => $this->pendingAction]);
+            $result = "Action failed: {$e->getMessage()}";
+        }
+
+        $this->pendingAction = null;
+        $this->pendingActionSummary = '';
+
+        $this->messages[] = ['role' => 'assistant', 'content' => "Done: {$result}"];
+        $this->dispatch('message-sent');
+    }
+
+    public function cancelAction(): void
+    {
+        $this->pendingAction = null;
+        $this->pendingActionSummary = '';
+
+        $this->messages[] = ['role' => 'assistant', 'content' => 'Action cancelled.'];
+        $this->dispatch('message-sent');
+    }
+
     /**
      * Parse AI response for action blocks and execute them.
-     * Actions are wrapped in ```action JSON blocks.
+     *
+     * pending_action blocks: require user confirmation before executing.
+     * action blocks: auto-execute immediately (save_memory only).
      */
     protected function executeActions(string &$response, int $teamId): ?string
     {
-        // Look for action blocks: ```action { ... } ```
-        if (! preg_match_all('/```action\s*(\{.+?\})\s*```/s', $response, $matches)) {
-            return null;
-        }
-
         $results = [];
 
-        foreach ($matches[1] as $i => $jsonStr) {
+        // Handle pending_action blocks — store for confirmation, do not execute yet
+        if (preg_match('/```pending_action\s*(\{.+?\})\s*```/s', $response, $match)) {
             try {
-                $action = json_decode($jsonStr, true, 512, JSON_THROW_ON_ERROR);
-                $result = $this->runAction($action, $teamId);
-                $results[] = $result;
+                $action = json_decode($match[1], true, 512, JSON_THROW_ON_ERROR);
+                $this->pendingAction = $action;
+                $this->pendingActionSummary = $this->describePendingAction($action, $teamId);
             } catch (\JsonException $e) {
-                $results[] = "Failed to parse action: invalid JSON.";
-            } catch (\Throwable $e) {
-                Log::error('AI Chat action failed', ['error' => $e->getMessage(), 'action' => $jsonStr]);
-                $results[] = "Action failed: {$e->getMessage()}";
+                $results[] = 'Failed to parse pending action: invalid JSON.';
             }
+
+            $response = trim(preg_replace('/```pending_action\s*\{.+?\}\s*```/s', '', $response));
         }
 
-        // Remove action blocks from the visible response
-        $response = trim(preg_replace('/```action\s*\{.+?\}\s*```/s', '', $response));
+        // Handle action blocks — auto-execute (save_memory only)
+        if (preg_match_all('/```action\s*(\{.+?\})\s*```/s', $response, $matches)) {
+            foreach ($matches[1] as $jsonStr) {
+                try {
+                    $action = json_decode($jsonStr, true, 512, JSON_THROW_ON_ERROR);
 
-        return implode("\n", $results);
+                    if (($action['action'] ?? null) === 'save_memory') {
+                        $results[] = $this->runAction($action, $teamId);
+                    }
+                } catch (\JsonException $e) {
+                    $results[] = 'Failed to parse action: invalid JSON.';
+                } catch (\Throwable $e) {
+                    Log::error('AI Chat action failed', ['error' => $e->getMessage(), 'action' => $jsonStr]);
+                    $results[] = "Action failed: {$e->getMessage()}";
+                }
+            }
+
+            $response = trim(preg_replace('/```action\s*\{.+?\}\s*```/s', '', $response));
+        }
+
+        return $results ? implode("\n", $results) : null;
+    }
+
+    protected function describePendingAction(array $action, int $teamId): string
+    {
+        return match ($action['action'] ?? '') {
+            'send_message' => $this->describeSendMessage($action, $teamId),
+            'send_bulk_message' => $this->describeBulkMessage($action, $teamId),
+            'pause_ai' => $this->describeAiToggle($action, $teamId, 'pause'),
+            'resume_ai' => $this->describeAiToggle($action, $teamId, 'resume'),
+            'pause_campaign' => $this->describeCampaignToggle($action, $teamId, 'pause'),
+            'resume_campaign' => $this->describeCampaignToggle($action, $teamId, 'resume'),
+            default => 'Execute: ' . json_encode($action),
+        };
+    }
+
+    protected function describeSendMessage(array $action, int $teamId): string
+    {
+        $contactId = $action['contact_id'] ?? null;
+        $text = $action['message'] ?? '';
+        $name = 'Unknown contact';
+
+        if ($contactId) {
+            $contact = Contact::where('team_id', $teamId)->find($contactId);
+            $name = $contact?->name ?? "Contact #{$contactId}";
+        }
+
+        return "Send message to {$name}: \"{$text}\"";
+    }
+
+    protected function describeBulkMessage(array $action, int $teamId): string
+    {
+        $text = $action['message'] ?? '';
+        $minScore = $action['min_score'] ?? null;
+        $status = $action['status'] ?? null;
+
+        $query = Conversation::where('team_id', $teamId)
+            ->where('status', '!=', 'archived')
+            ->whereHas('contact');
+
+        if ($minScore !== null) {
+            $query->whereHas('contact', fn ($q) => $q->where('lead_score', '>=', $minScore));
+        }
+
+        if ($status) {
+            $query->whereHas('contact', fn ($q) => $q->where('lead_status', $status));
+        }
+
+        $count = $query->distinct('contact_id')->count('contact_id');
+
+        $filter = $minScore !== null ? "score ≥ {$minScore}" : ($status ? "status: {$status}" : 'all contacts');
+
+        return "Send bulk message to ~{$count} contacts ({$filter}): \"{$text}\"";
+    }
+
+    protected function describeAiToggle(array $action, int $teamId, string $mode): string
+    {
+        $contactId = $action['contact_id'] ?? null;
+
+        if ($contactId) {
+            $contact = Contact::where('team_id', $teamId)->find($contactId);
+            $name = $contact?->name ?? "Contact #{$contactId}";
+
+            return ucfirst($mode) . " AI responses for {$name}";
+        }
+
+        return ucfirst($mode) . ' AI responses for all conversations';
+    }
+
+    protected function describeCampaignToggle(array $action, int $teamId, string $mode): string
+    {
+        $campaignId = $action['campaign_id'] ?? null;
+
+        if ($campaignId) {
+            $campaign = Campaign::where('team_id', $teamId)->find($campaignId);
+            $name = $campaign?->name ?? "Campaign #{$campaignId}";
+
+            return ucfirst($mode) . " campaign: {$name}";
+        }
+
+        return ucfirst($mode) . ' campaign (unknown ID)';
     }
 
     protected function runAction(array $action, int $teamId): string
@@ -170,6 +304,8 @@ class AiChat extends Component
             'send_bulk_message' => $this->actionSendBulkMessage($action, $teamId),
             'pause_ai' => $this->actionToggleAi($action, $teamId, true),
             'resume_ai' => $this->actionToggleAi($action, $teamId, false),
+            'pause_campaign' => $this->actionToggleCampaign($action, $teamId, 'paused'),
+            'resume_campaign' => $this->actionToggleCampaign($action, $teamId, 'active'),
             'save_memory' => $this->actionSaveMemory($action, $teamId),
             default => "Unknown action: {$type}",
         };
@@ -282,6 +418,27 @@ class AiChat extends Component
         return "AI {$state} for {$updated} conversation(s).";
     }
 
+    protected function actionToggleCampaign(array $action, int $teamId, string $status): string
+    {
+        $campaignId = $action['campaign_id'] ?? null;
+
+        if (! $campaignId) {
+            return 'Campaign action failed: missing campaign_id.';
+        }
+
+        $campaign = Campaign::where('team_id', $teamId)->find($campaignId);
+
+        if (! $campaign) {
+            return "Campaign #{$campaignId} not found.";
+        }
+
+        $campaign->update(['status' => $status]);
+
+        $label = $status === 'paused' ? 'paused' : 'resumed';
+
+        return "Campaign '{$campaign->name}' {$label}.";
+    }
+
     protected function actionSaveMemory(array $action, int $teamId): string
     {
         $content = trim($action['content'] ?? '');
@@ -380,6 +537,21 @@ class AiChat extends Component
         foreach ($escalated as $conv) {
             $contactName = $conv->contact?->name ?? 'Unknown';
             $lines[] = "{$contactName} ({$conv->platform}) - last message: " . ($conv->last_message_at?->diffForHumans() ?? 'N/A');
+        }
+
+        // Campaigns
+        $lines[] = "\n--- Campaigns (ID, Name, Type, Status, Sent/Total, Replies) ---";
+        $campaigns = Campaign::where('team_id', $teamId)
+            ->orderByDesc('created_at')
+            ->get();
+        $lines[] = 'Total campaigns: ' . $campaigns->count();
+        foreach ($campaigns as $campaign) {
+            $replyRate = $campaign->sent_count > 0
+                ? round(($campaign->reply_count / $campaign->sent_count) * 100) . '%'
+                : '0%';
+            $lines[] = "ID:{$campaign->id} | {$campaign->name} | {$campaign->type} | status:{$campaign->status}"
+                . " | sent:{$campaign->sent_count}/{$campaign->total_contacts} | replies:{$campaign->reply_count} ({$replyRate})"
+                . ($campaign->scheduled_at ? " | scheduled:{$campaign->scheduled_at->format('Y-m-d H:i')}" : '');
         }
 
         return implode("\n", $lines);

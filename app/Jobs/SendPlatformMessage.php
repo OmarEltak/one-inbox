@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Services\EvolutionApiService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendPlatformMessage implements ShouldQueue
 {
@@ -41,15 +42,14 @@ class SendPlatformMessage implements ShouldQueue
                 'facebook', 'instagram' => $this->sendViaMetaMessenger($page, $recipientId, $message),
                 'whatsapp' => $this->sendViaWhatsApp($page, $recipientId, $message),
                 'telegram' => $this->sendViaTelegram($page, $recipientId, $message),
+                'email' => $this->sendViaEmail($page, $message),
                 default => null,
             };
 
-            if ($platformMessageId) {
-                $message->update([
-                    'platform_message_id' => $platformMessageId,
-                    'platform_sent_at' => now(),
-                ]);
-            }
+            $message->update([
+                'platform_message_id' => $platformMessageId,
+                'platform_sent_at'    => now(),
+            ]);
         } catch (\Throwable $e) {
             Log::error("Failed to send message {$this->messageId} via {$platform}", [
                 'error' => $e->getMessage(),
@@ -57,6 +57,54 @@ class SendPlatformMessage implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    protected function sendViaEmail($page, Message $message): ?string
+    {
+        $conversation = $message->conversation;
+        $meta         = $page->metadata ?? [];
+        $fromEmail    = $page->platform_page_id;
+        $password     = decrypt($page->page_access_token);
+
+        $toEmail   = $conversation->metadata['contact_email'] ?? null;
+        $subject   = $conversation->metadata['subject'] ?? 'Re: (no subject)';
+        $inReplyTo = $conversation->metadata['last_message_id'] ?? null;
+
+        if (! $toEmail) {
+            Log::error("sendViaEmail: no contact_email for conversation {$conversation->id}");
+            return null;
+        }
+
+        config([
+            'mail.mailers.email_platform' => [
+                'transport'  => 'smtp',
+                'host'       => $meta['smtp_host'] ?? 'smtp.gmail.com',
+                'port'       => (int) ($meta['smtp_port'] ?? 587),
+                'encryption' => $meta['smtp_encryption'] ?? 'tls',
+                'username'   => $fromEmail,
+                'password'   => $password,
+            ],
+        ]);
+
+        $headers = [];
+        if ($inReplyTo) {
+            $headers['In-Reply-To'] = $inReplyTo;
+            $headers['References']  = $inReplyTo;
+        }
+
+        Mail::mailer('email_platform')->raw(
+            $message->content ?? '',
+            function ($msg) use ($fromEmail, $toEmail, $subject, $headers) {
+                $msg->from($fromEmail)->to($toEmail)->subject($subject);
+                foreach ($headers as $name => $value) {
+                    $msg->getHeaders()->addTextHeader($name, $value);
+                }
+            }
+        );
+
+        Log::info("sendViaEmail: sent from {$fromEmail} to {$toEmail} subject='{$subject}'");
+
+        return null; // SMTP does not return a message ID
     }
 
     protected function sendViaMetaMessenger($page, string $recipientId, Message $message): ?string

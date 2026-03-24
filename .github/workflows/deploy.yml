@@ -1,0 +1,51 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # ── Server A (self-hosted runner on this laptop) ──────────────────────────
+  deploy-server-a:
+    name: Deploy → Server A
+    runs-on: [self-hosted, windows, server-a]
+    steps:
+      - name: Run deploy script
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          & "C:\Users\NanoChip\Herd\one-inbox\deploy.ps1"
+
+  # ── Server B (SSH) — only runs when SERVER_B_ENABLED repo var is 'true' ──
+  deploy-server-b:
+    name: Deploy → Server B
+    runs-on: ubuntu-latest
+    if: ${{ vars.SERVER_B_ENABLED == 'true' }}
+    steps:
+      - name: SSH & Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_B_HOST }}
+          username: ${{ secrets.SERVER_B_USER }}
+          key: ${{ secrets.DEPLOY_KEY_B }}
+          script_stop: true
+          script: >
+            powershell -ExecutionPolicy Bypass -File
+            "C:\Users\${{ secrets.SERVER_B_USER }}\Herd\one-inbox\deploy.ps1"
+
+  # ── Server C (SSH) — only runs when SERVER_C_ENABLED repo var is 'true' ──
+  deploy-server-c:
+    name: Deploy → Server C
+    runs-on: ubuntu-latest
+    if: ${{ vars.SERVER_C_ENABLED == 'true' }}
+    steps:
+      - name: SSH & Deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_C_HOST }}
+          username: ${{ secrets.SERVER_C_USER }}
+          key: ${{ secrets.DEPLOY_KEY_C }}
+          script_stop: true
+          script: >
+            powershell -ExecutionPolicy Bypass -File
+            "C:\Users\${{ secrets.SERVER_C_USER }}\Herd\one-inbox\deploy.ps1"

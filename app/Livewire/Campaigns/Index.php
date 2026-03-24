@@ -20,6 +20,7 @@ class Index extends Component
     public string $messageTemplate = '';
     public string $leadStatus = '';
     public string $languageCode = 'en';
+    public int $delaySeconds = 10;
 
     #[Computed]
     public function campaigns()
@@ -45,8 +46,9 @@ class Index extends Component
 
     public function openCreateModal(): void
     {
-        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode']);
+        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds']);
         $this->languageCode = 'en';
+        $this->delaySeconds = 10;
         $this->showModal = true;
     }
 
@@ -61,7 +63,11 @@ class Index extends Component
 
         $team = Auth::user()->currentTeam;
 
-        $criteria = ['page_id' => $this->pageId, 'language_code' => $this->languageCode];
+        $criteria = [
+            'page_id'        => $this->pageId,
+            'language_code'  => $this->languageCode,
+            'delay_seconds'  => $this->delaySeconds,
+        ];
         if ($this->leadStatus) {
             $criteria['lead_status'] = $this->leadStatus;
         }
@@ -94,6 +100,18 @@ class Index extends Component
         ProcessCampaign::dispatch($campaign->id);
         unset($this->campaigns);
         session()->flash('success', 'Campaign launched — sending in progress.');
+    }
+
+    public function pause(int $id): void
+    {
+        $team = Auth::user()->currentTeam;
+        $campaign = Campaign::where('team_id', $team->id)->findOrFail($id);
+
+        if ($campaign->status === 'active') {
+            $campaign->update(['status' => 'paused']);
+            unset($this->campaigns);
+            session()->flash('success', 'Campaign paused. It will stop after the current message.');
+        }
     }
 
     public function delete(int $id): void

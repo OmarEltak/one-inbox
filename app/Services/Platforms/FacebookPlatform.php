@@ -18,7 +18,6 @@ class FacebookPlatform extends AbstractPlatform
     protected string $graphUrl;
     protected string $appId;
     protected string $appSecret;
-
     protected string $instagramAppId;
     protected string $instagramAppSecret;
 
@@ -54,7 +53,8 @@ class FacebookPlatform extends AbstractPlatform
 
     /**
      * Build the Instagram Business Login OAuth URL.
-     * Uses instagram.com/oauth/authorize — completely independent of Facebook pages.
+     * Uses instagram.com/oauth/authorize — works for Instagram Business/Creator accounts
+     * even without a linked Facebook page.
      */
     public function getInstagramConnectUrl(): string
     {
@@ -63,14 +63,20 @@ class FacebookPlatform extends AbstractPlatform
         $state = csrf_token();
         session(['instagram_oauth_state' => $state]);
 
-        return 'https://www.instagram.com/oauth/authorize?'
-            . http_build_query([
-                'client_id'     => $this->instagramAppId,
-                'redirect_uri'  => $redirectUri,
-                'scope'         => 'instagram_business_basic,instagram_business_manage_messages',
-                'response_type' => 'code',
-                'state'         => $state,
-            ]);
+        $params = [
+            'client_id'     => $this->instagramAppId,
+            'redirect_uri'  => $redirectUri,
+            'scope'         => 'instagram_business_basic,instagram_business_manage_messages',
+            'response_type' => 'code',
+            'state'         => $state,
+        ];
+
+        $configId = config('services.meta.login_config_id');
+        if ($configId) {
+            $params['config_id'] = $configId;
+        }
+
+        return 'https://www.instagram.com/oauth/authorize?' . http_build_query($params);
     }
 
     /**
@@ -80,7 +86,6 @@ class FacebookPlatform extends AbstractPlatform
     public function handleInstagramCallback(Request $request, int $teamId): ConnectedAccount
     {
         $code = $request->input('code');
-        $version = $this->graphVersion();
 
         // Step 1: Short-lived token from api.instagram.com
         $tokenResponse = Http::asForm()->post('https://api.instagram.com/oauth/access_token', [
@@ -96,7 +101,6 @@ class FacebookPlatform extends AbstractPlatform
         $igUsername = $tokenResponse['username'] ?? null;
 
         // Step 2: Exchange for long-lived token (~60 days)
-        // Instagram Business Login tokens may already be long-lived; fall back to the short-lived token if exchange fails
         $longLivedToken = $shortLivedToken;
         $expiresIn = $tokenResponse['expires_in'] ?? 5184000;
 
@@ -113,47 +117,21 @@ class FacebookPlatform extends AbstractPlatform
                 $expiresIn = $longLivedResponse['expires_in'] ?? $expiresIn;
             }
         } catch (\Throwable $e) {
-            Log::info('Instagram long-lived token exchange skipped (Business Login token may already be long-lived)', [
+            Log::info('Instagram long-lived token exchange skipped', [
                 'ig_user_id' => $igUserId,
                 'error'      => $e->getMessage(),
             ]);
         }
 
-        // Step 3: Fetch Instagram user profile.
+        // Step 3: Fetch Instagram user profile
         $profileResp = Http::withToken($longLivedToken)
-            ->get('https://graph.instagram.com/me', ['fields' => 'id,username,name']);
+            ->get('https://graph.instagram.com/me', ['fields' => 'id,username,name,profile_picture_url']);
 
-        if ($profileResp->successful()) {
-            $profile = $profileResp->json();
-        } else {
-            $errorCode = $profileResp->json('error.code');
-            $errorMsg  = $profileResp->json('error.message', '');
-
-            // Error 100 "Unsupported request" from graph.instagram.com means the app's
-            // instagram_business_basic permission only has Standard Access (needs App Review).
-            // Non-developer accounts cannot use the API in this state.
-            if ($errorCode === 100 && str_contains($errorMsg, 'Unsupported request')) {
-                Log::error('Instagram API access limited - App Review required', [
-                    'ig_user_id' => $igUserId,
-                    'fix'        => 'Request Advanced Access for instagram_business_basic and instagram_business_manage_messages in Meta Developer Console → One Inbox Business → Instagram use case → Permissions',
-                ]);
-                throw new \RuntimeException(
-                    'Instagram connection is temporarily unavailable for this account. ' .
-                    'The platform is being upgraded — please try again later or contact support.'
-                );
-            }
-
-            Log::warning('Instagram profile fetch failed', [
-                'ig_user_id' => $igUserId,
-                'status'     => $profileResp->status(),
-                'error'      => $errorMsg,
-            ]);
-            $profile = [
-                'id'       => $igUserId,
-                'username' => $igUsername,
-                'name'     => $igUsername,
-            ];
-        }
+        $profile = $profileResp->successful() ? $profileResp->json() : [
+            'id'       => $igUserId,
+            'username' => $igUsername,
+            'name'     => $igUsername,
+        ];
 
         $account = ConnectedAccount::updateOrCreate(
             [
@@ -172,7 +150,6 @@ class FacebookPlatform extends AbstractPlatform
             ]
         );
 
-        // Store the Instagram user as a Page (platform_page_id = Instagram user ID)
         $page = Page::updateOrCreate(
             [
                 'team_id'          => $account->team_id,
@@ -193,10 +170,7 @@ class FacebookPlatform extends AbstractPlatform
             ]
         );
 
-        // Subscribe to Instagram webhook events
         $this->subscribeInstagramPage($page);
-
-        // Sync existing conversations in background
         \App\Jobs\SyncPageConversations::dispatch($page);
 
         return $account;

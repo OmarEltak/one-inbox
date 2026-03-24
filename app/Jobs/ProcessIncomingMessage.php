@@ -46,6 +46,9 @@ class ProcessIncomingMessage implements ShouldQueue
                 'whatsapp'              => $this->processWhatsApp($payload, $ai),
                 'whatsapp_gateway'      => $this->processEvolution($payload, $ai),
                 'telegram'              => $this->processTelegram($payload, $ai),
+                'tiktok'                => $this->processTikTok($payload, $ai),
+                'snapchat'              => $this->processSnapchat($payload, $ai),
+                'email'                 => $this->processEmail($payload, $ai),
                 default                 => Log::warning("Unknown platform: {$platform}"),
             };
 
@@ -142,7 +145,7 @@ class ProcessIncomingMessage implements ShouldQueue
         }
 
         // Broadcast real-time update
-        broadcast(NewMessageReceived::fromMessage($message, $conversation));
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
     }
 
     protected function processWhatsApp(array $payload, AiProviderInterface $ai): void
@@ -233,7 +236,7 @@ class ProcessIncomingMessage implements ShouldQueue
             );
         }
 
-        broadcast(NewMessageReceived::fromMessage($message, $conversation));
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
     }
 
     /**
@@ -346,7 +349,7 @@ class ProcessIncomingMessage implements ShouldQueue
             );
         }
 
-        broadcast(NewMessageReceived::fromMessage($message, $conversation));
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
     }
 
     protected function processTelegram(array $payload, AiProviderInterface $ai): void
@@ -423,7 +426,197 @@ class ProcessIncomingMessage implements ShouldQueue
             );
         }
 
-        broadcast(NewMessageReceived::fromMessage($message, $conversation));
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    /**
+     * Process an inbound TikTok Direct Message.
+     *
+     * Payload envelope (stored in webhook_logs.payload):
+     * {
+     *   "type": "direct_message",
+     *   "event": {
+     *     "message_id":   "...",
+     *     "sender_id":    "<open_id of sender>",
+     *     "receiver_id":  "<open_id of business>",   ← maps to Page.platform_page_id
+     *     "create_time":  1741500000,
+     *     "content":      "{\"message_type\":\"text\",\"text\":\"Hello!\"}",
+     *     "message_type": "text"
+     *   }
+     * }
+     *
+     * IF TIKTOK API CHANGES THIS PAYLOAD STRUCTURE → update the extractors below.
+     */
+    protected function processTikTok(array $payload, AiProviderInterface $ai): void
+    {
+        $event = $payload['event'] ?? [];
+
+        if (empty($event)) {
+            return;
+        }
+
+        $receiverId = $event['receiver_id'] ?? null;
+        $senderId   = $event['sender_id'] ?? null;
+        $messageId  = $event['message_id'] ?? null;
+        $messageType = $event['message_type'] ?? 'text';
+        $timestamp  = $event['create_time'] ?? null;
+
+        if (! $receiverId || ! $senderId) {
+            return;
+        }
+
+        $page = Page::where('platform', 'tiktok')
+            ->where('platform_page_id', $receiverId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $page) {
+            Log::warning("TikTok webhook: no active page for receiver_id '{$receiverId}'");
+            return;
+        }
+
+        WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
+
+        // Parse content JSON string
+        $contentRaw = $event['content'] ?? '{}';
+        $contentData = is_string($contentRaw) ? json_decode($contentRaw, true) : $contentRaw;
+
+        [$content, $contentType] = match ($messageType) {
+            'text'  => [$contentData['text'] ?? null, 'text'],
+            'image' => ['[Image]', 'image'],
+            'video' => ['[Video]', 'video'],
+            'audio' => ['[Audio]', 'audio'],
+            'sticker' => ['[Sticker]', 'text'],
+            default => [null, 'text'],
+        };
+
+        $contact = $this->findOrCreateContact($page, 'tiktok', $senderId, [
+            'name' => 'TikTok User',
+        ]);
+
+        $conversation = $this->findOrCreateConversation($page, 'tiktok', $senderId, $contact);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $messageId,
+            'direction'           => 'inbound',
+            'sender_type'         => 'contact',
+            'sender_id'           => $contact->id,
+            'content_type'        => $contentType,
+            'content'             => $content,
+            'platform_sent_at'    => $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now(),
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($content ?? '[Media]', 100),
+            'status'               => 'open',
+        ]);
+        $conversation->incrementUnread();
+
+        ScoreLeadJob::dispatch($message->id, $contact->id);
+
+        $team = $page->team;
+        if ($team->isAiEnabled()) {
+            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+            );
+        }
+
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    /**
+     * Process an inbound Snapchat Direct Message.
+     *
+     * Payload envelope (stored in webhook_logs.payload):
+     * {
+     *   "event_type": "direct_message",
+     *   "message": {
+     *     "id":           "...",
+     *     "from_snap_id": "<sender snap_id>",   ← sender
+     *     "to_snap_id":   "<business snap_id>", ← maps to Page.platform_page_id
+     *     "content_type": "TEXT",
+     *     "text":         "Hello!",
+     *     "created_at":   1741500000
+     *   }
+     * }
+     *
+     * IF SNAPCHAT API CHANGES THIS PAYLOAD STRUCTURE → update the extractors below.
+     */
+    protected function processSnapchat(array $payload, AiProviderInterface $ai): void
+    {
+        $msg = $payload['message'] ?? [];
+
+        if (empty($msg)) {
+            return;
+        }
+
+        $senderId   = $msg['from_snap_id'] ?? null;
+        $receiverId = $msg['to_snap_id'] ?? null;
+        $messageId  = $msg['id'] ?? null;
+        $contentType = strtolower($msg['content_type'] ?? 'text');
+        $timestamp  = $msg['created_at'] ?? null;
+
+        if (! $senderId || ! $receiverId) {
+            return;
+        }
+
+        $page = Page::where('platform', 'snapchat')
+            ->where('platform_page_id', $receiverId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $page) {
+            Log::warning("Snapchat webhook: no active page for snap_id '{$receiverId}'");
+            return;
+        }
+
+        WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
+
+        [$content, $normalizedType] = match ($contentType) {
+            'text'  => [$msg['text'] ?? null, 'text'],
+            'image' => ['[Image]', 'image'],
+            'video' => ['[Video]', 'video'],
+            'audio' => ['[Audio]', 'audio'],
+            'sticker' => ['[Sticker]', 'text'],
+            default => [null, 'text'],
+        };
+
+        $contact = $this->findOrCreateContact($page, 'snapchat', $senderId, [
+            'name' => 'Snapchat User',
+        ]);
+
+        $conversation = $this->findOrCreateConversation($page, 'snapchat', $senderId, $contact);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $messageId,
+            'direction'           => 'inbound',
+            'sender_type'         => 'contact',
+            'sender_id'           => $contact->id,
+            'content_type'        => $normalizedType,
+            'content'             => $content,
+            'platform_sent_at'    => $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now(),
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($content ?? '[Media]', 100),
+            'status'               => 'open',
+        ]);
+        $conversation->incrementUnread();
+
+        ScoreLeadJob::dispatch($message->id, $contact->id);
+
+        $team = $page->team;
+        if ($team->isAiEnabled()) {
+            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+            );
+        }
+
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
     }
 
     protected function fetchMetaSenderProfile(string $senderId, Page $page): array
@@ -508,6 +701,7 @@ class ProcessIncomingMessage implements ShouldQueue
             'team_id' => $page->team_id,
             'name' => $senderData['name'] ?? null,
             'phone' => $senderData['phone'] ?? null,
+            'avatar' => $senderData['avatar'] ?? null,
             'first_seen_at' => now(),
             'last_interaction_at' => now(),
         ]);
@@ -547,5 +741,161 @@ class ProcessIncomingMessage implements ShouldQueue
         }
 
         return 'text';
+    }
+
+    /**
+     * Process an inbound email fetched via IMAP by the FetchEmails command.
+     *
+     * Payload envelope (stored in webhook_logs.payload):
+     * {
+     *   "message_id":  "<abc@mail.gmail.com>",
+     *   "in_reply_to": "<prev@mail.gmail.com>",
+     *   "from_email":  "customer@example.com",
+     *   "from_name":   "Ahmed Ali",
+     *   "to":          "support@business.com",
+     *   "subject":     "Question about pricing",
+     *   "text":        "Hi, I wanted to ask...",
+     *   "html":        "<p>Hi...</p>",
+     *   "date":        1741500000,
+     *   "to_page_id":  "support@business.com"
+     * }
+     */
+    protected function processEmail(array $payload, AiProviderInterface $ai): void
+    {
+        $toPageId   = $payload['to_page_id'] ?? null;
+        $fromEmail  = $payload['from_email'] ?? null;
+        $fromName   = $payload['from_name'] ?? $fromEmail;
+        $messageId  = $payload['message_id'] ?? null;
+        $inReplyTo  = $payload['in_reply_to'] ?? null;
+        $subject    = $payload['subject'] ?? '(no subject)';
+        $text       = $payload['text'] ?? '';
+        $html       = $payload['html'] ?? null;
+        $date       = $payload['date'] ?? null;
+
+        if (! $toPageId || ! $fromEmail) {
+            return;
+        }
+
+        $page = Page::where('platform', 'email')
+            ->where('platform_page_id', $toPageId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $page) {
+            Log::warning("Email: no active page for inbox '{$toPageId}'");
+            return;
+        }
+
+        WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
+
+        $contact = $this->findOrCreateContact($page, 'email', $fromEmail, [
+            'name' => $fromName,
+        ]);
+
+        // Store the sender email in contact metadata for reply routing
+        if (empty($contact->metadata['email'])) {
+            $contact->update(['metadata' => array_merge($contact->metadata ?? [], ['email' => $fromEmail])]);
+        }
+
+        // Thread by In-Reply-To chain, fall back to normalized subject hash
+        $conversationId = $this->resolveEmailThread($inReplyTo, $subject, $toPageId, $page);
+
+        $conversation = Conversation::firstOrCreate(
+            [
+                'team_id'                   => $page->team_id,
+                'platform'                  => 'email',
+                'platform_conversation_id'  => $conversationId,
+            ],
+            [
+                'page_id'         => $page->id,
+                'contact_id'      => $contact->id,
+                'status'          => 'open',
+                'last_message_at' => now(),
+                'metadata'        => [
+                    'subject'      => $subject,
+                    'contact_email' => $fromEmail,
+                ],
+            ]
+        );
+
+        // Update subject + contact_email on conversation so replies work
+        $convMeta = $conversation->metadata ?? [];
+        if (empty($convMeta['contact_email'])) {
+            $convMeta['contact_email'] = $fromEmail;
+        }
+        if (empty($convMeta['subject'])) {
+            $convMeta['subject'] = 'Re: ' . $subject;
+        }
+        if ($messageId && empty($convMeta['last_message_id'])) {
+            $convMeta['last_message_id'] = $messageId;
+        }
+        $conversation->update(['metadata' => $convMeta]);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $messageId,
+            'direction'           => 'inbound',
+            'sender_type'         => 'contact',
+            'sender_id'           => $contact->id,
+            'content_type'        => 'text',
+            'content'             => $text ?: strip_tags($html ?? ''),
+            'platform_sent_at'    => $date ? \Carbon\Carbon::createFromTimestamp($date) : now(),
+            'metadata'            => ['subject' => $subject, 'html' => $html],
+        ]);
+
+        // Always update last_message_id so replies thread correctly
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($message->content ?? '[Email]', 100),
+            'status'               => 'open',
+            'metadata'             => array_merge($conversation->fresh()->metadata ?? [], [
+                'last_message_id' => $messageId,
+            ]),
+        ]);
+        $conversation->incrementUnread();
+
+        ScoreLeadJob::dispatch($message->id, $contact->id);
+
+        $team = $page->team;
+        if ($team->isAiEnabled()) {
+            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+            );
+        }
+
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    protected function safeBroadcast(\App\Events\NewMessageReceived $event): void
+    {
+        try {
+            broadcast($event);
+        } catch (\Throwable $e) {
+            Log::warning('Broadcast failed (non-fatal): ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Determine the platform_conversation_id for an email.
+     * Tries to match an existing message by In-Reply-To header first,
+     * then falls back to a hash of the normalized subject + inbox address.
+     */
+    protected function resolveEmailThread(?string $inReplyTo, string $subject, string $inboxEmail, Page $page): string
+    {
+        if ($inReplyTo) {
+            $existing = Message::where('platform_message_id', $inReplyTo)
+                ->whereHas('conversation', fn ($q) => $q->where('team_id', $page->team_id)->where('platform', 'email'))
+                ->first();
+
+            if ($existing) {
+                return $existing->conversation->platform_conversation_id;
+            }
+        }
+
+        // Normalize subject: strip Re:/Fwd: prefixes, lowercase, trim
+        $normalized = preg_replace('/^(re|fwd|fw):\s*/i', '', $subject);
+        $normalized = strtolower(trim($normalized));
+
+        return sha1($normalized . '|' . strtolower($inboxEmail));
     }
 }
