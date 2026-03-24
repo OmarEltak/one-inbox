@@ -10,6 +10,9 @@ jobs:
     name: Deploy → Server A
     runs-on: [self-hosted, windows, server-a]
     steps:
+      - name: Diagnose environment
+        run: echo "Runner working dir=$env:GITHUB_WORKSPACE OS=$env:OS PATH=$env:PATH"
+
       - name: Run deploy script
         shell: bash
         run: |
