@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-Set-Location $PSScriptRoot
+Set-Location "C:\Users\NanoChip\Herd\one-inbox-prod"
 
 Write-Host "==> Pulling latest code..."
 git pull origin main
