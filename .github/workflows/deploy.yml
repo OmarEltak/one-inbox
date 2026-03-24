@@ -10,13 +10,10 @@ jobs:
     name: Deploy → Server A
     runs-on: [self-hosted, windows, server-a]
     steps:
-      - name: Diagnose environment
-        run: echo "Runner working dir=$env:GITHUB_WORKSPACE OS=$env:OS PATH=$env:PATH"
-
       - name: Run deploy script
-        shell: bash
+        shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -Command
         run: |
-          cd /c/Users/NanoChip/Herd/one-inbox
+          Set-Location "C:\Users\NanoChip\Herd\one-inbox"
           git pull origin main
           composer install --no-dev --optimize-autoloader
           npm ci
@@ -25,8 +22,8 @@ jobs:
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
-          /c/Windows/System32/nssm.exe restart OneInboxQueue || true
-          /c/Windows/System32/nssm.exe restart OneInboxReverb || true
+          & nssm restart OneInboxQueue
+          & nssm restart OneInboxReverb
 
   # ── Server B (SSH) — only runs when SERVER_B_ENABLED repo var is 'true' ──
   deploy-server-b:
