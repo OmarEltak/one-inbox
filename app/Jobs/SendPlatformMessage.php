@@ -110,7 +110,10 @@ class SendPlatformMessage implements ShouldQueue
     protected function sendViaMetaMessenger($page, string $recipientId, Message $message): ?string
     {
         $version = config('services.meta.graph_api_version', 'v21.0');
-        $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+        $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+        $url = $isInstagramBusiness
+            ? "https://graph.instagram.com/{$version}/{$page->platform_page_id}/messages"
+            : "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
 
         $payload = [
             'recipient' => ['id' => $recipientId],
@@ -187,12 +190,13 @@ class SendPlatformMessage implements ShouldQueue
     /**
      * Send via Evolution API (WhatsApp QR gateway mode).
      *
-     * Uses Page.platform_page_id as instanceName and Page.page_access_token as instance apikey.
+     * Instance name comes from metadata.gateway_instance (new connections use phone as platform_page_id).
+     * Falls back to platform_page_id for legacy connections where instance name was stored there.
      * IF Evolution API send endpoint changes → update EvolutionApiService::sendText()
      */
     protected function sendViaEvolution($page, string $recipientId, Message $message): ?string
     {
-        $instanceName   = $page->platform_page_id; // Evolution instance name
+        $instanceName   = $page->metadata['gateway_instance'] ?? $page->platform_page_id;
         $instanceApiKey = $page->page_access_token; // decrypted by Eloquent cast
 
         $evolution = app(EvolutionApiService::class);

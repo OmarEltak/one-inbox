@@ -76,6 +76,7 @@ class MetaWebhookController extends Controller
 
     /**
      * Verify X-Hub-Signature-256 HMAC header.
+     * Instagram and Facebook may use different apps with different secrets.
      */
     protected function verifySignature(Request $request): bool
     {
@@ -85,9 +86,22 @@ class MetaWebhookController extends Controller
             return false;
         }
 
+        $body = $request->getContent();
+
+        // Instagram Business Login uses a separate app with its own secret
+        $object = $request->input('object');
+        if ($object === 'instagram') {
+            $igSecret = config('services.meta.instagram_app_secret', config('services.meta.app_secret'));
+            $expected = 'sha256=' . hash_hmac('sha256', $body, $igSecret);
+            if (hash_equals($expected, $signature)) {
+                return true;
+            }
+        }
+
+        // Facebook (and fallback for Instagram using the same app)
         $expectedSignature = 'sha256=' . hash_hmac(
             'sha256',
-            $request->getContent(),
+            $body,
             config('services.meta.app_secret')
         );
 
