@@ -5,7 +5,7 @@
 # Usage: Right-click PowerShell -> Run as Administrator
 #        & "C:\Users\NanoChip\Herd\one-inbox\setup-services.ps1"
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"   # don't abort on nssm errors
 
 # ── Config ───────────────────────────────────────────────────────────────────
 $php     = "C:\Users\NanoChip\.config\herd\bin\php84\php.exe"
@@ -16,26 +16,49 @@ $sc      = "C:\Windows\System32\sc.exe"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 function Remove-ServiceFully($name) {
-    & $sc stop $name 2>$null | Out-Null
-    Start-Sleep -Milliseconds 500
-    & $nssm remove $name confirm 2>$null | Out-Null
+    # Skip entirely if service doesn't exist
+    $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
+    if (-not $svc) { return }
+
+    & $sc stop $name 2>&1 | Out-Null
+    Start-Sleep -Milliseconds 800
+
+    # Use sc.exe delete (more reliable than nssm remove for "marked for deletion")
+    & $sc delete $name 2>&1 | Out-Null
+    Start-Sleep -Milliseconds 800
+
+    # Force-clear registry if SCM still holds the key
     $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$name"
     if (Test-Path $regPath) {
         Remove-Item -Path $regPath -Recurse -Force -ErrorAction SilentlyContinue
         Write-Host "    Force-removed $name from registry." -ForegroundColor Yellow
+        Start-Sleep -Milliseconds 1500   # give SCM time to release
     }
-    Start-Sleep -Milliseconds 500
 }
 
 function Install-Service($name, $app, $cmd, $log) {
+    Write-Host "  Installing $name..." -NoNewline
     Remove-ServiceFully $name
-    & $nssm install $name $php "$app\artisan $cmd"
-    & $nssm set $name AppDirectory $app
-    & $nssm set $name AppStdout "$app\storage\logs\$log.log"
-    & $nssm set $name AppStderr "$app\storage\logs\$log-error.log"
-    & $nssm set $name Start SERVICE_AUTO_START
-    & $nssm start $name
-    Write-Host "  $name started." -ForegroundColor Green
+
+    # Retry install up to 3 times (SCM can be slow to release "marked for deletion")
+    $tries = 0
+    do {
+        $out = & $nssm install $name $php "$app\artisan $cmd" 2>&1
+        $tries++
+        if ($LASTEXITCODE -ne 0 -and $tries -lt 3) { Start-Sleep -Seconds 2 }
+    } while ($LASTEXITCODE -ne 0 -and $tries -lt 3)
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host " FAILED (reboot and re-run if this persists)" -ForegroundColor Red
+        return
+    }
+
+    & $nssm set $name AppDirectory $app           2>&1 | Out-Null
+    & $nssm set $name AppStdout "$app\storage\logs\$log.log"  2>&1 | Out-Null
+    & $nssm set $name AppStderr "$app\storage\logs\$log-error.log" 2>&1 | Out-Null
+    & $nssm set $name Start SERVICE_AUTO_START     2>&1 | Out-Null
+    & $nssm start $name                            2>&1 | Out-Null
+    Write-Host " OK" -ForegroundColor Green
 }
 
 # ── Verify ───────────────────────────────────────────────────────────────────
