@@ -8,17 +8,17 @@
 $ErrorActionPreference = "Stop"
 
 # ── Config ───────────────────────────────────────────────────────────────────
-$php  = "C:\Users\NanoChip\.config\herd\bin\php84\php.exe"
-$app  = "C:\Users\NanoChip\Herd\one-inbox"
-$nssm = "C:\Windows\System32\nssm.exe"
-$sc   = "C:\Windows\System32\sc.exe"
+$php     = "C:\Users\NanoChip\.config\herd\bin\php84\php.exe"
+$appDev  = "C:\Users\NanoChip\Herd\one-inbox"
+$appProd = "C:\Users\NanoChip\Herd\one-inbox-prod"
+$nssm    = "C:\Windows\System32\nssm.exe"
+$sc      = "C:\Windows\System32\sc.exe"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 function Remove-ServiceFully($name) {
     & $sc stop $name 2>$null | Out-Null
     Start-Sleep -Milliseconds 500
     & $nssm remove $name confirm 2>$null | Out-Null
-    # Force-remove from registry if stuck "marked for deletion"
     $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$name"
     if (Test-Path $regPath) {
         Remove-Item -Path $regPath -Recurse -Force -ErrorAction SilentlyContinue
@@ -27,9 +27,9 @@ function Remove-ServiceFully($name) {
     Start-Sleep -Milliseconds 500
 }
 
-function Install-Service($name, $args, $log) {
+function Install-Service($name, $app, $cmd, $log) {
     Remove-ServiceFully $name
-    & $nssm install $name $php "$app\artisan $args"
+    & $nssm install $name $php "$app\artisan $cmd"
     & $nssm set $name AppDirectory $app
     & $nssm set $name AppStdout "$app\storage\logs\$log.log"
     & $nssm set $name AppStderr "$app\storage\logs\$log-error.log"
@@ -39,41 +39,43 @@ function Install-Service($name, $args, $log) {
 }
 
 # ── Verify ───────────────────────────────────────────────────────────────────
-if (-not (Test-Path $php))  { Write-Error "PHP not found at $php"; exit 1 }
-if (-not (Test-Path $app))  { Write-Error "App folder not found at $app"; exit 1 }
-if (-not (Test-Path $nssm)) { Write-Error "NSSM not found at $nssm"; exit 1 }
+if (-not (Test-Path $php))     { Write-Error "PHP not found at $php"; exit 1 }
+if (-not (Test-Path $nssm))    { Write-Error "NSSM not found at $nssm"; exit 1 }
+if (-not (Test-Path $appDev))  { Write-Error "Dev app not found at $appDev"; exit 1 }
+if (-not (Test-Path $appProd)) { Write-Error "Prod app not found at $appProd"; exit 1 }
 
-Write-Host "Installing One Inbox Windows services..." -ForegroundColor Cyan
+Write-Host "Installing One Inbox Windows services (dev + prod)..." -ForegroundColor Cyan
 
-# ── Queue Worker (all servers) ───────────────────────────────────────────────
-Write-Host "  Installing OneInboxQueue..."
-Install-Service "OneInboxQueue" "queue:work --sleep=3 --tries=3 --max-time=3600" "queue"
+# ── DEV services ─────────────────────────────────────────────────────────────
+Write-Host ""
+Write-Host "[DEV - one-inbox]" -ForegroundColor Yellow
+Install-Service "OneInboxQueue"     $appDev  "queue:work --sleep=3 --tries=3 --max-time=3600" "queue"
+Install-Service "OneInboxReverb"    $appDev  "reverb:start --port=8080"                        "reverb"
+Install-Service "OneInboxScheduler" $appDev  "schedule:work"                                   "scheduler"
 
-# ── Reverb + Scheduler (Server A only) ───────────────────────────────────────
-$isServerA = Read-Host "Is this Server A (primary server)? [y/n]"
-if ($isServerA -eq 'y') {
-    Write-Host "  Installing OneInboxReverb..."
-    Install-Service "OneInboxReverb" "reverb:start --port=8080" "reverb"
-
-    Write-Host "  Installing OneInboxScheduler..."
-    Install-Service "OneInboxScheduler" "schedule:work" "scheduler"
-}
+# ── PROD services ────────────────────────────────────────────────────────────
+Write-Host ""
+Write-Host "[PROD - one-inbox-prod]" -ForegroundColor Yellow
+Install-Service "OneInboxQueueProd"     $appProd "queue:work --sleep=3 --tries=3 --max-time=3600" "queue"
+Install-Service "OneInboxSchedulerProd" $appProd "schedule:work"                                  "scheduler"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "Status:" -ForegroundColor Cyan
+Write-Host "  DEV:"
 & $nssm status OneInboxQueue
-if ($isServerA -eq 'y') {
-    & $nssm status OneInboxReverb
-    & $nssm status OneInboxScheduler
-}
+& $nssm status OneInboxReverb
+& $nssm status OneInboxScheduler
+Write-Host "  PROD:"
+& $nssm status OneInboxQueueProd
+& $nssm status OneInboxSchedulerProd
 
 Write-Host ""
-Write-Host "All services will auto-start on every reboot. No terminals needed." -ForegroundColor Green
+Write-Host "All services auto-start on reboot. No terminals needed." -ForegroundColor Green
 Write-Host ""
-Write-Host "To manage services:"
-Write-Host "  $nssm status  OneInboxQueue"
-Write-Host "  $nssm restart OneInboxQueue"
-Write-Host "  $nssm stop    OneInboxQueue"
+Write-Host "To manage prod services:"
+Write-Host "  nssm status  OneInboxQueueProd"
+Write-Host "  nssm restart OneInboxQueueProd"
+Write-Host "  nssm stop    OneInboxQueueProd"
 
 Read-Host "Press Enter to exit"
