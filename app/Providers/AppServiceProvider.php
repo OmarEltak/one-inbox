@@ -63,6 +63,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
+        // SQLite WAL mode: allows concurrent reads + queue worker writes without "database is locked"
+        if (config('database.default') === 'sqlite') {
+            DB::statement('PRAGMA journal_mode=WAL;');
+            DB::statement('PRAGMA busy_timeout=5000;'); // wait up to 5s instead of failing instantly
+        }
+
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
         );
