@@ -106,7 +106,9 @@ class Index extends Component
     {
         try {
             $evolution = app(EvolutionApiService::class);
-            $evolution->deleteInstance($account->platform_user_id, $account->access_token);
+            // Use gateway_instance from metadata (platform_user_id is now the phone number)
+            $instanceName = $account->metadata['gateway_instance'] ?? $account->platform_user_id;
+            $evolution->deleteInstance($instanceName, $account->access_token);
         } catch (\Throwable $e) {
             // Instance may already be gone — still mark as inactive
         }
