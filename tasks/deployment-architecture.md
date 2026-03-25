@@ -167,8 +167,8 @@ Get-ChildItem "C:\Users\NanoChip\OneDrive\Backups\one-inbox\" |
 
 | Scenario | Impact | Recovery |
 |----------|--------|----------|
-| Laptop restarts | cloudflared auto-restarts (service). Herd auto-starts on login. Reverb/queue/scheduler need manual restart. | Run 3 startup commands. ETA: 2 min. |
-| Laptop shuts off mid-day | All traffic fails. cloudflared tunnel goes dead. | Power on → auto-recover in ~1 min. Manual services need restart. |
+| Server restarts | Everything auto-recovers. cloudflared, Herd, Queue, Reverb, and Scheduler all start automatically on boot. No action needed. | Nothing — all services are installed as Windows auto-start services. |
+| Server shuts off mid-day | All traffic fails. cloudflared tunnel goes dead. | Power on → everything auto-recovers in ~1 min. No terminals needed. |
 | Laptop hard drive fails | **Total data loss** if no backup. | Restore from OneDrive backup. App code from git. |
 | ISP outage | All traffic fails. Cloudflare shows "tunnel unavailable." | Nothing to do until ISP recovers. |
 
@@ -177,57 +177,39 @@ With Server B added, Cloudflare Tunnel automatically stops routing to a dead ser
 
 ---
 
-## 6. Automate Startup Services (NSSM) — Do This Now
+## 6. Background Services (Auto-Start on Every Boot)
 
-Install Reverb, Queue Worker, and Scheduler as Windows Services so they survive terminal closes and reboots.
+Three background services must run at all times. They are installed as **Windows Services** — this means they start automatically when the PC boots, even before anyone logs in. **You never need to open a terminal for them.**
 
-### Step 1: Install NSSM
+| Service | What it does |
+|---------|-------------|
+| OneInboxQueue | Processes all incoming and outgoing messages |
+| OneInboxReverb | Real-time WebSocket server (live inbox updates) |
+| OneInboxScheduler | Polls email inboxes every 2 minutes |
+
+### ✅ Current Status (Server A)
+All three services are installed and running. If the PC restarts, they come back automatically. Nothing to do.
+
+### If Services Break — How to Reinstall
+
+> **IMPORTANT: Do NOT run this unless services are broken (not running).** If everything works, skip this section.
+
+1. Press **Win + S** → search **PowerShell** → right-click → **Run as Administrator**
+2. Paste this exactly and press Enter:
 ```powershell
-# Via Chocolatey
-choco install nssm
-
-# Or download from https://nssm.cc/download and put in C:\tools\nssm\
+& "C:\Users\NanoChip\Herd\one-inbox\setup-services.ps1"
 ```
+3. When it asks **"Is this Server A? [y/n]"** → type `y` and press Enter
+4. Wait for it to finish — you'll see `SERVICE_RUNNING` three times
+5. Done. Close the window.
 
-### Step 2: Install Services
-Open PowerShell as Administrator:
-
+### Check If Services Are Running
 ```powershell
-$phpPath = "C:\Program Files\Herd\resources\app.asar.unpacked\resources\bin\php\php.exe"
-$appPath = "C:\Users\NanoChip\Herd\one-inbox"
-$artisan = "$appPath\artisan"
-
-# Laravel Reverb (WebSocket server)
-nssm install OneInboxReverb $phpPath "$artisan reverb:start"
-nssm set OneInboxReverb AppDirectory $appPath
-nssm set OneInboxReverb AppStdout "$appPath\storage\logs\reverb.log"
-nssm set OneInboxReverb AppStderr "$appPath\storage\logs\reverb-error.log"
-nssm set OneInboxReverb Start SERVICE_AUTO_START
-nssm start OneInboxReverb
-
-# Queue Worker
-nssm install OneInboxQueue $phpPath "$artisan queue:work --sleep=3 --tries=3 --max-time=3600"
-nssm set OneInboxQueue AppDirectory $appPath
-nssm set OneInboxQueue AppStdout "$appPath\storage\logs\queue.log"
-nssm set OneInboxQueue AppStderr "$appPath\storage\logs\queue-error.log"
-nssm set OneInboxQueue Start SERVICE_AUTO_START
-nssm start OneInboxQueue
-
-# Scheduler
-nssm install OneInboxScheduler $phpPath "$artisan schedule:work"
-nssm set OneInboxScheduler AppDirectory $appPath
-nssm set OneInboxScheduler AppStdout "$appPath\storage\logs\scheduler.log"
-nssm set OneInboxScheduler AppStderr "$appPath\storage\logs\scheduler-error.log"
-nssm set OneInboxScheduler Start SERVICE_AUTO_START
-nssm start OneInboxScheduler
+C:\Windows\System32\nssm.exe status OneInboxQueue
+C:\Windows\System32\nssm.exe status OneInboxReverb
+C:\Windows\System32\nssm.exe status OneInboxScheduler
 ```
-
-### Manage Services
-```powershell
-nssm status OneInboxReverb
-nssm restart OneInboxReverb
-nssm stop OneInboxQueue
-```
+All three should say `SERVICE_RUNNING`.
 
 ---
 
@@ -629,37 +611,48 @@ Then open `https://ot1-pro.com` on your **phone** (not on Server B). If it loads
 
 ---
 
-#### B13 — Install Queue Worker as a Windows Service
+#### B13 — Install Background Services (Auto-Start on Every Boot)
 
-Open PowerShell **as Administrator**:
+This installs the queue worker as a **Windows Service** so it starts automatically every time the PC boots. **You will never need to open a terminal for it.**
 
-First, download NSSM:
-1. Go to `https://nssm.cc/download`
-2. Download the zip → extract it → find `nssm.exe` inside the `win64` folder
-3. Copy `nssm.exe` to `C:\tools\`
-4. Add `C:\tools\` to PATH the same way you did in Step B12 (point 5)
-5. Open a new PowerShell window
+> Server B runs the **queue worker only**. It does NOT run Reverb or the Scheduler — those only run on Server A.
 
-Now install the service:
-```powershell
-$php = "C:\Program Files\Herd\resources\app.asar.unpacked\resources\bin\php\php.exe"
-$app = "C:\Users\$env:USERNAME\Herd\one-inbox"
+**Step 1 — Copy the setup script from Server A to Server B.**
 
-nssm install OneInboxQueue $php "$app\artisan queue:work --sleep=3 --tries=3 --max-time=3600"
-nssm set OneInboxQueue AppDirectory $app
-nssm set OneInboxQueue AppStdout "$app\storage\logs\queue.log"
-nssm set OneInboxQueue AppStderr "$app\storage\logs\queue-error.log"
-nssm set OneInboxQueue Start SERVICE_AUTO_START
-nssm start OneInboxQueue
+On Server A, find this file:
 ```
+C:\Users\NanoChip\Herd\one-inbox\setup-services.ps1
+```
+Copy it to the same path on Server B:
+```
+C:\Users\USERNAME\Herd\one-inbox\setup-services.ps1
+```
+
+Before running it, open the file on Server B in Notepad and change the first two lines to match Server B's username. Replace `NanoChip` with the actual Windows username on Server B (e.g. `Omar`):
+```
+$php = "C:\Users\Omar\.config\herd\bin\php84\php.exe"
+$app = "C:\Users\Omar\Herd\one-inbox"
+```
+
+**Step 2 — Run the script as Administrator.**
+
+1. Press **Win + S** → search **PowerShell** → right-click → **Run as Administrator**
+2. Paste this and press Enter (replace `Omar` with the actual username):
+```powershell
+& "C:\Users\Omar\Herd\one-inbox\setup-services.ps1"
+```
+3. When it asks **"Is this Server A? [y/n]"** → type `n` and press Enter
+4. Wait for it to finish — you'll see `SERVICE_RUNNING`
+5. Done. Close the window.
 
 **How to verify:**
 ```powershell
-nssm status OneInboxQueue
+C:\Windows\System32\nssm.exe status OneInboxQueue
 ```
-Should say `SERVICE_RUNNING`
+Should say `SERVICE_RUNNING`.
 
-> Server B does NOT run Reverb or the Scheduler — only Server A does.
+**What happens if the server restarts?**
+The queue worker starts automatically on boot. No terminals needed, no manual action required.
 
 ---
 

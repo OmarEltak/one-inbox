@@ -133,30 +133,33 @@ class EvolutionWebhookController extends Controller
             $phone = str_replace('@s.whatsapp.net', '', $rawJid);
             $pushName = $data['profileName'] ?? $phone;
 
-            // Store in cache so Livewire modal detects the connection
+            // Store in cache so Livewire modal detects the connection (initial scan)
             Cache::put("evo_connected_{$instanceName}", [
                 'phone' => $phone,
                 'name'  => $pushName,
             ], 120);
 
-            // Ensure the page is marked active (in case of reconnection after disconnect)
-            Page::where('platform_page_id', $instanceName)
-                ->where('platform', 'whatsapp')
-                ->update(['is_active' => true]);
+            // Reconnection (e.g. phone came back online): mark the page active.
+            // The page is keyed by phone number; the instance name is stored in metadata.
+            if ($phone) {
+                Page::where('platform', 'whatsapp')
+                    ->where('platform_page_id', $phone)
+                    ->update(['is_active' => true]);
 
-            ConnectedAccount::where('platform_user_id', $instanceName)
-                ->where('platform', 'whatsapp')
-                ->update(['is_active' => true]);
+                ConnectedAccount::where('platform', 'whatsapp')
+                    ->where('platform_user_id', $phone)
+                    ->update(['is_active' => true]);
+            }
         }
 
         if ($state === 'close' || $state === 'refused') {
-            // Mark as inactive — user can reconnect by scanning again
-            Page::where('platform_page_id', $instanceName)
-                ->where('platform', 'whatsapp')
+            // Mark as inactive — look up by gateway_instance metadata since that's what we know here
+            Page::where('platform', 'whatsapp')
+                ->whereJsonContains('metadata->gateway_instance', $instanceName)
                 ->update(['is_active' => false]);
 
-            ConnectedAccount::where('platform_user_id', $instanceName)
-                ->where('platform', 'whatsapp')
+            ConnectedAccount::where('platform', 'whatsapp')
+                ->whereJsonContains('metadata->gateway_instance', $instanceName)
                 ->update(['is_active' => false]);
 
             // Notify Livewire modal if connection was lost during QR flow
@@ -222,9 +225,13 @@ class EvolutionWebhookController extends Controller
             return str_starts_with($instanceName, 'team_');
         }
 
-        // After first connection: look up stored apikey for this instance
-        $account = ConnectedAccount::where('platform_user_id', $instanceName)
-            ->where('platform', 'whatsapp')
+        // After first connection: look up stored apikey — pages/accounts are now keyed
+        // by phone number, with instanceName in metadata.gateway_instance.
+        $account = ConnectedAccount::where('platform', 'whatsapp')
+            ->where(function ($q) use ($instanceName) {
+                $q->whereJsonContains('metadata->gateway_instance', $instanceName)
+                  ->orWhere('platform_user_id', $instanceName); // legacy fallback
+            })
             ->first();
 
         if ($account) {

@@ -274,11 +274,16 @@ class ProcessIncomingMessage implements ShouldQueue
             return;
         }
 
-        // Find the Page by Evolution instance name
-        // IF Evolution API changes instance identification → update this query
+        // Find the Page by gateway_instance metadata (stable across reconnections).
+        // Pages are keyed by phone number (platform_page_id) with instanceName stored in
+        // metadata->gateway_instance. Fall back to platform_page_id match for any pages
+        // created before this convention was introduced.
         $page = Page::where('platform', 'whatsapp')
-            ->where('platform_page_id', $instanceName)
             ->where('is_active', true)
+            ->where(function ($q) use ($instanceName) {
+                $q->whereJsonContains('metadata->gateway_instance', $instanceName)
+                  ->orWhere('platform_page_id', $instanceName);
+            })
             ->first();
 
         if (! $page) {

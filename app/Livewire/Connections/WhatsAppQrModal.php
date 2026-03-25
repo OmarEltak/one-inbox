@@ -143,8 +143,9 @@ class WhatsAppQrModal extends Component
         // Check connection state directly
         $state = $evolution->getConnectionState($this->instanceName, $this->instanceApiKey);
         if ($state === 'open') {
-            $this->connectedPhone = 'Connected';
-            $this->connectedName = 'WhatsApp Business';
+            // Try to fetch the real phone number from Evolution API
+            $this->connectedPhone = $evolution->getInstancePhone($this->instanceName) ?? '';
+            $this->connectedName = $this->connectedPhone ?: 'WhatsApp';
             $this->saveConnection();
         }
     }
@@ -154,24 +155,37 @@ class WhatsAppQrModal extends Component
     /**
      * Persist the WhatsApp connection as a ConnectedAccount + Page.
      * Called after Evolution API confirms state = 'open'.
+     *
+     * Uses the phone number as the stable key (platform_page_id / platform_user_id)
+     * so that reconnections update the same record and preserve conversation history.
+     * The current instance name is stored in metadata.gateway_instance so that
+     * incoming webhook messages can be routed to the right page.
      */
     private function saveConnection(): void
     {
         try {
             $team = Auth::user()->currentTeam;
 
+            // Phone number is the stable identifier across reconnections.
+            // Fall back to instance name only if phone is unavailable (should not happen in practice).
+            $stableId = $this->connectedPhone ?: $this->instanceName;
+            $displayName = $this->connectedName ?: $stableId;
+
             $account = ConnectedAccount::updateOrCreate(
                 [
                     'team_id'          => $team->id,
                     'platform'         => 'whatsapp',
-                    'platform_user_id' => $this->instanceName,
+                    'platform_user_id' => $stableId,
                 ],
                 [
-                    'name'         => $this->connectedName ?: $this->connectedPhone,
+                    'name'         => $displayName,
                     'access_token' => $this->instanceApiKey,
                     'is_active'    => true,
                     'connected_at' => now(),
-                    'metadata'     => ['gateway_mode' => true],
+                    'metadata'     => [
+                        'gateway_mode'     => true,
+                        'gateway_instance' => $this->instanceName,
+                    ],
                 ]
             );
 
@@ -179,11 +193,11 @@ class WhatsAppQrModal extends Component
                 [
                     'team_id'          => $team->id,
                     'platform'         => 'whatsapp',
-                    'platform_page_id' => $this->instanceName,
+                    'platform_page_id' => $stableId,
                 ],
                 [
                     'connected_account_id' => $account->id,
-                    'name'                 => $this->connectedName ?: $this->connectedPhone,
+                    'name'                 => $displayName,
                     'page_access_token'    => $this->instanceApiKey,
                     'is_active'            => true,
                     'metadata'             => [

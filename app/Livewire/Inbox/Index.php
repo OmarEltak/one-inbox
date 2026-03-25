@@ -82,6 +82,23 @@ class Index extends Component
         $this->quickReplies = $team
             ? QuickReply::where('team_id', $team->id)->orderBy('title')->get()
             : collect();
+
+        // If opening a specific page with no conversations yet, trigger a background sync
+        if ($this->pageId && $team) {
+            $hasConversations = Conversation::where('team_id', $team->id)
+                ->where('page_id', $this->pageId)
+                ->exists();
+
+            if (! $hasConversations) {
+                $page = \App\Models\Page::where('team_id', $team->id)
+                    ->where('is_active', true)
+                    ->find($this->pageId);
+
+                if ($page) {
+                    \App\Jobs\SyncPageConversations::dispatch($page);
+                }
+            }
+        }
     }
 
     #[Computed]
@@ -129,7 +146,7 @@ class Index extends Component
         // Check if the current email inbox has older emails not yet imported from IMAP
         $this->hasMoreImapEmails = false;
         if ($this->pageId) {
-            $emailPage = \App\Models\Page::find($this->pageId);
+            $emailPage = \App\Models\Page::where('team_id', $team->id)->find($this->pageId);
             if ($emailPage && $emailPage->platform === 'email') {
                 $meta = $emailPage->metadata ?? [];
                 $this->hasMoreImapEmails = isset($meta['oldest_fetched_at'])
@@ -161,7 +178,14 @@ class Index extends Component
             return null;
         }
 
-        $conversation = Conversation::with(['contact', 'page', 'assignedUser'])->find($this->selectedConversationId);
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return null;
+        }
+
+        $conversation = Conversation::with(['contact', 'page', 'assignedUser'])
+            ->where('team_id', $team->id)
+            ->find($this->selectedConversationId);
 
         if (! $conversation) {
             return null;
@@ -210,6 +234,11 @@ class Index extends Component
             return;
         }
 
+        $team = Auth::user()->currentTeam;
+        if (! $team || ! \App\Models\Contact::where('team_id', $team->id)->where('id', $contactId)->exists()) {
+            return;
+        }
+
         $this->scoreHistoryContactId = $contactId;
         $this->scoreHistory = \App\Models\LeadScoreEvent::where('contact_id', $contactId)
             ->latest()
@@ -223,7 +252,8 @@ class Index extends Component
         $this->selectedConversationId = $id;
         $this->messageLimit           = 30;
 
-        $conversation = Conversation::with('page')->find($id);
+        $teamId = Auth::user()->currentTeam?->id;
+        $conversation = Conversation::with('page')->where('team_id', $teamId)->find($id);
 
         if (! $conversation) {
             return;
@@ -258,7 +288,7 @@ class Index extends Component
             return;
         }
 
-        $emailPage = \App\Models\Page::find($this->pageId);
+        $emailPage = \App\Models\Page::where('team_id', Auth::user()->currentTeam?->id)->find($this->pageId);
         if (! $emailPage || $emailPage->platform !== 'email') {
             return;
         }
@@ -285,7 +315,7 @@ class Index extends Component
             'composeBody'    => 'required|string',
         ]);
 
-        $page = \App\Models\Page::find($this->pageId);
+        $page = \App\Models\Page::where('team_id', Auth::user()->currentTeam?->id)->find($this->pageId);
         if (! $page || $page->platform !== 'email') {
             return;
         }
@@ -340,7 +370,7 @@ class Index extends Component
 
     public function loadOlderMessages(): void
     {
-        $conversation = Conversation::with('page')->find($this->selectedConversationId);
+        $conversation = Conversation::with('page')->where('team_id', Auth::user()->currentTeam?->id)->find($this->selectedConversationId);
 
         if (! $conversation) {
             return;
@@ -449,7 +479,7 @@ class Index extends Component
             return;
         }
 
-        $conversation = Conversation::with('page')->find($this->selectedConversationId);
+        $conversation = Conversation::with('page')->where('team_id', Auth::user()->currentTeam?->id)->find($this->selectedConversationId);
 
         if (! $conversation || ! $conversation->page) {
             return;
@@ -506,7 +536,7 @@ class Index extends Component
             return;
         }
 
-        $conversation = Conversation::with('page')->find($id);
+        $conversation = Conversation::with('page')->where('team_id', Auth::user()->currentTeam?->id)->find($id);
 
         if (! $conversation) {
             return;

@@ -1,5 +1,5 @@
 ##
-## Evolution API + PostgreSQL
+## Evolution API + PostgreSQL + Redis
 ## Start:  docker compose -f docker-compose.evolution.yml up -d
 ## Stop:   docker compose -f docker-compose.evolution.yml down
 ## Logs:   docker compose -f docker-compose.evolution.yml logs -f evolution-api
@@ -19,16 +19,27 @@ services:
     networks:
       - evolution-net
 
+  evolution-redis:
+    image: redis:7-alpine
+    container_name: evolution-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - evolution_redis_data:/data
+    networks:
+      - evolution-net
+
   evolution-api:
     image: atendai/evolution-api:v2.2.3
     container_name: evolution-api
     restart: unless-stopped
     ports:
-      - "8080:8080"          # Internal only — not exposed to internet
+      - "8081:8080"          # Internal only — not exposed to internet (8080 is used by Reverb)
     extra_hosts:
       - "host.docker.internal:host-gateway"   # Lets Evolution reach Laravel on the host
     depends_on:
       - evolution-postgres
+      - evolution-redis
     environment:
       # Auth — must match EVOLUTION_API_KEY in Laravel .env
       AUTHENTICATION_API_KEY: "85d97dedf44371d59d022bc0c042256896850929d0ac6f55"
@@ -46,13 +57,26 @@ services:
       DATABASE_SAVE_DATA_CONTACTS: "true"
       DATABASE_SAVE_DATA_CHATS: "true"
 
+      # Redis cache (required for in-memory session state)
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: "redis://evolution-redis:6379"
+      CACHE_REDIS_PREFIX_KEY: "evol"
+      CACHE_REDIS_TTL: "604800"
+      CACHE_LOCAL_ENABLED: "false"
+
       # Server
       SERVER_PORT: "8080"
-      SERVER_URL: "http://localhost:8080"
+      SERVER_URL: "http://localhost:8081"
 
       # Misc
       DEL_INSTANCE: "false"
       LANGUAGE: "en"
+
+      # Force Evolution API to auto-fetch the latest WA version via fetchLatestBaileysVersion()
+      # The bundled .env inside the image has an outdated hardcoded version (2.3000.1015901307)
+      # which causes WhatsApp to reject the connection with code 405.
+      # Setting this to empty overrides that bundled value and enables auto-fetch.
+      CONFIG_SESSION_PHONE_VERSION: ""
     volumes:
       - evolution_instances:/evolution/instances
     networks:
@@ -60,6 +84,7 @@ services:
 
 volumes:
   evolution_postgres_data:
+  evolution_redis_data:
   evolution_instances:
 
 networks:

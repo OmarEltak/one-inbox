@@ -170,6 +170,28 @@ class EvolutionApiService
         return 'unknown';
     }
 
+    /**
+     * Return the connected phone number for an instance, or null if not yet connected.
+     * Uses the global API key to read ownerJid from fetchInstances.
+     */
+    public function getInstancePhone(string $instanceName): ?string
+    {
+        $response = Http::withHeaders($this->headers())
+            ->get("{$this->baseUrl}/instance/fetchInstances");
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        foreach ($response->json() ?? [] as $instance) {
+            if (($instance['name'] ?? '') === $instanceName && ! empty($instance['ownerJid'])) {
+                return str_replace('@s.whatsapp.net', '', $instance['ownerJid']);
+            }
+        }
+
+        return null;
+    }
+
     // ─── Messaging ────────────────────────────────────────────────────────
 
     /**

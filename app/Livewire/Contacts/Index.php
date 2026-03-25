@@ -66,7 +66,13 @@ class Index extends Component
             return null;
         }
 
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return null;
+        }
+
         return Contact::with(['scoreEvents' => fn ($q) => $q->latest(), 'platforms', 'conversations'])
+            ->where('team_id', $team->id)
             ->find($this->selectedContactId);
     }
 
