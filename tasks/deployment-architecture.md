@@ -75,25 +75,17 @@ Laravel App
 
 ## 3. Current Running Services (What Must Stay Up)
 
-| Service | How It Runs | Terminal / Auto? |
-|---------|-------------|-----------------|
+| Service | How It Runs | Auto? |
+|---------|-------------|-------|
 | Laravel Herd (nginx + PHP) | Herd system tray app | Auto on login |
 | cloudflared tunnel | Windows Service | Auto on boot |
-| `php artisan reverb:start` | Manual terminal | **Manual** — needs automation |
-| `php artisan queue:work` | Manual terminal | **Manual** — needs automation |
-| `php artisan schedule:work` | Manual terminal | **Manual** — needs automation (email polling) |
+| `OneInboxQueue` (dev) | Windows Service (NSSM) | Auto on boot |
+| `OneInboxReverb` (dev) | Windows Service (NSSM) | Auto on boot |
+| `OneInboxScheduler` (dev) | Windows Service (NSSM) | Auto on boot |
+| `OneInboxQueueProd` (prod) | Windows Service (NSSM) | Auto on boot |
+| `OneInboxSchedulerProd` (prod) | Windows Service (NSSM) | Auto on boot |
 
-### Startup Commands (run in 3 terminals)
-```bash
-# Terminal 1 — WebSocket server
-php artisan reverb:start
-
-# Terminal 2 — Background job worker
-php artisan queue:work
-
-# Terminal 3 — Scheduler (email polling every 2 min)
-php artisan schedule:work
-```
+**No terminals needed.** All background services auto-start on every reboot.
 
 ---
 
@@ -118,7 +110,7 @@ php artisan schedule:work
 |------|------|-----|
 | **`APP_DEBUG=true`** | **HIGH** — Stack traces exposed to users on errors. Leaks file paths, env values, SQL queries. | Set `APP_DEBUG=false` in production `.env`. |
 | **`noTLSVerify: true` in cloudflared config** | LOW — Harmless since origin is HTTP, but should be cleaned up. | Remove the line — it's not needed for HTTP origins. |
-| **Manual process management** | MEDIUM — If you close the terminal, `queue:work`, `reverb:start`, and `schedule:work` die. Queued jobs fail silently, WebSocket disconnects, emails stop fetching. | Install these as Windows Services via NSSM (see Section 6). |
+| **Manual process management** | ~~MEDIUM~~ ✅ FIXED — All 5 background services (Queue, Reverb, Scheduler for dev + Queue, Scheduler for prod) are installed as Windows Services via NSSM. Auto-start on boot. No terminals needed. | Done — see Section 6. |
 | **SQLite on a laptop** | MEDIUM — SQLite is a file. No replication. No multi-server. Laptop drive fails = data gone. | Migrate to MySQL before adding Server B. Back up the SQLite file daily (see Section 5). |
 | **No Cloudflare WAF rules** | MEDIUM — Default Cloudflare free tier has basic DDoS but no application-layer firewall rules. | Enable Cloudflare's free WAF preset in the dashboard (Security → WAF → Managed Rules). |
 | **Secrets in `.env` file** | LOW for now — `.env` is gitignored and local. | When adding servers, use SSH to push `.env` rather than checking it into git. Never commit it. |
@@ -179,37 +171,42 @@ With Server B added, Cloudflare Tunnel automatically stops routing to a dead ser
 
 ## 6. Background Services (Auto-Start on Every Boot)
 
-Three background services must run at all times. They are installed as **Windows Services** — this means they start automatically when the PC boots, even before anyone logs in. **You never need to open a terminal for them.**
+Five background services run as **Windows Services via NSSM** — they start automatically on every boot, before anyone logs in. **You never need to open a terminal for them.**
 
-| Service | What it does |
-|---------|-------------|
-| OneInboxQueue | Processes all incoming and outgoing messages |
-| OneInboxReverb | Real-time WebSocket server (live inbox updates) |
-| OneInboxScheduler | Polls email inboxes every 2 minutes |
+| Service name | App | What it does |
+|---|---|---|
+| `OneInboxQueue` | dev (`one-inbox`) | Processes dev jobs (webhooks, AI, message send) |
+| `OneInboxReverb` | dev (`one-inbox`) | Real-time WebSocket server (live inbox updates) |
+| `OneInboxScheduler` | dev (`one-inbox`) | Polls email inboxes every 2 minutes |
+| `OneInboxQueueProd` | prod (`one-inbox-prod`) | Processes prod jobs — **required for ot1-pro.com messages** |
+| `OneInboxSchedulerProd` | prod (`one-inbox-prod`) | Email polling for production |
 
-### ✅ Current Status (Server A)
-All three services are installed and running. If the PC restarts, they come back automatically. Nothing to do.
-
-### If Services Break — How to Reinstall
-
-> **IMPORTANT: Do NOT run this unless services are broken (not running).** If everything works, skip this section.
-
-1. Press **Win + S** → search **PowerShell** → right-click → **Run as Administrator**
-2. Paste this exactly and press Enter:
-```powershell
-& "C:\Users\NanoChip\Herd\one-inbox\setup-services.ps1"
-```
-3. When it asks **"Is this Server A? [y/n]"** → type `y` and press Enter
-4. Wait for it to finish — you'll see `SERVICE_RUNNING` three times
-5. Done. Close the window.
+### ✅ Current Status
+All five services are installed and running. If the PC restarts, they come back automatically.
 
 ### Check If Services Are Running
 ```powershell
 C:\Windows\System32\nssm.exe status OneInboxQueue
 C:\Windows\System32\nssm.exe status OneInboxReverb
 C:\Windows\System32\nssm.exe status OneInboxScheduler
+C:\Windows\System32\nssm.exe status OneInboxQueueProd
+C:\Windows\System32\nssm.exe status OneInboxSchedulerProd
 ```
-All three should say `SERVICE_RUNNING`.
+All five should say `SERVICE_RUNNING`.
+
+### If Services Break — How to Reinstall
+
+> **IMPORTANT: Only run this if services are not running.** If everything works, skip this.
+
+1. Press **Win + S** → search **PowerShell** → right-click → **Run as Administrator**
+2. Paste and press Enter:
+```powershell
+& "C:\Users\NanoChip\Herd\one-inbox\setup-services.ps1"
+```
+3. Wait for it to finish — you'll see `SERVICE_RUNNING` five times.
+4. Done. Close the window.
+
+> The script is also mirrored at `scripts/setup-nssm-services.ps1` (uses `$env:USERNAME` so it works on any user account).
 
 ---
 
