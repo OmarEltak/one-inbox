@@ -92,7 +92,30 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $page = Page::where('platform', $platform)
             ->where('platform_page_id', $pageId)
+            ->where('is_active', true)
             ->first();
+
+        // Instagram Business Login: webhook entry.id uses a different ID format (legacy Instagram
+        // User ID) than what graph.instagram.com/me returns (IGBID). Self-heal on first message
+        // by finding the active Instagram page and updating platform_page_id to the webhook ID.
+        // The old IGBID is preserved in metadata['igbid'] for subscription API calls.
+        if (! $page && $platform === 'instagram') {
+            $page = Page::where('platform', 'instagram')
+                ->where('is_active', true)
+                ->first();
+
+            if ($page) {
+                $oldId = $page->platform_page_id;
+                $meta  = $page->metadata ?? [];
+                $meta['igbid'] = $oldId;
+                $page->update([
+                    'platform_page_id' => $pageId,
+                    'metadata'         => $meta,
+                ]);
+                $page->platform_page_id = $pageId;
+                Log::info("Instagram: healed platform_page_id from {$oldId} to {$pageId}");
+            }
+        }
 
         if (! $page) {
             Log::warning("No page found for {$platform} page ID: {$pageId}");
@@ -317,6 +340,10 @@ class ProcessIncomingMessage implements ShouldQueue
             'audioMessage'        => ['[Audio]', 'audio'],
             'videoMessage'        => ['[Video]', 'video'],
             'documentMessage'     => [$messageBody['documentMessage']['fileName'] ?? '[Document]', 'file'],
+            // Sticker messages (including animated thumbs-up button in WhatsApp)
+            'stickerMessage'      => ['[Sticker]', 'text'],
+            // Reaction messages (e.g. 👍 reacted to a specific message)
+            'reactionMessage'     => [$messageBody['reactionMessage']['text'] ?? '[Reaction]', 'text'],
             default               => [null, 'text'],
         };
 

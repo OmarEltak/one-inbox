@@ -230,6 +230,13 @@ class GeminiProvider implements AiProviderInterface
             . "- If the customer seems frustrated or explicitly asks for a human, say you'll connect them with a team member.\n"
             . "- Never sound robotic or scripted. Sound like a real person chatting.";
 
+        $parts[] = "MEDIA & EMOJI RULES (CRITICAL):\n"
+            . "- If the customer sends only an emoji (👍, ❤️, 😊, etc.) treat it as a positive reaction — respond warmly but naturally. NEVER assume they shared a product photo.\n"
+            . "- [Sticker] or [Reaction] means the customer used an emoji sticker or reacted to a message — NOT a product image.\n"
+            . "- [Image] means the customer sent a photo. You have NOT seen it. Ask what they're showing or what they need help with — do NOT invent product details or assume it shows something specific.\n"
+            . "- [Audio/Voice message] means they sent a voice note — acknowledge it and ask them to type their question.\n"
+            . "- NEVER hallucinate or make up what an image shows. You cannot see images.";
+
         if ($config->system_prompt) {
             $parts[] = "IMPORTANT INSTRUCTIONS (always follow these): {$config->system_prompt}";
         }
@@ -247,7 +254,13 @@ class GeminiProvider implements AiProviderInterface
 
         return $messages->map(fn (Message $msg) => [
             'role' => $msg->isInbound() ? 'user' : 'model',
-            'content' => $msg->content ?? '[media message]',
+            'content' => $msg->content ?? match ($msg->content_type) {
+                'image' => '[Image]',
+                'video' => '[Video]',
+                'audio' => '[Audio/Voice message]',
+                'file'  => '[Document/File]',
+                default => '[Media]',
+            },
         ])->values()->all();
     }
 
