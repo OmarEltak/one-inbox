@@ -72,6 +72,10 @@ services:
       DEL_INSTANCE: "false"
       LANGUAGE: "en"
 
+      # Allow 6 QR code regenerations (~2 minutes) before giving up.
+      # Default is 1, which removes the instance after the first QR expires (~20s).
+      QRCODE_LIMIT: "6"
+
       # Force Evolution API to auto-fetch the latest WA version via fetchLatestBaileysVersion()
       # The bundled .env inside the image has an outdated hardcoded version (2.3000.1015901307)
       # which causes WhatsApp to reject the connection with code 405.

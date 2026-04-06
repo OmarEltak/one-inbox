@@ -15,6 +15,54 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    /** Live Evolution API instance names, keyed for O(1) lookup. Populated in mount(). */
+    public array $waInstanceStates = [];
+
+    public function mount(): void
+    {
+        $this->refreshWaStates();
+    }
+
+    /** Fetch live WhatsApp instance names from Evolution API (one call for all QR accounts). */
+    public function refreshWaStates(): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $hasGateway = ConnectedAccount::where('team_id', $team->id)
+            ->where('platform', 'whatsapp')
+            ->where('is_active', true)
+            ->exists();
+
+        if ($hasGateway) {
+            $names = app(EvolutionApiService::class)->fetchConnectedInstanceNames();
+            $this->waInstanceStates = array_flip($names); // name => index for O(1) isset()
+        }
+    }
+
+    /** Disconnect the dead instance silently and open the QR modal to reconnect. */
+    public function reconnectGateway(int $accountId): void
+    {
+        $team = Auth::user()->currentTeam;
+        $account = ConnectedAccount::where('team_id', $team->id)
+            ->where('id', $accountId)
+            ->where('platform', 'whatsapp')
+            ->firstOrFail();
+
+        try {
+            $instanceName = $account->metadata['gateway_instance'] ?? null;
+            if ($instanceName) {
+                app(EvolutionApiService::class)->deleteInstance($instanceName, $account->access_token ?? '');
+            }
+        } catch (\Throwable) {
+            // Instance already gone — fine
+        }
+
+        $this->dispatch('open-whatsapp-qr');
+    }
+
     #[Computed]
     public function connectedAccounts()
     {
@@ -117,10 +165,37 @@ class Index extends Component
         $account->update(['is_active' => false]);
     }
 
+    public function retryPageSubscription(int $pageId): void
+    {
+        $team = Auth::user()->currentTeam;
+
+        $page = Page::where('team_id', $team->id)
+            ->where('id', $pageId)
+            ->where('platform', 'facebook')
+            ->firstOrFail();
+
+        $fb = app(FacebookPlatform::class);
+        $ok = $fb->subscribePage($page);
+
+        $meta = $page->metadata ?? [];
+        if ($ok) {
+            unset($meta['subscription_error']);
+            $page->update(['metadata' => $meta]);
+            session()->flash('success', "\"$page->name\" is now subscribed — Messenger messages will start flowing in.");
+        } else {
+            $meta['subscription_error'] = 'twofa_required';
+            $page->update(['metadata' => $meta]);
+            session()->flash('error', 'Still failing. Make sure Two-Factor Authentication is enabled on your Facebook account, then try again.');
+        }
+
+        unset($this->pages);
+    }
+
     #[On('gateway-connected')]
     public function onGatewayConnected(): void
     {
         unset($this->connectedAccounts, $this->pages);
+        $this->refreshWaStates();
     }
 
     public function render()

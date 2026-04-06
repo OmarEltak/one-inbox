@@ -114,12 +114,15 @@
                 @endforeach
             @endforeach
 
-            <div class="{{ $instagramAccounts->isNotEmpty() ? 'mt-3' : '' }}">
+            <div class="{{ $instagramAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
                 @else
-                    <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
-                        {{ $instagramAccounts->isNotEmpty() ? 'Add Another Account' : 'Connect Instagram' }}
+                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
+                        {{ $instagramAccounts->isNotEmpty() ? 'Add via Facebook' : 'Connect via Facebook' }}
+                    </flux:button>
+                    <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
+                        {{ $instagramAccounts->isNotEmpty() ? 'Add Direct (IG Login)' : 'Connect Direct (IG Login)' }}
                     </flux:button>
                 @endif
             </div>
@@ -137,24 +140,48 @@
 
             @php $whatsappAccounts = $this->connectedAccounts->where('platform', 'whatsapp'); @endphp
             @foreach($whatsappAccounts as $account)
+                @php
+                    $instanceName = $account->metadata['gateway_instance'] ?? null;
+                    $isGateway    = ! empty($account->metadata['gateway_mode']);
+                    $isOnline     = $isGateway && $instanceName && isset($waInstanceStates[$instanceName]);
+                @endphp
                 <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
-                        @if(! empty($account->metadata['gateway_mode']))
+                        @if($isGateway)
+                            @if($isOnline)
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                            @else
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400">Disconnected</span>
+                            @endif
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400">QR</span>
+                        @else
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
                         @endif
                     </div>
-                    <flux:button
-                        wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect '{{ addslashes($account->name) }}'? Messages from this number will stop coming in."
-                        wire:loading.attr="disabled"
-                        size="xs"
-                        variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
-                    >
-                        Disconnect
-                    </flux:button>
+                    <div class="flex items-center gap-1 flex-shrink-0 ml-2">
+                        @if($isGateway && ! $isOnline)
+                            <flux:button
+                                wire:click="reconnectGateway({{ $account->id }})"
+                                wire:loading.attr="disabled"
+                                size="xs"
+                                variant="ghost"
+                                class="text-yellow-400 hover:text-yellow-300"
+                            >
+                                Reconnect
+                            </flux:button>
+                        @endif
+                        <flux:button
+                            wire:click="disconnect({{ $account->id }})"
+                            wire:confirm="Disconnect '{{ addslashes($account->name) }}'? Messages from this number will stop coming in."
+                            wire:loading.attr="disabled"
+                            size="xs"
+                            variant="ghost"
+                            class="text-red-400 hover:text-red-300"
+                        >
+                            Disconnect
+                        </flux:button>
+                    </div>
                 </div>
             @endforeach
 
@@ -428,6 +455,13 @@
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-white/80 truncate">{{ $page->name }}</p>
                             <p class="text-xs text-white/40">{{ ucfirst($page->platform) }} {{ isset($page->metadata['category']) ? '· ' . $page->metadata['category'] : '' }}</p>
+                            @if(($page->metadata['subscription_error'] ?? null) === 'twofa_required')
+                                <p class="text-xs text-yellow-400 mt-0.5">
+                                    ⚠ Not receiving messages — Two-Factor Authentication required on Facebook.
+                                    <a href="https://www.facebook.com/settings?tab=security" target="_blank" class="underline hover:text-yellow-300">Enable 2FA on Facebook</a>,
+                                    then <button wire:click="retryPageSubscription({{ $page->id }})" class="underline hover:text-yellow-300 cursor-pointer">retry here</button>.
+                                </p>
+                            @endif
                         </div>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $page->is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
                             {{ $page->is_active ? 'Active' : 'Inactive' }}

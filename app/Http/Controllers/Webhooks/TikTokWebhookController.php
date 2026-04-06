@@ -54,7 +54,7 @@ class TikTokWebhookController extends Controller
         $secret = config('services.tiktok.webhook_secret');
 
         if (! $secret) {
-            return true; // Skip verification if not configured
+            return false;
         }
 
         $signature = $request->header('X-TikTok-Signature');
@@ -65,6 +65,10 @@ class TikTokWebhookController extends Controller
 
         $expected = hash_hmac('sha256', $request->getContent(), $secret);
 
-        return hash_equals($expected, ltrim($signature, 'sha256='));
+        // Strip "sha256=" prefix if present (ltrim would strip individual chars, not the prefix)
+        $prefix = 'sha256=';
+        $actual = str_starts_with($signature, $prefix) ? substr($signature, strlen($prefix)) : $signature;
+
+        return hash_equals($expected, $actual);
     }
 }

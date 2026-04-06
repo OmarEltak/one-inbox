@@ -68,6 +68,61 @@ class ConnectionController extends Controller
     }
 
     /**
+     * Redirect to Facebook OAuth to connect Instagram via Facebook Login.
+     * Uses instagram_manage_messages — no app review required.
+     */
+    public function instagramViaFacebookRedirect(FacebookPlatform $facebook)
+    {
+        if (empty(config('services.meta.app_id')) || empty(config('services.meta.app_secret'))) {
+            return redirect()->route('connections.index')
+                ->with('error', 'Facebook is not configured yet. Set META_APP_ID and META_APP_SECRET in your .env file.');
+        }
+
+        $team = auth()->user()->currentTeam;
+        if ($team && ! EnforcePlanLimits::canConnectPage($team)) {
+            return redirect()->route('connections.index')
+                ->with('error', 'You have reached your page limit. Please upgrade your plan to connect more pages.');
+        }
+
+        return redirect($facebook->getInstagramViaFacebookConnectUrl());
+    }
+
+    /**
+     * Handle Instagram via Facebook OAuth callback.
+     */
+    public function instagramViaFacebookCallback(Request $request, FacebookPlatform $facebook)
+    {
+        if ($request->has('error')) {
+            Log::warning('Instagram via Facebook OAuth error', [
+                'error'  => $request->input('error'),
+                'reason' => $request->input('error_reason'),
+            ]);
+
+            return redirect()->route('connections.index')
+                ->with('error', 'Instagram connection was cancelled or failed.');
+        }
+
+        try {
+            $teamId  = auth()->user()->current_team_id;
+            $account = $facebook->handleInstagramViaFacebookCallback($request, $teamId);
+
+            $igCount = $account->pages()->where('platform', 'instagram')->count();
+
+            return redirect()->route('connections.index')
+                ->with('success', "Connected {$account->name} — found {$igCount} Instagram account(s).")
+                ->with('syncing', $igCount > 0);
+        } catch (\Throwable $e) {
+            Log::error('Instagram via Facebook OAuth callback failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->route('connections.index')
+                ->with('error', 'Failed to connect Instagram: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Redirect to Facebook OAuth for Instagram connection.
      */
     public function instagramRedirect(FacebookPlatform $facebook)

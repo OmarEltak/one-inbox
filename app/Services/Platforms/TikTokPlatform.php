@@ -25,7 +25,7 @@ class TikTokPlatform extends AbstractPlatform
         $params = http_build_query([
             'client_key'    => config('services.tiktok.client_key'),
             'response_type' => 'code',
-            'scope'         => 'user.info.basic,direct_message.read,direct_message.write',
+            'scope'         => 'message.list.read,message.list.send,message.list.manage',
             'redirect_uri'  => url('/connections/tiktok/callback'),
             'state'         => csrf_token(),
         ]);
@@ -74,7 +74,7 @@ class TikTokPlatform extends AbstractPlatform
                 'name'          => $displayName,
                 'access_token'  => $accessToken,
                 'refresh_token' => $refreshToken,
-                'scopes'        => ['direct_message.read', 'direct_message.write'],
+                'scopes'        => ['message.list.read', 'message.list.send', 'message.list.manage'],
                 'is_active'     => true,
                 'connected_at'  => now(),
                 'metadata'      => ['avatar_url' => $avatarUrl],
@@ -122,26 +122,25 @@ class TikTokPlatform extends AbstractPlatform
             'Content-Type'  => 'application/json',
         ])->post("{$this->apiBase}/direct_message/send/", $body);
 
-        $platformMessageId = null;
-
-        if ($response->successful()) {
-            $platformMessageId = (string) ($response->json('data.message_id') ?? Str::uuid());
-        } else {
+        if (! $response->successful()) {
             Log::error('TikTok send message failed', [
                 'status' => $response->status(),
                 'body'   => $response->body(),
             ]);
+            throw new \RuntimeException('TikTok send message failed: ' . $response->body());
         }
 
+        $platformMessageId = (string) ($response->json('data.message_id') ?? Str::uuid());
+
         $message = Message::create([
-            'conversation_id'    => $conversation->id,
+            'conversation_id'     => $conversation->id,
             'platform_message_id' => $platformMessageId,
-            'direction'          => 'outbound',
-            'sender_type'        => 'user',
-            'sender_id'          => auth()->id(),
-            'content_type'       => $contentType,
-            'content'            => $content,
-            'platform_sent_at'   => now(),
+            'direction'           => 'outbound',
+            'sender_type'         => 'user',
+            'sender_id'           => auth()->id(),
+            'content_type'        => $contentType,
+            'content'             => $content,
+            'platform_sent_at'    => now(),
         ]);
 
         $conversation->update([
@@ -161,9 +160,30 @@ class TikTokPlatform extends AbstractPlatform
         return collect();
     }
 
+    /**
+     * Fetch messages for a conversation using the message.list.read scope.
+     * TikTok Business Messaging API returns messages for a given conversation (sender open_id).
+     */
     public function fetchMessages(Page $page, string $platformConversationId): Collection
     {
-        return collect();
+        $accessToken = $page->page_access_token;
+
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$accessToken}",
+        ])->get("{$this->apiBase}/direct_message/list/", [
+            'sender_open_id' => $platformConversationId,
+            'page_size'      => 20,
+        ]);
+
+        if (! $response->successful()) {
+            Log::warning('TikTok fetchMessages failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return collect();
+        }
+
+        return collect($response->json('data.messages') ?? []);
     }
 
     public function fetchPages(ConnectedAccount $account): Collection

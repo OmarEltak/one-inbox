@@ -171,6 +171,30 @@ class EvolutionApiService
     }
 
     /**
+     * Return all live instance names from Evolution API (3-second timeout).
+     * Used by the Connections page to show real-time connection status without N+1 calls.
+     */
+    public function fetchConnectedInstanceNames(): array
+    {
+        try {
+            $response = Http::timeout(3)->withHeaders($this->headers())
+                ->get("{$this->baseUrl}/instance/fetchInstances");
+
+            if (! $response->successful()) {
+                return [];
+            }
+
+            return collect($response->json() ?? [])
+                ->pluck('name')
+                ->filter()
+                ->values()
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
      * Return the connected phone number for an instance, or null if not yet connected.
      * Uses the global API key to read ownerJid from fetchInstances.
      */

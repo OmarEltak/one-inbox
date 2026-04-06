@@ -52,6 +52,53 @@ class FacebookPlatform extends AbstractPlatform
     }
 
     /**
+     * Build the Facebook Login OAuth URL that also requests instagram_manage_messages.
+     * This detects any Instagram Business account linked to a Facebook Page and subscribes
+     * it to webhooks — no app review required (0 requirements).
+     */
+    public function getInstagramViaFacebookConnectUrl(): string
+    {
+        $redirectUri = route('connections.instagram-via-facebook.callback');
+
+        $state = csrf_token();
+        session(['instagram_via_fb_oauth_state' => $state]);
+
+        return "https://www.facebook.com/{$this->graphVersion()}/dialog/oauth?"
+            . http_build_query([
+                'client_id'     => $this->appId,
+                'redirect_uri'  => $redirectUri,
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_utility_messaging,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                'response_type' => 'code',
+                'state'         => $state,
+            ]);
+    }
+
+    /**
+     * Handle the Instagram-via-Facebook OAuth callback.
+     * Fetches FB pages, then detects any linked Instagram accounts per page.
+     */
+    public function handleInstagramViaFacebookCallback(Request $request, int $teamId): ConnectedAccount
+    {
+        $account = $this->handleCallback($request, $teamId, route('connections.instagram-via-facebook.callback'));
+
+        foreach ($account->pages()->where('platform', 'facebook')->get() as $fbPage) {
+            $igPage = $this->detectInstagramAccount($fbPage, $account);
+
+            // Re-subscribe the FB page including the instagram_messaging field
+            Http::withToken($fbPage->page_access_token)
+                ->post("{$this->graphUrl}/{$fbPage->platform_page_id}/subscribed_apps", [
+                    'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks,instagram_messaging',
+                ]);
+
+            if ($igPage) {
+                \App\Jobs\SyncPageConversations::dispatch($igPage);
+            }
+        }
+
+        return $account;
+    }
+
+    /**
      * Build the Instagram Business Login OAuth URL.
      * Uses instagram.com/oauth/authorize — works for Instagram Business/Creator accounts
      * even without a linked Facebook page.
@@ -166,6 +213,9 @@ class FacebookPlatform extends AbstractPlatform
                 'metadata'             => [
                     'username'  => $profile['username'] ?? null,
                     'auth_type' => 'instagram_business',
+                    // IGBID from graph.instagram.com/me — used for subscription API calls.
+                    // platform_page_id may differ (legacy Instagram User ID used for webhook routing).
+                    'igbid'     => $profile['id'] ?? $igUserId,
                 ],
             ]
         );
@@ -183,7 +233,12 @@ class FacebookPlatform extends AbstractPlatform
     {
         $version = $this->graphVersion();
 
-        $response = Http::post("https://graph.instagram.com/{$version}/{$page->platform_page_id}/subscribed_apps", [
+        // Use IGBID for the subscription API (graph.instagram.com expects the IGBID, not the
+        // legacy Instagram User ID that webhooks use for routing). Falls back to platform_page_id
+        // for accounts connected before the igbid metadata field was introduced.
+        $igbid = $page->metadata['igbid'] ?? $page->platform_page_id;
+
+        $response = Http::post("https://graph.instagram.com/{$version}/{$igbid}/subscribed_apps", [
             'subscribed_fields' => 'messages',
             'access_token'      => $page->page_access_token,
         ]);
@@ -203,15 +258,16 @@ class FacebookPlatform extends AbstractPlatform
     /**
      * Handle OAuth callback: exchange code for tokens, fetch pages.
      */
-    public function handleCallback(Request $request, int $teamId): ConnectedAccount
+    public function handleCallback(Request $request, int $teamId, ?string $redirectUri = null): ConnectedAccount
     {
         $code = $request->input('code');
+        $redirectUri ??= route('connections.facebook.callback');
 
         // Exchange code for short-lived user access token
         $tokenResponse = Http::get("{$this->graphUrl}/oauth/access_token", [
             'client_id' => $this->appId,
             'client_secret' => $this->appSecret,
-            'redirect_uri' => route('connections.facebook.callback'),
+            'redirect_uri' => $redirectUri,
             'code' => $code,
         ])->throw()->json();
 
@@ -289,7 +345,19 @@ class FacebookPlatform extends AbstractPlatform
             );
 
             // Subscribe page to webhook events
-            $this->subscribePage($page);
+            $subscribed = $this->subscribePage($page);
+
+            // If subscription failed due to 2FA, mark the page so the UI can warn the user
+            if (! $subscribed) {
+                $meta = $page->metadata ?? [];
+                $meta['subscription_error'] = 'twofa_required';
+                $page->update(['metadata' => $meta]);
+            } else {
+                // Clear any previous error
+                $meta = $page->metadata ?? [];
+                unset($meta['subscription_error']);
+                $page->update(['metadata' => $meta]);
+            }
 
             // Pull existing conversations in background to avoid timeout
             \App\Jobs\SyncPageConversations::dispatch($page);

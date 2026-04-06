@@ -112,7 +112,8 @@ class Index extends Component
 
         $query = Conversation::with(['contact', 'page', 'assignedUser'])
             ->where('team_id', $team->id)
-            ->where('status', '!=', 'archived');
+            ->where('status', '!=', 'archived')
+            ->whereHas('page', fn ($q) => $q->where('is_active', true));
 
         if ($this->pageId) {
             $query->where('page_id', $this->pageId);
