@@ -10,7 +10,7 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Introduction') }}</h2>
-                    <p class="mt-3">{{ __('One Inbox ("we", "us", or "our") operates a unified social media inbox platform that allows businesses to manage messages from multiple social platforms in one place. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service at oneinbox.app.') }}</p>
+                    <p class="mt-3">{{ __('One Inbox ("we", "us", or "our") operates a unified social media inbox platform that allows businesses to manage messages from multiple social platforms in one place. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service at ot1-pro.com.') }}</p>
                     <p class="mt-3">{{ __('By using One Inbox, you agree to the collection and use of information in accordance with this policy. If you disagree with any part of this policy, please do not use our service.') }}</p>
                 </div>
 
@@ -31,7 +31,13 @@
                     <p class="mt-3">{{ __('Platforms currently supported: Facebook Messenger, Instagram Direct, WhatsApp Business, Telegram, TikTok Direct Messages, and Email (IMAP/SMTP).') }}</p>
 
                     <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.3 TikTok-Specific Data') }}</h3>
-                    <p class="mt-2">{{ __('When you connect your TikTok account via TikTok Login, we access the following permissions with your explicit consent: user.info.basic (display name and avatar), direct_message.read (to display incoming DMs in your inbox), and direct_message.write (to send replies on your behalf). We do not access your TikTok content, followers, analytics, or any data beyond what is required for the inbox functionality. TikTok data is used solely to display and manage your direct messages within One Inbox and is never shared with or sold to third parties.') }}</p>
+                    <p class="mt-2">{{ __('When you connect your TikTok Business account, we access the following permissions with your explicit consent:') }}</p>
+                    <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
+                        <li><strong>message.list.read</strong> — {{ __('To retrieve and display incoming direct messages in your inbox') }}</li>
+                        <li><strong>message.list.send</strong> — {{ __('To send replies to direct messages on your behalf') }}</li>
+                        <li><strong>message.list.manage</strong> — {{ __('To manage conversation state (e.g., mark as read) within your inbox') }}</li>
+                    </ul>
+                    <p class="mt-2">{{ __('We do not access your TikTok content, followers, analytics, videos, or any data beyond what is required for the Business Messaging inbox functionality. TikTok data is used solely to display and manage your direct messages within One Inbox and is never shared with or sold to third parties. You can revoke access at any time by disconnecting TikTok from your Connections settings.') }}</p>
 
                     <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.4 Usage Data') }}</h3>
                     <p class="mt-2">{{ __('We automatically collect certain information about how you interact with our service, including browser type, IP address, pages visited, and actions performed within the app. This data is used solely to improve service performance and reliability.') }}</p>
@@ -121,8 +127,8 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('12. Contact Us') }}</h2>
                     <p class="mt-3">{{ __('For privacy-related questions, data requests, or concerns, contact us at:') }}</p>
                     <div class="mt-3 text-sm">
-                        <p><strong>{{ __('Email:') }}</strong> privacy@oneinbox.app</p>
-                        <p class="mt-1"><strong>{{ __('Website:') }}</strong> https://oneinbox.app/privacy</p>
+                        <p><strong>{{ __('Email:') }}</strong> privacy@ot1-pro.com</p>
+                        <p class="mt-1"><strong>{{ __('Website:') }}</strong> https://ot1-pro.com/privacy</p>
                     </div>
                 </div>
 

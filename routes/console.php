@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('emails:fetch')->everyTwoMinutes();
 Schedule::command('snapchat:fetch-messages')->everyTwoMinutes();
+Schedule::command('instagram:refresh-subscriptions')->monthly();

@@ -84,10 +84,10 @@ class FacebookPlatform extends AbstractPlatform
         foreach ($account->pages()->where('platform', 'facebook')->get() as $fbPage) {
             $igPage = $this->detectInstagramAccount($fbPage, $account);
 
-            // Re-subscribe the FB page including the instagram_messaging field
+            // Re-subscribe the FB page to messaging webhook fields
             Http::withToken($fbPage->page_access_token)
                 ->post("{$this->graphUrl}/{$fbPage->platform_page_id}/subscribed_apps", [
-                    'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks,instagram_messaging',
+                    'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks',
                 ]);
 
             if ($igPage) {
@@ -366,6 +366,63 @@ class FacebookPlatform extends AbstractPlatform
         }
 
         return $pages;
+    }
+
+    /**
+     * Re-subscribe the Facebook page linked to a Facebook-via-Instagram page to ensure
+     * messaging webhook delivery remains active. Safe to call repeatedly.
+     *
+     * Uses the Facebook page's own token rather than the token stored on the Instagram
+     * page record, so it remains correct even if token storage conventions change.
+     */
+    public function refreshFacebookSubscription(Page $page): bool
+    {
+        $fbPageId = $page->metadata['linked_facebook_page_id'] ?? null;
+
+        if (! $fbPageId) {
+            return false;
+        }
+
+        // Load the canonical FB page record to use its own token
+        $fbPage = Page::where('platform', 'facebook')
+            ->where('platform_page_id', $fbPageId)
+            ->where('team_id', $page->team_id)
+            ->first();
+
+        $token = $fbPage?->page_access_token ?? $page->page_access_token;
+
+        if (! $token) {
+            Log::warning('refreshFacebookSubscription: no valid token found', [
+                'ig_page_id' => $page->id,
+                'fb_page_id' => $fbPageId,
+            ]);
+
+            return false;
+        }
+
+        $response = Http::withToken($token)
+            ->post("{$this->graphUrl}/{$fbPageId}/subscribed_apps", [
+                'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks',
+            ]);
+
+        if ($response->failed()) {
+            Log::error('Failed to refresh Facebook subscription for Instagram page', [
+                'page_id'     => $page->id,
+                'fb_page_id'  => $fbPageId,
+                'error'       => $response->body(),
+            ]);
+
+            $page->update(['metadata' => array_merge($page->metadata ?? [], ['subscription_error' => 'refresh_failed'])]);
+
+            return false;
+        }
+
+        $page->update(['metadata' => array_merge(
+            array_diff_key($page->metadata ?? [], ['subscription_error' => true]),
+            ['subscription_refreshed_at' => now()->toISOString()]
+        )]);
+
+        return true;
     }
 
     /**
