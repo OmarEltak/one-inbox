@@ -63,7 +63,8 @@ class AiConfig extends Model
             return true;
         }
 
-        $now = Carbon::now($this->timezone ?? 'UTC');
+        $tz = $this->timezone ?? 'UTC';
+        $now = Carbon::now($tz);
         $dayKey = strtolower($now->format('l')); // e.g. "monday"
 
         $dayConfig = $this->working_hours[$dayKey] ?? null;
@@ -72,8 +73,14 @@ class AiConfig extends Model
             return false;
         }
 
-        $start = Carbon::parse($dayConfig['start'], $this->timezone ?? 'UTC');
-        $end = Carbon::parse($dayConfig['end'], $this->timezone ?? 'UTC');
+        $start = Carbon::parse($dayConfig['start'], $tz);
+        $end   = Carbon::parse($dayConfig['end'], $tz);
+
+        // Cross-midnight range (e.g. 09:00 → 08:59): end is before start on the same day,
+        // meaning the window wraps past midnight. Active when now >= start OR now <= end.
+        if ($end->lt($start)) {
+            return $now->gte($start) || $now->lte($end);
+        }
 
         return $now->between($start, $end);
     }
