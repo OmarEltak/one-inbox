@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\AiProviderInterface;
 use App\Services\Ai\GeminiProvider;
+use App\Services\Ai\OllamaProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(AiProviderInterface::class, function () {
             return match (config('services.ai.provider')) {
                 'gemini' => new GeminiProvider(),
+                'ollama' => new OllamaProvider(),
                 // 'claude' => new ClaudeProvider(),
                 // 'openai' => new OpenAiProvider(),
                 default => new GeminiProvider(),

@@ -777,3 +777,71 @@ The previous journal had `instagram_manage_comments` and `instagram_manage_messa
 3. Once both are done → click "إرسل للمراجعة" to submit
 
 *Last updated: 2026-04-05 by Claude (session: instagram_basic token generated + test calls made)*
+
+---
+
+## Session: 2026-04-09 — Instagram Subscription Refresh + AI Working Hours Fix
+
+### App Review Submissions (by Omar)
+- **Meta (`instagram_manage_messages`)** — App review submitted for app `1469090344742803`. Pending Meta approval. Once approved, all non-tester Instagram-via-Facebook accounts (e.g. Mishkah) will receive webhooks.
+- **TikTok Business Messaging** — App review submitted for app `7614863552092014604`. Status: pending review at `developers.tiktok.com/app/7614863552092014604/pending`.
+
+---
+
+### Fix 1 — Instagram-via-Facebook Subscription Refresh
+
+**Problem:** Facebook-linked Instagram pages (e.g. Mishkah University page_id=36) were never receiving incoming webhooks for two reasons:
+1. `instagram_manage_messages` not yet approved → only app testers receive webhooks (Meta restriction)
+2. Page webhook subscription was potentially stale after token refresh
+
+**Root cause discovered:** `instagram_messaging` is NOT a valid `subscribed_fields` value for the `/subscribed_apps` endpoint — the Meta API rejects it with HTTP 400. Removed from all subscription calls.
+
+**Code changes (local + prod):**
+- `app/Services/Platforms/FacebookPlatform.php` — Added `refreshFacebookSubscription(Page $page): bool`. Loads the canonical Facebook `Page` record to use its own token (not the Instagram page's copy). Updates `metadata.subscription_refreshed_at` on success, `metadata.subscription_error` on failure.
+- `app/Console/Commands/RefreshInstagramSubscriptionsCommand.php` — New command `instagram:refresh-subscriptions`. Loops all active Facebook-linked Instagram pages, calls refresh per page with try/catch so one bad page doesn't abort the rest. `--team=` option for targeted runs.
+- `routes/console.php` — Scheduled monthly.
+- Also fixed `handleInstagramViaFacebookCallback()` to not use the invalid `instagram_messaging` field.
+
+**Verified on prod:**
+```bash
+php artisan instagram:refresh-subscriptions
+# Found 1 Facebook-linked Instagram page(s). Refreshing subscriptions...
+#   OK  [36] Mishkah University | جامعة مشكاة (FB page: 313985005290971)
+# Done. Success: 1  Failed: 0
+```
+
+**Pending manual step:** Add Mishkah's Instagram account owner as an **App Tester** at `developers.facebook.com/apps/1469090344742803/roles/roles/` — required until App Review approves `instagram_manage_messages`.
+
+**Git:** `1f64398` — `fix: refresh Facebook page subscriptions for Instagram-via-Facebook accounts`
+
+---
+
+### Fix 2 — AI Not Responding to Customers (isWithinWorkingHours bug)
+
+**Problem:** AI was not auto-responding on page_id=25 (Mishkah University Facebook page) despite `team.ai_enabled=true`, `AiConfig.is_active=true`, no paused conversations, and sufficient credits.
+
+**Root cause:** `isWithinWorkingHours()` in `app/Models/AiConfig.php` called `Carbon::between($start, $end)`. The saved config had `start: "09:00"` / `end: "08:59"` (intended as 24/7 — 9am to 8:59am next day). Since `end < start` on the same Calendar day, `between()` always returned `false`.
+
+**Fix:** Detect cross-midnight range (`end < start`) and use `$now->gte($start) || $now->lte($end)` instead of `between()`.
+
+**File:** `app/Models/AiConfig.php:78-82` (both local + prod)
+
+**Verified:**
+```php
+// Before fix:
+$aiConfig->isWithinWorkingHours() // false
+// After fix:
+$aiConfig->isWithinWorkingHours() // true
+```
+
+**Tested:** Opened `ot1-pro.com/inbox?pageId=25`, conversation "Omar Mohamed Eltak" shows "AI Active" ✅ in header. Tested only on Omar's own conversations (not customer chats).
+
+**Git:** `507eff4` — `fix: handle cross-midnight working hours range in isWithinWorkingHours`
+
+---
+
+### Privacy / Terms Updates
+- `resources/views/pages/privacy.blade.php` — Updated domain refs from `oneinbox.app` → `ot1-pro.com`, expanded TikTok Business Messaging permission descriptions (`message.list.read`, `message.list.send`, `message.list.manage`)
+- `resources/views/pages/terms.blade.php` — Updated contact email/URL to `ot1-pro.com`
+
+*Last updated: 2026-04-09 by Claude*

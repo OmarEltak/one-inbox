@@ -11,29 +11,25 @@ use App\Models\Team;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GeminiProvider implements AiProviderInterface
+class OllamaProvider implements AiProviderInterface
 {
     use BuildsConversationPrompts;
 
-    protected string $apiKey;
+    protected string $baseUrl;
     protected string $model;
-    protected string $scoringModel;
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.api_key', '');
-        $this->model = config('services.gemini.model', 'gemini-2.5-flash');
-        $this->scoringModel = config('services.gemini.scoring_model', 'gemini-2.5-flash');
+        $this->baseUrl = rtrim(config('services.ollama.base_url', 'http://localhost:11434'), '/');
+        $this->model = config('services.ollama.model', 'qwen2.5:7b');
     }
 
     public function generateResponse(Conversation $conversation, Message $incomingMessage, AiConfig $config): string
     {
         $systemPrompt = $this->buildSystemPrompt($conversation, $config);
-        $conversationHistory = $this->buildConversationHistory($conversation);
+        $history = $this->buildConversationHistory($conversation);
 
-        $response = $this->callGemini($this->model, $systemPrompt, $conversationHistory);
-
-        return $response;
+        return $this->callOllama($systemPrompt, $history);
     }
 
     public function scoreMessage(Message $message, Contact $contact): array
@@ -56,7 +52,7 @@ class GeminiProvider implements AiProviderInterface
             . "- Greeting/casual: +3\n\n"
             . "Return ONLY valid JSON array, no other text.";
 
-        $result = $this->callGemini($this->scoringModel, 'You are a lead scoring AI. Return only valid JSON.', [
+        $result = $this->callOllama('You are a lead scoring AI. Return only valid JSON.', [
             ['role' => 'user', 'content' => $prompt],
         ]);
 
@@ -66,7 +62,7 @@ class GeminiProvider implements AiProviderInterface
 
             return is_array($events) ? $events : [];
         } catch (\JsonException $e) {
-            Log::warning('AI scoring returned invalid JSON', ['response' => $result]);
+            Log::warning('Ollama scoring returned invalid JSON', ['response' => $result]);
 
             return [];
         }
@@ -86,7 +82,7 @@ class GeminiProvider implements AiProviderInterface
             . "Conversation:\n{$historyText}\n\n"
             . "Return ONLY valid JSON, no other text.";
 
-        $result = $this->callGemini($this->scoringModel, 'You are a sales conversation analyst. Return only valid JSON.', [
+        $result = $this->callOllama('You are a sales conversation analyst. Return only valid JSON.', [
             ['role' => 'user', 'content' => $prompt],
         ]);
 
@@ -95,7 +91,7 @@ class GeminiProvider implements AiProviderInterface
 
             return json_decode($cleaned, true, 512, JSON_THROW_ON_ERROR) ?? [];
         } catch (\JsonException $e) {
-            Log::warning('AI analysis returned invalid JSON', ['response' => $result]);
+            Log::warning('Ollama analysis returned invalid JSON', ['response' => $result]);
 
             return [];
         }
@@ -168,60 +164,45 @@ class GeminiProvider implements AiProviderInterface
         // Add the current message
         $conversationHistory[] = ['role' => 'user', 'content' => $message];
 
-        $response = $this->callGemini($this->model, $systemPrompt, $conversationHistory, 1000);
+        $response = $this->callOllama($systemPrompt, $conversationHistory, 1000);
 
         // Replace customer-facing fallback with admin-appropriate message
         if (str_contains($response, 'connect you with a team member')) {
-            return 'The AI service is temporarily unavailable (API rate limit or error). Please try again in a few minutes.';
+            return 'The AI service is temporarily unavailable. Please check that Ollama is running and try again.';
         }
 
         return $response;
     }
 
-    protected function callGemini(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 500): string
+    protected function callOllama(string $systemPrompt, array $history, int $maxTokens = 500): string
     {
-        $contents = [];
+        $messages = [['role' => 'system', 'content' => $systemPrompt]];
 
-        foreach ($conversationHistory as $msg) {
-            $contents[] = [
-                'role' => $msg['role'] === 'user' ? 'user' : 'model',
-                'parts' => [['text' => $msg['content']]],
+        foreach ($history as $msg) {
+            $messages[] = [
+                'role'    => $msg['role'] === 'model' ? 'assistant' : 'user',
+                'content' => $msg['content'],
             ];
         }
 
-        // Ensure conversation starts with a user message
-        if (empty($contents) || $contents[0]['role'] !== 'user') {
-            array_unshift($contents, [
-                'role' => 'user',
-                'parts' => [['text' => 'Hello']],
-            ]);
-        }
-
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
-
-        $response = Http::withQueryParameters(['key' => $this->apiKey])
-            ->post($url, [
-                'system_instruction' => [
-                    'parts' => [['text' => $systemPrompt]],
-                ],
-                'contents' => $contents,
-                'generationConfig' => [
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => $maxOutputTokens,
-                ],
-            ]);
+        $response = Http::timeout(60)->post("{$this->baseUrl}/v1/chat/completions", [
+            'model'       => $this->model,
+            'messages'    => $messages,
+            'temperature' => 0.7,
+            'max_tokens'  => $maxTokens,
+        ]);
 
         if ($response->failed()) {
-            Log::error('Gemini API call failed', [
+            Log::error('Ollama API call failed', [
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'body'   => $response->body(),
             ]);
 
-            return 'I apologize, I\'m having a moment. Let me connect you with a team member.';
+            return "I apologize, I'm having a moment. Let me connect you with a team member.";
         }
 
         $data = $response->json();
 
-        return $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        return $data['choices'][0]['message']['content'] ?? '';
     }
 }

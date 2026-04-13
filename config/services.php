@@ -72,7 +72,12 @@ return [
     ],
 
     'ai' => [
-        'provider' => env('AI_PROVIDER', 'gemini'), // gemini, claude, openai
+        'provider' => env('AI_PROVIDER', 'gemini'), // gemini, ollama, claude, openai
+    ],
+
+    'ollama' => [
+        'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
+        'model'    => env('OLLAMA_MODEL', 'qwen2.5:7b'),
     ],
 
     /*
