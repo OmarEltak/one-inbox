@@ -9,7 +9,7 @@ use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Team;
-use App\Services\Ai\GeminiProvider;
+use App\Contracts\AiProviderInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -109,7 +109,7 @@ class AiChat extends Component
             ->all();
 
         try {
-            $provider = new GeminiProvider;
+            $provider = app(AiProviderInterface::class);
             $response = $provider->chatWithAdmin($text, $team->id, $analyticsContext, $history);
         } catch (\Throwable $e) {
             $response = 'Sorry, I encountered an error processing your request. Please try again.';
