@@ -845,3 +845,43 @@ $aiConfig->isWithinWorkingHours() // true
 - `resources/views/pages/terms.blade.php` — Updated contact email/URL to `ot1-pro.com`
 
 *Last updated: 2026-04-09 by Claude*
+
+---
+
+## 2026-04-06 — Fix: Instagram Incoming Messages Not Showing in Inbox (pageId=39)
+
+### Problem
+Outbound messages from One Inbox → Instagram worked fine. But inbound messages from contacts (e.g. `amdo7a` / Ahmed Mamdouh) never appeared in the inbox at `ot1-pro.com/inbox?pageId=39`.
+
+### Root Cause
+The Instagram account `omar_eltak88` was connected to **three different page records** in production:
+
+| Page | Team | platform_page_id | is_active | Issue |
+|------|------|-----------------|-----------|-------|
+| 10 | 3 | `17841429680280453` | false | Old connection, deactivated |
+| 13 | 4 | `17841429680280453` | true → false | **Wrong team** (team 4, not team 3). Received all webhooks. |
+| 39 | 3 | `27389582010629405` | true | Correct team but **wrong webhook ID** — never matched any webhook. |
+
+Instagram webhooks arrive with `entry.id = 17841429680280453`. This matched page 13 (team 4), so all inbound messages were saved to team 4's conversations — invisible to the user on team 3.
+
+Page 39 had `platform_page_id = 27389582010629405` (the IGBID returned by `graph.instagram.com/me`) which never matched any webhook `entry.id`.
+
+### Fix (production DB only, no code changes)
+Executed via `php artisan tinker` on `one-inbox-prod`:
+
+1. **Deactivated page 13** (team 4 duplicate)
+2. **Moved all conversations from page 10** (3 convs) → reassigned to page 39
+3. **Moved all conversations from page 13** (150 convs) → merged into matching page 39 conversations; key merge: conv 550 (4 inbound messages from amdo7a) → conv 547
+4. **Deleted page 10** (now empty, freed the unique constraint)
+5. **Updated page 39** `platform_page_id` from `27389582010629405` → `17841429680280453`
+   - Old IGBID preserved in `metadata.igbid`
+
+### Verification
+- Conversation 547 (amdo7a, page 39) now shows 4 inbound messages correctly
+- Active Instagram pages: page 36 (Mishkah University) + page 39 (Omar Mohamed Eltak), both team 3
+- Future webhooks with `entry.id = 17841429680280453` will route directly to page 39 ✓
+
+### Note on Outbound 403 Error
+At 11:42 AM today, sending to amdo7a failed with Instagram error `2534022`: "message sent outside allowed period". This is Instagram's 24-hour messaging window — you can only reply within 24h of the last inbound message. Unrelated to the incoming message bug.
+
+*Last updated: 2026-04-06 by Claude (session: Instagram incoming messages fix)*

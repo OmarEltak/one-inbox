@@ -144,8 +144,14 @@ class WhatsAppQrModal extends Component
         $state = $evolution->getConnectionState($this->instanceName, $this->instanceApiKey);
         if ($state === 'open') {
             // Try to fetch the real phone number from Evolution API
-            $this->connectedPhone = $evolution->getInstancePhone($this->instanceName) ?? '';
-            $this->connectedName = $this->connectedPhone ?: 'WhatsApp';
+            $phone = $evolution->getInstancePhone($this->instanceName);
+            if (empty($phone)) {
+                // Phone not populated yet — wait for next poll cycle (2s) or webhook cache hit.
+                // Don't save with empty phone or we create a garbage record keyed by instance name.
+                return;
+            }
+            $this->connectedPhone = $phone;
+            $this->connectedName = $phone;
             $this->saveConnection();
         }
     }

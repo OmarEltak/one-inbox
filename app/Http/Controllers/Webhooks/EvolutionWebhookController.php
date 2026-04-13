@@ -139,16 +139,24 @@ class EvolutionWebhookController extends Controller
                 'name'  => $pushName,
             ], 120);
 
-            // Reconnection (e.g. phone came back online): mark the page active.
-            // The page is keyed by phone number; the instance name is stored in metadata.
+            // Reconnection (e.g. phone came back online): mark the page active and update
+            // gateway_instance so routing works for the current Evolution API instance.
             if ($phone) {
                 Page::where('platform', 'whatsapp')
                     ->where('platform_page_id', $phone)
-                    ->update(['is_active' => true]);
+                    ->each(function ($page) use ($instanceName) {
+                        $meta = $page->metadata ?? [];
+                        $meta['gateway_instance'] = $instanceName;
+                        $page->update(['is_active' => true, 'metadata' => $meta]);
+                    });
 
                 ConnectedAccount::where('platform', 'whatsapp')
                     ->where('platform_user_id', $phone)
-                    ->update(['is_active' => true]);
+                    ->each(function ($account) use ($instanceName) {
+                        $meta = $account->metadata ?? [];
+                        $meta['gateway_instance'] = $instanceName;
+                        $account->update(['is_active' => true, 'metadata' => $meta]);
+                    });
             }
         }
 
