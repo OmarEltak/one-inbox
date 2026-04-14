@@ -8,6 +8,7 @@ use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Page;
 use App\Models\Team;
 use App\Contracts\AiProviderInterface;
 use Illuminate\Support\Facades\Auth;
@@ -247,10 +248,15 @@ class AiChat extends Component
         $text = $action['message'] ?? '';
         $minScore = $action['min_score'] ?? null;
         $status = $action['status'] ?? null;
+        $pageId = $action['page_id'] ?? null;
 
         $query = Conversation::where('team_id', $teamId)
             ->where('status', '!=', 'archived')
             ->whereHas('contact');
+
+        if ($pageId !== null) {
+            $query->where('page_id', $pageId);
+        }
 
         if ($minScore !== null) {
             $query->whereHas('contact', fn ($q) => $q->where('lead_score', '>=', $minScore));
@@ -262,7 +268,17 @@ class AiChat extends Component
 
         $count = $query->distinct('contact_id')->count('contact_id');
 
-        $filter = $minScore !== null ? "score ≥ {$minScore}" : ($status ? "status: {$status}" : 'all contacts');
+        $pageName = null;
+        if ($pageId) {
+            $pageName = Page::where('team_id', $teamId)->find($pageId)?->name;
+        }
+
+        $filter = $pageName ? "page: {$pageName}" : 'all pages';
+        if ($minScore !== null) {
+            $filter .= ", score ≥ {$minScore}";
+        } elseif ($status) {
+            $filter .= ", status: {$status}";
+        }
 
         return "Send bulk message to ~{$count} contacts ({$filter}): \"{$text}\"";
     }
@@ -348,9 +364,15 @@ class AiChat extends Component
             return "Bulk message failed: missing message text.";
         }
 
+        $pageId = $action['page_id'] ?? null;
+
         $query = Conversation::where('team_id', $teamId)
             ->where('status', '!=', 'archived')
             ->whereHas('contact');
+
+        if ($pageId !== null) {
+            $query->where('page_id', $pageId);
+        }
 
         if ($minScore !== null) {
             $query->whereHas('contact', fn ($q) => $q->where('lead_score', '>=', $minScore));
@@ -537,6 +559,13 @@ class AiChat extends Component
         foreach ($escalated as $conv) {
             $contactName = $conv->contact?->name ?? 'Unknown';
             $lines[] = "{$contactName} ({$conv->platform}) - last message: " . ($conv->last_message_at?->diffForHumans() ?? 'N/A');
+        }
+
+        // Pages (for page_id targeting in bulk messages)
+        $lines[] = "\n--- Connected Pages (ID, Name, Platform) ---";
+        $pages = Page::where('team_id', $teamId)->get(['id', 'name', 'platform']);
+        foreach ($pages as $page) {
+            $lines[] = "ID:{$page->id} | {$page->name} | {$page->platform}";
         }
 
         // Campaigns

@@ -29,4 +29,10 @@ interface AiProviderInterface
      * Process a natural language command from the admin command center.
      */
     public function processCommand(string $command, int $teamId): array;
+
+    /**
+     * Generate a text response given a system prompt and a single user message.
+     * Used for one-off AI calls (e.g. personalized follow-up generation).
+     */
+    public function generateText(string $systemPrompt, string $userMessage): string;
 }

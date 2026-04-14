@@ -6,6 +6,7 @@ use App\Jobs\ProcessCampaign;
 use App\Models\Campaign;
 use App\Models\Page;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -16,6 +17,7 @@ class Index extends Component
 
     // Form fields
     public string $name = '';
+    public string $platform = 'facebook';
     public ?int $pageId = null;
     public string $messageTemplate = '';
     public string $leadStatus = '';
@@ -34,19 +36,26 @@ class Index extends Component
     }
 
     #[Computed]
-    public function whatsappPages()
+    public function pagesForPlatform()
     {
         $team = Auth::user()->currentTeam;
 
         return Page::where('team_id', $team->id)
-            ->where('platform', 'whatsapp')
+            ->where('platform', $this->platform)
             ->where('is_active', true)
             ->get();
     }
 
+    public function updatedPlatform(): void
+    {
+        $this->pageId = null;
+        unset($this->pagesForPlatform);
+    }
+
     public function openCreateModal(): void
     {
-        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds']);
+        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds', 'platform']);
+        $this->platform = 'facebook';
         $this->languageCode = 'en';
         $this->delaySeconds = 10;
         $this->showModal = true;
@@ -54,22 +63,40 @@ class Index extends Component
 
     public function save(): void
     {
-        $this->validate([
-            'name'            => 'required|string|max:100',
-            'pageId'          => 'required|integer',
-            'messageTemplate' => 'required|string|max:100',
-            'languageCode'    => 'required|string|max:10',
-        ]);
-
         $team = Auth::user()->currentTeam;
 
-        $criteria = [
-            'page_id'        => $this->pageId,
-            'language_code'  => $this->languageCode,
-            'delay_seconds'  => $this->delaySeconds,
+        $rules = [
+            'name'            => 'required|string|max:100',
+            'platform'        => 'required|string|in:facebook,instagram,telegram,whatsapp',
+            'pageId'          => [
+                'required',
+                'integer',
+                Rule::exists('pages', 'id')
+                    ->where('team_id', $team->id)
+                    ->where('platform', $this->platform)
+                    ->where('is_active', true),
+            ],
+            'messageTemplate' => 'required|string|max:2000',
         ];
+
+        if ($this->platform === 'whatsapp') {
+            $rules['messageTemplate'] = 'required|string|max:100';
+            $rules['languageCode']    = 'required|string|max:10';
+        }
+
+        $this->validate($rules);
+
+        $criteria = [
+            'page_id'       => $this->pageId,
+            'delay_seconds' => $this->delaySeconds,
+        ];
+
         if ($this->leadStatus) {
             $criteria['lead_status'] = $this->leadStatus;
+        }
+
+        if ($this->platform === 'whatsapp') {
+            $criteria['language_code'] = $this->languageCode;
         }
 
         Campaign::create([
@@ -77,6 +104,7 @@ class Index extends Component
             'created_by'       => Auth::id(),
             'name'             => $this->name,
             'type'             => 'promotion',
+            'platform'         => $this->platform,
             'message_template' => $this->messageTemplate,
             'target_criteria'  => $criteria,
             'status'           => 'draft',

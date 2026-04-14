@@ -9,6 +9,7 @@ class Campaign extends Model
 {
     protected $fillable = [
         'team_id',
+        'platform',
         'created_by',
         'name',
         'type',

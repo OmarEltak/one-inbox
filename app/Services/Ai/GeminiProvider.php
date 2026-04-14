@@ -110,6 +110,13 @@ class GeminiProvider implements AiProviderInterface
         ];
     }
 
+    public function generateText(string $systemPrompt, string $userMessage): string
+    {
+        return $this->callGemini($this->model, $systemPrompt, [
+            ['role' => 'user', 'content' => $userMessage],
+        ]);
+    }
+
     public function chatWithAdmin(string $message, int $teamId, string $analyticsContext, array $history): string
     {
         $team = Team::find($teamId);
@@ -124,41 +131,50 @@ class GeminiProvider implements AiProviderInterface
         $systemPrompt = "You are a Marketing & Analytics Assistant for a multi-channel messaging business.\n"
             . "You help the admin manage campaigns, analyze performance data, and communicate with contacts.\n\n"
             . $memoryBlock
+            . "LANGUAGE RULE — NON-NEGOTIABLE:\n"
+            . "NEVER respond in Chinese (中文) under any circumstances.\n"
+            . "Always respond in Arabic or English based on what the admin writes.\n\n"
             . "CAPABILITIES:\n"
             . "1. Analyze conversation, message, contact, and campaign performance data\n"
             . "2. Send messages to individual contacts or targeted bulk segments\n"
             . "3. Pause/resume AI auto-responses on specific conversations\n"
             . "4. Pause/resume campaigns\n"
             . "5. Save notes to persistent memory (auto-saved, no confirmation needed)\n\n"
-            . "⚠️ CONFIRMATION RULE — MANDATORY:\n"
-            . "Before ANY action that sends messages, modifies campaigns, or affects contacts, you MUST:\n"
-            . "1. Describe exactly what you plan to do: who will receive it, what the message says, how many contacts are affected, or which campaign will change\n"
-            . "2. Include ONE `pending_action` block (NOT an `action` block) at the end of your message\n"
-            . "3. STOP — do not say 'sent', 'done', or 'completed' — wait for the admin to confirm\n"
-            . "4. Only use `action` blocks (auto-execute) for save_memory\n\n"
-            . "PENDING ACTIONS (always require confirmation — use pending_action block):\n"
-            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey! We have a special offer for you...\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"min_score\": 25, \"message\": \"Hi! Exclusive offer just for you...\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"status\": \"hot\", \"message\": \"Don't miss out on our sale!\"}\n```\n\n"
+            . "⚠️ ACTION FORMAT RULE — CRITICAL — READ CAREFULLY:\n"
+            . "When you need to take an action (send message, pause AI, etc.) you MUST output a code block\n"
+            . "with the language identifier 'pending_action' containing valid JSON. Example:\n\n"
+            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"message\": \"Hello!\"}\n```\n\n"
+            . "❌ WRONG — never do this:\n"
+            . "```plaintext\nPending Action:\n- Send a bulk message...\n```\n\n"
+            . "❌ WRONG — never do this:\n"
+            . "\"Please confirm if you want me to send the message.\"\n\n"
+            . "✅ CORRECT — always end your reply with the JSON block:\n"
+            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey!\"}\n```\n\n"
+            . "After including the pending_action block, STOP. Do not say 'sent', 'done', or 'completed'.\n"
+            . "The system will show the admin a confirmation button. Wait for that.\n\n"
+            . "AVAILABLE PENDING ACTIONS (use pending_action block for all):\n"
+            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey! We have a special offer...\"}\n```\n\n"
+            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"message\": \"Hi everyone!\"}\n```\n\n"
+            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"min_score\": 25, \"message\": \"Exclusive offer!\"}\n```\n\n"
+            . "```pending_action\n{\"action\": \"send_bulk_message\", \"status\": \"hot\", \"message\": \"Don't miss out!\"}\n```\n\n"
             . "```pending_action\n{\"action\": \"pause_ai\", \"contact_id\": 123}\n```\n\n"
             . "```pending_action\n{\"action\": \"resume_ai\", \"contact_id\": 123}\n```\n\n"
             . "```pending_action\n{\"action\": \"pause_campaign\", \"campaign_id\": 1}\n```\n\n"
             . "```pending_action\n{\"action\": \"resume_campaign\", \"campaign_id\": 1}\n```\n\n"
-            . "AUTO ACTIONS (execute immediately without confirmation — use action block):\n"
-            . "```action\n{\"action\": \"save_memory\", \"content\": \"Important fact to remember across sessions\"}\n```\n\n"
+            . "AUTO ACTIONS (execute immediately — use action block, only for save_memory):\n"
+            . "```action\n{\"action\": \"save_memory\", \"content\": \"Important fact to remember\"}\n```\n\n"
             . "MEMORY RULES:\n"
             . "- When the admin says 'remember that...' or asks you to save/note something, use save_memory\n"
             . "- Memory persists across sessions\n"
-            . "- Save concise, factual notes\n"
-            . "- Each save_memory appends to existing memory, it does not replace it\n\n"
+            . "- Save concise, factual notes\n\n"
             . "CAMPAIGN RULES:\n"
             . "- Always reference campaigns by their ID and name from the data below\n"
-            . "- When asked to pause/resume a campaign, show the campaign details in your summary before the pending_action block\n"
-            . "- Suggest campaign improvements based on reply rate and sent/total ratios\n\n"
+            . "- When asked to pause/resume a campaign, show the campaign details before the pending_action block\n\n"
             . "MESSAGING RULES:\n"
             . "- When crafting bulk messages, be a creative and persuasive copywriter\n"
             . "- Match the language of the target audience (Arabic contacts → Arabic message)\n"
-            . "- For bulk sends, always state how many contacts will be targeted before confirming\n"
+            . "- For bulk sends to a specific page, use page_id from the Connected Pages list below\n"
+            . "- Always state how many contacts will be targeted before the pending_action block\n"
             . "- Be concise and conversational\n\n"
             . $analyticsContext;
 
@@ -168,7 +184,7 @@ class GeminiProvider implements AiProviderInterface
         // Add the current message
         $conversationHistory[] = ['role' => 'user', 'content' => $message];
 
-        $response = $this->callGemini($this->model, $systemPrompt, $conversationHistory, 1000);
+        $response = $this->callGemini($this->model, $systemPrompt, $conversationHistory, 2000);
 
         // Replace customer-facing fallback with admin-appropriate message
         if (str_contains($response, 'connect you with a team member')) {

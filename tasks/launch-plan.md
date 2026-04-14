@@ -4,18 +4,28 @@ Last updated: 2026-03-23
 
 ---
 
-## Phase 0: Laptop Server Hardening (Server A — do NOW)
+## Phase 0: Laptop Server Hardening (TEMPORARY — move to Forge ASAP)
 
 > Server A is your laptop. It IS the dev machine and the prod server at the same time.
-> These tasks make it survive reboots and not need open terminals.
+> Phase 0 makes it survive reboots. Phase 2 (Forge) eliminates all of this permanently.
 
-- [ ] **NSSM — install Reverb, Queue, Scheduler as Windows services** (see deployment-architecture.md § 6)
-      → Once done: no terminal needs to stay open. All 3 auto-start on boot.
+### Critical — every reboot kills production until these are done
+- [x] **NSSM — Queue, Scheduler, Reverb as Windows services** → auto-start on boot ✅
+- [ ] **`cloudflared service install`** — installs Cloudflare Tunnel as a Windows service
+      → Without this, the tunnel dies on every reboot and takes down `ot1-pro.com`
+      → Run once in PowerShell as Administrator: `cloudflared service install`
+      → Verify: `Get-Service cloudflared` should show Running after next reboot
+
+### Cleanup
+- [ ] Delete `one-inbox-prod/` directory — it's a stale copy, `one-inbox/` is the real app
+      → First update `tunnel.conf` HTTP_HOST from `one-inbox-prod.test` → `one-inbox.test`
+      → Then reload Herd nginx, verify `ot1-pro.com` works, then delete the directory
 - [ ] Set `APP_DEBUG=false` in `.env` → run `php artisan config:cache`
+
+### Security
 - [ ] Set up daily SQLite backup PowerShell script → schedule via Windows Task Scheduler
 - [ ] Enable Cloudflare WAF: dashboard → Security → WAF → Managed Rules → turn on
 - [ ] Rotate `META_WEBHOOK_VERIFY_TOKEN` to a random value → update in Meta console
-- [ ] Update Meta webhook URL to `https://ot1-pro.com/api/webhooks/meta` (if still on old ngrok)
 
 ---
 
