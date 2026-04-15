@@ -142,7 +142,7 @@ class ProcessIncomingMessage implements ShouldQueue
             'sender_type' => 'contact',
             'sender_id' => $contact->id,
             'content_type' => $this->detectContentType($messageData),
-            'content' => $messageData['text'] ?? null,
+            'content' => $this->extractMessageContent($messageData),
             'media_url' => $messageData['attachments'][0]['payload']['url'] ?? null,
             'media_type' => $messageData['attachments'][0]['type'] ?? null,
             'platform_sent_at' => isset($event['timestamp']) ? \Carbon\Carbon::createFromTimestampMs($event['timestamp']) : now(),
@@ -766,13 +766,36 @@ class ProcessIncomingMessage implements ShouldQueue
         );
     }
 
+    private const META_STICKER_EMOJI = [
+        369239263222822 => '👍',
+        369239343222814 => '❤️',
+        369239373222812 => '😆',
+        369239383222811 => '😮',
+        369239393222810 => '😢',
+        369239413222808 => '😡',
+    ];
+
     protected function detectContentType(array $messageData): string
     {
         if (isset($messageData['attachments'])) {
-            return $messageData['attachments'][0]['type'] ?? 'file';
+            $type = $messageData['attachments'][0]['type'] ?? 'file';
+            // Sticker_id present → emoji sticker or "like" reaction, NOT a real image
+            if ($type === 'image' && isset($messageData['attachments'][0]['payload']['sticker_id'])) {
+                return 'reaction';
+            }
+            return $type;
         }
 
         return 'text';
+    }
+
+    protected function extractMessageContent(array $messageData): ?string
+    {
+        if (isset($messageData['attachments'][0]['payload']['sticker_id'])) {
+            $id = $messageData['attachments'][0]['payload']['sticker_id'];
+            return self::META_STICKER_EMOJI[$id] ?? '👍';
+        }
+        return $messageData['text'] ?? null;
     }
 
     /**

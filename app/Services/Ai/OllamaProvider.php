@@ -190,14 +190,38 @@ class OllamaProvider implements AiProviderInterface
         return $response;
     }
 
+    protected function isVisionModel(): bool
+    {
+        $m = strtolower($this->model);
+        return str_contains($m, 'vl') || str_contains($m, 'llava') || str_contains($m, 'vision')
+            || str_contains($m, 'moondream') || str_contains($m, 'bakllava');
+    }
+
     protected function callOllama(string $systemPrompt, array $history, int $maxTokens = 500): string
     {
         $messages = [['role' => 'system', 'content' => $systemPrompt]];
 
         foreach ($history as $msg) {
+            $content = $msg['content'];
+            if ($this->isVisionModel()
+                && ($msg['content_type'] ?? 'text') === 'image'
+                && !empty($msg['media_url'])
+            ) {
+                try {
+                    $imageResponse = Http::timeout(10)->get($msg['media_url']);
+                    $mime = explode(';', $imageResponse->header('Content-Type') ?? 'image/jpeg')[0];
+                    $dataUri = "data:{$mime};base64," . base64_encode($imageResponse->body());
+                    $content = [
+                        ['type' => 'text', 'text' => 'The customer sent this image:'],
+                        ['type' => 'image_url', 'image_url' => ['url' => $dataUri]],
+                    ];
+                } catch (\Throwable) {
+                    $content = '[Image — failed to load]';
+                }
+            }
             $messages[] = [
                 'role'    => $msg['role'] === 'model' ? 'assistant' : 'user',
-                'content' => $msg['content'],
+                'content' => $content,
             ];
         }
 

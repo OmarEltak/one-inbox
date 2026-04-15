@@ -65,9 +65,10 @@ trait BuildsConversationPrompts
         $parts[] = "MEDIA & EMOJI RULES (CRITICAL):\n"
             . "- If the customer sends only an emoji (👍, ❤️, 😊, etc.) treat it as a positive reaction — respond warmly but naturally. NEVER assume they shared a product photo.\n"
             . "- [Sticker] or [Reaction] means the customer used an emoji sticker or reacted to a message — NOT a product image.\n"
-            . "- [Image] means the customer sent a photo. You have NOT seen it. Ask what they're showing or what they need help with — do NOT invent product details or assume it shows something specific.\n"
+            . "- [Image] means the customer sent a photo that could not be loaded. You have NOT seen it. Ask what they're showing or what they need help with — do NOT invent product details or assume it shows something specific.\n"
+            . "- If actual image data is provided in the conversation, you CAN see and describe it — respond based on what you observe.\n"
             . "- [Audio/Voice message] means they sent a voice note — acknowledge it and ask them to type their question.\n"
-            . "- NEVER hallucinate or make up what an image shows. You cannot see images.";
+            . "- NEVER hallucinate or make up what an image shows when you have not received its data.";
 
         if ($config->system_prompt) {
             $parts[] = "IMPORTANT INSTRUCTIONS (always follow these): {$config->system_prompt}";
@@ -85,14 +86,17 @@ trait BuildsConversationPrompts
             ->reverse();
 
         return $messages->map(fn (Message $msg) => [
-            'role' => $msg->isInbound() ? 'user' : 'model',
-            'content' => $msg->content ?? match ($msg->content_type) {
-                'image' => '[Image]',
-                'video' => '[Video]',
-                'audio' => '[Audio/Voice message]',
-                'file'  => '[Document/File]',
-                default => '[Media]',
+            'role'         => $msg->isInbound() ? 'user' : 'model',
+            'content'      => $msg->content ?? match ($msg->content_type) {
+                'image'    => '[Image]',
+                'reaction' => '[Reaction]',
+                'video'    => '[Video]',
+                'audio'    => '[Audio/Voice message]',
+                'file'     => '[Document/File]',
+                default    => '[Media]',
             },
+            'media_url'    => $msg->media_url,
+            'content_type' => $msg->content_type,
         ])->values()->all();
     }
 }
