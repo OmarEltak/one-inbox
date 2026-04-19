@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Contracts\AiProviderInterface;
+use App\Events\AiLimitReached;
 use App\Events\AiResponseSent;
 use App\Http\Middleware\EnforcePlanLimits;
 use App\Models\Conversation;
@@ -66,6 +67,7 @@ class SendAiResponse implements ShouldQueue
         // Check AI credit limits
         if (! EnforcePlanLimits::hasAiCredits($team)) {
             Log::info("Team {$team->id} has exhausted AI credits, skipping AI response");
+            broadcast(new AiLimitReached($team->id));
             return;
         }
 

@@ -51,7 +51,7 @@
             </div>
 
             {{-- Pricing cards --}}
-            <div class="mt-16 grid gap-8 lg:grid-cols-4">
+            <div class="mt-16 grid gap-6 lg:grid-cols-5">
 
                 {{-- Free --}}
                 <div class="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900 flex flex-col">
@@ -126,8 +126,7 @@
                 </div>
 
                 {{-- Pro --}}
-                <div class="relative rounded-2xl border-2 border-purple-600 bg-white p-8 dark:bg-zinc-900 flex flex-col">
-                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-purple-600 px-4 py-1 text-xs font-semibold text-white whitespace-nowrap">{{ __('Most Popular') }}</span>
+                <div class="relative rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900 flex flex-col">
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Pro') }}</h3>
                         <p class="mt-2 text-sm text-zinc-500">{{ __('Built for teams that close deals') }}</p>
@@ -166,6 +165,97 @@
                     </div>
                     <div class="mt-auto pt-8">
                         <a href="https://wa.me/201026361218?text={{ urlencode('Hi, I\'m interested in the Pro plan ($79/mo)') }}" target="_blank" class="block w-full rounded-lg bg-purple-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-purple-700">
+                            {{ __('Get Started') }}
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Business --}}
+                <div class="relative rounded-2xl border-2 border-purple-600 bg-white p-8 dark:bg-zinc-900 flex flex-col">
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-purple-600 px-4 py-1 text-xs font-semibold text-white whitespace-nowrap">{{ __('Most Popular') }}</span>
+                    <div>
+                        <h3 class="text-lg font-semibold">{{ __('Business') }}</h3>
+                        <p class="mt-2 text-sm text-zinc-500">{{ __('For growing brands & multi-location') }}</p>
+                        <p class="mt-6"><span class="text-4xl font-bold">$199</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
+                        <p class="mt-2 text-xs text-zinc-400">{{ __('Replaces a full-time sales rep') }}</p>
+                        <ul class="mt-8 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('15 connected pages') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('10,000 AI responses/mo') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('All platforms') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Unlimited team members') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Custom AI voice & training') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('AI bulk campaigns') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Priority support') }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-auto pt-8">
+                        <a href="https://wa.me/201026361218?text={{ urlencode('Hi, I\'m interested in the Business plan ($199/mo)') }}" target="_blank" class="block w-full rounded-lg bg-purple-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-purple-700">
+                            {{ __('Get Started') }}
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Agency --}}
+                <div class="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900 flex flex-col">
+                    <div>
+                        <h3 class="text-lg font-semibold">{{ __('Agency') }}</h3>
+                        <p class="mt-2 text-sm text-zinc-500">{{ __('Manage all your clients in one place') }}</p>
+                        <p class="mt-6"><span class="text-4xl font-bold">$499</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
+                        <p class="mt-2 text-xs text-zinc-400">{{ __('One tool to run your entire agency') }}</p>
+                        <ul class="mt-8 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Unlimited pages') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('50,000 AI responses/mo') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('All platforms') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('White-label option') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Dedicated account manager') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Unlimited team members') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('SLA & onboarding support') }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-auto pt-8">
+                        <a href="https://wa.me/201026361218?text={{ urlencode('Hi, I\'m interested in the Agency plan ($499/mo)') }}" target="_blank" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800">
                             {{ __('Get Started') }}
                         </a>
                     </div>

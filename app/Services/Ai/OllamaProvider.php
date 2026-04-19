@@ -238,7 +238,7 @@ class OllamaProvider implements AiProviderInterface
                 'body'   => $response->body(),
             ]);
 
-            return "I apologize, I'm having a moment. Let me connect you with a team member.";
+            return '';
         }
 
         $data = $response->json();

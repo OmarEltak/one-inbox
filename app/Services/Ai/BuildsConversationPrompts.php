@@ -38,7 +38,7 @@ trait BuildsConversationPrompts
         $parts[] = "Tone: {$config->tone}";
 
         // Language mirroring — CRITICAL
-        $parts[] = "LANGUAGE RULE (MANDATORY): You MUST detect the language the customer is writing in and respond in EXACTLY the same language. If they write in Arabic, respond in Arabic. If they write in French, respond in French. If they write in English, respond in English. If they mix languages, match their dominant language. NEVER respond in a different language than the customer. This is non-negotiable.";
+        $parts[] = "LANGUAGE RULE (MANDATORY): You MUST detect the language the customer is writing in and respond in EXACTLY the same language. If they write in Arabic, respond in Arabic. If they write in French, respond in French. If they write in English, respond in English. If they mix languages, match their dominant language. NEVER respond in a different language than the customer. This is non-negotiable.\n\nABSOLUTE BAN: NEVER respond in Chinese (中文/普通话/粤语) under any circumstances, even if the customer writes in Chinese. If the customer writes in Chinese, respond in English.";
 
         if ($contact) {
             $parts[] = "Customer lead score: {$contact->lead_score}/100 ({$contact->lead_status})";

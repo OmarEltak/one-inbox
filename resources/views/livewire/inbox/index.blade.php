@@ -1,5 +1,6 @@
 <div class="flex h-full overflow-hidden"
      x-data="{
+         aiLimitReached: false,
          init() {
              if (window.Echo) {
                  const teamId = @js(auth()->user()->currentTeam?->id);
@@ -7,12 +8,21 @@
                      window.Echo.private('team.' + teamId)
                          .listen('.message.received', (e) => { $wire.$refresh(); })
                          .listen('.ai.response', (e) => { $wire.$refresh(); })
-                         .listen('.conversation.updated', (e) => { $wire.$refresh(); });
+                         .listen('.conversation.updated', (e) => { $wire.$refresh(); })
+                         .listen('.ai.limit', (e) => { this.aiLimitReached = true; });
                  }
              }
          }
      }"
 >
+    {{-- AI Limit Banner --}}
+    <div x-show="aiLimitReached" x-transition
+         class="absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-4 bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+        <span>⚠️ AI limit reached — responses are paused. Contact support to upgrade or wait until next month.</span>
+        <button @click="aiLimitReached = false" class="shrink-0 rounded p-0.5 hover:bg-red-700">
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
     {{-- Conversation List Sidebar --}}
     <div wire:poll.30s class="flex-shrink-0 border-e border-zinc-200 dark:border-zinc-700 flex flex-col w-full md:w-80 {{ $selectedConversationId ? 'hidden md:flex' : 'flex' }}">
         {{-- Filters --}}
