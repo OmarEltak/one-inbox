@@ -78,13 +78,19 @@
                             <flux:heading size="lg" class="mb-1">Business Info</flux:heading>
                             <flux:text size="sm" class="mb-4">Tell the AI about your business so it can answer customer questions accurately.</flux:text>
 
-                            <flux:textarea
-                                wire:model="business_description"
-                                label="Business Description"
-                                placeholder="e.g. We are a boutique flower shop in downtown Beirut specializing in fresh arrangements, wedding decorations, and same-day delivery..."
-                                rows="3"
-                            />
-                            @error('business_description') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                            <div x-data="{ count: $wire.entangle('business_description').length ?? 0 }" x-init="$watch('$wire.business_description', v => count = (v ?? '').length)">
+                                <flux:textarea
+                                    wire:model="business_description"
+                                    label="Business Description"
+                                    placeholder="e.g. We are a boutique flower shop in downtown Beirut specializing in fresh arrangements, wedding decorations, and same-day delivery..."
+                                    rows="3"
+                                    maxlength="1500"
+                                />
+                                <div class="flex justify-between mt-1">
+                                    @error('business_description') <p class="text-red-500 text-sm">{{ $message }}</p> @else <span></span> @enderror
+                                    <p class="text-xs text-zinc-400" :class="count > 1400 ? 'text-amber-500' : ''" x-text="count + ' / 1500'"></p>
+                                </div>
+                            </div>
 
                             <flux:textarea
                                 wire:model="additional_instructions"

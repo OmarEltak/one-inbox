@@ -98,7 +98,7 @@ class AiConfig extends Component
         }
 
         $this->validate([
-            'business_description' => 'required|string|min:10',
+            'business_description' => 'required|string|min:10|max:1500',
             'tone' => 'required|in:professional,friendly,casual,formal',
             'language' => 'required|string|max:5',
             'response_delay_min_seconds' => 'required|integer|min:10|max:300',
