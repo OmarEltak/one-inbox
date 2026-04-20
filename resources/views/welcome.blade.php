@@ -272,14 +272,65 @@
                                 <svg class="arrow-icon size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                             </a>
                         @endif
-                        <a href="{{ route('pricing') }}" class="w-full rounded-xl border-2 border-white/30 px-8 py-3.5 font-semibold text-white transition-all hover:border-white/60 hover:bg-white/10 sm:w-auto">
+                        {{-- <a href="{{ route('pricing') }}" class="w-full rounded-xl border-2 border-white/30 px-8 py-3.5 font-semibold text-white transition-all hover:border-white/60 hover:bg-white/10 sm:w-auto">
                             {{ __('View Pricing') }}
-                        </a>
+                        </a> --}}
                     </div>
                     <p class="mt-4 text-sm text-purple-200">{{ __('No credit card required. Free trial included.') }}</p>
                 </div>
             </div>
         </div>
     </section>
+
+@push('schema')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What platforms does One Inbox support?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "One Inbox supports Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram. Connect all four from a single dashboard."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How does the AI sales responder work?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "You configure the AI with your product information, pricing, and brand voice. It then automatically responds to incoming messages, qualifies leads based on conversation signals, and guides customers toward a purchase."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Can I take over from the AI mid-conversation?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Absolutely. You can pause the AI on any conversation and take over manually at any time. When you're done, resume AI and it picks up where you left off."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Is there a free plan?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! Our Free plan includes 1 connected channel and 50 AI responses per month. Upgrade anytime as your business grows."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How accurate is the lead scoring?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Our AI analyzes conversation signals like purchase intent, urgency, budget mentions, and engagement to score leads from 0-100. It gets smarter over time as it processes more conversations."
+            }
+        }
+    ]
+}
+</script>
+@endpush
 
 </x-layouts.marketing>

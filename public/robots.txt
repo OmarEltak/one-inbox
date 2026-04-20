@@ -7,4 +7,4 @@ Disallow: /ai-chat
 Disallow: /analytics
 Disallow: /settings
 
-Sitemap: https://oneinbox.app/sitemap.xml
+Sitemap: https://ot1-pro.com/sitemap.xml

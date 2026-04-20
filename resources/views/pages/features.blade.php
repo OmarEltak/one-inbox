@@ -1,4 +1,6 @@
-<x-layouts.marketing :title="__('Features') . ' — One Inbox'" :description="__('Explore all features of One Inbox — unified inbox, AI sales responder, lead scoring, analytics, and more.')">
+<x-layouts.marketing
+    :title="__('Unified Social Inbox Features: AI Responder, Lead Scoring & More — One Inbox')"
+    :description="__('Discover One Inbox features: manage Facebook, Instagram, WhatsApp & Telegram in one place. AI sales responder, lead scoring, analytics, and team collaboration.')">
 
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6">

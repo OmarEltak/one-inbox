@@ -81,7 +81,7 @@
             {{-- Desktop Nav Links --}}
             <div class="hidden items-center gap-6 md:flex">
                 <a href="{{ route('features') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Features') }}</a>
-                <a href="{{ route('pricing') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Pricing') }}</a>
+                {{-- <a href="{{ route('pricing') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Pricing') }}</a> --}}
                 <a href="{{ route('about') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('About') }}</a>
                 <a href="{{ route('contact') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Contact') }}</a>
             </div>
@@ -156,7 +156,7 @@
             {{-- Nav Links --}}
             <div class="space-y-1">
                 <a href="{{ route('features') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Features') }}</a>
-                <a href="{{ route('pricing') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Pricing') }}</a>
+                {{-- <a href="{{ route('pricing') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Pricing') }}</a> --}}
                 <a href="{{ route('about') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('About') }}</a>
                 <a href="{{ route('contact') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Contact') }}</a>
             </div>
@@ -226,7 +226,7 @@
                     <h4 class="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Product') }}</h4>
                     <ul class="space-y-2 text-sm text-zinc-500">
                         <li><a href="{{ route('features') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Features') }}</a></li>
-                        <li><a href="{{ route('pricing') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Pricing') }}</a></li>
+                        {{-- <li><a href="{{ route('pricing') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Pricing') }}</a></li> --}}
                     </ul>
                 </div>
 

@@ -1,4 +1,6 @@
-<x-layouts.marketing :title="__('About') . ' — One Inbox'" :description="__('Learn about One Inbox — the unified social inbox with AI-powered sales responder.')">
+<x-layouts.marketing
+    :title="__('About One Inbox — AI-Powered Social Inbox for Growing Businesses')"
+    :description="__('Learn the story behind One Inbox — the AI-powered unified social inbox that helps businesses manage Facebook, Instagram, WhatsApp, and Telegram conversations and close more sales.')">
 
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-4xl px-6">

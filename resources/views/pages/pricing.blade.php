@@ -1,4 +1,7 @@
-<x-layouts.marketing :title="__('Pricing') . ' — One Inbox'" :description="__('Simple, transparent pricing. Start free, upgrade when you grow.')">
+@if(false) {{-- PRICING PAGE HIDDEN --}}
+<x-layouts.marketing
+    :title="__('One Inbox Pricing — Free Social Media CRM, Plans from \$0/mo')"
+    :description="__('Start free with One Inbox. Affordable social CRM pricing for businesses of all sizes — Free, Starter \$29/mo, Pro \$79/mo, and Enterprise custom plans.')">
 
     {{-- Hero --}}
     <section class="py-20 lg:py-28">
@@ -267,3 +270,4 @@
     </section>
 
 </x-layouts.marketing>
+@endif {{-- END PRICING PAGE HIDDEN --}}

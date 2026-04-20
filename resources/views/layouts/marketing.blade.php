@@ -22,13 +22,6 @@
     <meta name="twitter:title" content="{{ $title ?? 'One Inbox' }}">
     <meta name="twitter:description" content="{{ $description ?? 'Unified Social Inbox with AI Sales Responder' }}">
 
-    {{-- Hreflang --}}
-    <link rel="alternate" hreflang="en" href="{{ url()->current() }}">
-    <link rel="alternate" hreflang="ar" href="{{ url()->current() }}?lang=ar">
-    <link rel="alternate" hreflang="de" href="{{ url()->current() }}?lang=de">
-    <link rel="alternate" hreflang="es" href="{{ url()->current() }}?lang=es">
-    <link rel="alternate" hreflang="x-default" href="{{ url()->current() }}">
-
     <link rel="icon" href="/favicon.ico" sizes="any">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -52,6 +45,7 @@
         }
     }
     </script>
+    @stack('schema')
 </head>
 <body class="min-h-screen bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
 
@@ -66,7 +60,8 @@
             </a>
             <div class="hidden items-center gap-6 md:flex">
                 <a href="{{ route('features') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Features') }}</a>
-                <a href="{{ route('pricing') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Pricing') }}</a>
+                {{-- <a href="{{ route('pricing') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Pricing') }}</a> --}}
+                <a href="{{ route('blog.index') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Blog') }}</a>
                 <a href="{{ route('about') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('About') }}</a>
                 <a href="{{ route('contact') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Contact') }}</a>
             </div>
@@ -125,7 +120,12 @@
                     <h4 class="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Product') }}</h4>
                     <ul class="space-y-2 text-sm text-zinc-500">
                         <li><a href="{{ route('features') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Features') }}</a></li>
-                        <li><a href="{{ route('pricing') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Pricing') }}</a></li>
+                        {{-- <li><a href="{{ route('pricing') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Pricing') }}</a></li> --}}
+                        <li><a href="{{ route('blog.index') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Blog') }}</a></li>
+                        <li><a href="{{ route('whatsapp-inbox') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('WhatsApp Inbox') }}</a></li>
+                        <li><a href="{{ route('instagram-dm') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Instagram DMs') }}</a></li>
+                        <li><a href="{{ route('facebook-messenger') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Facebook Messenger') }}</a></li>
+                        <li><a href="{{ route('telegram-inbox') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Telegram Inbox') }}</a></li>
                     </ul>
                 </div>
 
@@ -144,6 +144,32 @@
                     <ul class="space-y-2 text-sm text-zinc-500">
                         <li><a href="{{ route('privacy') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Privacy Policy') }}</a></li>
                         <li><a href="{{ route('terms') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Terms of Service') }}</a></li>
+                    </ul>
+                </div>
+            </div>
+            {{-- Industries --}}
+            <div class="mt-8 grid gap-8 border-t border-zinc-200 pt-8 dark:border-zinc-800 sm:grid-cols-1">
+                <div>
+                    <h4 class="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Industries') }}</h4>
+                    <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-500">
+                        <li><a href="{{ route('industry.real-estate') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Real Estate') }}</a></li>
+                        <li><a href="{{ route('industry.ecommerce') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('E-commerce') }}</a></li>
+                        <li><a href="{{ route('industry.agencies') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Agencies') }}</a></li>
+                        <li><a href="{{ route('industry.restaurants') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Restaurants') }}</a></li>
+                        <li><a href="{{ route('industry.education') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Education') }}</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            {{-- Compare --}}
+            <div class="mt-8 grid gap-8 border-t border-zinc-200 pt-8 dark:border-zinc-800 sm:grid-cols-1">
+                <div>
+                    <h4 class="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Compare') }}</h4>
+                    <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-500">
+                        <li><a href="{{ route('vs.trengo') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('vs Trengo') }}</a></li>
+                        <li><a href="{{ route('vs.manychat') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('vs ManyChat') }}</a></li>
+                        <li><a href="{{ route('vs.freshchat') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('vs Freshchat') }}</a></li>
+                        <li><a href="{{ route('vs.respond-io') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('vs Respond.io') }}</a></li>
                     </ul>
                 </div>
             </div>

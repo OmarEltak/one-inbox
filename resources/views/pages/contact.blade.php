@@ -1,4 +1,6 @@
-<x-layouts.marketing :title="__('Contact') . ' — One Inbox'" :description="__('Get in touch with the One Inbox team. We\'d love to hear from you.')">
+<x-layouts.marketing
+    :title="__('Contact One Inbox — Support for Your Social Media CRM')"
+    :description="__('Get help with One Inbox — your AI-powered social media CRM. Contact our team for support, sales questions, or partnership inquiries.')">
 
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-4xl px-6">
