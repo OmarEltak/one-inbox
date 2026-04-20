@@ -285,46 +285,46 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "What platforms does One Inbox support?",
             "acceptedAnswer": {
-                "@type": "Answer",
+                "@@type": "Answer",
                 "text": "One Inbox supports Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram. Connect all four from a single dashboard."
             }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "How does the AI sales responder work?",
             "acceptedAnswer": {
-                "@type": "Answer",
+                "@@type": "Answer",
                 "text": "You configure the AI with your product information, pricing, and brand voice. It then automatically responds to incoming messages, qualifies leads based on conversation signals, and guides customers toward a purchase."
             }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I take over from the AI mid-conversation?",
             "acceptedAnswer": {
-                "@type": "Answer",
+                "@@type": "Answer",
                 "text": "Absolutely. You can pause the AI on any conversation and take over manually at any time. When you're done, resume AI and it picks up where you left off."
             }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Is there a free plan?",
             "acceptedAnswer": {
-                "@type": "Answer",
+                "@@type": "Answer",
                 "text": "Yes! Our Free plan includes 1 connected channel and 50 AI responses per month. Upgrade anytime as your business grows."
             }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "How accurate is the lead scoring?",
             "acceptedAnswer": {
-                "@type": "Answer",
+                "@@type": "Answer",
                 "text": "Our AI analyzes conversation signals like purchase intent, urgency, budget mentions, and engagement to score leads from 0-100. It gets smarter over time as it processes more conversations."
             }
         }
