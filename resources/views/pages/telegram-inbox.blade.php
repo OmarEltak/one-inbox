@@ -140,23 +140,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "How does One Inbox connect to Telegram?",
-            "acceptedAnswer": {"@type": "Answer", "text": "You connect via a Telegram Bot. Create a free bot through Telegram's BotFather, paste the bot token into One Inbox, and your bot's conversations flow into your shared inbox instantly."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "You connect via a Telegram Bot. Create a free bot through Telegram's BotFather, paste the bot token into One Inbox, and your bot's conversations flow into your shared inbox instantly."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can the AI handle complex product questions on Telegram?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. You train the AI by providing your product catalog, FAQs, pricing, and policies. The more detail you give it, the better it handles complex questions without human intervention."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. You train the AI by providing your product catalog, FAQs, pricing, and policies. The more detail you give it, the better it handles complex questions without human intervention."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I use One Inbox for Telegram and other platforms simultaneously?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. One Inbox unifies Telegram with Facebook, Instagram, and WhatsApp in one dashboard. Your team manages all channels from a single interface."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox unifies Telegram with Facebook, Instagram, and WhatsApp in one dashboard. Your team manages all channels from a single interface."}
         }
     ]
 }

@@ -7,18 +7,18 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can I manage multiple client accounts from one One Inbox login?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. Each client gets their own team workspace. You can switch between clients instantly, and the AI is configured separately for each client\'s business context.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. Each client gets their own team workspace. You can switch between clients instantly, and the AI is configured separately for each client\'s business context.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can each client have their own AI responder persona?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. Each workspace has its own AI configuration — separate business description, product/service info, and tone guidelines. The AI acts as the client\'s own brand voice, not a generic bot.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. Each workspace has its own AI configuration — separate business description, product/service info, and tone guidelines. The AI acts as the client\'s own brand voice, not a generic bot.')) }}" }
         }
     ]
 }

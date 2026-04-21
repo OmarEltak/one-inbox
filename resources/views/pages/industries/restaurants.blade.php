@@ -7,18 +7,18 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can customers place orders via WhatsApp?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. The AI can take orders, confirm details, and collect payment instructions. It handles the entire order conversation so your team only steps in for special requests.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. The AI can take orders, confirm details, and collect payment instructions. It handles the entire order conversation so your team only steps in for special requests.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can I take reservations through WhatsApp?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. The AI collects party size, date, time preference, and contact info — then queues it for your team to confirm. Customers get an immediate reply even at midnight.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. The AI collects party size, date, time preference, and contact info — then queues it for your team to confirm. Customers get an immediate reply even at midnight.')) }}" }
         }
     ]
 }

@@ -28,19 +28,19 @@
     {{-- JSON-LD Structured Data --}}
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
+        "@@context": "https://schema.org",
+        "@@type": "SoftwareApplication",
         "name": "One Inbox",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "description": "{{ $description ?? 'Unified social inbox with AI-powered sales responder for Facebook, Instagram, WhatsApp, and Telegram.' }}",
         "offers": {
-            "@type": "Offer",
+            "@@type": "Offer",
             "price": "0",
             "priceCurrency": "USD"
         },
         "creator": {
-            "@type": "Organization",
+            "@@type": "Organization",
             "name": "One Inbox"
         }
     }

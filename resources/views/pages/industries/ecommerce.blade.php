@@ -7,23 +7,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can I connect my WhatsApp to handle order inquiries?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. Connect your WhatsApp Business API account and the AI instantly handles common e-commerce questions: order status, shipping times, return policies, sizing guides, and product availability.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. Connect your WhatsApp Business API account and the AI instantly handles common e-commerce questions: order status, shipping times, return policies, sizing guides, and product availability.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('How does the AI know about my products?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('You provide your product catalog, pricing, and policies in the business profile. The AI uses this as its knowledge base and answers accurately within those limits.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('You provide your product catalog, pricing, and policies in the business profile. The AI uses this as its knowledge base and answers accurately within those limits.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can I use it for WhatsApp order notifications too?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes — with the WhatsApp Business API you can send outbound messages including order confirmations, shipping updates, and delivery notifications to customers who have opted in.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes — with the WhatsApp Business API you can send outbound messages including order confirmations, shipping updates, and delivery notifications to customers who have opted in.')) }}" }
         }
     ]
 }

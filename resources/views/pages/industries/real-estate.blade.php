@@ -7,23 +7,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can I manage WhatsApp leads from multiple property listings in one inbox?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. One Inbox connects your WhatsApp Business API number alongside Instagram, Facebook, and Telegram. All leads from all platforms appear in one unified inbox that your whole team shares.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. One Inbox connects your WhatsApp Business API number alongside Instagram, Facebook, and Telegram. All leads from all platforms appear in one unified inbox that your whole team shares.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('How does the AI handle real estate inquiries?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('You provide your property listings, pricing, and key FAQs. The AI answers questions about availability, pricing, location, and amenities — and qualifies buyers by budget and timeline before connecting them to a human agent.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('You provide your property listings, pricing, and key FAQs. The AI answers questions about availability, pricing, location, and amenities — and qualifies buyers by budget and timeline before connecting them to a human agent.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can multiple agents work the same WhatsApp number?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. With the WhatsApp Business API, your entire team works from one number simultaneously. Conversations are assigned to specific agents so nothing falls through the cracks.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. With the WhatsApp Business API, your entire team works from one number simultaneously. Conversations are assigned to specific agents so nothing falls through the cracks.')) }}" }
         }
     ]
 }

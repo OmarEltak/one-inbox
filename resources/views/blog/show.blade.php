@@ -7,24 +7,24 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "Article",
+    "@@context": "https://schema.org",
+    "@@type": "Article",
     "headline": "{{ addslashes($post->title) }}",
     "description": "{{ addslashes($post->meta_description) }}",
     "author": {
-        "@type": "Organization",
+        "@@type": "Organization",
         "name": "{{ addslashes($post->author) }}"
     },
     "publisher": {
-        "@type": "Organization",
+        "@@type": "Organization",
         "name": "One Inbox",
         "url": "https://ot1-pro.com"
     },
     "datePublished": "{{ $post->published_at->toIso8601String() }}",
     "dateModified": "{{ $post->updated_at->toIso8601String() }}",
     "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "{{ route('blog.show', $post->slug) }}"
+        "@@type": "WebPage",
+        "@@id": "{{ route('blog.show', $post->slug) }}"
     }
 }
 </script>

@@ -139,23 +139,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does One Inbox work with the official Facebook API?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. One Inbox uses Meta's official Messenger Platform API. Your Facebook Page and account are fully compliant — no unofficial tools or at-risk integrations."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox uses Meta's official Messenger Platform API. Your Facebook Page and account are fully compliant — no unofficial tools or at-risk integrations."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I manage multiple Facebook Pages in one inbox?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Connect as many Facebook Pages as your plan allows and manage all their conversations from a single unified inbox with separate AI configurations per Page."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Connect as many Facebook Pages as your plan allows and manage all their conversations from a single unified inbox with separate AI configurations per Page."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does it work with Facebook ads (click-to-Messenger)?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Any conversation started from a Facebook ad that clicks into Messenger will land in your One Inbox — with AI handling, lead scoring, and team routing."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Any conversation started from a Facebook ad that clicks into Messenger will land in your One Inbox — with AI handling, lead scoring, and team routing."}
         }
     ]
 }

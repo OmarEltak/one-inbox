@@ -166,23 +166,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Is One Inbox cheaper than Trengo?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes, significantly. Trengo starts at ~$25/month per user with no free plan. One Inbox has a free tier and paid plans starting at $29/month for the entire team — not per seat."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes, significantly. Trengo starts at ~$25/month per user with no free plan. One Inbox has a free tier and paid plans starting at $29/month for the entire team — not per seat."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does One Inbox have everything Trengo has?",
-            "acceptedAnswer": {"@type": "Answer", "text": "One Inbox covers all the core features: shared inbox, WhatsApp, Instagram, Facebook, Telegram, team assignments, and internal notes. Where One Inbox goes further is AI sales automation — a built-in sales responder, AI lead scoring, and automatic handoff."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "One Inbox covers all the core features: shared inbox, WhatsApp, Instagram, Facebook, Telegram, team assignments, and internal notes. Where One Inbox goes further is AI sales automation — a built-in sales responder, AI lead scoring, and automatic handoff."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I migrate from Trengo to One Inbox?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Migrating is straightforward — reconnect your social channels to One Inbox, configure your AI sales agent, and invite your team. New conversations start flowing in immediately."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Migrating is straightforward — reconnect your social channels to One Inbox, configure your AI sales agent, and invite your team. New conversations start flowing in immediately."}
         }
     ]
 }

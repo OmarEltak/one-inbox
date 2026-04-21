@@ -167,28 +167,28 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does Instagram allow automated DM replies?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. One Inbox uses Meta's official Instagram Messaging API, which is fully compliant with Instagram's terms of service. Your account is safe."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox uses Meta's official Instagram Messaging API, which is fully compliant with Instagram's terms of service. Your account is safe."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Will my followers know they're talking to an AI?",
-            "acceptedAnswer": {"@type": "Answer", "text": "That's your choice. You can configure the AI to identify itself or to respond as your brand with a custom persona name."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "That's your choice. You can configure the AI to identify itself or to respond as your brand with a custom persona name."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "How does it handle multiple languages?",
-            "acceptedAnswer": {"@type": "Answer", "text": "The AI automatically detects the language of the incoming message and replies in the same language. No configuration needed — it works out of the box."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "The AI automatically detects the language of the incoming message and replies in the same language. No configuration needed — it works out of the box."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I manage multiple Instagram accounts?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Connect multiple Instagram Business accounts and manage all their DMs from one unified dashboard with separate AI configs per account."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Connect multiple Instagram Business accounts and manage all their DMs from one unified dashboard with separate AI configs per account."}
         }
     ]
 }

@@ -166,23 +166,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Is One Inbox a good Respond.io alternative for small businesses?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. One Inbox focuses on exactly the channels that drive social sales — WhatsApp, Instagram, Facebook, and Telegram — with an AI agent included out of the box. For small and mid-size businesses, One Inbox delivers 80% of what Respond.io offers at 20% of the cost."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox focuses on exactly the channels that drive social sales — WhatsApp, Instagram, Facebook, and Telegram — with an AI agent included out of the box. For small and mid-size businesses, One Inbox delivers 80% of what Respond.io offers at 20% of the cost."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does One Inbox have the same WhatsApp capabilities as Respond.io?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Both platforms connect via the official WhatsApp Business API. One Inbox supports multiple WhatsApp numbers, shared team inbox, AI automation, and full conversation history, with the added advantage of AI lead scoring built in."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Both platforms connect via the official WhatsApp Business API. One Inbox supports multiple WhatsApp numbers, shared team inbox, AI automation, and full conversation history, with the added advantage of AI lead scoring built in."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I migrate from Respond.io to One Inbox?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Reconnect your WhatsApp Business API number, Instagram, Facebook, and Telegram accounts to One Inbox, configure your AI sales agent, and move your team across. One Inbox offers onboarding support to make the transition smooth."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Reconnect your WhatsApp Business API number, Instagram, Facebook, and Telegram accounts to One Inbox, configure your AI sales agent, and move your team across. One Inbox offers onboarding support to make the transition smooth."}
         }
     ]
 }

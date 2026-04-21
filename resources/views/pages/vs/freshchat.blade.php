@@ -166,23 +166,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Is One Inbox cheaper than Freshchat?",
-            "acceptedAnswer": {"@type": "Answer", "text": "For most small and mid-size teams, yes. Freshchat's per-agent pricing adds up quickly. One Inbox Pro is $79/month for the whole team with unlimited AI responses."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "For most small and mid-size teams, yes. Freshchat's per-agent pricing adds up quickly. One Inbox Pro is $79/month for the whole team with unlimited AI responses."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does One Inbox work for customer support too?",
-            "acceptedAnswer": {"@type": "Answer", "text": "One Inbox handles both sales and support conversations in the same inbox. You can assign support conversations to specific team members, use the AI for FAQ-style questions, and escalate complex cases to human agents."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "One Inbox handles both sales and support conversations in the same inbox. You can assign support conversations to specific team members, use the AI for FAQ-style questions, and escalate complex cases to human agents."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I migrate from Freshchat to One Inbox?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Connect your WhatsApp, Instagram, Facebook, and Telegram accounts to One Inbox, train your AI agent with your product and support information, and onboard your team. Most teams are fully operational within a day."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Connect your WhatsApp, Instagram, Facebook, and Telegram accounts to One Inbox, train your AI agent with your product and support information, and onboard your team. Most teams are fully operational within a day."}
         }
     ]
 }

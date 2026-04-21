@@ -7,18 +7,18 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can the AI answer enrollment and admission questions?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. You configure the AI with your programs, fees, admission requirements, and deadlines. It answers prospective student inquiries accurately and around the clock — a huge advantage during enrollment season.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. You configure the AI with your programs, fees, admission requirements, and deadlines. It answers prospective student inquiries accurately and around the clock — a huge advantage during enrollment season.')) }}" }
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "{{ addslashes(__('Can it handle Arabic and English inquiries?')) }}",
-            "acceptedAnswer": { "@type": "Answer", "text": "{{ addslashes(__('Yes. The AI detects the language the student or parent is writing in and responds in the same language — no configuration needed. Ideal for bilingual institutions.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. The AI detects the language the student or parent is writing in and responds in the same language — no configuration needed. Ideal for bilingual institutions.')) }}" }
         }
     ]
 }

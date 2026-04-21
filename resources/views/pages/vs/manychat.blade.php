@@ -166,23 +166,23 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Is One Inbox a ManyChat alternative for WhatsApp and Instagram?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes, and then some. One Inbox handles WhatsApp, Instagram DMs, Facebook Messenger, and Telegram — all in a single shared inbox with a real AI sales agent."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes, and then some. One Inbox handles WhatsApp, Instagram DMs, Facebook Messenger, and Telegram — all in a single shared inbox with a real AI sales agent."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does One Inbox support broadcast campaigns like ManyChat?",
-            "acceptedAnswer": {"@type": "Answer", "text": "One Inbox is focused on inbound conversations and live sales — AI responding to messages that come in. It handles the live sales side extremely well."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "One Inbox is focused on inbound conversations and live sales — AI responding to messages that come in. It handles the live sales side extremely well."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I migrate from ManyChat to One Inbox?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. Reconnect your WhatsApp Business, Instagram, Facebook, and Telegram accounts to One Inbox, configure your AI agent with your product information, and invite your team. Your AI is ready in minutes."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Reconnect your WhatsApp Business, Instagram, Facebook, and Telegram accounts to One Inbox, configure your AI agent with your product information, and invite your team. Your AI is ready in minutes."}
         }
     ]
 }

@@ -192,33 +192,33 @@
 @push('schema')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
     "mainEntity": [
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Does One Inbox work with WhatsApp Business API?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes. One Inbox connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can multiple team members use the same WhatsApp number?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Absolutely. One Inbox gives your entire team shared access to a single WhatsApp Business number. Conversations can be assigned to specific agents, and everyone sees the full history."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Absolutely. One Inbox gives your entire team shared access to a single WhatsApp Business number. Conversations can be assigned to specific agents, and everyone sees the full history."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Will the AI sound robotic to my customers?",
-            "acceptedAnswer": {"@type": "Answer", "text": "No. You train the AI with your brand voice, product details, and communication style. It sounds like your best sales rep — not a generic chatbot."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "No. You train the AI with your brand voice, product details, and communication style. It sounds like your best sales rep — not a generic chatbot."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "Can I take over a conversation from the AI?",
-            "acceptedAnswer": {"@type": "Answer", "text": "Yes, at any time. You can pause AI on any conversation and reply manually. When you're done, re-enable AI and it picks up where it left off with full context."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes, at any time. You can pause AI on any conversation and reply manually. When you're done, re-enable AI and it picks up where it left off with full context."}
         },
         {
-            "@type": "Question",
+            "@@type": "Question",
             "name": "What happens when the AI can't answer a question?",
-            "acceptedAnswer": {"@type": "Answer", "text": "The AI recognizes when it's out of its depth and automatically flags the conversation for human review. Your team gets notified instantly."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "The AI recognizes when it's out of its depth and automatically flags the conversation for human review. Your team gets notified instantly."}
         }
     ]
 }
