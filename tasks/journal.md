@@ -885,3 +885,81 @@ Executed via `php artisan tinker` on `one-inbox-prod`:
 At 11:42 AM today, sending to amdo7a failed with Instagram error `2534022`: "message sent outside allowed period". This is Instagram's 24-hour messaging window — you can only reply within 24h of the last inbound message. Unrelated to the incoming message bug.
 
 *Last updated: 2026-04-06 by Claude (session: Instagram incoming messages fix)*
+
+---
+
+## SEO Campaign — Phase 2–5 Complete
+*Session: 2026-04-21 by Claude*
+
+### What Was Built
+
+#### Phase 2 — Platform Landing Pages (previous session)
+- `resources/views/pages/whatsapp-inbox.blade.php` — target: "whatsapp business inbox"
+- `resources/views/pages/instagram-dm.blade.php` — target: "instagram dm management"
+- `resources/views/pages/facebook-messenger.blade.php` — target: "facebook messenger management"
+- `resources/views/pages/telegram-inbox.blade.php` — target: "telegram business inbox"
+- Routes: `whatsapp-inbox`, `instagram-dm`, `facebook-messenger`, `telegram-inbox`
+
+#### Phase 3 — Comparison Pages (previous session)
+- `resources/views/pages/vs/trengo.blade.php`
+- `resources/views/pages/vs/manychat.blade.php`
+- `resources/views/pages/vs/freshchat.blade.php`
+- `resources/views/pages/vs/respond-io.blade.php`
+- Routes: `vs.trengo`, `vs.manychat`, `vs.freshchat`, `vs.respond-io`
+
+#### Phase 4 — Blog Infrastructure (previous session)
+- `database/migrations/2026_04_20_091226_create_posts_table.php` — migrated ✓
+- `app/Models/Post.php` — `published()` scope, meta title/description accessors
+- `app/Http/Controllers/BlogController.php` — `index()` paginated + `show()` with related posts
+- `resources/views/blog/index.blade.php` + `resources/views/blog/show.blade.php`
+- Routes: `blog.index`, `blog.show`
+- Sitemap updated to include `/blog` + dynamic published posts
+
+#### Phase 4 — Blog Content (this session)
+- `database/seeders/PostSeeder.php` — 7 SEO-targeted articles seeded
+  - "How to Manage WhatsApp Business Messages at Scale" (6 min, WhatsApp Business)
+  - "Best WhatsApp Business Inbox Tools in 2025" (7 min, WhatsApp Business)
+  - "Instagram DM Management for Business: The Complete 2025 Guide" (5 min, Instagram)
+  - "AI Sales Responder for WhatsApp: Close Deals While You Sleep" (5 min, AI Sales)
+  - "Unified Social Inbox: Why Every Growing Business Needs One in 2025" (6 min, Social CX)
+  - "How to Set Up a Shared WhatsApp Inbox for Your Team" (5 min, WhatsApp Business)
+  - "Facebook Messenger for Business: Complete 2025 Setup Guide" (5 min, Facebook)
+- Run: `php artisan db:seed --class=PostSeeder` ✓
+
+#### Phase 5 — Industry Landing Pages (this session)
+- `resources/views/pages/industries/real-estate.blade.php` — target: "whatsapp inbox real estate"
+- `resources/views/pages/industries/ecommerce.blade.php` — target: "whatsapp inbox ecommerce"
+- `resources/views/pages/industries/agencies.blade.php` — target: "social inbox marketing agencies"
+- `resources/views/pages/industries/restaurants.blade.php` — target: "whatsapp for restaurants"
+- `resources/views/pages/industries/education.blade.php` — target: "whatsapp inbox education"
+- Routes: `industry.real-estate`, `industry.ecommerce`, `industry.agencies`, `industry.restaurants`, `industry.education`
+- All added to sitemap (priority 0.8, monthly)
+- "Industries" section added to footer in `layouts/marketing.blade.php`
+
+### Bug Fixed — Blade @context Compilation
+**Problem:** `"@context"` and `"@type"` inside JSON-LD `<script>` blocks within `@push('schema')` were parsed as Blade directives, causing `syntax error, unexpected end of file`.
+**Fix:** Escaped to `"@@context"` and `"@@type"` in 14 files:
+- All platform pages, comparison pages, industry pages, blog/show.blade.php, layouts/marketing.blade.php
+**Command used:** `sed -i 's/"@context"/"@@context"/g; s/"@type"/"@@type"/g; s/"@id"/"@@id"/g'`
+
+### Translation Files Updated
+- `lang/en.json` — grew from ~421 → ~650 lines (all industry page strings)
+- `lang/ar.json` — grew from ~421 → ~650 lines (full Arabic translations for all industry pages)
+
+### Current Page Count
+| Section | Pages |
+|---------|-------|
+| Platform | 4 (WhatsApp, Instagram, Facebook, Telegram) |
+| Comparison | 4 (vs Trengo, ManyChat, Freshchat, Respond.io) |
+| Industry | 5 (Real Estate, Ecommerce, Agencies, Restaurants, Education) |
+| Blog | 7 articles live |
+| Core | 6 (home, features, pricing, about, contact, privacy, terms) |
+| **Total** | **~27 indexable pages** |
+
+### Pending
+- Re-submit sitemap to Google Search Console (now has 27+ pages + 7 blog posts)
+- Arabic `/ar/` URL structure (current `?lang=ar` is NOT indexed separately)
+- Write next batch of blog articles (target: 40 total)
+- Default og:image (1200×630 branded image)
+
+*Last updated: 2026-04-21 by Claude (SEO Phase 2–5)*
