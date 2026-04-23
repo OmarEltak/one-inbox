@@ -30,3 +30,4 @@ yarn-error.log
 # Local dev artifacts
 /.claude
 /storage/ngrok_requests.json
+.aider*
