@@ -119,7 +119,7 @@
                     <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
                 @else
                     <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
-                        {{ $instagramAccounts->isNotEmpty() ? 'Add via Facebook' : 'Connect via Facebook' }}
+                        {{ $instagramAccounts->isNotEmpty() ? 'Add via Meta' : 'Connect via Meta' }}
                     </flux:button>
                     <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? 'Add Direct (IG Login)' : 'Connect Direct (IG Login)' }}

@@ -111,8 +111,15 @@ class SendPlatformMessage implements ShouldQueue
     {
         $version = config('services.meta.graph_api_version', 'v21.0');
         $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+        // IG Business Login: use igbid from metadata for the send URL.
+        // After the self-heal in ProcessIncomingMessage, platform_page_id becomes the legacy
+        // IG User ID (from the webhook entry.id), while igbid retains the real IGBID that
+        // graph.instagram.com/messages requires.
+        $igPageId = $isInstagramBusiness
+            ? ($page->metadata['igbid'] ?? $page->platform_page_id)
+            : $page->platform_page_id;
         $url = $isInstagramBusiness
-            ? "https://graph.instagram.com/{$version}/{$page->platform_page_id}/messages"
+            ? "https://graph.instagram.com/{$version}/{$igPageId}/messages"
             : "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
 
         $payload = [

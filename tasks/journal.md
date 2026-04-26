@@ -963,3 +963,107 @@ At 11:42 AM today, sending to amdo7a failed with Instagram error `2534022`: "mes
 - Default og:image (1200×630 branded image)
 
 *Last updated: 2026-04-21 by Claude (SEO Phase 2–5)*
+
+---
+
+## Session: 2026-04-26 — Instagram Issues Diagnosis + Send Fix
+
+### Context
+User reported 4 Instagram problems:
+1. mishkahuniversity IG (connected via Meta/Facebook method) — no messages arriving
+2. Personal IG (direct IG login) — receives messages but outbound send fails
+3. Friend's IG — sees "profile doesn't exist" (screen 1) or "Facebook Login unavailable" (screen 2) on either connection method
+4. idz page — only added because Ahmed (admin) was connecting via Facebook at the same time
+
+### Root Cause Analysis
+
+**Problem 2 — Send fails for IG Business Login pages (CODE BUG)**
+
+Self-heal logic in `ProcessIncomingMessage::handleMetaMessage()` (session 2026-03-31) updates `platform_page_id` to the legacy IG User ID from the webhook `entry.id`, and stores the real IGBID in `metadata['igbid']`.
+
+`SendPlatformMessage::sendViaMetaMessenger()` was building the send URL using `platform_page_id` — which is now the legacy ID, not IGBID. `graph.instagram.com/{IGBID}/messages` requires the IGBID.
+
+**Problem 1 — mishkahuniversity not receiving (NOT a code bug)**
+Per journal 2026-04-09: `instagram_manage_messages` app review submitted but PENDING Meta approval. Until approved, only App Testers receive webhooks for IG-via-Facebook accounts. Mishkah's IG account owner must be added as a Tester, OR wait for Meta approval.
+
+**Problem 3 — Friend errors (NOT code bugs)**
+- "Profile doesn't exist" = friend has a personal IG account, not Business/Creator. Instagram Business Login only works for Business/Creator account types.
+- "Facebook Login unavailable" = app is in review. Friend must accept the Tester invitation at developers.facebook.com/apps/1469090344742803/roles/roles/ before they can use the app.
+
+**Problem 4 — idz only via Ahmed (BY DESIGN)**
+For method 1 (IG via Facebook), the IG account is detected from the Facebook Page's `instagram_business_account` field. Only the Facebook Page admin can grant this. No fix possible — this is a Meta API constraint.
+
+### Code Changes This Session
+
+**File: `app/Jobs/SendPlatformMessage.php` — `sendViaMetaMessenger()`**
+- Added `$igPageId` variable: uses `metadata['igbid'] ?? platform_page_id` for IG Business Login pages
+- Build send URL with `$igPageId` instead of `platform_page_id`
+- Reason: after self-heal, `platform_page_id` = legacy IG User ID; IGBID is in `metadata['igbid']`
+
+**File: `resources/views/livewire/connections/index.blade.php`**
+- Renamed "Connect via Facebook" → "Connect via Meta"
+- Renamed "Add via Facebook" → "Add via Meta"
+
+### Deploy Needed
+Both files must be copied to `one-inbox-prod`:
+```bash
+cp app/Jobs/SendPlatformMessage.php C:/Users/NanoChip/Herd/one-inbox-prod/app/Jobs/SendPlatformMessage.php
+cp resources/views/livewire/connections/index.blade.php C:/Users/NanoChip/Herd/one-inbox-prod/resources/views/livewire/connections/index.blade.php
+cd C:/Users/NanoChip/Herd/one-inbox-prod && php artisan view:clear && php artisan queue:restart
+```
+
+### Platform Status (2026-04-26)
+| Platform | Inbound | Outbound | Notes |
+|----------|---------|----------|-------|
+| Telegram | ✅ | ✅ | Working |
+| WhatsApp (QR) | ✅ | ✅ | Working |
+| Instagram (IG Business Login) | ✅ | ✅ Fixed | Send URL bug fixed this session |
+| Instagram via Meta (mishkahuniversity) | ❌ | ✅ | Waiting for Meta app review approval |
+| Facebook Messenger | ❌ | ✅ | Waiting for Omar to enable 2FA on FB account |
+| Email | ✅ | ✅ | Working |
+
+*Last updated: 2026-04-26 by Claude (session: Instagram send fix + diagnosis)*
+
+---
+
+## Session: 2026-04-26 (continued) — Critical IG Self-Heal Crash + Full Diagnosis
+
+### CRITICAL BUG FOUND AND FIXED: All IG Webhooks Crashing Since 2026-04-23
+
+**Evidence from DB investigation:**
+- 30 failed jobs in `failed_jobs` table, all `ProcessIncomingMessage`
+- Exception: `SQLSTATE[23000]: Integrity constraint violation: 19 UNIQUE constraint failed: pages.team_id, pages.platform, pages.platform_page_id`
+- All 245 IG webhook_logs have `entry.id=17841429680280453` (Omar's personal IG legacy ID)
+- `team_id` column on all recent IG webhook_logs is NULL → processing never completed
+
+**Root cause chain:**
+1. Page 39 (Omar's IG, `platform_page_id=17841429680280453`) was inactive
+2. Webhooks arrive for Omar's IG with `entry.id=17841429680280453`
+3. Primary lookup fails (inactive page filtered out)
+4. Self-heal finds page 36 (Mishkah, only active IG page) → tries to set its `platform_page_id=17841429680280453`
+5. Page 39 already has that ID → UNIQUE constraint crash
+6. Job fails after 3 retries → ALL IG webhooks dropped for 3 days
+
+**Fixes applied:**
+1. `app/Jobs/ProcessIncomingMessage.php` — Rewrote self-heal:
+   - First check any page (including inactive) with exact matching ID
+   - If found inactive: reactivate it instead of patching a different page
+   - Only patch first active page if no conflict exists
+2. **Production DB:**
+   - Page 39 (Omar IG, `platform_page_id=17841429680280453`): `is_active=1`
+   - Account 9 (Instagram connected account): `is_active=1`
+   - Page 40 (duplicate, different ID): `is_active=0`
+3. All 3 fixed files deployed to prod, `view:clear`, `queue:restart` run
+
+**Tester status check (Meta roles page):**
+- Ahmed Mamdouh: General Tester (مُختبر) — ACCEPTED ✅ (no معلق badge)
+- amdo7a (Ahmed's IG): Instagram Tester — معلق PENDING ❌ (hasn't accepted IG sub-app invite)
+- omar_eltak88: Instagram Tester — ACCEPTED ✅
+
+**Mishkah IG (page 36) has 0 conversations confirmed:**
+- No webhooks for IGBID `17841406970888724` have ever arrived
+- Confirmed: `instagram_manage_messages` Standard Access = Meta doesn't deliver 3rd-party IG webhooks until Advanced Access approved via App Review
+
+**Full problems documented in `tasks/problems.md`**
+
+*Last updated: 2026-04-26 by Claude (session: critical IG crash fix + full diagnosis)*
