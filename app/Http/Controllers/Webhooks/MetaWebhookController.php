@@ -83,29 +83,36 @@ class MetaWebhookController extends Controller
         $signature = $request->header('X-Hub-Signature-256');
 
         if (! $signature) {
+            Log::warning('Meta webhook missing signature header', ['headers' => $request->headers->keys()]);
             return false;
         }
 
         $body = $request->getContent();
-
-        // Instagram Business Login uses a separate app with its own secret
         $object = $request->input('object');
-        if ($object === 'instagram') {
-            $igSecret = config('services.meta.instagram_app_secret', config('services.meta.app_secret'));
-            $expected = 'sha256=' . hash_hmac('sha256', $body, $igSecret);
+
+        $candidates = [
+            'instagram_app_secret' => config('services.meta.instagram_app_secret'),
+            'app_secret' => config('services.meta.app_secret'),
+        ];
+
+        foreach ($candidates as $name => $secret) {
+            if (! $secret) {
+                continue;
+            }
+            $expected = 'sha256=' . hash_hmac('sha256', $body, $secret);
             if (hash_equals($expected, $signature)) {
                 return true;
             }
         }
 
-        // Facebook (and fallback for Instagram using the same app)
-        $expectedSignature = 'sha256=' . hash_hmac(
-            'sha256',
-            $body,
-            config('services.meta.app_secret')
-        );
+        Log::warning('Meta webhook signature mismatch', [
+            'object' => $object,
+            'signature_received' => substr($signature, 0, 20) . '...',
+            'body_len' => strlen($body),
+            'tried_secrets' => array_keys(array_filter($candidates)),
+        ]);
 
-        return hash_equals($expectedSignature, $signature);
+        return false;
     }
 
     /**

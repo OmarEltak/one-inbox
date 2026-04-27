@@ -523,9 +523,12 @@ class FacebookPlatform extends AbstractPlatform
         }
 
         $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+        $senderId = $isInstagramBusiness
+            ? ($page->metadata['igsid'] ?? $page->platform_page_id)
+            : $page->platform_page_id;
         $sendUrl = $isInstagramBusiness
-            ? "https://graph.instagram.com/{$this->graphVersion()}/{$page->platform_page_id}/messages"
-            : "{$this->graphUrl}/{$page->platform_page_id}/messages";
+            ? "https://graph.instagram.com/{$this->graphVersion()}/{$senderId}/messages"
+            : "{$this->graphUrl}/{$senderId}/messages";
 
         $response = Http::withToken($page->page_access_token)->post($sendUrl, $payload);
 

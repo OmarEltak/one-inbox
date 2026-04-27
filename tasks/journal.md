@@ -27,7 +27,7 @@
 | Database | SQLite — each app has its OWN `database/database.sqlite` |
 | Queue driver | database |
 | PHP version | 8.4 (Herd) |
-| WhatsApp gateway | Evolution API v2 in Docker → `http://localhost:8081` |
+| WhatsApp gateway | Evolution API v2.3.7 in Docker → `http://localhost:8081` |
 | Meta parent app | `1469090344742803` (One Inbox Business) |
 | Meta Instagram sub-app | `1408745007038040` |
 | Production domain | `https://ot1-pro.com` |
@@ -657,6 +657,47 @@ curl "https://graph.facebook.com/v21.0/1469090344742803/subscriptions?access_tok
 
 ---
 
+## 2026-04-27 — Evolution API Upgrade v2.2.3 → v2.3.7
+
+**Goal**: Update Evolution API to latest stable version to fix any known issues and get latest features.
+
+### What Changed
+- **Old version**: `atendai/evolution-api:v2.2.3` (April 7, 2026)
+- **New version**: `evoapicloud/evolution-api:v2.3.7` (December 5, 2025, pushed 2 months ago)
+
+### Why the Change?
+- The old Docker image `atendai/evolution-api` hasn't been updated in 11 months
+- Official Docker repository moved to `evoapicloud/evolution-api` starting v2.3.0
+- v2.3.7 includes fixes for Baileys reconnection issues, proxy integration, Chatwoot integration, and more
+
+### Steps Taken
+1. Updated `docker-compose.evolution.yml` line 33:
+   - Changed image from `atendai/evolution-api:v2.2.3` to `evoapicloud/evolution-api:v2.3.7`
+2. Pulled new image: `docker compose -f docker-compose.evolution.yml pull evolution-api`
+3. Recreated container: `docker compose -f docker-compose.evolution.yml up -d --force-recreate evolution-api`
+4. Verified startup in logs — HTTP ON: 8080, redis ready, Prisma migrations applied
+
+### Verification
+```bash
+curl http://localhost:8081/instance/fetchInstances -H "apikey: {EVOLUTION_API_KEY}"
+# Response: [] (empty array = healthy, no instances yet)
+```
+
+### Migration Notes
+- Database migrations applied automatically (49 migrations found, no pending changes)
+- Prisma client regenerated for v2.3.7
+- Redis cache reinitialized
+- Existing instances preserved in `evolution_instances` volume
+
+### Next Steps
+- Users need to reconnect WhatsApp via QR code if the instance format changed
+- Test inbound/outbound messaging to confirm webhook delivery still works
+- Monitor logs for any breaking changes in payload structure
+
+*Last updated: 2026-04-27 by Claude (session: Evolution API upgrade)*
+
+---
+
 ## 2026-04-05 — Meta App Review Submission (continued from 2026-03-31)
 
 ### Submission: One Inbox Business
@@ -1067,3 +1108,40 @@ cd C:/Users/NanoChip/Herd/one-inbox-prod && php artisan view:clear && php artisa
 **Full problems documented in `tasks/problems.md`**
 
 *Last updated: 2026-04-26 by Claude (session: critical IG crash fix + full diagnosis)*
+
+---
+
+## 2026-04-27 — New IG Sub-App + Dual-Webhook Architecture
+
+**Goal:** Replace inaccessible old sub-app `1408745007038040` with a new sub-app to fix outbound DM 403/code 10/subcode 2534022 caused by IGSID universe mismatch between two Meta apps.
+
+**New sub-app created:** `OT1 Direct Connect`
+- Parent App ID: `2908423109505861`
+- Instagram App ID: `2382509022254519` (used for OAuth `client_id` and Graph API calls)
+- Instagram App Secret: stored in `.env` `META_INSTAGRAM_APP_SECRET`
+- Webhook URL: `https://ot1-pro.com/api/webhooks/meta-ig`
+- Webhook verify token: `META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN` (same value as main token by design)
+- OAuth redirect URI: `https://ot1-pro.com/connections/instagram/callback`
+- Subscribed fields: messages, messaging_postbacks, messaging_seen, messaging_referral, comments, live_comments, message_edit, message_reactions
+- Tester accepted: `omar_eltak88`
+
+**Webhook architecture (already in code from previous session):**
+- Route: `routes/api.php` → `/meta` for main app, `/meta-ig` for sub-app (both call MetaWebhookController@handle)
+- Verify: controller accepts both `META_WEBHOOK_VERIFY_TOKEN` and `META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN`
+- Signature check: validates against both `META_APP_SECRET` and `META_INSTAGRAM_APP_SECRET` so each app's HMAC passes
+- Confirmed live: `curl https://ot1-pro.com/api/webhooks/meta-ig?hub.mode=subscribe&hub.verify_token=…&hub.challenge=test` → `200 test`
+
+**Production .env updated:**
+- `META_INSTAGRAM_APP_ID=2382509022254519`
+- `META_INSTAGRAM_APP_SECRET=<new>`
+- `META_INSTAGRAM_WEBHOOK_VERIFY_TOKEN=8b50f8498a4e0e4eea7f1395bb9888e2`
+- `config:clear` + `queue:restart` run on both `one-inbox` and `one-inbox-prod`
+
+**Database cleanup before reconnect:**
+- Page 40 (Omar IG via OLD sub-app, IGBID `27389582010629405`): `is_active=0`
+- ConnectedAccount 9, 12 (legacy IG records for Omar): `is_active=0`
+- Only Page 36 (Mishkah, FB-linked IG) remains active
+
+**Next:** Omar reconnects via Connect Direct (IG Login) → new Page record created with NEW app-scoped IGBID, mapped to webhook `/meta-ig`. End-to-end test inbound + outbound DM.
+
+*Last updated: 2026-04-27 by Claude*
