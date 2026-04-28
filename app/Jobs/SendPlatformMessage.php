@@ -59,6 +59,17 @@ class SendPlatformMessage implements ShouldQueue
         }
     }
 
+    public function failed(\Throwable $e): void
+    {
+        $message = Message::find($this->messageId);
+        if ($message) {
+            $meta = $message->metadata ?? [];
+            $meta['send_status'] = 'failed';
+            $meta['send_error'] = $e->getMessage();
+            $message->update(['metadata' => $meta]);
+        }
+    }
+
     protected function sendViaEmail($page, Message $message): ?string
     {
         $conversation = $message->conversation;
@@ -111,16 +122,23 @@ class SendPlatformMessage implements ShouldQueue
     {
         $version = config('services.meta.graph_api_version', 'v21.0');
         $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
-        // IG Business Login: use igbid from metadata for the send URL.
-        // After the self-heal in ProcessIncomingMessage, platform_page_id becomes the legacy
-        // IG User ID (from the webhook entry.id), while igbid retains the real IGBID that
-        // graph.instagram.com/messages requires.
-        $igPageId = $isInstagramBusiness
-            ? ($page->metadata['igbid'] ?? $page->platform_page_id)
-            : $page->platform_page_id;
-        $url = $isInstagramBusiness
-            ? "https://graph.instagram.com/{$version}/{$igPageId}/messages"
-            : "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+
+        if ($isInstagramBusiness) {
+            // IG Business Login → graph.instagram.com using the IGSID (what /me returns).
+            $senderId = $page->metadata['igsid'] ?? $page->metadata['igbid'] ?? $page->platform_page_id;
+            $url = "https://graph.instagram.com/{$version}/{$senderId}/messages";
+        } elseif ($page->platform === 'instagram') {
+            // IG via "Add via Meta" / FB Login. Must POST to the linked Facebook Page,
+            // NOT the IG account ID. Endpoint shape: /{FB_PAGE_ID}/messages.
+            $fbPageId = $page->metadata['linked_facebook_page_id'] ?? null;
+            if (! $fbPageId) {
+                throw new \RuntimeException('IG send (FB Login) requires metadata.linked_facebook_page_id on page '.$page->id);
+            }
+            $url = "https://graph.facebook.com/{$version}/{$fbPageId}/messages";
+        } else {
+            // Facebook Messenger.
+            $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+        }
 
         $payload = [
             'recipient' => ['id' => $recipientId],
@@ -145,9 +163,18 @@ class SendPlatformMessage implements ShouldQueue
             return $response->json('message_id');
         }
 
-        Log::error('Meta send failed', ['status' => $response->status(), 'body' => $response->body()]);
-
-        return null;
+        Log::error('Meta send failed', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+            'url' => $url,
+            'recipient' => $recipientId,
+            'page_id' => $page->id,
+        ]);
+        $err = $response->json('error') ?? [];
+        $code = $err['code'] ?? 'unknown';
+        $sub = $err['error_subcode'] ?? '-';
+        $msg = $err['message'] ?? 'Send failed';
+        throw new \RuntimeException("Send failed (code {$code}/{$sub}): {$msg}");
     }
 
     protected function sendViaWhatsApp($page, string $recipientId, Message $message): ?string

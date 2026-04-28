@@ -85,15 +85,34 @@ class ProcessIncomingMessage implements ShouldQueue
         $senderId = $event['sender']['id'];
         $messageData = $event['message'];
 
-        // Skip echo messages (sent by us)
+        // Skip echo messages (sent by us). For IG Business Login is_echo is reliable;
+        // also defensively skip when sender == page itself (covers IGBID and IGSID forms).
         if ($messageData['is_echo'] ?? false) {
             return;
         }
 
+        // Prefer page whose connected_account is also active. Multiple teams may have a page
+        // record with the same Instagram User ID (e.g. an old defunct connection on team 4
+        // alongside the live connection on team 3). Without this, Page::first() may pick the
+        // wrong record purely by row order.
         $page = Page::where('platform', $platform)
             ->where('platform_page_id', $pageId)
             ->where('is_active', true)
-            ->first();
+            ->whereHas('connectedAccount', fn ($q) => $q->where('is_active', true))
+            ->first()
+            ?? Page::where('platform', $platform)
+                ->where('platform_page_id', $pageId)
+                ->where('is_active', true)
+                ->first();
+
+        $selfIds = array_filter([
+            $page?->platform_page_id,
+            $page?->metadata['igsid'] ?? null,
+            $page?->metadata['igbid'] ?? null,
+        ]);
+        if ($selfIds && in_array($senderId, $selfIds, true)) {
+            return;
+        }
 
         // Instagram Business Login: webhook entry.id uses a different ID format (legacy Instagram
         // User ID) than what graph.instagram.com/me returns (IGBID). Two-step self-heal:
@@ -123,18 +142,22 @@ class ProcessIncomingMessage implements ShouldQueue
                 if (! $conflict) {
                     $page = Page::where('platform', 'instagram')
                         ->where('is_active', true)
+                        ->whereHas('connectedAccount', fn ($q) => $q->where('is_active', true))
                         ->first();
 
                     if ($page) {
                         $oldId = $page->platform_page_id;
                         $meta  = $page->metadata ?? [];
-                        $meta['igbid'] = $oldId;
+                        // Preserve the IGSID (send-URL id) under the correct key.
+                        // Old code reused 'igbid' for this value; keep both for back-compat.
+                        $meta['igsid'] = $meta['igsid'] ?? $oldId;
+                        $meta['igbid'] = $pageId;
                         $page->update([
                             'platform_page_id' => $pageId,
                             'metadata'         => $meta,
                         ]);
                         $page->platform_page_id = $pageId;
-                        Log::info("Instagram: healed platform_page_id from {$oldId} to {$pageId}");
+                        Log::info("Instagram: healed platform_page_id from {$oldId} to {$pageId}, igsid={$meta['igsid']}");
                     }
                 } else {
                     Log::warning("Instagram self-heal skipped: another page already owns ID {$pageId}");
@@ -779,11 +802,11 @@ class ProcessIncomingMessage implements ShouldQueue
         return Conversation::firstOrCreate(
             [
                 'team_id' => $page->team_id,
+                'page_id' => $page->id,
                 'platform' => $platform,
                 'platform_conversation_id' => $participantId,
             ],
             [
-                'page_id' => $page->id,
                 'contact_id' => $contact->id,
                 'status' => 'open',
                 'last_message_at' => now(),

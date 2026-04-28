@@ -213,8 +213,14 @@ class FacebookPlatform extends AbstractPlatform
                 'metadata'             => [
                     'username'  => $profile['username'] ?? null,
                     'auth_type' => 'instagram_business',
-                    // IGBID from graph.instagram.com/me — used for subscription API calls.
-                    // platform_page_id may differ (legacy Instagram User ID used for webhook routing).
+                    // Two-ID system for IG Business Login:
+                    //   igsid = ID returned by graph.instagram.com/me — used in send URL.
+                    //   igbid = canonical Instagram User ID used in webhook entry.id.
+                    //          Only learned once the first webhook arrives — until then
+                    //          we mirror the IGSID here so legacy lookups still work.
+                    // platform_page_id is rewritten to the IGBID by self-heal in
+                    // ProcessIncomingMessage when the first webhook lands.
+                    'igsid'     => $profile['id'] ?? $igUserId,
                     'igbid'     => $profile['id'] ?? $igUserId,
                 ],
             ]
@@ -532,12 +538,23 @@ class FacebookPlatform extends AbstractPlatform
 
         $response = Http::withToken($page->page_access_token)->post($sendUrl, $payload);
 
-        $platformMessageId = null;
-        if ($response->successful()) {
-            $platformMessageId = $response->json('message_id');
-        } else {
-            Log::error('Facebook send failed', ['body' => $response->body()]);
+        if (! $response->successful()) {
+            $body = $response->body();
+            Log::error('Facebook send failed', [
+                'status' => $response->status(),
+                'body' => $body,
+                'send_url' => $sendUrl,
+                'page_id' => $page->id,
+                'recipient' => $recipientId,
+            ]);
+            $err = $response->json('error') ?? [];
+            $code = $err['code'] ?? 'unknown';
+            $sub = $err['error_subcode'] ?? '-';
+            $msg = $err['message'] ?? 'Send failed';
+            throw new \RuntimeException("Instagram send failed (code {$code}/{$sub}): {$msg}");
         }
+
+        $platformMessageId = $response->json('message_id');
 
         $message = Message::create([
             'conversation_id' => $conversation->id,
