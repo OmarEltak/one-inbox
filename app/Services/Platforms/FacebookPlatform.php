@@ -197,34 +197,52 @@ class FacebookPlatform extends AbstractPlatform
             ]
         );
 
-        $page = Page::updateOrCreate(
-            [
-                'team_id'          => $account->team_id,
-                'platform'         => 'instagram',
-                'platform_page_id' => $igUserId,
-            ],
-            [
+        // Reuse any existing IG page on this team that already represents the same IGSID
+        // (its platform_page_id may have been rewritten to the IGBID by self-heal after
+        // the first webhook landed — so we can't match purely by platform_page_id).
+        $existing = Page::where('team_id', $account->team_id)
+            ->where('platform', 'instagram')
+            ->where(function ($q) use ($igUserId) {
+                $q->where('platform_page_id', $igUserId)
+                    ->orWhereJsonContains('metadata->igsid', $igUserId);
+            })
+            ->orWhere(fn ($q) => $q->where('connected_account_id', $account->id))
+            ->first();
+
+        $newMetadata = [
+            'username'  => $profile['username'] ?? null,
+            'auth_type' => 'instagram_business',
+            'igsid'     => $profile['id'] ?? $igUserId,
+            'igbid'     => ($existing && ! empty($existing->metadata['igbid']))
+                ? $existing->metadata['igbid']
+                : ($profile['id'] ?? $igUserId),
+        ];
+
+        if ($existing) {
+            $existing->update([
                 'connected_account_id' => $account->id,
                 'name'                 => $profile['name'] ?? $profile['username'] ?? 'Instagram',
                 'avatar'               => $profile['profile_picture_url'] ?? null,
                 'page_access_token'    => $longLivedToken,
                 'category'             => 'instagram_business',
                 'is_active'            => true,
-                'metadata'             => [
-                    'username'  => $profile['username'] ?? null,
-                    'auth_type' => 'instagram_business',
-                    // Two-ID system for IG Business Login:
-                    //   igsid = ID returned by graph.instagram.com/me — used in send URL.
-                    //   igbid = canonical Instagram User ID used in webhook entry.id.
-                    //          Only learned once the first webhook arrives — until then
-                    //          we mirror the IGSID here so legacy lookups still work.
-                    // platform_page_id is rewritten to the IGBID by self-heal in
-                    // ProcessIncomingMessage when the first webhook lands.
-                    'igsid'     => $profile['id'] ?? $igUserId,
-                    'igbid'     => $profile['id'] ?? $igUserId,
-                ],
-            ]
-        );
+                'metadata'             => array_merge($existing->metadata ?? [], $newMetadata),
+            ]);
+            $page = $existing;
+        } else {
+            $page = Page::create([
+                'team_id'              => $account->team_id,
+                'platform'             => 'instagram',
+                'platform_page_id'     => $igUserId,
+                'connected_account_id' => $account->id,
+                'name'                 => $profile['name'] ?? $profile['username'] ?? 'Instagram',
+                'avatar'               => $profile['profile_picture_url'] ?? null,
+                'page_access_token'    => $longLivedToken,
+                'category'             => 'instagram_business',
+                'is_active'            => true,
+                'metadata'             => $newMetadata,
+            ]);
+        }
 
         $this->subscribeInstagramPage($page);
         \App\Jobs\SyncPageConversations::dispatch($page);
