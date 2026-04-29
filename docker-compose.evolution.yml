@@ -13,7 +13,7 @@ services:
     environment:
       POSTGRES_DB: evolution
       POSTGRES_USER: evolution
-      POSTGRES_PASSWORD: evolution_secret
+      POSTGRES_PASSWORD: ${EVOLUTION_DB_PASSWORD:-evolution_secret}
     volumes:
       - evolution_postgres_data:/var/lib/postgresql/data
     networks:
@@ -30,7 +30,7 @@ services:
       - evolution-net
 
   evolution-api:
-    image: atendai/evolution-api:v2.2.3
+    image: evoapicloud/evolution-api:v2.3.7
     container_name: evolution-api
     restart: unless-stopped
     ports:
@@ -42,12 +42,12 @@ services:
       - evolution-redis
     environment:
       # Auth — must match EVOLUTION_API_KEY in Laravel .env
-      AUTHENTICATION_API_KEY: "85d97dedf44371d59d022bc0c042256896850929d0ac6f55"
+      AUTHENTICATION_API_KEY: "${EVOLUTION_API_KEY}"
       AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "true"
 
       # Database
       DATABASE_PROVIDER: postgresql
-      DATABASE_CONNECTION_URI: "postgresql://evolution:evolution_secret@evolution-postgres:5432/evolution?schema=public"
+      DATABASE_CONNECTION_URI: "postgresql://evolution:${EVOLUTION_DB_PASSWORD:-evolution_secret}@evolution-postgres:5432/evolution?schema=public"
       DATABASE_CONNECTION_CLIENT_NAME: evolution_api
 
       # Enable all entity saving

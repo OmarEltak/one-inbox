@@ -1145,3 +1145,111 @@ cd C:/Users/NanoChip/Herd/one-inbox-prod && php artisan view:clear && php artisa
 **Next:** Omar reconnects via Connect Direct (IG Login) → new Page record created with NEW app-scoped IGBID, mapped to webhook `/meta-ig`. End-to-end test inbound + outbound DM.
 
 *Last updated: 2026-04-27 by Claude*
+
+---
+
+## 2026-04-29 — Chained 30-Day Backfill for Instagram Conversations
+
+**Goal:** Replace eager full-history pull at IG connect time with chained paginated rate-limited backfill to handle 100k+ historical DMs without blocking queue or getting rate-limited by Meta.
+
+### Problem
+
+The old `SyncPageConversations` job called `FacebookPlatform::fetchConversations()` which walked ALL conversation pages until empty in a single job. For accounts with 100k+ historical DMs this would:
+- Block the queue worker for extended periods
+- Get rate-limited by Meta (no throttling between API calls)
+- Timeout before completing
+
+### Solution Implemented
+
+**File: `app/Jobs/SyncPageConversations.php`** — Complete rewrite:
+- New constructor signature: `(int $pageId, ?string $afterCursor=null, int $depth=0, ?string $stopAtIso=null)`
+- First run: `$stopAtIso` defaults to 30 days ago in ISO8601
+- Each job fetches ONE page (limit=25) of conversations via new `FacebookPlatform::fetchConversationsPage()`
+- For each conversation: persists contact + ContactPlatform + Conversation + last message preview (reuses existing upsert logic)
+- If conversation `updated_time < $stopAtIso` → stops chain (returns)
+- If next cursor exists → re-dispatches self with 2-second delay (rate limit ~30 calls/min)
+- Hard safety stop at `$depth >= 200`
+- On completion: writes `metadata.backfill_completed_at` and `metadata.backfill_oldest_at` to Page
+
+**File: `app/Services/Platforms/FacebookPlatform.php`** — Added `fetchConversationsPage()`:
+- Fetches single page of 25 conversations
+- Returns `['next_cursor' => string|null, 'stopped_at_iso' => string|null]`
+- Checks each conversation's `updated_time` against stop threshold
+- Reuses same contact resolution and upsert logic as old `fetchConversations()`
+- Old `fetchConversations()` kept as `@deprecated` for reference (not called anywhere)
+
+**Call sites updated:**
+- `handleInstagramViaFacebookCallback()` line 94: `dispatch(pageId: $igPage->id)`
+- `handleInstagramCallback()` line 248: `dispatch(pageId: $page->id)`
+
+**Files changed:**
+- `app/Jobs/SyncPageConversations.php` — complete rewrite
+- `app/Services/Platforms/FacebookPlatform.php` — added `fetchConversationsPage()`, updated 2 dispatch calls
+
+### Acceptance Criteria Met
+
+- [x] Fresh connect dispatches at most 200 jobs (depth limit)
+- [x] Stops when conversations older than 30 days
+- [x] Each job processes ≤ 25 conversations
+- [x] Existing conversations NOT duplicated (unique index on team_id, page_id, platform, platform_conversation_id)
+- [x] No regression for FB Messenger (job returns early for non-Instagram pages)
+- [x] No changes to config/, .env, or migrations
+
+### Deployment
+
+Sync both directories:
+```bash
+# Already done in one-inbox (current working directory)
+# Copy to one-inbox-prod:
+cp app/Jobs/SyncPageConversations.php C:/Users/NanoChip/Herd/one-inbox-prod/app/Jobs/SyncPageConversations.php
+cp app/Services/Platforms/FacebookPlatform.php C:/Users/NanoChip/Herd/one-inbox-prod/app/Services/Platforms/FacebookPlatform.php
+cd C:/Users/NanoChip/Herd/one-inbox-prod && php artisan view:clear && php artisan queue:restart
+```
+
+---
+
+## 2026-04-29 — Phase 1: BackfillContactNameJob + Phase 2: Sync Windows
+
+### Phase 1 — Lazy Contact Name Backfill
+
+**Problem**: Instagram Business Login webhook doesn't include sender name. Contacts are created with null/Unknown names.
+
+**Solution**: `BackfillContactNameJob` — single-attempt job dispatched 2 minutes after new contact creation. Fetches `/me` profile from graph.instagram.com (or graph.facebook.com) and fills in name + avatar.
+
+**Files created**:
+- `app/Jobs/BackfillContactNameJob.php` — in both dirs (tries=1, timeout=30, mirrors IG/FB profile fetch logic from ProcessIncomingMessage)
+
+**Files modified**:
+- `app/Jobs/ProcessIncomingMessage.php` (both dirs) — `findOrCreateContact()`: added dispatch of BackfillContactNameJob when new contact created for instagram/facebook with no name
+- `app/Console/Commands/BackfillUnknownContacts.php` (new, both dirs) — artisan command `contacts:backfill-names {--batch=100} {--platform=}` — dispatches BackfillContactNameJob for all contacts with null/empty/Unknown name, staggered 2s apart
+
+**Fixed this session (dev was missing)**:
+- `routes/api.php` (dev): added `/webhooks/meta-ig` route (was in prod but missing from dev)
+
+---
+
+### Phase 2 — Sync Windows + On-Demand Range Backfill
+
+**Problem**: No way to know which date ranges have already been fetched for a page. Campaigns need to target historical contacts, but conversations older than 30 days haven't been pulled.
+
+**Solution**:
+1. `page_sync_windows` table tracks completed date ranges
+2. `PageSyncWindowService` computes gaps, merges windows, estimates conversation counts
+3. `BackfillRangeJob` chained job that fetches a specific date range and marks window complete
+4. `POST /api/campaigns/preview` endpoint returns gap analysis and dispatches backfill for uncovered ranges
+
+**Files created** (both dirs):
+- `database/migrations/2026_04_29_100000_create_page_sync_windows_table.php` — page_id, starts_at, ends_at, status, failure_reason
+- `app/Models/PageSyncWindow.php` — Eloquent model with page() relation
+- `app/Services/PageSyncWindowService.php` — gapsFor(), merge(), estimateConversations()
+- `app/Jobs/BackfillRangeJob.php` — chained job, depth limit 200, creates/updates PageSyncWindow, chains with 2s delay
+- `app/Http/Controllers/Api/CampaignPreviewController.php` — POST /api/campaigns/preview (auth:sanctum)
+- `app/Console/Commands/SeedSyncWindowsFromMetadata.php` — one-time seeder `sync-windows:seed`
+
+**Files modified** (both dirs):
+- `app/Models/Page.php` — added `syncWindows()` HasMany relation
+- `routes/api.php` — added `POST /api/campaigns/preview` route under `auth:sanctum`
+
+**Migrations run**: both dev and prod ✅
+
+**Key design decision**: `BackfillRangeJob` uses `fetchConversationsPage($page, $cursor, $stopAtIso)` where `$stopAtIso` = the range's `starts_at`. This stops pagination once conversations older than the requested start are hit. On completion, `PageSyncWindowService::merge()` coalesces overlapping windows.

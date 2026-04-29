@@ -794,6 +794,11 @@ class ProcessIncomingMessage implements ShouldQueue
             'platform_name' => $senderData['name'] ?? null,
         ]);
 
+        // Schedule a lazy profile fetch if name is unavailable (e.g. IG Business returns null)
+        if (in_array($platform, ['instagram', 'facebook'], true) && empty($senderData['name'])) {
+            BackfillContactNameJob::dispatch($contact->id)->delay(now()->addMinutes(2));
+        }
+
         return $contact;
     }
 

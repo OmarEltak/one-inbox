@@ -91,7 +91,7 @@ class FacebookPlatform extends AbstractPlatform
                 ]);
 
             if ($igPage) {
-                \App\Jobs\SyncPageConversations::dispatch($igPage);
+                \App\Jobs\SyncPageConversations::dispatch(pageId: $igPage->id);
             }
         }
 
@@ -245,7 +245,7 @@ class FacebookPlatform extends AbstractPlatform
         }
 
         $this->subscribeInstagramPage($page);
-        \App\Jobs\SyncPageConversations::dispatch($page);
+        \App\Jobs\SyncPageConversations::dispatch(pageId: $page->id);
 
         return $account;
     }
@@ -384,7 +384,7 @@ class FacebookPlatform extends AbstractPlatform
             }
 
             // Pull existing conversations in background to avoid timeout
-            \App\Jobs\SyncPageConversations::dispatch($page);
+            \App\Jobs\SyncPageConversations::dispatch(pageId: $page->id);
 
             $pages->push($page);
         }
@@ -596,7 +596,121 @@ class FacebookPlatform extends AbstractPlatform
     }
 
     /**
-     * Fetch existing conversations from a page.
+     * Fetch a single page of conversations for chained backfill.
+     * Returns array with next_cursor, stopped_at_iso (if stopped early due to age).
+     */
+    public function fetchConversationsPage(Page $page, ?string $afterCursor, string $stopAtIso): array
+    {
+        $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+        $baseUrl = $isInstagramBusiness
+            ? "https://graph.instagram.com/{$this->graphVersion()}"
+            : $this->graphUrl;
+
+        $params = [
+            'fields' => 'id,participants,updated_time,snippet',
+            'platform' => $page->platform === 'instagram' ? 'instagram' : 'messenger',
+            'limit' => 25,
+        ];
+
+        if ($afterCursor) {
+            $params['after'] = $afterCursor;
+        }
+
+        $response = Http::withToken($page->page_access_token)
+            ->get("{$baseUrl}/{$page->platform_page_id}/conversations", $params);
+
+        if ($response->failed()) {
+            Log::error('Failed to fetch conversations page', [
+                'page' => $page->name,
+                'body' => $response->body(),
+                'after_cursor' => $afterCursor,
+            ]);
+            return ['next_cursor' => null, 'stopped_at_iso' => null];
+        }
+
+        $pageUsername = $page->metadata['username'] ?? null;
+        $nextCursor = null;
+        $stoppedAtIso = null;
+
+        foreach ($response->json('data', []) as $convData) {
+            $participant = collect($convData['participants']['data'] ?? [])
+                ->first(fn ($p) => $p['id'] !== $page->platform_page_id
+                    && (! $pageUsername || ($p['username'] ?? null) !== $pageUsername));
+
+            if (! $participant) {
+                continue;
+            }
+
+            // Check if conversation is older than 30 days
+            $updatedTime = $convData['updated_time'] ?? null;
+            if ($updatedTime) {
+                try {
+                    $updatedCarbon = \Carbon\Carbon::parse($updatedTime);
+                    if ($updatedCarbon->toIso8601String() < $stopAtIso) {
+                        $stoppedAtIso = $updatedCarbon->toIso8601String();
+                        break; // Stop processing this page
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to parse conversation updated_time', [
+                        'conversation_id' => $convData['id'],
+                        'updated_time' => $updatedTime,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            $contactPlatform = ContactPlatform::where('platform', $page->platform)
+                ->where('platform_contact_id', $participant['id'])
+                ->first();
+
+            $contact = $contactPlatform?->contact;
+
+            if (! $contact) {
+                $displayName = $participant['name'] ?? $participant['username'] ?? null;
+                $contact = Contact::create([
+                    'team_id' => $page->team_id,
+                    'name' => $displayName,
+                    'first_seen_at' => now(),
+                    'last_interaction_at' => now(),
+                ]);
+
+                ContactPlatform::create([
+                    'contact_id' => $contact->id,
+                    'platform' => $page->platform,
+                    'platform_contact_id' => $participant['id'],
+                    'platform_name' => $displayName,
+                ]);
+            }
+
+            $conversation = Conversation::updateOrCreate(
+                [
+                    'team_id' => $page->team_id,
+                    'page_id' => $page->id,
+                    'platform' => $page->platform,
+                    'platform_conversation_id' => $participant['id'],
+                ],
+                [
+                    'contact_id' => $contact->id,
+                    'last_message_at' => $convData['updated_time'] ?? now(),
+                    'last_message_preview' => $convData['snippet'] ?? null,
+                    'status' => 'open',
+                ]
+            );
+        }
+
+        // Get next cursor from paging
+        $paging = $response->json('paging', []);
+        $nextCursor = $paging['cursors']['after'] ?? null;
+
+        return [
+            'next_cursor' => $nextCursor,
+            'stopped_at_iso' => $stoppedAtIso,
+        ];
+    }
+
+    /**
+     * Fetch existing conversations from a page (legacy - kept for reference).
+     * @deprecated Use fetchConversationsPage() for chained backfill instead
      */
     public function fetchConversations(Page $page): Collection
     {

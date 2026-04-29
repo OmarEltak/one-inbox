@@ -7,6 +7,9 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
     Route::match(['get', 'post'], '/meta', [\App\Http\Controllers\Webhooks\MetaWebhookController::class, 'handle'])
         ->name('webhooks.meta');
 
+    Route::match(['get', 'post'], '/meta-ig', [\App\Http\Controllers\Webhooks\MetaWebhookController::class, 'handle'])
+        ->name('webhooks.meta-ig');
+
     Route::post('/telegram', [\App\Http\Controllers\Webhooks\TelegramWebhookController::class, 'handle'])
         ->name('webhooks.telegram');
 
@@ -27,3 +30,9 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
 // Stripe webhook (uses Cashier's signature verification middleware)
 Route::post('/stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
     ->name('stripe.webhook');
+
+// Authenticated campaign endpoints
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/campaigns/preview', \App\Http\Controllers\Api\CampaignPreviewController::class)
+        ->name('campaigns.preview');
+});

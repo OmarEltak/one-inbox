@@ -50,4 +50,9 @@ class Page extends Model
     {
         return $this->hasOne(AiConfig::class);
     }
+
+    public function syncWindows(): HasMany
+    {
+        return $this->hasMany(PageSyncWindow::class);
+    }
 }
