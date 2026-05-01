@@ -67,7 +67,7 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_utility_messaging,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
@@ -197,25 +197,26 @@ class FacebookPlatform extends AbstractPlatform
             ]
         );
 
-        // Reuse any existing IG page on this team that already represents the same IGSID
-        // (its platform_page_id may have been rewritten to the IGBID by self-heal after
-        // the first webhook landed — so we can't match purely by platform_page_id).
+        // Reuse any existing IG page on this team that already represents this account.
+        // Check platform_page_id, stored igsid/igbid metadata, and connected_account_id —
+        // all scoped to team + platform to avoid cross-team or cross-platform matches.
         $existing = Page::where('team_id', $account->team_id)
             ->where('platform', 'instagram')
-            ->where(function ($q) use ($igUserId) {
+            ->where(function ($q) use ($igUserId, $account) {
                 $q->where('platform_page_id', $igUserId)
-                    ->orWhereJsonContains('metadata->igsid', $igUserId);
+                    ->orWhereJsonContains('metadata->igsid', $igUserId)
+                    ->orWhereJsonContains('metadata->igbid', $igUserId)
+                    ->orWhere('connected_account_id', $account->id);
             })
-            ->orWhere(fn ($q) => $q->where('connected_account_id', $account->id))
             ->first();
 
+        // igsid = the ID Instagram puts in webhook entry[].id (token response user_id).
+        // igbid = the IGBID returned by graph.instagram.com/me, used for API send calls.
         $newMetadata = [
             'username'  => $profile['username'] ?? null,
             'auth_type' => 'instagram_business',
-            'igsid'     => $profile['id'] ?? $igUserId,
-            'igbid'     => ($existing && ! empty($existing->metadata['igbid']))
-                ? $existing->metadata['igbid']
-                : ($profile['id'] ?? $igUserId),
+            'igsid'     => $igUserId,
+            'igbid'     => $profile['id'] ?? $igUserId,
         ];
 
         if ($existing) {
@@ -224,6 +225,7 @@ class FacebookPlatform extends AbstractPlatform
                 'name'                 => $profile['name'] ?? $profile['username'] ?? 'Instagram',
                 'avatar'               => $profile['profile_picture_url'] ?? null,
                 'page_access_token'    => $longLivedToken,
+                'platform_page_id'     => $igUserId,
                 'category'             => 'instagram_business',
                 'is_active'            => true,
                 'metadata'             => array_merge($existing->metadata ?? [], $newMetadata),
@@ -547,8 +549,10 @@ class FacebookPlatform extends AbstractPlatform
         }
 
         $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+        // Use igbid (IGBID from graph.instagram.com/me) for the API send URL.
+        // Fall back to igsid then platform_page_id for pages connected before this fix.
         $senderId = $isInstagramBusiness
-            ? ($page->metadata['igsid'] ?? $page->platform_page_id)
+            ? ($page->metadata['igbid'] ?? $page->metadata['igsid'] ?? $page->platform_page_id)
             : $page->platform_page_id;
         $sendUrl = $isInstagramBusiness
             ? "https://graph.instagram.com/{$this->graphVersion()}/{$senderId}/messages"
@@ -602,29 +606,53 @@ class FacebookPlatform extends AbstractPlatform
     public function fetchConversationsPage(Page $page, ?string $afterCursor, string $stopAtIso): array
     {
         $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
-        $baseUrl = $isInstagramBusiness
-            ? "https://graph.instagram.com/{$this->graphVersion()}"
-            : $this->graphUrl;
+
+        if ($isInstagramBusiness) {
+            // Direct IG Login: graph.instagram.com conversations endpoint uses the IGBID
+            // (canonical Instagram User ID = platform_page_id after self-heal).
+            // NB: the SEND endpoint uses IGSID, but CONVERSATIONS uses IGBID.
+            $baseUrl           = "https://graph.instagram.com/{$this->graphVersion()}";
+            $pageId            = $page->platform_page_id; // IGBID
+            $filterParticipant = $page->platform_page_id; // business appears as IGBID in participants
+        } else {
+            // IG via FB Login: graph.facebook.com URL uses the FB Page ID.
+            // The business participant in the IG-platform conversation response is identified
+            // by the IG account ID (stored as platform_page_id = IGBID).
+            $baseUrl           = $this->graphUrl;
+            $pageId            = $page->metadata['linked_facebook_page_id'] ?? $page->platform_page_id;
+            $filterParticipant = $page->platform_page_id; // IG account ID (IGBID)
+        }
 
         $params = [
-            'fields' => 'id,participants,updated_time,snippet',
-            'platform' => $page->platform === 'instagram' ? 'instagram' : 'messenger',
-            'limit' => 25,
+            'fields' => 'id,participants,updated_time',
+            'limit'  => $isInstagramBusiness ? 25 : 10,
         ];
+
+        // platform=instagram is only a Facebook Graph API concept — not valid on graph.instagram.com
+        if (! $isInstagramBusiness) {
+            $params['platform'] = 'instagram';
+            // FB Login accounts with many conversations time out without a time window.
+            // Fetch only the last 30 days per page to stay within Meta's server limits.
+            // This can be extended via BackfillRangeJob for older history.
+            $params['since'] = now()->subDays(30)->timestamp;
+        }
 
         if ($afterCursor) {
             $params['after'] = $afterCursor;
         }
 
         $response = Http::withToken($page->page_access_token)
-            ->get("{$baseUrl}/{$page->platform_page_id}/conversations", $params);
+            ->get("{$baseUrl}/{$pageId}/conversations", $params);
 
         if ($response->failed()) {
-            Log::error('Failed to fetch conversations page', [
-                'page' => $page->name,
-                'body' => $response->body(),
-                'after_cursor' => $afterCursor,
+            $logLevel = $afterCursor ? 'warning' : 'error';
+            Log::$logLevel('Failed to fetch conversations page', [
+                'page'         => $page->name,
+                'page_id_used' => $pageId,
+                'body'         => $response->body(),
+                'after_cursor' => $afterCursor ? substr($afterCursor, 0, 40).'…' : null,
             ]);
+            // Treat failure as "end of available data" so the job marks backfill complete.
             return ['next_cursor' => null, 'stopped_at_iso' => null];
         }
 
@@ -633,8 +661,10 @@ class FacebookPlatform extends AbstractPlatform
         $stoppedAtIso = null;
 
         foreach ($response->json('data', []) as $convData) {
+            // Exclude the business/page owner from participants.
+            // filterParticipant = IGBID (platform_page_id) for both IG login paths.
             $participant = collect($convData['participants']['data'] ?? [])
-                ->first(fn ($p) => $p['id'] !== $page->platform_page_id
+                ->first(fn ($p) => $p['id'] !== $filterParticipant
                     && (! $pageUsername || ($p['username'] ?? null) !== $pageUsername));
 
             if (! $participant) {
@@ -692,7 +722,6 @@ class FacebookPlatform extends AbstractPlatform
                 [
                     'contact_id' => $contact->id,
                     'last_message_at' => $convData['updated_time'] ?? now(),
-                    'last_message_preview' => $convData['snippet'] ?? null,
                     'status' => 'open',
                 ]
             );

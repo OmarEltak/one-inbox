@@ -1253,3 +1253,85 @@ cd C:/Users/NanoChip/Herd/one-inbox-prod && php artisan view:clear && php artisa
 **Migrations run**: both dev and prod ✅
 
 **Key design decision**: `BackfillRangeJob` uses `fetchConversationsPage($page, $cursor, $stopAtIso)` where `$stopAtIso` = the range's `starts_at`. This stops pagination once conversations older than the requested start are hit. On completion, `PageSyncWindowService::merge()` coalesces overlapping windows.
+
+---
+
+## 2026-04-29 — IG Conversation Sync Root Cause Analysis + Historical Data Migration
+
+### Problem Statement
+
+User reported: "Omar's IG shows 7 chats while in real life it's more than 100" and "a month ago I had ALL my personal IG chats on this web app."
+
+---
+
+### Root Cause Found
+
+**Two IG connection paths create separate Page records:**
+
+| Page | platform_page_id | Source | Conversations | Status |
+|------|-----------------|--------|--------------|--------|
+| prod page 40 | `27389582010629405` (old IGSID) | Old sub-app `1408745007038040` in dev mode | 150 | inactive |
+| prod page 39 | `17841429680280453` (IGBID) | New sub-app `2382509022254519` in live mode | 8 | active |
+
+**Why old sync pulled 150 but new sync pulls 0–8:**
+- Old sub-app was likely in **development mode** — app owner gets unrestricted API access to their own IG account regardless of `instagram_manage_messages` Standard vs Advanced Access.
+- New sub-app is in **live mode** — `instagram_manage_messages` Standard Access only returns conversations with users who have explicitly authorized the app. Omar's real customers haven't authorized OT1 Pro, so the API returns 0.
+- Both `graph.instagram.com/{IGSID}/conversations` and `graph.instagram.com/{IGBID}/conversations` confirmed to return 0 conversations for Omar's new app token.
+
+**The `me/conversations` endpoint also returns 0** — confirmed the Standard Access limitation applies across all endpoint variants.
+
+**The "174,473 contacts" on the dashboard** was a stale cached value (cache TTL 300s). Actual prod DB has 17,473 contacts, overwhelmingly from the Mishkah FB page sync in April 2026. No data was lost.
+
+---
+
+### Fix Applied (Production)
+
+**Migrated 149 conversations from prod page 40 → page 39:**
+```php
+// In one-inbox-prod, run via tinker
+DB::table('conversations')
+    ->where('page_id', 40)
+    ->whereNotIn('platform_conversation_id', $page39PlatformIds)
+    ->update(['page_id' => 39, 'team_id' => $page39->team_id, 'updated_at' => now()]);
+// Migrated: 149 | Skipped (duplicate): 1 | Result: page 39 now has 157 conversations
+```
+
+Dashboard cache cleared for teams 3, 4, 5 to reflect updated counts.
+
+**Dev was already correct**: dev page 9 (IGBID) had 150 conversations, dev page 16 (IGSID) has 149 that are all duplicates of page 9 — no migration needed.
+
+---
+
+### Code Fix
+
+`app/Services/Platforms/FacebookPlatform.php` line ~661:
+- Fixed stale comment from "filterParticipant = IGSID for Direct IG Login" to correctly say IGBID for both paths.
+- Applied to both `one-inbox` and `one-inbox-prod`.
+
+---
+
+### What Still Doesn't Work (and Why)
+
+| Issue | Root Cause | Fix |
+|-------|-----------|-----|
+| New IG messages from existing contacts may create duplicate conversations | Old conversations stored with IGSID from old app; new webhooks use IGSID from new app — different values → no match | Acceptable for now; dedup can be added later |
+| Mishkah IG (page 36) has only 1 conversation | `graph.facebook.com/313985005290971/conversations?platform=instagram` times out (error -2, subcode 2534084) — too many conversations + Standard Access | Needs Advanced Access approval from Meta |
+| Omar IG API returns 0 conversations on fresh backfill | Standard Access: Meta only returns conversations with app-authorized users | Needs Advanced Access approval from Meta |
+
+---
+
+### Advanced Access Status
+
+- `instagram_manage_messages` submitted for App Review in Meta Developer Console (app `1469090344742803`)
+- User confirmed it was added ("it's there already")
+- **Once Advanced Access is approved**: delete `backfill_completed_at` from page 39 metadata → dispatch `SyncPageConversations` → it will backfill all conversations from all users
+
+```php
+// Command to re-trigger backfill after Advanced Access approved:
+$page = Page::find(39); // Omar's IG (prod)
+$meta = $page->metadata;
+unset($meta['backfill_completed_at'], $meta['backfill_oldest_at']);
+$page->metadata = $meta;
+$page->save();
+\App\Jobs\SyncPageConversations::dispatch($page->id);
+```

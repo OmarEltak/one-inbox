@@ -50,8 +50,8 @@ class SyncPageConversations implements ShouldQueue
             return;
         }
 
-        // Initialize stopAtIso on first run
-        $stopAtIso = $this->stopAtIso ?? now()->subDays(30)->toIso8601String();
+        // Initialize stopAtIso on first run — go back 1 year by default
+        $stopAtIso = $this->stopAtIso ?? now()->subYear()->toIso8601String();
 
         // Hard safety stop at depth 200
         if ($this->depth >= 200) {

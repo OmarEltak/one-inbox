@@ -92,10 +92,11 @@ class ConnectionController extends Controller
      */
     public function instagramViaFacebookCallback(Request $request, FacebookPlatform $facebook)
     {
-        if ($request->has('error')) {
-            Log::warning('Instagram via Facebook OAuth error', [
+        if ($request->has('error') || ! $request->has('code')) {
+            Log::warning('Instagram via Facebook OAuth error or cancel', [
                 'error'  => $request->input('error'),
                 'reason' => $request->input('error_reason'),
+                'has_code' => $request->has('code'),
             ]);
 
             return redirect()->route('connections.index')

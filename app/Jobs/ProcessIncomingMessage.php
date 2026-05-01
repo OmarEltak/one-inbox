@@ -96,12 +96,18 @@ class ProcessIncomingMessage implements ShouldQueue
         // alongside the live connection on team 3). Without this, Page::first() may pick the
         // wrong record purely by row order.
         $page = Page::where('platform', $platform)
-            ->where('platform_page_id', $pageId)
+            ->where(function ($q) use ($pageId) {
+                $q->where('platform_page_id', $pageId)
+                    ->orWhereJsonContains('metadata->igsid', $pageId);
+            })
             ->where('is_active', true)
             ->whereHas('connectedAccount', fn ($q) => $q->where('is_active', true))
             ->first()
             ?? Page::where('platform', $platform)
-                ->where('platform_page_id', $pageId)
+                ->where(function ($q) use ($pageId) {
+                    $q->where('platform_page_id', $pageId)
+                        ->orWhereJsonContains('metadata->igsid', $pageId);
+                })
                 ->where('is_active', true)
                 ->first();
 
