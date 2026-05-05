@@ -43,8 +43,10 @@ return [
     'meta' => [
         'app_id' => env('META_APP_ID', ''),
         'app_secret' => env('META_APP_SECRET', ''),
+        'app_secret_legacy' => env('META_APP_SECRET_LEGACY', ''),
         'instagram_app_id' => env('META_INSTAGRAM_APP_ID', env('META_APP_ID', '')),
         'instagram_app_secret' => env('META_INSTAGRAM_APP_SECRET', env('META_APP_SECRET', '')),
+        'instagram_app_secret_legacy' => env('META_INSTAGRAM_APP_SECRET_LEGACY', ''),
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN', ''),
         'graph_api_version' => env('META_GRAPH_API_VERSION', 'v21.0'),
         'login_config_id' => env('META_LOGIN_CONFIG_ID', ''),

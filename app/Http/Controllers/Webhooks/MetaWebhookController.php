@@ -77,6 +77,8 @@ class MetaWebhookController extends Controller
     /**
      * Verify X-Hub-Signature-256 HMAC header.
      * Instagram and Facebook may use different apps with different secrets.
+     * Legacy secrets are tried as a fallback so a freshly-rotated secret
+     * doesn't black-hole webhooks signed with the previous value.
      */
     protected function verifySignature(Request $request): bool
     {
@@ -91,8 +93,10 @@ class MetaWebhookController extends Controller
         $object = $request->input('object');
 
         $candidates = [
-            'instagram_app_secret' => config('services.meta.instagram_app_secret'),
-            'app_secret' => config('services.meta.app_secret'),
+            'instagram_app_secret'        => config('services.meta.instagram_app_secret'),
+            'instagram_app_secret_legacy' => config('services.meta.instagram_app_secret_legacy'),
+            'app_secret'                  => config('services.meta.app_secret'),
+            'app_secret_legacy'           => config('services.meta.app_secret_legacy'),
         ];
 
         foreach ($candidates as $name => $secret) {
@@ -101,6 +105,9 @@ class MetaWebhookController extends Controller
             }
             $expected = 'sha256=' . hash_hmac('sha256', $body, $secret);
             if (hash_equals($expected, $signature)) {
+                if (str_ends_with($name, '_legacy')) {
+                    Log::info("Meta webhook verified with legacy secret '{$name}' — promote it to the primary key in .env to silence this notice");
+                }
                 return true;
             }
         }
