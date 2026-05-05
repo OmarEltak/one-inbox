@@ -4,8 +4,11 @@ namespace App\Livewire\Campaigns;
 
 use App\Jobs\ProcessCampaign;
 use App\Models\Campaign;
+use App\Models\Conversation;
 use App\Models\Page;
+use App\Services\WhatsAppCloudPricing;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -23,6 +26,9 @@ class Index extends Component
     public string $leadStatus = '';
     public string $languageCode = 'en';
     public int $delaySeconds = 10;
+
+    /** WhatsApp Cloud API template category — drives Meta's per-message billing. */
+    public string $messageCategory = 'marketing';
 
     #[Computed]
     public function campaigns()
@@ -49,16 +55,89 @@ class Index extends Component
     public function updatedPlatform(): void
     {
         $this->pageId = null;
-        unset($this->pagesForPlatform);
+        unset($this->pagesForPlatform, $this->audiencePhones, $this->whatsappCostEstimate);
+    }
+
+    public function updatedPageId(): void
+    {
+        unset($this->audiencePhones, $this->whatsappCostEstimate);
+    }
+
+    public function updatedLeadStatus(): void
+    {
+        unset($this->audiencePhones, $this->whatsappCostEstimate);
+    }
+
+    public function updatedMessageCategory(): void
+    {
+        unset($this->whatsappCostEstimate);
+    }
+
+    /**
+     * Resolve the phone numbers we'd actually send a WhatsApp campaign to.
+     * Source: distinct platform_conversation_id (the recipient's WA number) on
+     * conversations belonging to the selected page, optionally filtered by the
+     * recipient contact's lead_status.
+     */
+    #[Computed]
+    public function audiencePhones(): array
+    {
+        if (! $this->pageId || $this->platform !== 'whatsapp') {
+            return [];
+        }
+
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return [];
+        }
+
+        $q = Conversation::query()
+            ->where('team_id', $team->id)
+            ->where('page_id', $this->pageId)
+            ->where('platform', 'whatsapp')
+            ->whereNotNull('platform_conversation_id');
+
+        if ($this->leadStatus) {
+            $q->whereHas('contact', fn ($cq) => $cq->where('lead_status', $this->leadStatus));
+        }
+
+        return $q->distinct()
+            ->pluck('platform_conversation_id')
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Live cost estimate for the WhatsApp campaign. Recomputed when platform,
+     * pageId, leadStatus, or messageCategory changes.
+     */
+    #[Computed]
+    public function whatsappCostEstimate(): array
+    {
+        if ($this->platform !== 'whatsapp' || ! $this->pageId) {
+            return [
+                'total_usd' => 0.0,
+                'recipient_count' => 0,
+                'breakdown' => [],
+                'unknown_country' => 0,
+                'category' => $this->messageCategory,
+                'rates_last_verified' => WhatsAppCloudPricing::RATES_LAST_VERIFIED,
+            ];
+        }
+
+        return WhatsAppCloudPricing::estimate($this->audiencePhones, $this->messageCategory);
     }
 
     public function openCreateModal(): void
     {
-        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds', 'platform']);
+        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds', 'platform', 'messageCategory']);
         $this->platform = 'facebook';
         $this->languageCode = 'en';
         $this->delaySeconds = 10;
+        $this->messageCategory = 'marketing';
         $this->showModal = true;
+        unset($this->audiencePhones, $this->whatsappCostEstimate);
     }
 
     public function save(): void
@@ -82,6 +161,7 @@ class Index extends Component
         if ($this->platform === 'whatsapp') {
             $rules['messageTemplate'] = 'required|string|max:100';
             $rules['languageCode']    = 'required|string|max:10';
+            $rules['messageCategory'] = 'required|string|in:marketing,utility,authentication,service';
         }
 
         $this->validate($rules);
@@ -96,7 +176,13 @@ class Index extends Component
         }
 
         if ($this->platform === 'whatsapp') {
-            $criteria['language_code'] = $this->languageCode;
+            $criteria['language_code']    = $this->languageCode;
+            $criteria['message_category'] = $this->messageCategory;
+            // Snapshot the cost estimate at creation time so the campaign list
+            // can show "you'll be billed approximately $X by Meta" historically.
+            $est = $this->whatsappCostEstimate;
+            $criteria['cost_estimate_usd']  = $est['total_usd'];
+            $criteria['estimated_recipients'] = $est['recipient_count'];
         }
 
         Campaign::create([

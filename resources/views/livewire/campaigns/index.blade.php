@@ -90,6 +90,17 @@
                         <div class="flex flex-wrap items-center gap-4 text-xs text-white/40">
                             @if($campaignPlatform === 'whatsapp')
                                 <span class="font-mono">Template: {{ $campaign->message_template }}</span>
+                                @if(! empty($criteria['message_category']))
+                                    <span class="capitalize">Category: {{ $criteria['message_category'] }}</span>
+                                @endif
+                                @if(isset($criteria['cost_estimate_usd']) && $criteria['cost_estimate_usd'] > 0)
+                                    <span class="text-yellow-200/80">
+                                        Est. Meta cost: ${{ number_format($criteria['cost_estimate_usd'], 2) }}
+                                        @if(! empty($criteria['estimated_recipients']))
+                                            ({{ number_format($criteria['estimated_recipients']) }} recipients)
+                                        @endif
+                                    </span>
+                                @endif
                             @else
                                 <span class="truncate max-w-xs">{{ Str::limit($campaign->message_template, 60) }}</span>
                             @endif
@@ -234,16 +245,21 @@
                         <span class="text-sm font-medium">Telegram</span>
                     </button>
 
-                    {{-- WhatsApp — Coming Soon --}}
-                    <div class="flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-white/2 opacity-50 cursor-not-allowed">
-                        <svg class="size-5 shrink-0 text-white/30" viewBox="0 0 24 24" fill="currentColor">
+                    {{-- WhatsApp --}}
+                    <button
+                        type="button"
+                        wire:click="$set('platform', 'whatsapp')"
+                        @class([
+                            'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
+                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'whatsapp',
+                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'whatsapp',
+                        ])
+                    >
+                        <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                         </svg>
-                        <div>
-                            <span class="text-sm font-medium text-white/30">WhatsApp</span>
-                            <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-400/10 text-yellow-400/70 border border-yellow-400/20">Coming Soon</span>
-                        </div>
-                    </div>
+                        <span class="text-sm font-medium">WhatsApp</span>
+                    </button>
                 </div>
             </div>
 
@@ -255,7 +271,7 @@
 
             <flux:field>
                 <flux:label>Page</flux:label>
-                <flux:select wire:model="pageId">
+                <flux:select wire:model.live="pageId">
                     <option value="">Select a page…</option>
                     @foreach($this->pagesForPlatform as $page)
                         <option value="{{ $page->id }}">{{ $page->name }}</option>
@@ -270,15 +286,112 @@
                 <flux:error name="pageId" />
             </flux:field>
 
+            {{-- WhatsApp template category — drives Meta's per-message billing --}}
+            @if($platform === 'whatsapp')
+                <flux:field>
+                    <flux:label>Template Category <flux:badge size="sm" color="yellow">Affects pricing</flux:badge></flux:label>
+                    <flux:select wire:model.live="messageCategory">
+                        <option value="marketing">Marketing — promotions, offers, announcements</option>
+                        <option value="utility">Utility — order updates, receipts, reminders</option>
+                        <option value="authentication">Authentication — login codes / OTP</option>
+                        <option value="service">Service — replies inside the customer's 24-hour window (free)</option>
+                    </flux:select>
+                    <flux:description class="text-white/50 text-xs">
+                        WhatsApp Cloud API requires a category for any message sent outside the 24-hour reply window.
+                        Choose the one that best matches your content; using the wrong one can get your template rejected by Meta.
+                    </flux:description>
+                </flux:field>
+
+                {{-- Live cost estimate --}}
+                @php $est = $this->whatsappCostEstimate; @endphp
+                <div class="rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-4 space-y-3">
+                    <div class="flex items-start gap-2">
+                        <flux:icon.exclamation-triangle class="size-5 text-yellow-400 mt-0.5 shrink-0" />
+                        <div class="text-xs text-yellow-200/80 leading-relaxed">
+                            <strong class="text-yellow-100">WhatsApp campaigns are billed by Meta, not by us.</strong>
+                            Meta charges your WhatsApp Business Account per delivered message based on the recipient's country and the template category.
+                            The estimate below is approximate — final billing comes from Meta directly.
+                            <a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" rel="noopener" class="underline hover:text-yellow-100">See Meta's official pricing →</a>
+                        </div>
+                    </div>
+
+                    @if($est['recipient_count'] === 0)
+                        <div class="text-sm text-white/50 text-center py-2">
+                            Pick a page above to see the audience size and an estimated cost.
+                        </div>
+                    @else
+                        <div class="grid grid-cols-3 gap-3 pt-1">
+                            <div class="rounded-lg bg-black/20 p-3 text-center">
+                                <p class="text-[10px] uppercase tracking-wide text-white/40">Recipients</p>
+                                <p class="mt-1 font-bold text-white text-lg">{{ number_format($est['recipient_count']) }}</p>
+                            </div>
+                            <div class="rounded-lg bg-black/20 p-3 text-center">
+                                <p class="text-[10px] uppercase tracking-wide text-white/40">Category</p>
+                                <p class="mt-1 font-bold text-white text-sm capitalize">{{ $est['category'] }}</p>
+                            </div>
+                            <div class="rounded-lg bg-black/20 p-3 text-center">
+                                <p class="text-[10px] uppercase tracking-wide text-white/40">Estimated total</p>
+                                <p class="mt-1 font-bold text-yellow-200 text-lg">
+                                    @if($est['category'] === 'service')
+                                        FREE
+                                    @else
+                                        ${{ number_format($est['total_usd'], 2) }}
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        @if(! empty($est['breakdown']) && $est['category'] !== 'service')
+                            <div class="pt-1">
+                                <p class="text-[10px] uppercase tracking-wide text-white/40 mb-1.5">Breakdown by country</p>
+                                <div class="space-y-1 max-h-32 overflow-y-auto pr-1">
+                                    @foreach($est['breakdown'] as $iso => $row)
+                                        <div class="flex items-center justify-between text-xs text-white/60 px-2 py-1 rounded bg-black/15">
+                                            <span class="font-mono">
+                                                {{ $iso === '_UNKNOWN_' ? '🌐 Unknown country' : $iso }}
+                                                <span class="text-white/40 ml-1">({{ number_format($row['count']) }} × ${{ number_format($row['rate'], 4) }})</span>
+                                            </span>
+                                            <span class="font-mono text-white/80">${{ number_format($row['subtotal'], 2) }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @if($est['unknown_country'] > 0)
+                                    <p class="text-[11px] text-yellow-200/70 mt-1.5">
+                                        ⚠️ {{ $est['unknown_country'] }} contact{{ $est['unknown_country'] !== 1 ? 's' : '' }} couldn't be matched to a country — billed at the global default rate.
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
+
+                        <p class="text-[10px] text-white/35 text-right">
+                            Rates verified {{ $est['rates_last_verified'] }} · Service replies are free regardless of country
+                        </p>
+                    @endif
+                </div>
+            @endif
+
             <flux:field>
-                <flux:label>Message</flux:label>
-                <flux:textarea wire:model="messageTemplate" rows="3" placeholder="Write your broadcast message here…" />
+                <flux:label>
+                    @if($platform === 'whatsapp')
+                        WhatsApp Template Name
+                    @else
+                        Message
+                    @endif
+                </flux:label>
+                @if($platform === 'whatsapp')
+                    <flux:input wire:model="messageTemplate" placeholder="exact_template_name (must be approved in WhatsApp Business Manager)" />
+                    <flux:description class="text-white/50 text-xs">
+                        WhatsApp requires pre-approved templates for outbound campaigns. Submit yours in Business Manager and paste the approved template name here.
+                    </flux:description>
+                @else
+                    <flux:textarea wire:model="messageTemplate" rows="3" placeholder="Write your broadcast message here…" />
+                @endif
                 <flux:error name="messageTemplate" />
             </flux:field>
 
             <flux:field>
                 <flux:label>Target — Lead Status <flux:badge size="sm" variant="outline">optional</flux:badge></flux:label>
-                <flux:select wire:model="leadStatus">
+                <flux:select wire:model.live="leadStatus">
                     <option value="">All contacts on this page</option>
                     <option value="new">New</option>
                     <option value="warm">Warm</option>
