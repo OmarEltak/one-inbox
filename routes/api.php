@@ -15,8 +15,14 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
 
     // Evolution API (WhatsApp QR gateway) — receives MESSAGES_UPSERT, CONNECTION_UPDATE, QRCODE_UPDATED
     // Set EVOLUTION_WEBHOOK_URL=https://yourdomain.com/api/webhooks/evolution in .env
+    // DEPRECATED: kept so any in-flight Evolution events still process; new connections use Wuzapi.
     Route::post('/evolution', [\App\Http\Controllers\Webhooks\EvolutionWebhookController::class, 'handle'])
         ->name('webhooks.evolution');
+
+    // Wuzapi (whatsmeow-based WhatsApp QR gateway) — current primary path.
+    // Set WUZAPI_WEBHOOK_URL=https://yourdomain.com/api/webhooks/wuzapi in .env
+    Route::post('/wuzapi', [\App\Http\Controllers\Webhooks\WuzapiWebhookController::class, 'handle'])
+        ->name('webhooks.wuzapi');
 
     // TikTok Business Messaging — Set webhook in TikTok Developer Portal
     Route::match(['get', 'post'], '/tiktok', [\App\Http\Controllers\Webhooks\TikTokWebhookController::class, 'handle'])

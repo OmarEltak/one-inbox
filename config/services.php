@@ -140,4 +140,23 @@ return [
         'webhook_host' => env('EVOLUTION_WEBHOOK_HOST', ''), // optional Host header override (for local dev behind a reverse proxy)
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Wuzapi (WhatsApp QR gateway, whatsmeow-based)
+    |--------------------------------------------------------------------------
+    | The active QR-based WhatsApp gateway. Whatsmeow tracks the WA mobile
+    | protocol much more closely than Baileys, which is why this replaced
+    | the old Evolution API setup. Container started via:
+    |   docker compose -f docker-compose.wuzapi.yml up -d
+    |
+    | EvolutionApiService now routes here behind the scenes; the class will
+    | be renamed to WhatsAppGatewayService in a follow-up.
+    */
+    'wuzapi' => [
+        'url'         => env('WUZAPI_URL', 'http://localhost:8082'),
+        'admin_token' => env('WUZAPI_ADMIN_TOKEN', ''),
+        'webhook_url' => env('WUZAPI_WEBHOOK_URL', ''),     // public URL Laravel receives webhooks on
+        'webhook_host'=> env('WUZAPI_WEBHOOK_HOST', ''),    // optional Host header override (local dev)
+    ],
+
 ];

@@ -5,16 +5,33 @@
             {{-- Header --}}
             <div class="text-left">
                 <flux:heading size="lg">Connect WhatsApp via QR</flux:heading>
-                <flux:text class="mt-1">Scan with any WhatsApp Business number — no Meta setup required.</flux:text>
+                <flux:text class="mt-1">Scan with any WhatsApp / WhatsApp Business number — no Meta setup required.</flux:text>
             </div>
+
+            {{-- Disclaimer: QR is unofficial and may break during WhatsApp protocol updates --}}
+            @if($status === 'idle')
+                <div class="rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-3 text-left">
+                    <div class="flex items-start gap-2">
+                        <flux:icon.exclamation-triangle class="size-4 text-yellow-400 mt-0.5 shrink-0" />
+                        <div class="text-xs text-yellow-200/85 leading-relaxed">
+                            <strong class="text-yellow-100">Personal / small-team use only.</strong>
+                            QR pairing uses an unofficial WhatsApp Web protocol and may briefly
+                            disconnect when WhatsApp pushes a protocol update. For mission-critical
+                            business use, connect via the official
+                            <strong class="text-yellow-100">WhatsApp Cloud API</strong> instead — it
+                            requires a one-time Meta Business setup but never gets interrupted.
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- IDLE: show start button --}}
             @if($status === 'idle')
                 <div class="py-4">
                     <flux:icon.device-phone-mobile class="mx-auto size-16 text-green-500 mb-4" />
                     <flux:text class="text-zinc-500 dark:text-zinc-400 mb-4">
-                        Open <strong>WhatsApp Business</strong> on your phone, go to
-                        <strong>Linked Devices</strong>, and scan the QR code that will appear.
+                        Open <strong>WhatsApp</strong> on your phone, go to
+                        <strong>Settings → Linked Devices → Link a device</strong>, and scan the QR code that will appear.
                     </flux:text>
                     <flux:button variant="primary" wire:click="startConnection" class="w-full">
                         Generate QR Code

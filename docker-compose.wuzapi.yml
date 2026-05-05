@@ -1,0 +1,60 @@
+##
+## Wuzapi — WhatsApp gateway built on the whatsmeow library (Go).
+## Different protocol stack than Evolution (Baileys) and WPPConnect (headless WA Web).
+## Whatsmeow is updated within ~24h of any WhatsApp protocol bump, so reliability is
+## meaningfully higher than the prepackaged Baileys-based wrappers.
+##
+## Start:  docker compose -f docker-compose.wuzapi.yml up -d
+## Stop:   docker compose -f docker-compose.wuzapi.yml down
+## Logs:   docker compose -f docker-compose.wuzapi.yml logs -f wuzapi
+##
+## API:    http://localhost:8082/api
+## Docs:   http://localhost:8082/api/  (Swagger UI)
+##
+## Auth flow:
+##   1. Admin token (TZ env) creates per-tenant users:
+##        POST /admin/users  body {"name":"team3","token":"<USER_API_TOKEN>"}
+##   2. User connects:
+##        POST /session/connect             { "Subscribe":["Message","ReadReceipt"] }
+##        GET  /session/qr                  → QR base64
+##   3. Send:
+##        POST /chat/send/text              { "Phone":"...","Body":"hi" }
+##
+
+services:
+  wuzapi:
+    image: asternic/wuzapi:latest
+    container_name: wuzapi
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Admin token used to manage tenant users (creating/deleting accounts).
+      # NOT a per-user WhatsApp token — that's minted per session below.
+      WUZAPI_ADMIN_TOKEN: "${WUZAPI_ADMIN_TOKEN:-one_inbox_wuzapi_admin}"
+
+      # CRITICAL: persist these across container restarts. Wuzapi encrypts every
+      # paired user's whatsmeow device keys with this. If they change between
+      # restarts, every paired session is lost ("the store doesn't contain a
+      # device JID"), and every user has to re-scan a QR.
+      WUZAPI_GLOBAL_ENCRYPTION_KEY: "${WUZAPI_GLOBAL_ENCRYPTION_KEY:-PVF0GDhTgGmUYi9lNG2NhRX2KmTJSjQa}"
+      WUZAPI_GLOBAL_HMAC_KEY: "${WUZAPI_GLOBAL_HMAC_KEY:-Z4nP9xRq7tAjBhVcLyKsWpDfMeUgEoXi}"
+
+      # SQLite (default). Switch to postgres later if scaling.
+      DB_USER: ""
+      DB_PASSWORD: ""
+      DB_NAME: ""
+      DB_HOST: ""
+      DB_PORT: ""
+
+      # TZ for log timestamps
+      TZ: "Africa/Cairo"
+    volumes:
+      - wuzapi_data:/app/dbdata
+      - wuzapi_files:/app/files
+
+volumes:
+  wuzapi_data:
+  wuzapi_files:

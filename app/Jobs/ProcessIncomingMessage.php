@@ -40,11 +40,17 @@ class ProcessIncomingMessage implements ShouldQueue
             $platform = $webhookLog->platform;
             $payload = $webhookLog->payload;
 
-            // Route to platform-specific processor
+            // Route to platform-specific processor.
+            // whatsapp_gateway covers both the legacy Evolution feed and the current
+            // Wuzapi feed — branch on event_type prefix so each handler stays focused.
+            $isWuzapi = str_starts_with((string) $webhookLog->event_type, 'wuzapi.');
+
             match ($platform) {
                 'facebook', 'instagram' => $this->processMetaMessenger($payload, $platform, $ai),
                 'whatsapp'              => $this->processWhatsApp($payload, $ai),
-                'whatsapp_gateway'      => $this->processEvolution($payload, $ai),
+                'whatsapp_gateway'      => $isWuzapi
+                                            ? $this->processWuzapi($payload, $ai)
+                                            : $this->processEvolution($payload, $ai),
                 'telegram'              => $this->processTelegram($payload, $ai),
                 'tiktok'                => $this->processTikTok($payload, $ai),
                 'snapchat'              => $this->processSnapchat($payload, $ai),
@@ -439,6 +445,171 @@ class ProcessIncomingMessage implements ShouldQueue
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    /**
+     * Wuzapi webhook payload (whatsmeow-based). Shape:
+     *   {
+     *     "event":   "Message" | "ReadReceipt" | "Connected" | "Disconnected" | ...,
+     *     "instance":"team_3_xyz",                       (the tenant name we set on user create)
+     *     "token":   "<per-user token>",
+     *     "jid":     "201026361218:27@s.whatsapp.net",   (the paired account)
+     *     "data": {
+     *       "Info": {
+     *         "ID": "3EB0...",
+     *         "IsFromMe": false,
+     *         "MessageSource": { "Chat": "...", "Sender": "...", "IsGroup": false, "IsFromMe": false },
+     *         "Timestamp": "2026-05-06T12:34:56Z",
+     *         "PushName": "Mr Mohamed Eltak",
+     *         "Type": "text" | "image" | "audio" | "video" | "document" | "sticker" | "reaction"
+     *       },
+     *       "Message": { "conversation": "..." }   // or imageMessage / documentMessage / etc.
+     *     }
+     *   }
+     */
+    protected function processWuzapi(array $payload, AiProviderInterface $ai): void
+    {
+        $event = $payload['event'] ?? null;
+
+        // Only Message events carry a real conversation event; others are bookkeeping.
+        if ($event !== 'Message') {
+            return;
+        }
+
+        $instanceName = $payload['instance'] ?? null;
+        $data         = $payload['data'] ?? [];
+        $info         = $data['Info'] ?? [];
+        $messageBody  = $data['Message'] ?? [];
+
+        if (! $instanceName) {
+            Log::warning('Wuzapi webhook: payload missing instance name', ['event' => $event]);
+            return;
+        }
+
+        // Skip echoes — we already wrote our own outbound on send.
+        if (! empty($info['IsFromMe']) || ! empty($info['MessageSource']['IsFromMe'])) {
+            return;
+        }
+
+        // Skip group chats for now — the rest of the inbox assumes 1:1 conversations.
+        if (! empty($info['MessageSource']['IsGroup'])) {
+            return;
+        }
+
+        $page = Page::where('platform', 'whatsapp')
+            ->where('is_active', true)
+            ->where(function ($q) use ($instanceName) {
+                $q->whereJsonContains('metadata->gateway_instance', $instanceName)
+                  ->orWhere('platform_page_id', $instanceName);
+            })
+            ->first();
+
+        if (! $page) {
+            Log::warning("Wuzapi webhook: no active page for instance '{$instanceName}'");
+            return;
+        }
+
+        WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
+
+        $senderJid   = $info['MessageSource']['Sender'] ?? '';
+        $senderPhone = preg_replace('/:.*$/', '', explode('@', $senderJid)[0] ?? '') ?: '';
+        if (! $senderPhone) {
+            return;
+        }
+        $senderName  = $info['PushName'] ?? $senderPhone;
+        $messageId   = $info['ID'] ?? null;
+        $timestamp   = $info['Timestamp'] ?? null;
+
+        // De-dupe — if Wuzapi retries (or our own send wrote this id back), skip.
+        if ($messageId && Message::where('platform_message_id', $messageId)->exists()) {
+            return;
+        }
+
+        // Pull text or media descriptor out of the typed Message envelope.
+        // Wuzapi mirrors whatsmeow's protobuf field names, e.g. messageBody.conversation,
+        // messageBody.extendedTextMessage.text, messageBody.imageMessage.caption, etc.
+        [$content, $contentType, $mediaUrl] = $this->extractWuzapiMessageContent($info['Type'] ?? null, $messageBody);
+
+        $contact = $this->findOrCreateContact($page, 'whatsapp', $senderPhone, [
+            'name'  => $senderName,
+            'phone' => $senderPhone,
+        ]);
+        $conversation = $this->findOrCreateConversation($page, 'whatsapp', $senderPhone, $contact);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $messageId,
+            'direction'           => 'inbound',
+            'sender_type'         => 'contact',
+            'sender_id'           => $contact->id,
+            'content_type'        => $contentType,
+            'content'             => $content,
+            'media_url'           => $mediaUrl,
+            'platform_sent_at'    => $timestamp ? \Carbon\Carbon::parse($timestamp) : now(),
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($content ?? '[Media]', 100),
+            'status'               => 'open',
+        ]);
+        $conversation->incrementUnread();
+
+        ScoreLeadJob::dispatch($message->id, $contact->id);
+
+        $team = $page->team;
+        if ($team->isAiEnabled()) {
+            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+            );
+        }
+
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    /**
+     * @return array{0: ?string, 1: string, 2: ?string}  [content, content_type, media_url]
+     */
+    protected function extractWuzapiMessageContent(?string $type, array $body): array
+    {
+        // Plain text (most common)
+        if (! empty($body['conversation'])) {
+            return [$body['conversation'], 'text', null];
+        }
+        if (! empty($body['extendedTextMessage']['text'])) {
+            return [$body['extendedTextMessage']['text'], 'text', null];
+        }
+
+        // Media — Wuzapi/whatsmeow exposes media URLs through a separate /chat/media
+        // download endpoint; the webhook itself only carries metadata. Surface the
+        // caption (if any) and let the user fetch media on demand later.
+        if (! empty($body['imageMessage'])) {
+            return [$body['imageMessage']['caption'] ?? '[Image]', 'image', null];
+        }
+        if (! empty($body['videoMessage'])) {
+            return [$body['videoMessage']['caption'] ?? '[Video]', 'video', null];
+        }
+        if (! empty($body['audioMessage'])) {
+            return ['[Audio]', 'audio', null];
+        }
+        if (! empty($body['documentMessage'])) {
+            return [$body['documentMessage']['fileName'] ?? '[Document]', 'file', null];
+        }
+        if (! empty($body['stickerMessage'])) {
+            return ['[Sticker]', 'text', null];
+        }
+        if (! empty($body['reactionMessage'])) {
+            return [$body['reactionMessage']['text'] ?? '[Reaction]', 'text', null];
+        }
+        if (! empty($body['locationMessage'])) {
+            return ['[Location]', 'text', null];
+        }
+        if (! empty($body['contactMessage'])) {
+            return [$body['contactMessage']['displayName'] ?? '[Contact]', 'text', null];
+        }
+
+        Log::info('Wuzapi: unhandled message body keys', ['type' => $type, 'keys' => array_keys($body)]);
+        return [null, 'text', null];
     }
 
     protected function processTelegram(array $payload, AiProviderInterface $ai): void
