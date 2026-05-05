@@ -134,20 +134,19 @@ class FacebookPlatform extends AbstractPlatform
     {
         $code = $request->input('code');
 
-        // Step 1: Short-lived token from api.instagram.com
-        $tokenResponse = Http::asForm()->post('https://api.instagram.com/oauth/access_token', [
-            'client_id'     => $this->instagramAppId,
-            'client_secret' => $this->instagramAppSecret,
-            'grant_type'    => 'authorization_code',
-            'redirect_uri'  => route('connections.instagram.callback'),
-            'code'          => $code,
-        ])->throw()->json();
+        // Step 1: Short-lived token from api.instagram.com.
+        // Try the configured secret, then the legacy secret if Meta rejects with
+        // "Error validating verification code" — the same secret rotation that the
+        // webhook verifier handles. OAuth codes are single-use, so we must try both
+        // secrets against the same code in a single OAuth round trip per attempt.
+        [$tokenResponse, $secretUsed] = $this->exchangeInstagramCode($code);
 
         $shortLivedToken = $tokenResponse['access_token'];
         $igUserId = (string) $tokenResponse['user_id'];
         $igUsername = $tokenResponse['username'] ?? null;
 
-        // Step 2: Exchange for long-lived token (~60 days)
+        // Step 2: Exchange for long-lived token (~60 days). Use the same secret that
+        // was accepted in Step 1.
         $longLivedToken = $shortLivedToken;
         $expiresIn = $tokenResponse['expires_in'] ?? 5184000;
 
@@ -155,7 +154,7 @@ class FacebookPlatform extends AbstractPlatform
             $longLivedResponse = Http::get('https://graph.instagram.com/access_token', [
                 'grant_type'    => 'ig_exchange_token',
                 'client_id'     => $this->instagramAppId,
-                'client_secret' => $this->instagramAppSecret,
+                'client_secret' => $secretUsed,
                 'access_token'  => $shortLivedToken,
             ])->json();
 
@@ -304,21 +303,16 @@ class FacebookPlatform extends AbstractPlatform
         $code = $request->input('code');
         $redirectUri ??= route('connections.facebook.callback');
 
-        // Exchange code for short-lived user access token
-        $tokenResponse = Http::get("{$this->graphUrl}/oauth/access_token", [
-            'client_id' => $this->appId,
-            'client_secret' => $this->appSecret,
-            'redirect_uri' => $redirectUri,
-            'code' => $code,
-        ])->throw()->json();
-
+        // Exchange code for short-lived user access token, tolerating a Meta-side
+        // secret rotation by trying both the primary and legacy app secrets.
+        [$tokenResponse, $secretUsed] = $this->exchangeFacebookCode($code, $redirectUri);
         $shortLivedToken = $tokenResponse['access_token'];
 
-        // Exchange for long-lived token (~60 days)
+        // Exchange for long-lived token (~60 days). Reuse whichever secret was accepted.
         $longLivedResponse = Http::get("{$this->graphUrl}/oauth/access_token", [
             'grant_type' => 'fb_exchange_token',
             'client_id' => $this->appId,
-            'client_secret' => $this->appSecret,
+            'client_secret' => $secretUsed,
             'fb_exchange_token' => $shortLivedToken,
         ])->throw()->json();
 
@@ -996,6 +990,87 @@ class FacebookPlatform extends AbstractPlatform
     {
         // Handled by MetaWebhookController
         return null;
+    }
+
+    /**
+     * Exchange a Facebook OAuth code for a short-lived token, trying both the
+     * primary and legacy app secrets.
+     *
+     * @return array{0: array<string,mixed>, 1: string}
+     * @throws \RuntimeException if neither secret is accepted
+     */
+    protected function exchangeFacebookCode(string $code, string $redirectUri): array
+    {
+        $secrets = array_filter([
+            'primary' => $this->appSecret,
+            'legacy'  => config('services.meta.app_secret_legacy'),
+        ]);
+
+        $lastBody = null;
+        foreach ($secrets as $label => $secret) {
+            $resp = Http::get("{$this->graphUrl}/oauth/access_token", [
+                'client_id'     => $this->appId,
+                'client_secret' => $secret,
+                'redirect_uri'  => $redirectUri,
+                'code'          => $code,
+            ]);
+
+            if ($resp->successful() && isset($resp->json()['access_token'])) {
+                if ($label === 'legacy') {
+                    Log::info("Facebook OAuth verified with legacy secret — promote it to META_APP_SECRET in .env");
+                }
+                return [$resp->json(), $secret];
+            }
+
+            $lastBody = $resp->body();
+            Log::warning("Facebook OAuth code exchange rejected with {$label} secret", [
+                'status' => $resp->status(),
+                'body'   => substr($lastBody, 0, 400),
+            ]);
+        }
+
+        throw new \RuntimeException("Facebook OAuth code exchange failed with all configured secrets. Last response: {$lastBody}");
+    }
+
+    /**
+     * Exchange an Instagram OAuth code for a short-lived token, trying both the
+     * primary and legacy app secrets to survive a Meta-side secret rotation.
+     *
+     * @return array{0: array<string,mixed>, 1: string}  decoded token response + the secret that worked
+     * @throws \RuntimeException if neither secret is accepted
+     */
+    protected function exchangeInstagramCode(string $code): array
+    {
+        $secrets = array_filter([
+            'primary' => $this->instagramAppSecret,
+            'legacy'  => config('services.meta.instagram_app_secret_legacy'),
+        ]);
+
+        $lastBody = null;
+        foreach ($secrets as $label => $secret) {
+            $resp = Http::asForm()->post('https://api.instagram.com/oauth/access_token', [
+                'client_id'     => $this->instagramAppId,
+                'client_secret' => $secret,
+                'grant_type'    => 'authorization_code',
+                'redirect_uri'  => route('connections.instagram.callback'),
+                'code'          => $code,
+            ]);
+
+            if ($resp->successful() && isset($resp->json()['access_token'])) {
+                if ($label === 'legacy') {
+                    Log::info("Instagram OAuth verified with legacy secret — promote it to META_INSTAGRAM_APP_SECRET in .env to avoid trying both on every connect");
+                }
+                return [$resp->json(), $secret];
+            }
+
+            $lastBody = $resp->body();
+            Log::warning("Instagram OAuth code exchange rejected with {$label} secret", [
+                'status' => $resp->status(),
+                'body'   => substr($lastBody, 0, 400),
+            ]);
+        }
+
+        throw new \RuntimeException("Instagram OAuth code exchange failed with all configured secrets. Last response: {$lastBody}");
     }
 
     public function disconnect(ConnectedAccount $account): void
