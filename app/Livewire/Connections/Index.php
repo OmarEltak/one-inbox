@@ -72,9 +72,16 @@ class Index extends Component
             return collect();
         }
 
+        // Surface any account that is active OR still owns at least one active page.
+        // Without the second clause, an account row that got deactivated while one of
+        // its pages stayed active becomes invisible here — the user sees the page in
+        // the inbox but has no way to disconnect it from the Connections screen.
         return ConnectedAccount::with('pages')
             ->where('team_id', $team->id)
-            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('is_active', true)
+                    ->orWhereHas('pages', fn ($pq) => $pq->where('is_active', true));
+            })
             ->get();
     }
 

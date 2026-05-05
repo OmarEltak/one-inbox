@@ -1000,8 +1000,18 @@ class FacebookPlatform extends AbstractPlatform
 
     public function disconnect(ConnectedAccount $account): void
     {
-        // Deactivate all pages
+        // Deactivate all pages owned by this account, plus any orphaned pages on the
+        // same team+platform whose connected_account row has already been turned off.
+        // The latter catches the case where a previous partial disconnect cleared the
+        // account flag but left a Page row active — the user could still see it in the
+        // inbox even though it had no live ConnectedAccount.
         $account->pages()->update(['is_active' => false]);
+
+        Page::where('team_id', $account->team_id)
+            ->where('platform', $account->platform)
+            ->where('connected_account_id', $account->id)
+            ->update(['is_active' => false]);
+
         $account->update(['is_active' => false]);
     }
 
