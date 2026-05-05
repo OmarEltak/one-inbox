@@ -55,6 +55,17 @@ class SendPlatformMessage implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
 
+            // Stamp failure on every attempt so the inbox UI can show the latest error
+            // without waiting for all retries to be exhausted.
+            $current = Message::find($this->messageId);
+            if ($current) {
+                $meta = $current->metadata ?? [];
+                $meta['send_status'] = 'failing';
+                $meta['send_error']  = $this->humanizeSendError($e->getMessage());
+                $meta['send_error_raw'] = $e->getMessage();
+                $current->update(['metadata' => $meta]);
+            }
+
             throw $e;
         }
     }
@@ -64,10 +75,35 @@ class SendPlatformMessage implements ShouldQueue
         $message = Message::find($this->messageId);
         if ($message) {
             $meta = $message->metadata ?? [];
-            $meta['send_status'] = 'failed';
-            $meta['send_error'] = $e->getMessage();
+            $meta['send_status']   = 'failed';
+            $meta['send_error']    = $this->humanizeSendError($e->getMessage());
+            $meta['send_error_raw'] = $e->getMessage();
             $message->update(['metadata' => $meta]);
         }
+    }
+
+    /**
+     * Translate Meta's verbose / Arabic error strings into a short English hint
+     * so the inbox UI can show something the user actually understands.
+     */
+    protected function humanizeSendError(string $raw): string
+    {
+        // 24-hour messaging window violation (Instagram + Facebook Messenger)
+        if (str_contains($raw, '2534022')
+            || str_contains($raw, 'outside the allowed')
+            || str_contains($raw, 'خارج الفترة')) {
+            return 'Outside the 24-hour messaging window. Instagram only allows replies within 24 hours of the contact\'s last message.';
+        }
+        if (str_contains($raw, '10303') || str_contains($raw, 'message_tag')) {
+            return 'Outside messaging window — a valid message tag is required.';
+        }
+        if (str_contains($raw, '2018278') || str_contains($raw, 'support inbox messaging')) {
+            return 'This Instagram account does not have messaging enabled (must be Business / Creator).';
+        }
+        if (str_contains($raw, '190') || str_contains($raw, 'expired') || str_contains($raw, 'OAuthException')) {
+            return 'Access token expired. Reconnect this account in Connections.';
+        }
+        return $raw;
     }
 
     protected function sendViaEmail($page, Message $message): ?string
@@ -124,9 +160,10 @@ class SendPlatformMessage implements ShouldQueue
         $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
 
         if ($isInstagramBusiness) {
-            // IG Business Login → graph.instagram.com using the IGSID (what /me returns).
-            $senderId = $page->metadata['igsid'] ?? $page->metadata['igbid'] ?? $page->platform_page_id;
-            $url = "https://graph.instagram.com/{$version}/{$senderId}/messages";
+            // IG Business Login → graph.instagram.com.
+            // Use /me/messages — the access token determines the sender, no ID guessing needed.
+            // This sidesteps the IGBID-vs-legacy-id confusion that has caused send failures.
+            $url = "https://graph.instagram.com/{$version}/me/messages";
         } elseif ($page->platform === 'instagram') {
             // IG via "Add via Meta" / FB Login. Must POST to the linked Facebook Page,
             // NOT the IG account ID. Endpoint shape: /{FB_PAGE_ID}/messages.

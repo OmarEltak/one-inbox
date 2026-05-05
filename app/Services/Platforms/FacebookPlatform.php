@@ -170,21 +170,30 @@ class FacebookPlatform extends AbstractPlatform
             ]);
         }
 
-        // Step 3: Fetch Instagram user profile
+        // Step 3: Fetch Instagram user profile (request user_id explicitly — that's the IGBID
+        // and the value Meta puts in webhook entry[].id, which we MUST use as platform_page_id
+        // for inbound webhook routing to find the correct page).
         $profileResp = Http::withToken($longLivedToken)
-            ->get('https://graph.instagram.com/me', ['fields' => 'id,username,name,profile_picture_url']);
+            ->get('https://graph.instagram.com/me', ['fields' => 'id,user_id,username,name,profile_picture_url,account_type']);
 
         $profile = $profileResp->successful() ? $profileResp->json() : [
             'id'       => $igUserId,
+            'user_id'  => $igUserId,
             'username' => $igUsername,
             'name'     => $igUsername,
         ];
+
+        // The IGBID (Instagram Business Account ID) is what arrives in webhook entry.id and
+        // what works as the sender path for graph.instagram.com/{IGBID}/messages.
+        // /me?fields=user_id returns it; /me?fields=id returns the legacy app-scoped id.
+        $igbid = $profile['user_id'] ?? $profile['id'] ?? $igUserId;
+        $legacyId = $profile['id'] ?? $igUserId;
 
         $account = ConnectedAccount::updateOrCreate(
             [
                 'team_id'          => $teamId,
                 'platform'         => 'instagram',
-                'platform_user_id' => $igUserId,
+                'platform_user_id' => $igbid,
             ],
             [
                 'name'             => $profile['name'] ?? $profile['username'] ?? 'Instagram',
@@ -198,25 +207,31 @@ class FacebookPlatform extends AbstractPlatform
         );
 
         // Reuse any existing IG page on this team that already represents this account.
-        // Check platform_page_id, stored igsid/igbid metadata, and connected_account_id —
-        // all scoped to team + platform to avoid cross-team or cross-platform matches.
+        // Check by IGBID, legacy id, prior igsid/igbid metadata, or connected_account_id —
+        // scoped to team + platform to avoid cross-team or cross-platform matches.
         $existing = Page::where('team_id', $account->team_id)
             ->where('platform', 'instagram')
-            ->where(function ($q) use ($igUserId, $account) {
-                $q->where('platform_page_id', $igUserId)
-                    ->orWhereJsonContains('metadata->igsid', $igUserId)
-                    ->orWhereJsonContains('metadata->igbid', $igUserId)
+            ->where(function ($q) use ($igbid, $legacyId, $igUserId, $account) {
+                $q->where('platform_page_id', $igbid)
+                    ->orWhere('platform_page_id', $legacyId)
+                    ->orWhere('platform_page_id', $igUserId)
+                    ->orWhereJsonContains('metadata->igsid', $igbid)
+                    ->orWhereJsonContains('metadata->igsid', $legacyId)
+                    ->orWhereJsonContains('metadata->igbid', $igbid)
+                    ->orWhereJsonContains('metadata->igbid', $legacyId)
                     ->orWhere('connected_account_id', $account->id);
             })
             ->first();
 
-        // igsid = the ID Instagram puts in webhook entry[].id (token response user_id).
-        // igbid = the IGBID returned by graph.instagram.com/me, used for API send calls.
+        // Webhook entry.id == IGBID, so we must store IGBID as platform_page_id.
+        // igsid/igbid metadata both set to IGBID for backward compat with self-heal logic.
         $newMetadata = [
-            'username'  => $profile['username'] ?? null,
-            'auth_type' => 'instagram_business',
-            'igsid'     => $igUserId,
-            'igbid'     => $profile['id'] ?? $igUserId,
+            'username'        => $profile['username'] ?? null,
+            'auth_type'       => 'instagram_business',
+            'igsid'           => $igbid,
+            'igbid'           => $igbid,
+            'legacy_id'       => $legacyId,
+            'oauth_user_id'   => $igUserId,
         ];
 
         if ($existing) {
@@ -225,7 +240,7 @@ class FacebookPlatform extends AbstractPlatform
                 'name'                 => $profile['name'] ?? $profile['username'] ?? 'Instagram',
                 'avatar'               => $profile['profile_picture_url'] ?? null,
                 'page_access_token'    => $longLivedToken,
-                'platform_page_id'     => $igUserId,
+                'platform_page_id'     => $igbid,
                 'category'             => 'instagram_business',
                 'is_active'            => true,
                 'metadata'             => array_merge($existing->metadata ?? [], $newMetadata),
@@ -235,7 +250,7 @@ class FacebookPlatform extends AbstractPlatform
             $page = Page::create([
                 'team_id'              => $account->team_id,
                 'platform'             => 'instagram',
-                'platform_page_id'     => $igUserId,
+                'platform_page_id'     => $igbid,
                 'connected_account_id' => $account->id,
                 'name'                 => $profile['name'] ?? $profile['username'] ?? 'Instagram',
                 'avatar'               => $profile['profile_picture_url'] ?? null,
@@ -259,10 +274,10 @@ class FacebookPlatform extends AbstractPlatform
     {
         $version = $this->graphVersion();
 
-        // Use IGBID for the subscription API (graph.instagram.com expects the IGBID, not the
-        // legacy Instagram User ID that webhooks use for routing). Falls back to platform_page_id
-        // for accounts connected before the igbid metadata field was introduced.
-        $igbid = $page->metadata['igbid'] ?? $page->platform_page_id;
+        // After the IGBID fix, platform_page_id IS the IGBID for new connections.
+        // graph.instagram.com accepts both the IGBID and the legacy id at this endpoint, but
+        // we send to platform_page_id since that's what webhook routing keys off as well.
+        $igbid = $page->platform_page_id;
 
         $response = Http::post("https://graph.instagram.com/{$version}/{$igbid}/subscribed_apps", [
             'subscribed_fields' => 'messages',

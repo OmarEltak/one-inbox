@@ -95,19 +95,23 @@ class ProcessIncomingMessage implements ShouldQueue
         // record with the same Instagram User ID (e.g. an old defunct connection on team 4
         // alongside the live connection on team 3). Without this, Page::first() may pick the
         // wrong record purely by row order.
+        // Match by platform_page_id (the IGBID/page ID Meta puts in entry.id) OR by stored
+        // legacy/igsid/igbid metadata for pages connected before the IGBID-as-platform_page_id fix.
+        $matchOn = function ($q) use ($pageId) {
+            $q->where('platform_page_id', $pageId)
+                ->orWhereJsonContains('metadata->igsid', $pageId)
+                ->orWhereJsonContains('metadata->igbid', $pageId)
+                ->orWhereJsonContains('metadata->legacy_id', $pageId)
+                ->orWhereJsonContains('metadata->oauth_user_id', $pageId);
+        };
+
         $page = Page::where('platform', $platform)
-            ->where(function ($q) use ($pageId) {
-                $q->where('platform_page_id', $pageId)
-                    ->orWhereJsonContains('metadata->igsid', $pageId);
-            })
+            ->where($matchOn)
             ->where('is_active', true)
             ->whereHas('connectedAccount', fn ($q) => $q->where('is_active', true))
             ->first()
             ?? Page::where('platform', $platform)
-                ->where(function ($q) use ($pageId) {
-                    $q->where('platform_page_id', $pageId)
-                        ->orWhereJsonContains('metadata->igsid', $pageId);
-                })
+                ->where($matchOn)
                 ->where('is_active', true)
                 ->first();
 
@@ -120,54 +124,29 @@ class ProcessIncomingMessage implements ShouldQueue
             return;
         }
 
-        // Instagram Business Login: webhook entry.id uses a different ID format (legacy Instagram
-        // User ID) than what graph.instagram.com/me returns (IGBID). Two-step self-heal:
-        // 1. Look for any page (including inactive) with this exact ID — reactivate if found.
-        // 2. Only fall back to patching the first active page if NO page (active or inactive)
-        //    has this ID AND no conflict exists with the target ID.
+        // Instagram Business Login: if the matchOn lookup didn't find an active page,
+        // look for an inactive page that exactly matches this ID and reactivate it.
+        // We DO NOT patch a random "first active IG page" anymore — with multiple connected
+        // IG accounts on the same team, that mis-routes inbound messages to the wrong account.
+        // After the IGBID-as-platform_page_id fix in handleInstagramCallback, every freshly
+        // connected page already has the right ID, so blind self-heal is no longer needed.
         if (! $page && $platform === 'instagram') {
-            // Step 1: find by exact ID including inactive pages
             $anyMatch = Page::where('platform', 'instagram')
-                ->where('platform_page_id', $pageId)
+                ->where(function ($q) use ($pageId) {
+                    $q->where('platform_page_id', $pageId)
+                        ->orWhereJsonContains('metadata->igsid', $pageId)
+                        ->orWhereJsonContains('metadata->igbid', $pageId)
+                        ->orWhereJsonContains('metadata->legacy_id', $pageId)
+                        ->orWhereJsonContains('metadata->oauth_user_id', $pageId);
+                })
                 ->first();
 
             if ($anyMatch) {
-                // Found an inactive page — reactivate and use it
                 if (! $anyMatch->is_active) {
                     $anyMatch->update(['is_active' => true]);
-                    Log::info("Instagram: reactivated inactive page {$anyMatch->id} for ID {$pageId}");
+                    Log::info("Instagram: reactivated inactive page {$anyMatch->id} for entry.id={$pageId}");
                 }
                 $page = $anyMatch;
-            } else {
-                // Step 2: no page at all has this ID — safe to patch the first active IG page
-                // but only if there is no other page that would conflict on the unique constraint.
-                $conflict = Page::where('platform', 'instagram')
-                    ->where('platform_page_id', $pageId)
-                    ->exists();
-
-                if (! $conflict) {
-                    $page = Page::where('platform', 'instagram')
-                        ->where('is_active', true)
-                        ->whereHas('connectedAccount', fn ($q) => $q->where('is_active', true))
-                        ->first();
-
-                    if ($page) {
-                        $oldId = $page->platform_page_id;
-                        $meta  = $page->metadata ?? [];
-                        // Preserve the IGSID (send-URL id) under the correct key.
-                        // Old code reused 'igbid' for this value; keep both for back-compat.
-                        $meta['igsid'] = $meta['igsid'] ?? $oldId;
-                        $meta['igbid'] = $pageId;
-                        $page->update([
-                            'platform_page_id' => $pageId,
-                            'metadata'         => $meta,
-                        ]);
-                        $page->platform_page_id = $pageId;
-                        Log::info("Instagram: healed platform_page_id from {$oldId} to {$pageId}, igsid={$meta['igsid']}");
-                    }
-                } else {
-                    Log::warning("Instagram self-heal skipped: another page already owns ID {$pageId}");
-                }
             }
         }
 

@@ -483,7 +483,20 @@
                                 {{ ($message->platform_sent_at ?? $message->created_at)->format('M j, g:i A') }}
                                 @if($message->isOutbound() && $message->delivered_at) &middot; Delivered @endif
                                 @if($message->isOutbound() && $message->read_at) &middot; Read @endif
+                                @php($sendStatus = $message->metadata['send_status'] ?? null)
+                                @if($message->isOutbound() && in_array($sendStatus, ['failed','failing'], true))
+                                    &middot;
+                                    <span class="inline-flex items-center gap-1 text-red-200" title="{{ $message->metadata['send_error'] ?? 'Send failed' }}">
+                                        <flux:icon name="exclamation-triangle" class="w-3 h-3" />
+                                        {{ $sendStatus === 'failed' ? 'Not delivered' : 'Retrying' }}
+                                    </span>
+                                @endif
                             </span>
+                            @if($message->isOutbound() && in_array($message->metadata['send_status'] ?? null, ['failed','failing'], true))
+                                <p class="text-xs mt-1 px-2 py-1 rounded bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200 break-words">
+                                    {{ $message->metadata['send_error'] ?? 'Failed to deliver to platform.' }}
+                                </p>
+                            @endif
                         </div>
                     </div>
                     @endif
