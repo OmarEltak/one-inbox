@@ -82,14 +82,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
     protected function handleMetaMessage(array $event, string $platform, string $pageId, AiProviderInterface $ai): void
     {
-        $senderId = $event['sender']['id'];
+        $senderId    = $event['sender']['id'];
+        $recipientId = $event['recipient']['id'] ?? null;
         $messageData = $event['message'];
-
-        // Skip echo messages (sent by us). For IG Business Login is_echo is reliable;
-        // also defensively skip when sender == page itself (covers IGBID and IGSID forms).
-        if ($messageData['is_echo'] ?? false) {
-            return;
-        }
+        $isEcho      = (bool) ($messageData['is_echo'] ?? false);
 
         // Prefer page whose connected_account is also active. Multiple teams may have a page
         // record with the same Instagram User ID (e.g. an old defunct connection on team 4
@@ -115,13 +111,17 @@ class ProcessIncomingMessage implements ShouldQueue
                 ->where('is_active', true)
                 ->first();
 
-        $selfIds = array_filter([
-            $page?->platform_page_id,
-            $page?->metadata['igsid'] ?? null,
-            $page?->metadata['igbid'] ?? null,
-        ]);
-        if ($selfIds && in_array($senderId, $selfIds, true)) {
-            return;
+        // For non-echo events, sender == page itself is a duplicate-of-echo edge case
+        // (IGBID vs IGSID forms). Skip those. Echoes themselves are handled below.
+        if (! $isEcho) {
+            $selfIds = array_filter([
+                $page?->platform_page_id,
+                $page?->metadata['igsid'] ?? null,
+                $page?->metadata['igbid'] ?? null,
+            ]);
+            if ($selfIds && in_array($senderId, $selfIds, true)) {
+                return;
+            }
         }
 
         // Instagram Business Login: if the matchOn lookup didn't find an active page,
@@ -158,49 +158,73 @@ class ProcessIncomingMessage implements ShouldQueue
         // Update webhook log with team_id
         WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
 
-        // Fetch sender profile from Graph API (webhook only sends PSID, no name)
-        $senderData = $this->fetchMetaSenderProfile($senderId, $page);
-
-        // Find or create contact
-        $contact = $this->findOrCreateContact($page, $platform, $senderId, $senderData);
-
-        // Find or create conversation
-        $conversation = $this->findOrCreateConversation($page, $platform, $senderId, $contact);
-
-        // Store message
-        $message = Message::create([
-            'conversation_id' => $conversation->id,
-            'platform_message_id' => $messageData['mid'] ?? null,
-            'direction' => 'inbound',
-            'sender_type' => 'contact',
-            'sender_id' => $contact->id,
-            'content_type' => $this->detectContentType($messageData),
-            'content' => $this->extractMessageContent($messageData),
-            'media_url' => $messageData['attachments'][0]['payload']['url'] ?? null,
-            'media_type' => $messageData['attachments'][0]['type'] ?? null,
-            'platform_sent_at' => isset($event['timestamp']) ? \Carbon\Carbon::createFromTimestampMs($event['timestamp']) : now(),
-        ]);
-
-        // Update conversation
-        $conversation->update([
-            'last_message_at' => now(),
-            'last_message_preview' => \Illuminate\Support\Str::limit($message->content ?? '[Media]', 100),
-            'status' => 'open',
-        ]);
-        $conversation->incrementUnread();
-
-        // Always score the message (runs even when AI responses are off)
-        ScoreLeadJob::dispatch($message->id, $contact->id);
-
-        // Auto-respond if AI is enabled for this team
-        $team = $page->team;
-        if ($team->isAiEnabled()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+        // For echoes (sent from native IG/Messenger app, or already-sent-by-us via API),
+        // the contact is the recipient, not the sender (sender == our page).
+        $contactExternalId = $isEcho ? $recipientId : $senderId;
+        if (! $contactExternalId) {
+            Log::warning("Meta message has no contact id (isEcho={$isEcho})", ['mid' => $messageData['mid'] ?? null]);
+            return;
         }
 
-        // Broadcast real-time update
+        $platformMessageId = $messageData['mid'] ?? null;
+
+        // De-duplicate: if we already stored this message (either from a prior webhook delivery
+        // or from our own SendPlatformMessage that wrote the platform_message_id back), skip.
+        if ($platformMessageId) {
+            $existing = Message::where('platform_message_id', $platformMessageId)->first();
+            if ($existing) {
+                if ($existing->conversation_id) {
+                    Conversation::where('id', $existing->conversation_id)->update(['last_message_at' => now()]);
+                }
+                return;
+            }
+        }
+
+        // Resolve the contact and conversation from the contact-side id.
+        $senderData   = $this->fetchMetaSenderProfile($contactExternalId, $page);
+        $contact      = $this->findOrCreateContact($page, $platform, $contactExternalId, $senderData);
+        $conversation = $this->findOrCreateConversation($page, $platform, $contactExternalId, $contact);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $platformMessageId,
+            'direction'           => $isEcho ? 'outbound' : 'inbound',
+            // 'external' = sent from the native IG/Messenger app (no logged-in user).
+            // Distinguishes these from messages typed in our inbox UI (sender_type='user').
+            'sender_type'         => $isEcho ? 'external' : 'contact',
+            'sender_id'           => $isEcho ? null : $contact->id,
+            'content_type'        => $this->detectContentType($messageData),
+            'content'             => $this->extractMessageContent($messageData),
+            'media_url'           => $messageData['attachments'][0]['payload']['url'] ?? null,
+            'media_type'          => $messageData['attachments'][0]['type'] ?? null,
+            'platform_sent_at'    => isset($event['timestamp']) ? \Carbon\Carbon::createFromTimestampMs($event['timestamp']) : now(),
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($message->content ?? '[Media]', 100),
+            'status'               => 'open',
+        ]);
+
+        if ($isEcho) {
+            // Native-app reply by the operator counts as a human touch — pause AI on this thread
+            // so it doesn't talk over them.
+            if (method_exists($conversation, 'pauseAi') && ! $conversation->ai_paused) {
+                $conversation->pauseAi();
+            }
+        } else {
+            $conversation->incrementUnread();
+
+            ScoreLeadJob::dispatch($message->id, $contact->id);
+
+            $team = $page->team;
+            if ($team->isAiEnabled()) {
+                SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                    now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+                );
+            }
+        }
+
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
     }
 

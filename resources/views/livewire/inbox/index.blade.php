@@ -459,6 +459,11 @@
                                     <flux:icon name="user" class="w-3 h-3 opacity-70" />
                                     <span class="text-xs opacity-70">{{ $message->sentByUser->name }}</span>
                                 </div>
+                            @elseif($message->sender_type === 'external')
+                                <div class="flex items-center gap-1 mb-0.5">
+                                    <flux:icon name="device-phone-mobile" class="w-3 h-3 opacity-70" />
+                                    <span class="text-xs opacity-70">Sent from {{ ucfirst($message->conversation->platform) }} app</span>
+                                </div>
                             @endif
                             @if($message->media_url)
                                 @if($message->content_type === 'image' || str_starts_with($message->media_type ?? '', 'image/'))
