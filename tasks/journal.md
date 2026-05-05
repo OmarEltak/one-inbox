@@ -1335,3 +1335,28 @@ $page->metadata = $meta;
 $page->save();
 \App\Jobs\SyncPageConversations::dispatch($page->id);
 ```
+
+---
+
+## 2026-05-05 (later) — Real root cause: rotated Instagram app secret
+
+aalkader sent live test DMs and they didn't reach the inbox. `tail`-ing `laravel.log` showed Meta IS posting webhooks every few seconds, but every one was being rejected by `MetaWebhookController::verifySignature()` with `tried_secrets:["instagram_app_secret","app_secret"]`.
+
+`.env` had `META_INSTAGRAM_APP_SECRET_LEGACY=a4b06ab65febb0edf47b8cf13776f2ea` left over from a prior secret rotation, but the controller never tried it. Meta is currently signing IG webhooks with the **legacy** value — so all real inbound DMs were silently dropped with 403s.
+
+### Fix shipped (commit `8bd63da`, pushed to origin)
+- `config/services.php`: expose `instagram_app_secret_legacy` and `app_secret_legacy`.
+- `MetaWebhookController::verifySignature()`: try the legacy keys after the primary ones; on match log "Meta webhook verified with legacy secret '…' — promote it to the primary key in .env".
+
+### Env swap applied to both dirs
+```
+META_INSTAGRAM_APP_SECRET=a4b06ab65febb0edf47b8cf13776f2ea          # was the LEGACY value
+META_INSTAGRAM_APP_SECRET_LEGACY=69d75ba8ba69092d2be5bc71a178f5bd   # was the primary value
+```
+Then `php artisan config:clear` + `queue:restart` in both dirs. Post-swap signed-probe to `https://ot1-pro.com/api/webhooks/meta-ig` returned `200 EVENT_RECEIVED`.
+
+### Verified live
+4 real IG inbound messages from `aa.elkader80` landed seconds after the verifier fix went live — `msg#7297..7300` on conv 402 / page 39. Pending jobs: 0.
+
+### Pushed to origin
+`f444ea9..8bd63da main -> main` (3 commits: IG routing/UI, journal, signature verifier).
