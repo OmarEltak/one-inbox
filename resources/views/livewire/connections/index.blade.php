@@ -186,20 +186,30 @@
             @endforeach
 
             <div class="{{ $whatsappAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
+                {{-- Cloud API: official Meta path. Primary button. --}}
                 <flux:modal.trigger name="whatsapp-connect">
-                    <flux:button variant="outline" size="sm" class="w-full" icon="link">
-                        {{ $whatsappAccounts->isNotEmpty() ? 'Add via Meta API' : 'Connect via Meta API' }}
+                    <flux:button variant="primary" size="sm" class="w-full" icon="shield-check">
+                        {{ $whatsappAccounts->isNotEmpty() ? 'Add via Cloud API' : 'Connect via Cloud API' }}
+                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-green-500/30 text-green-100 border border-green-400/30">Recommended</span>
                     </flux:button>
                 </flux:modal.trigger>
+
+                {{-- QR: unofficial whatsmeow path. Secondary button. --}}
                 <flux:button
-                    variant="primary"
+                    variant="outline"
                     size="sm"
                     class="w-full"
                     icon="qr-code"
                     wire:click="$dispatch('open-whatsapp-qr')"
                 >
-                    {{ $whatsappAccounts->isNotEmpty() ? 'Add via QR Code' : 'Connect via QR Code' }}
+                    {{ $whatsappAccounts->isNotEmpty() ? 'Add via QR Scan' : 'Connect via QR Scan' }}
+                    <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-yellow-400/15 text-yellow-300 border border-yellow-400/20">Personal use</span>
                 </flux:button>
+
+                <p class="text-[10px] text-white/40 leading-relaxed text-center px-2">
+                    <strong class="text-white/60">Cloud API</strong> is the official path: stable, no protocol drift, ~30 min one-time setup.
+                    <strong class="text-white/60">QR</strong> is faster but uses an unofficial protocol — may briefly disconnect during WhatsApp updates.
+                </p>
             </div>
         </div>
 
@@ -472,32 +482,74 @@
         </div>
     @endif
 
-    {{-- WhatsApp Meta API Modal --}}
-    <flux:modal name="whatsapp-connect" class="w-full max-w-lg">
-        <div class="space-y-4">
+    {{-- WhatsApp Cloud API (Meta) Modal — primary, recommended path --}}
+    <flux:modal name="whatsapp-connect" class="w-full max-w-xl">
+        <div class="space-y-5">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">Connect WhatsApp via Meta API</h3>
-                <p class="text-sm text-white/40 mt-1">You'll need a WhatsApp Business Account from Meta Business Manager.</p>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-white/90">Connect WhatsApp via Cloud API</h3>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-300 border border-green-400/20">Official</span>
+                </div>
+                <p class="text-sm text-white/50 mt-1">
+                    Meta's official WhatsApp API. Stable, no protocol drift, supports message templates outside the 24-hour window.
+                    Once connected, you'll never have to scan a QR or re-pair.
+                </p>
             </div>
+
+            {{-- Setup walkthrough --}}
+            <div class="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3">
+                <p class="text-xs font-semibold text-white/70 uppercase tracking-wide">One-time setup (≈ 30 min)</p>
+                <ol class="space-y-2 text-xs text-white/60 list-decimal list-inside">
+                    <li>
+                        Open <a href="https://business.facebook.com/" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Meta Business Manager</a> →
+                        <strong class="text-white/80">Accounts → WhatsApp Accounts → Add</strong>. Verify your business if Meta asks.
+                    </li>
+                    <li>
+                        Add and verify your phone number (SMS / call). The number must <strong class="text-yellow-300">not be active in the regular WhatsApp app</strong> on a phone simultaneously.
+                    </li>
+                    <li>
+                        On the WABA's settings page, copy the <strong class="text-white/80">WhatsApp Business Account ID</strong> — paste it below.
+                    </li>
+                    <li>
+                        Go to <strong class="text-white/80">Business Settings → Users → System Users</strong>. Create a system user, click
+                        <strong class="text-white/80">Generate New Token</strong>, scope it to your WABA app and select the
+                        <code class="text-[11px] bg-black/30 px-1 rounded">whatsapp_business_messaging</code> +
+                        <code class="text-[11px] bg-black/30 px-1 rounded">whatsapp_business_management</code> permissions.
+                        Pick "Never expires" if your account allows. Paste the token below.
+                    </li>
+                </ol>
+            </div>
+
+            {{-- Pricing teaser --}}
+            <div class="rounded-xl border border-yellow-400/20 bg-yellow-400/5 p-3">
+                <p class="text-xs text-yellow-200/85 leading-relaxed">
+                    <strong class="text-yellow-100">Pricing:</strong> Meta bills your WABA directly per template message — not us.
+                    Customer-support replies sent within 24 hours of the customer's message are <strong class="text-yellow-100">free, unlimited</strong>.
+                    Marketing / utility templates outside that window cost cents per message and depend on the recipient's country.
+                    Live estimates appear in the Campaigns page when you build a broadcast.
+                    <a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" rel="noopener" class="underline hover:text-yellow-100">Meta pricing reference →</a>
+                </p>
+            </div>
+
             <form method="POST" action="{{ route('connections.whatsapp.connect') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">WhatsApp Business Account ID (WABA ID)</label>
+                    <label class="block text-xs font-medium text-white/60 mb-1.5">WhatsApp Business Account ID (WABA ID)</label>
                     <input type="text" name="waba_id" placeholder="e.g. 123456789012345" required
                            class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none" />
-                    <p class="mt-1 text-xs text-white/40">Found in Meta Business Manager → WhatsApp → Settings</p>
+                    <p class="mt-1 text-[11px] text-white/40">Step 3 above. 15-digit number.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">System User Access Token</label>
-                    <input type="text" name="access_token" placeholder="Your permanent system user token" required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none" />
-                    <p class="mt-1 text-xs text-white/40">Generate from Meta Business Manager → System Users</p>
+                    <label class="block text-xs font-medium text-white/60 mb-1.5">System User Access Token</label>
+                    <input type="text" name="access_token" placeholder="EAA…" required
+                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                    <p class="mt-1 text-[11px] text-white/40">Step 4 above. Starts with <code>EAA</code>. We store this encrypted.</p>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
                         <flux:button variant="ghost" type="button">Cancel</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary">Connect WhatsApp</flux:button>
+                    <flux:button type="submit" variant="primary" icon="shield-check">Connect WhatsApp</flux:button>
                 </div>
             </form>
         </div>
