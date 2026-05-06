@@ -108,9 +108,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'google' => [
-        'client_id'     => env('GOOGLE_CLIENT_ID', ''),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET', ''),
-        'redirect'      => '/auth/google/callback',
+        'client_id'         => env('GOOGLE_CLIENT_ID', ''),
+        'client_secret'     => env('GOOGLE_CLIENT_SECRET', ''),
+        'redirect'          => '/auth/google/callback',
+        'site_verification' => env('GOOGLE_SITE_VERIFICATION', ''),
     ],
 
     'snapchat' => [
@@ -157,6 +158,10 @@ return [
         'admin_token' => env('WUZAPI_ADMIN_TOKEN', ''),
         'webhook_url' => env('WUZAPI_WEBHOOK_URL', ''),     // public URL Laravel receives webhooks on
         'webhook_host'=> env('WUZAPI_WEBHOOK_HOST', ''),    // optional Host header override (local dev)
+        // Feature flag — controls whether the QR-Scan button is visible on the
+        // Connections page. Set to false (default) until the gateway is proven
+        // reliable enough for end users; flip to true to expose the button again.
+        'qr_enabled'  => filter_var(env('WUZAPI_QR_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
 ];
