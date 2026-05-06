@@ -195,8 +195,7 @@
                     </flux:button>
                 </flux:modal.trigger>
 
-                {{-- QR Scan — temporarily hidden. Enable by setting WUZAPI_QR_ENABLED=true.
-                     The modal + Wuzapi backend stay wired so flipping the env flag re-exposes the button.
+                {{-- QR Scan — second connection path. Hidden when WUZAPI_QR_ENABLED=false. --}}
                 @if(config('services.wuzapi.qr_enabled'))
                     <flux:button
                         variant="outline"
@@ -209,7 +208,6 @@
                         <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-yellow-400/15 text-yellow-300 border border-yellow-400/20">Personal use</span>
                     </flux:button>
                 @endif
-                --}}
 
                 <p class="text-[10px] text-white/40 leading-relaxed text-center px-2">
                     Cloud API is Meta's official WhatsApp Business pipe — stable, supports message templates, never drops because of WhatsApp updates.
