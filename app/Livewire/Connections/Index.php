@@ -7,7 +7,9 @@ use App\Models\Page;
 use App\Services\EvolutionApiService;
 use App\Services\Platforms\FacebookPlatform;
 use App\Services\Platforms\TelegramPlatform;
+use App\Services\Platforms\WebChatPlatform;
 use App\Services\Platforms\WhatsAppPlatform;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -122,6 +124,65 @@ class Index extends Component
     public function hasTelegram(): bool
     {
         return $this->pages->contains(fn ($p) => $p->platform === 'telegram' && $p->is_active);
+    }
+
+    #[Computed]
+    public function hasWebChat(): bool
+    {
+        return $this->pages->contains(fn ($p) => $p->platform === 'webchat' && $p->is_active);
+    }
+
+    #[Computed]
+    public function webChatPages()
+    {
+        return $this->pages->filter(fn ($p) => $p->platform === 'webchat' && $p->is_active)->values();
+    }
+
+    public bool $showWebChatModal = false;
+    public string $newWebChatId = '';
+    public string $webChatSiteName = '';
+
+    /** Create a new web chat widget for this team and open the embed-snippet modal. */
+    public function connectWebChat(): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $name = trim($this->webChatSiteName) ?: 'My Website';
+
+        $request = Request::create('/internal/webchat-connect', 'POST', [
+            'widget_name' => $name,
+        ]);
+
+        $account = app(WebChatPlatform::class)->handleCallback($request, $team->id);
+        $page = $account->pages()->where('platform', 'webchat')->latest('id')->first();
+
+        $this->newWebChatId = $page?->platform_page_id ?? '';
+        $this->showWebChatModal = true;
+
+        unset($this->connectedAccounts, $this->pages);
+        $team->clearActivePagesCache();
+    }
+
+    public function closeWebChatModal(): void
+    {
+        $this->showWebChatModal = false;
+        $this->newWebChatId = '';
+        $this->webChatSiteName = '';
+    }
+
+    public function showWebChatSnippetFor(int $pageId): void
+    {
+        $team = Auth::user()->currentTeam;
+        $page = Page::where('team_id', $team->id)
+            ->where('id', $pageId)
+            ->where('platform', 'webchat')
+            ->firstOrFail();
+
+        $this->newWebChatId = $page->platform_page_id;
+        $this->showWebChatModal = true;
     }
 
     public function disconnect(int $accountId): void

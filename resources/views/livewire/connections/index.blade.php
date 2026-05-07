@@ -254,6 +254,57 @@
             </div>
         </div>
 
+        {{-- Web Chat Widget --}}
+        <div class="aio-card rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">WC</div>
+                <div>
+                    <h3 class="font-semibold text-white/80">Web Chat</h3>
+                    <p class="text-xs text-white/40">Embed on your site</p>
+                </div>
+            </div>
+
+            @php $webchatAccounts = $this->connectedAccounts->where('platform', 'webchat'); @endphp
+            @foreach($webchatAccounts as $account)
+                @php $page = $account->pages->where('platform', 'webchat')->first(); @endphp
+                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0 ml-2">
+                        @if($page)
+                            <flux:button wire:click="showWebChatSnippetFor({{ $page->id }})" size="xs" variant="ghost">Snippet</flux:button>
+                        @endif
+                        <flux:button
+                            wire:click="disconnect({{ $account->id }})"
+                            wire:confirm="Remove Web Chat widget '{{ addslashes($account->name) }}'? Your visitors will see the bubble disappear."
+                            wire:loading.attr="disabled"
+                            size="xs"
+                            variant="ghost"
+                            class="text-red-400 hover:text-red-300"
+                        >
+                            Disconnect
+                        </flux:button>
+                    </div>
+                </div>
+            @endforeach
+
+            <div class="{{ $webchatAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
+                <flux:input
+                    wire:model="webChatSiteName"
+                    size="sm"
+                    placeholder="Site name (e.g. Acme Store)"
+                />
+                <flux:button wire:click="connectWebChat" variant="primary" size="sm" class="w-full">
+                    {{ $webchatAccounts->isNotEmpty() ? 'Add Another Widget' : 'Create Web Chat Widget' }}
+                </flux:button>
+                <p class="text-[10px] text-white/40 leading-relaxed text-center px-2">
+                    Free, never breaks. Visitors chat from a bubble on your site; messages land here in real time.
+                </p>
+            </div>
+        </div>
+
         {{-- TikTok --}}
         <div class="aio-card rounded-2xl p-5">
             <div class="flex items-center gap-3 mb-4">
@@ -669,4 +720,44 @@
 
     {{-- WhatsApp QR Modal Component --}}
     @livewire('connections.whats-app-qr-modal')
+
+    {{-- Web Chat: embed-snippet modal (shown after creating a widget OR via "Snippet" button) --}}
+    <flux:modal wire:model="showWebChatModal" class="w-full max-w-xl">
+        @if($newWebChatId)
+            @php
+                $widgetSrc = url('/widget.js');
+                $snippet = '<script src="' . $widgetSrc . '" data-widget-id="' . $newWebChatId . '" defer></script>';
+            @endphp
+            <div class="space-y-4">
+                <div>
+                    <flux:heading size="lg">Your Web Chat widget is ready</flux:heading>
+                    <flux:text class="mt-1">Paste this snippet just before <code class="text-xs">&lt;/body&gt;</code> on every page where you want the chat bubble to appear.</flux:text>
+                </div>
+
+                <div class="rounded-xl border border-white/10 bg-zinc-950/60 p-3">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <span class="text-[10px] uppercase tracking-wider text-white/40">Embed snippet</span>
+                        <button
+                            type="button"
+                            x-data
+                            x-on:click="navigator.clipboard.writeText($refs.snippet.innerText); $el.innerText = 'Copied'; setTimeout(() => $el.innerText = 'Copy', 1500)"
+                            class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+                        >
+                            Copy
+                        </button>
+                    </div>
+                    <pre x-ref="snippet" class="text-xs text-emerald-200 whitespace-pre-wrap break-all leading-relaxed">{{ $snippet }}</pre>
+                </div>
+
+                <div class="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/60 space-y-1">
+                    <p><strong class="text-white/80">Widget ID:</strong> <code class="text-emerald-300">{{ $newWebChatId }}</code></p>
+                    <p>Visitors will see a green chat bubble in the bottom-right corner. Their messages land in this inbox; your replies appear in their bubble within a few seconds.</p>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <flux:button variant="ghost" wire:click="closeWebChatModal">Done</flux:button>
+                </div>
+            </div>
+        @endif
+    </flux:modal>
 </div>

@@ -33,6 +33,19 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
         ->name('webhooks.snapchat');
 });
 
+// WebChat widget — public endpoints called by widget.js on customers' sites.
+// No auth: throttled by widget_id; visitor identity is an opaque cookie/localStorage value.
+Route::prefix('webchat/{widget}')->middleware('throttle:60,1')->group(function () {
+    Route::post('/visitor', [\App\Http\Controllers\WebChatController::class, 'visitor'])
+        ->name('webchat.visitor');
+    Route::post('/messages', [\App\Http\Controllers\WebChatController::class, 'send'])
+        ->name('webchat.send');
+    Route::get('/messages', [\App\Http\Controllers\WebChatController::class, 'poll'])
+        ->name('webchat.poll');
+    Route::get('/config', [\App\Http\Controllers\WebChatController::class, 'config'])
+        ->name('webchat.config');
+});
+
 // Stripe webhook (uses Cashier's signature verification middleware)
 Route::post('/stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
     ->name('stripe.webhook');

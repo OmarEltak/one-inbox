@@ -43,6 +43,7 @@ class SendPlatformMessage implements ShouldQueue
                 'whatsapp' => $this->sendViaWhatsApp($page, $recipientId, $message),
                 'telegram' => $this->sendViaTelegram($page, $recipientId, $message),
                 'email' => $this->sendViaEmail($page, $message),
+                'webchat' => $this->sendViaWebChat($message),
                 default => null,
             };
 
@@ -285,6 +286,16 @@ class SendPlatformMessage implements ShouldQueue
         }
 
         return $messageId;
+    }
+
+    /**
+     * WebChat — no external API. The reply is already persisted in our DB; the
+     * widget polls GET /api/webchat/{widget}/messages?since= and picks it up.
+     * We just mint a stable platform_message_id so dedupe works.
+     */
+    protected function sendViaWebChat(Message $message): string
+    {
+        return 'wc_' . $message->id . '_' . now()->timestamp;
     }
 
     protected function sendViaTelegram($page, string $chatId, Message $message): ?string
