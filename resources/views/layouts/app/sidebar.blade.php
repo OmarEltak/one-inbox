@@ -44,7 +44,6 @@
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('connections')) {
                         $navItems[] = ['route' => 'campaigns.index', 'label' => 'Campaigns', 'icon' => 'paper-airplane', 'match' => 'campaigns*'];
-                        $navItems[] = ['route' => 'posts.compose', 'label' => 'Publish', 'icon' => 'megaphone', 'match' => 'posts*'];
                         $navItems[] = ['route' => 'content.index', 'label' => 'Content', 'icon' => 'photo', 'match' => 'content*'];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('analytics')) {

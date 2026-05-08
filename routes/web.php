@@ -131,9 +131,6 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     // Campaigns
     Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware('permission:connections')->name('campaigns.index');
 
-    // Posts (compose-once-publish-everywhere)
-    Route::get('posts/compose', \App\Livewire\Posts\Compose::class)->middleware('permission:connections')->name('posts.compose');
-
     // Content
     Route::get('content', \App\Livewire\Content\Index::class)->middleware('permission:connections')->name('content.index');
 
