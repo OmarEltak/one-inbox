@@ -44,6 +44,8 @@ class SendPlatformMessage implements ShouldQueue
                 'telegram' => $this->sendViaTelegram($page, $recipientId, $message),
                 'email' => $this->sendViaEmail($page, $message),
                 'webchat' => $this->sendViaWebChat($message),
+                'slack' => $this->sendViaSlack($page, $recipientId, $message),
+                'discord' => $this->sendViaDiscord($page, $recipientId, $message),
                 default => null,
             };
 
@@ -296,6 +298,64 @@ class SendPlatformMessage implements ShouldQueue
     protected function sendViaWebChat(Message $message): string
     {
         return 'wc_' . $message->id . '_' . now()->timestamp;
+    }
+
+    /**
+     * Slack — POST chat.postMessage. recipientId is the Slack channel_id (DM, group, or channel).
+     */
+    protected function sendViaSlack($page, string $channelId, Message $message): ?string
+    {
+        $botToken = $page->page_access_token;
+
+        $resp = Http::withToken($botToken)
+            ->post('https://slack.com/api/chat.postMessage', [
+                'channel' => $channelId,
+                'text'    => $message->content ?? '',
+            ])->json();
+
+        if (! ($resp['ok'] ?? false)) {
+            Log::error('Slack send failed', ['channel' => $channelId, 'error' => $resp['error'] ?? null]);
+            return null;
+        }
+        return (string) ($resp['ts'] ?? '');
+    }
+
+    /**
+     * Discord — DM the user via REST.
+     * Step 1: POST /users/@me/channels {recipient_id} → returns DM channel id
+     * Step 2: POST /channels/{id}/messages {content}
+     * recipientId here is the Discord user_id (Conversation.platform_conversation_id).
+     */
+    protected function sendViaDiscord($page, string $userId, Message $message): ?string
+    {
+        $botToken = $page->page_access_token;
+
+        // Open (or reuse) the DM channel for this user.
+        $dmResp = Http::withHeaders(['Authorization' => 'Bot ' . $botToken])
+            ->post('https://discord.com/api/v10/users/@me/channels', [
+                'recipient_id' => $userId,
+            ]);
+
+        if (! $dmResp->successful()) {
+            Log::error('Discord DM channel open failed', ['user' => $userId, 'body' => $dmResp->body()]);
+            return null;
+        }
+        $dmChannelId = (string) ($dmResp->json('id') ?? '');
+        if ($dmChannelId === '') {
+            return null;
+        }
+
+        $msgResp = Http::withHeaders(['Authorization' => 'Bot ' . $botToken])
+            ->post("https://discord.com/api/v10/channels/{$dmChannelId}/messages", [
+                'content' => $message->content ?? '',
+            ]);
+
+        if (! $msgResp->successful()) {
+            Log::error('Discord DM send failed', ['user' => $userId, 'body' => $msgResp->body()]);
+            return null;
+        }
+
+        return (string) ($msgResp->json('id') ?? '');
     }
 
     protected function sendViaTelegram($page, string $chatId, Message $message): ?string

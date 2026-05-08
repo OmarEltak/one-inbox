@@ -305,6 +305,84 @@
             </div>
         </div>
 
+        {{-- Slack --}}
+        <div class="aio-card rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-[#4A154B] flex items-center justify-center text-white font-bold text-sm">SL</div>
+                <div>
+                    <h3 class="font-semibold text-white/80">Slack</h3>
+                    <p class="text-xs text-white/40">Workspace bot</p>
+                </div>
+            </div>
+
+            @php $slackAccounts = $this->connectedAccounts->where('platform', 'slack'); @endphp
+            @foreach($slackAccounts as $account)
+                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                    </div>
+                    <flux:button
+                        wire:click="disconnect({{ $account->id }})"
+                        wire:confirm="Disconnect Slack workspace '{{ addslashes($account->name) }}'?"
+                        wire:loading.attr="disabled"
+                        size="xs"
+                        variant="ghost"
+                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                    >
+                        Disconnect
+                    </flux:button>
+                </div>
+            @endforeach
+
+            <div class="{{ $slackAccounts->isNotEmpty() ? 'mt-3' : '' }}">
+                <flux:modal.trigger name="slack-connect">
+                    <flux:button variant="primary" size="sm" class="w-full">
+                        {{ $slackAccounts->isNotEmpty() ? 'Add Another Workspace' : 'Connect Slack' }}
+                    </flux:button>
+                </flux:modal.trigger>
+            </div>
+        </div>
+
+        {{-- Discord --}}
+        <div class="aio-card rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-[#5865F2] flex items-center justify-center text-white font-bold text-sm">DC</div>
+                <div>
+                    <h3 class="font-semibold text-white/80">Discord</h3>
+                    <p class="text-xs text-white/40">Bot via /support</p>
+                </div>
+            </div>
+
+            @php $discordAccounts = $this->connectedAccounts->where('platform', 'discord'); @endphp
+            @foreach($discordAccounts as $account)
+                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                    </div>
+                    <flux:button
+                        wire:click="disconnect({{ $account->id }})"
+                        wire:confirm="Disconnect Discord bot '{{ addslashes($account->name) }}'?"
+                        wire:loading.attr="disabled"
+                        size="xs"
+                        variant="ghost"
+                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                    >
+                        Disconnect
+                    </flux:button>
+                </div>
+            @endforeach
+
+            <div class="{{ $discordAccounts->isNotEmpty() ? 'mt-3' : '' }}">
+                <flux:modal.trigger name="discord-connect">
+                    <flux:button variant="primary" size="sm" class="w-full">
+                        {{ $discordAccounts->isNotEmpty() ? 'Add Another Bot' : 'Connect Discord' }}
+                    </flux:button>
+                </flux:modal.trigger>
+            </div>
+        </div>
+
         {{-- TikTok --}}
         <div class="aio-card rounded-2xl p-5">
             <div class="flex items-center gap-3 mb-4">
@@ -713,6 +791,95 @@
                         <flux:button variant="ghost" type="button">Cancel</flux:button>
                     </flux:modal.close>
                     <flux:button type="submit" variant="primary">Connect Bot</flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+    {{-- Slack connect modal --}}
+    <flux:modal name="slack-connect" class="w-full max-w-lg">
+        <div class="space-y-4">
+            <div>
+                <h3 class="text-lg font-semibold text-white/80">Connect Slack Workspace</h3>
+                <p class="text-sm text-white/40 mt-1">
+                    Create a Slack App at <a href="https://api.slack.com/apps" target="_blank" rel="noopener" class="text-emerald-300 hover:underline">api.slack.com/apps</a>, install it to your workspace, then paste the credentials below.
+                </p>
+            </div>
+
+            <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
+                <p class="font-semibold text-white/80">Setup checklist</p>
+                <p>① Create app → "From scratch" → pick a workspace</p>
+                <p>② OAuth &amp; Permissions → add Bot Token Scopes: <code class="text-emerald-300">chat:write</code>, <code class="text-emerald-300">channels:history</code>, <code class="text-emerald-300">groups:history</code>, <code class="text-emerald-300">im:history</code>, <code class="text-emerald-300">users:read</code></p>
+                <p>③ Install to workspace → copy the <strong class="text-white/80">Bot User OAuth Token</strong> (starts with <code class="text-emerald-300">xoxb-</code>)</p>
+                <p>④ Basic Information → copy the <strong class="text-white/80">Signing Secret</strong></p>
+                <p>⑤ Event Subscriptions → enable, set Request URL to <code class="text-emerald-300">{{ url('/api/webhooks/slack') }}</code>, subscribe to bot events: <code class="text-emerald-300">message.channels</code>, <code class="text-emerald-300">message.groups</code>, <code class="text-emerald-300">message.im</code></p>
+                <p>⑥ Invite the bot to any channels you want messages to flow from</p>
+            </div>
+
+            <form method="POST" action="{{ route('connections.slack.connect') }}" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot User OAuth Token</label>
+                    <input type="text" name="bot_token" placeholder="xoxb-..." required
+                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Signing Secret</label>
+                    <input type="text" name="signing_secret" placeholder="32-character hex string" required
+                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <flux:modal.close>
+                        <flux:button variant="ghost" type="button">Cancel</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary">Connect Slack</flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+    {{-- Discord connect modal --}}
+    <flux:modal name="discord-connect" class="w-full max-w-lg">
+        <div class="space-y-4">
+            <div>
+                <h3 class="text-lg font-semibold text-white/80">Connect Discord Bot</h3>
+                <p class="text-sm text-white/40 mt-1">
+                    Create an Application at <a href="https://discord.com/developers/applications" target="_blank" rel="noopener" class="text-emerald-300 hover:underline">discord.com/developers/applications</a>, add a Bot user, then paste the credentials below.
+                </p>
+            </div>
+
+            <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
+                <p class="font-semibold text-white/80">Setup checklist</p>
+                <p>① New Application → name it → copy <strong class="text-white/80">Application ID</strong> from General Information</p>
+                <p>② Copy the <strong class="text-white/80">Public Key</strong> from the same page</p>
+                <p>③ Bot tab → Reset Token → copy the <strong class="text-white/80">Bot Token</strong> (shown only once)</p>
+                <p>④ General Information → set <strong class="text-white/80">Interactions Endpoint URL</strong> = <code class="text-emerald-300">{{ url('/api/webhooks/discord') }}</code></p>
+                <p>⑤ Installation tab → enable Guild Install with <code class="text-emerald-300">applications.commands</code> scope, then use the Install Link to add the bot to your server</p>
+                <p class="text-emerald-300/80">After connecting, your members type <code>/support &lt;message&gt;</code> in any channel; messages land in this inbox and your replies DM them back.</p>
+            </div>
+
+            <form method="POST" action="{{ route('connections.discord.connect') }}" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Application ID</label>
+                    <input type="text" name="application_id" placeholder="18-digit numeric snowflake" required
+                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Public Key</label>
+                    <input type="text" name="public_key" placeholder="64-character hex" required
+                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token</label>
+                    <input type="text" name="bot_token" placeholder="MTI..." required
+                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <flux:modal.close>
+                        <flux:button variant="ghost" type="button">Cancel</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary">Connect Discord</flux:button>
                 </div>
             </form>
         </div>

@@ -55,6 +55,8 @@ class ProcessIncomingMessage implements ShouldQueue
                 'tiktok'                => $this->processTikTok($payload, $ai),
                 'snapchat'              => $this->processSnapchat($payload, $ai),
                 'email'                 => $this->processEmail($payload, $ai),
+                'slack'                 => $this->processSlack($payload, $ai),
+                'discord'               => $this->processDiscord($payload, $ai),
                 default                 => Log::warning("Unknown platform: {$platform}"),
             };
 
@@ -863,6 +865,166 @@ class ProcessIncomingMessage implements ShouldQueue
         $conversation->update([
             'last_message_at'      => now(),
             'last_message_preview' => \Illuminate\Support\Str::limit($content ?? '[Media]', 100),
+            'status'               => 'open',
+        ]);
+        $conversation->incrementUnread();
+
+        ScoreLeadJob::dispatch($message->id, $contact->id);
+
+        $team = $page->team;
+        if ($team->isAiEnabled()) {
+            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+            );
+        }
+
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    /**
+     * Slack Events API — message events from channels/DMs the bot is in.
+     * Payload shape:
+     *   { team_id, event: { type: 'message', user, text, ts, channel, channel_type } }
+     */
+    protected function processSlack(array $payload, AiProviderInterface $ai): void
+    {
+        $event = $payload['event'] ?? [];
+        if (($event['type'] ?? null) !== 'message') {
+            return;
+        }
+        if (! empty($event['bot_id']) || ($event['subtype'] ?? null) === 'bot_message') {
+            return; // never reflect our own bot's posts back into the inbox
+        }
+
+        $workspaceId = (string) ($payload['team_id'] ?? '');
+        $channelId   = (string) ($event['channel'] ?? '');
+        $userId      = (string) ($event['user'] ?? '');
+        $text        = (string) ($event['text'] ?? '');
+        $eventTs     = (string) ($event['ts'] ?? '');
+
+        if ($workspaceId === '' || $channelId === '' || $userId === '') {
+            return;
+        }
+
+        $page = Page::where('platform', 'slack')
+            ->where('platform_page_id', $workspaceId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $page) {
+            Log::warning('Slack message for unknown workspace', ['team_id' => $workspaceId]);
+            return;
+        }
+
+        WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
+
+        // Best-effort fetch sender profile so the inbox shows a name, not a U0123…
+        $senderName = $this->fetchSlackUserName($userId, $page->page_access_token);
+
+        $contact = $this->findOrCreateContact($page, 'slack', $userId, [
+            'name' => $senderName ?: 'Slack User',
+        ]);
+
+        $conversation = $this->findOrCreateConversation($page, 'slack', $channelId, $contact);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $eventTs ?: ('slk_' . \Illuminate\Support\Str::random(12)),
+            'direction'           => 'inbound',
+            'sender_type'         => 'contact',
+            'sender_id'           => $contact->id,
+            'content_type'        => 'text',
+            'content'             => $text,
+            'platform_sent_at'    => $eventTs ? \Carbon\Carbon::createFromTimestamp((int) $eventTs) : now(),
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($text ?: '[Message]', 100),
+            'status'               => 'open',
+        ]);
+        $conversation->incrementUnread();
+
+        ScoreLeadJob::dispatch($message->id, $contact->id);
+
+        $team = $page->team;
+        if ($team->isAiEnabled()) {
+            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+            );
+        }
+
+        $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    private function fetchSlackUserName(string $userId, string $botToken): ?string
+    {
+        try {
+            $resp = \Illuminate\Support\Facades\Http::withToken($botToken)
+                ->get('https://slack.com/api/users.info', ['user' => $userId])
+                ->json();
+
+            if (! ($resp['ok'] ?? false)) {
+                return null;
+            }
+            $u = $resp['user'] ?? [];
+            return $u['real_name'] ?? $u['profile']['real_name'] ?? $u['name'] ?? null;
+        } catch (\Throwable $e) {
+            Log::debug('Slack users.info failed', ['user' => $userId, 'error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Discord — slash command interactions captured by DiscordInteractionController.
+     * Stored payload (from controller, not Discord raw):
+     *   { application_id, user_id, user_name, content, dm_channel_id?, interaction_id }
+     */
+    protected function processDiscord(array $payload, AiProviderInterface $ai): void
+    {
+        $applicationId = (string) ($payload['application_id'] ?? '');
+        $userId        = (string) ($payload['user_id'] ?? '');
+        $userName      = (string) ($payload['user_name'] ?? 'Discord User');
+        $content       = (string) ($payload['content'] ?? '');
+        $interactionId = (string) ($payload['interaction_id'] ?? '');
+
+        if ($applicationId === '' || $userId === '' || $content === '') {
+            return;
+        }
+
+        $page = Page::where('platform', 'discord')
+            ->where('platform_page_id', $applicationId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $page) {
+            Log::warning('Discord message for unknown application', ['application_id' => $applicationId]);
+            return;
+        }
+
+        WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
+
+        $contact = $this->findOrCreateContact($page, 'discord', $userId, [
+            'name' => $userName,
+        ]);
+
+        // Conversation key = Discord user_id; agent replies go back as DMs to that user.
+        $conversation = $this->findOrCreateConversation($page, 'discord', $userId, $contact);
+
+        $message = Message::create([
+            'conversation_id'     => $conversation->id,
+            'platform_message_id' => $interactionId ?: ('dsc_' . \Illuminate\Support\Str::random(12)),
+            'direction'           => 'inbound',
+            'sender_type'         => 'contact',
+            'sender_id'           => $contact->id,
+            'content_type'        => 'text',
+            'content'             => $content,
+            'platform_sent_at'    => now(),
+        ]);
+
+        $conversation->update([
+            'last_message_at'      => now(),
+            'last_message_preview' => \Illuminate\Support\Str::limit($content, 100),
             'status'               => 'open',
         ]);
         $conversation->incrementUnread();

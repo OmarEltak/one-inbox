@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\EnforcePlanLimits;
 use App\Jobs\FetchEmailsForPageJob;
+use App\Services\Platforms\DiscordPlatform;
 use App\Services\Platforms\EmailPlatform;
 use App\Services\Platforms\FacebookPlatform;
+use App\Services\Platforms\SlackPlatform;
 use App\Services\Platforms\TelegramPlatform;
 use App\Services\Platforms\SnapchatPlatform;
 use App\Services\Platforms\TikTokPlatform;
@@ -232,6 +234,63 @@ class ConnectionController extends Controller
 
             return redirect()->route('connections.index')
                 ->with('error', 'Failed to connect Telegram: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Connect a Slack workspace via Bot User OAuth Token + Signing Secret.
+     */
+    public function slackConnect(Request $request, SlackPlatform $slack)
+    {
+        $team = auth()->user()->currentTeam;
+        if ($team && ! EnforcePlanLimits::canConnectPage($team)) {
+            return redirect()->route('connections.index')
+                ->with('error', 'You have reached your page limit. Please upgrade your plan to connect more pages.');
+        }
+
+        $request->validate([
+            'bot_token'      => 'required|string|max:255',
+            'signing_secret' => 'required|string|max:255',
+        ]);
+
+        try {
+            $teamId = auth()->user()->current_team_id;
+            $account = $slack->handleCallback($request, $teamId);
+            return redirect()->route('connections.index')
+                ->with('success', "Connected Slack workspace: {$account->name}");
+        } catch (\Throwable $e) {
+            Log::error('Slack connection failed', ['error' => $e->getMessage()]);
+            return redirect()->route('connections.index')
+                ->with('error', 'Failed to connect Slack: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Connect a Discord application via Bot Token + Application ID + Public Key.
+     */
+    public function discordConnect(Request $request, DiscordPlatform $discord)
+    {
+        $team = auth()->user()->currentTeam;
+        if ($team && ! EnforcePlanLimits::canConnectPage($team)) {
+            return redirect()->route('connections.index')
+                ->with('error', 'You have reached your page limit. Please upgrade your plan to connect more pages.');
+        }
+
+        $request->validate([
+            'bot_token'      => 'required|string|max:255',
+            'application_id' => 'required|string|max:64',
+            'public_key'     => 'required|string|max:128',
+        ]);
+
+        try {
+            $teamId = auth()->user()->current_team_id;
+            $account = $discord->handleCallback($request, $teamId);
+            return redirect()->route('connections.index')
+                ->with('success', "Connected Discord bot: {$account->name}");
+        } catch (\Throwable $e) {
+            Log::error('Discord connection failed', ['error' => $e->getMessage()]);
+            return redirect()->route('connections.index')
+                ->with('error', 'Failed to connect Discord: ' . $e->getMessage());
         }
     }
 

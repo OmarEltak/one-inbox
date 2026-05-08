@@ -17,7 +17,8 @@ Route::view('about', 'pages.about')->name('about');
 Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('terms', 'pages.terms')->name('terms');
-Route::view('pricing', 'pages.pricing')->name('pricing');
+// Pricing page hidden until pricing is finalized — see pages/pricing.blade.php (@if(false))
+// Route::view('pricing', 'pages.pricing')->name('pricing');
 Route::view('features', 'pages.features')->name('features');
 
 // Platform landing pages
@@ -35,6 +36,7 @@ Route::view('vs/trengo', 'pages.vs.trengo')->name('vs.trengo');
 Route::view('vs/manychat', 'pages.vs.manychat')->name('vs.manychat');
 Route::view('vs/freshchat', 'pages.vs.freshchat')->name('vs.freshchat');
 Route::view('vs/respond-io', 'pages.vs.respond-io')->name('vs.respond-io');
+Route::view('vs/tidio', 'pages.vs.tidio')->name('vs.tidio');
 
 // Industry landing pages
 Route::view('industries/real-estate', 'pages.industries.real-estate')->name('industry.real-estate');
@@ -45,34 +47,41 @@ Route::view('industries/education', 'pages.industries.education')->name('industr
 
 // Sitemap
 Route::get('sitemap.xml', function () {
+    $today = now()->toDateString();
     $urls = [
-        ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly'],
-        ['loc' => url('/features'), 'priority' => '0.9', 'changefreq' => 'monthly'],
-        ['loc' => url('/pricing'), 'priority' => '0.9', 'changefreq' => 'monthly'],
-        ['loc' => url('/about'), 'priority' => '0.7', 'changefreq' => 'monthly'],
-        ['loc' => url('/contact'), 'priority' => '0.7', 'changefreq' => 'monthly'],
-        ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly'],
-        ['loc' => url('/terms'), 'priority' => '0.3', 'changefreq' => 'yearly'],
-        ['loc' => url('/whatsapp-inbox'), 'priority' => '0.9', 'changefreq' => 'monthly'],
-        ['loc' => url('/instagram-dm'), 'priority' => '0.9', 'changefreq' => 'monthly'],
-        ['loc' => url('/facebook-messenger'), 'priority' => '0.9', 'changefreq' => 'monthly'],
-        ['loc' => url('/telegram-inbox'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/vs/trengo'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/vs/manychat'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/vs/freshchat'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/vs/respond-io'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/industries/real-estate'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/industries/ecommerce'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/industries/agencies'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/industries/restaurants'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/industries/education'), 'priority' => '0.8', 'changefreq' => 'monthly'],
-        ['loc' => url('/blog'), 'priority' => '0.9', 'changefreq' => 'weekly'],
+        ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly', 'lastmod' => $today],
+        ['loc' => url('/features'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        // pricing page disabled — see route comment
+        ['loc' => url('/about'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/contact'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
+        ['loc' => url('/terms'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
+        ['loc' => url('/whatsapp-inbox'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/instagram-dm'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/facebook-messenger'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/telegram-inbox'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/trengo'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/manychat'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/freshchat'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/respond-io'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/tidio'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/real-estate'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/ecommerce'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/agencies'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/restaurants'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/education'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/blog'), 'priority' => '0.9', 'changefreq' => 'weekly', 'lastmod' => $today],
     ];
 
     // Add published blog posts dynamically
     $posts = \App\Models\Post::published()->orderByDesc('published_at')->get();
     foreach ($posts as $post) {
-        $urls[] = ['loc' => route('blog.show', $post->slug), 'priority' => '0.7', 'changefreq' => 'monthly'];
+        $urls[] = [
+            'loc'        => route('blog.show', $post->slug),
+            'priority'   => '0.7',
+            'changefreq' => 'monthly',
+            'lastmod'    => $post->published_at?->toDateString() ?? $today,
+        ];
     }
 
     $xml = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -80,6 +89,7 @@ Route::get('sitemap.xml', function () {
     foreach ($urls as $url) {
         $xml .= '<url>';
         $xml .= '<loc>' . $url['loc'] . '</loc>';
+        $xml .= '<lastmod>' . $url['lastmod'] . '</lastmod>';
         $xml .= '<changefreq>' . $url['changefreq'] . '</changefreq>';
         $xml .= '<priority>' . $url['priority'] . '</priority>';
         $xml .= '</url>';
@@ -114,6 +124,8 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('connections/snapchat/redirect', [\App\Http\Controllers\ConnectionController::class, 'snapchatRedirect'])->name('connections.snapchat.redirect');
         Route::get('connections/snapchat/callback', [\App\Http\Controllers\ConnectionController::class, 'snapchatCallback'])->name('connections.snapchat.callback');
         Route::post('connections/email/connect', [\App\Http\Controllers\ConnectionController::class, 'emailConnect'])->name('connections.email.connect');
+        Route::post('connections/slack/connect', [\App\Http\Controllers\ConnectionController::class, 'slackConnect'])->name('connections.slack.connect');
+        Route::post('connections/discord/connect', [\App\Http\Controllers\ConnectionController::class, 'discordConnect'])->name('connections.discord.connect');
     });
 
     // Campaigns

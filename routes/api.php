@@ -31,6 +31,14 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
     // Snapchat — Set webhook in Snap Kit Developer Portal
     Route::match(['get', 'post'], '/snapchat', [\App\Http\Controllers\Webhooks\SnapchatWebhookController::class, 'handle'])
         ->name('webhooks.snapchat');
+
+    // Slack Events API — set as Event Subscriptions Request URL in the Slack App config.
+    Route::post('/slack', [\App\Http\Controllers\Webhooks\SlackWebhookController::class, 'handle'])
+        ->name('webhooks.slack');
+
+    // Discord Interactions — set as Interactions Endpoint URL in the Discord Application config.
+    Route::post('/discord', [\App\Http\Controllers\Webhooks\DiscordInteractionController::class, 'handle'])
+        ->name('webhooks.discord');
 });
 
 // WebChat widget — public endpoints called by widget.js on customers' sites.
