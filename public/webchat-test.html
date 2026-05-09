@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Chat Widget — Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        h1 { color: #1a202c; margin-top: 0; }
+        p { color: #4a5568; line-height: 1.6; }
+        .step {
+            background: #f7fafc;
+            border-left: 4px solid #22c55e;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 4px;
+        }
+        .step-number {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            margin-right: 8px;
+            font-size: 13px;
+        }
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #2d3748;
+        }
+        .arrow {
+            display: inline-block;
+            animation: bounce 2s infinite;
+            font-size: 24px;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+        .error {
+            background: #fed7d7;
+            border-left: 4px solid #e53e3e;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Web Chat Widget — Test page</h1>
+        <p>This page is exactly like one of your customers' websites: a regular HTML page with our snippet pasted in. The chat bubble should appear at the bottom-right of this window.</p>
+
+        <div id="instructions">
+            <div class="step">
+                <span class="step-number">1</span>
+                Click the green chat bubble at the bottom-right of the screen.
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                Type a message like <em>"Testing the widget"</em> and hit send.
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                In another tab, open your <a href="/inbox" target="_blank"><code>Inbox</code></a> — your message lands there as a new conversation under the <strong>Web Chat</strong> channel.
+            </div>
+            <div class="step">
+                <span class="step-number">4</span>
+                Reply from the inbox. Within ~1.5 seconds your reply pops up in the chat bubble on this page.
+            </div>
+
+            <p style="margin-top: 32px; color: #718096; font-size: 14px;">
+                Look down there <span class="arrow">→</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Pull the widget id from ?wid=... so this page can be reused for any widget
+        // your team creates. The connection modal links here with the right id.
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var wid = params.get('wid');
+
+            if (!wid) {
+                // Fall back to a default if someone opens the page raw — show an error.
+                var card = document.querySelector('.card');
+                var err = document.createElement('div');
+                err.className = 'step error';
+                err.innerHTML = '<strong>No widget id provided.</strong> Open this page from the Web Chat snippet modal in Connections, OR add <code>?wid=YOUR_WIDGET_ID</code> to the URL.';
+                card.insertBefore(err, document.getElementById('instructions'));
+                return;
+            }
+
+            var s = document.createElement('script');
+            s.src = '/widget.js';
+            s.setAttribute('data-widget-id', wid);
+            s.defer = true;
+            document.body.appendChild(s);
+        })();
+    </script>
+</body>
+</html>

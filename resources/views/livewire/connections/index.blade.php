@@ -776,16 +776,34 @@
         <div class="space-y-4">
             <div>
                 <h3 class="text-lg font-semibold text-white/80">Connect Telegram Bot</h3>
-                <p class="text-sm text-white/40 mt-1">Create a bot via <strong class="text-white/80">@BotFather</strong> on Telegram to get your bot token.</p>
+                <p class="text-sm text-white/40 mt-1">A Telegram bot is a free account that messages people in your name. Anyone who chats with the bot lands in your inbox.</p>
             </div>
+
+            <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/70 space-y-1.5 leading-relaxed">
+                <p class="font-semibold text-white/85">How to get a bot token (3 minutes)</p>
+                <p>① Open Telegram on your phone or desktop. Search for <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="text-emerald-300 hover:underline"><strong>@BotFather</strong></a> and start a chat.</p>
+                <p>② Send the message <code class="text-emerald-300">/newbot</code></p>
+                <p>③ BotFather asks for a <strong class="text-white/85">name</strong> — type whatever you want (e.g. "Acme Support").</p>
+                <p>④ Then it asks for a <strong class="text-white/85">username</strong> — must end in <code class="text-emerald-300">bot</code> (e.g. <code class="text-emerald-300">acme_support_bot</code>).</p>
+                <p>⑤ BotFather replies with a <strong class="text-white/85">token</strong> that looks like <code class="text-emerald-300">123456789:ABCdefGHIjklMNOpqrSTUvwxyz</code>. <strong>Copy the entire token</strong> and paste it below.</p>
+                <p class="text-yellow-300/80 mt-2">⚠️ Keep this token private — it's the equivalent of a password for your bot.</p>
+            </div>
+
             <form method="POST" action="{{ route('connections.telegram.connect') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token</label>
-                    <input type="text" name="bot_token" placeholder="e.g. 123456:ABCdefGHIjkl..." required
+                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token (from BotFather)</label>
+                    <input type="text" name="bot_token" placeholder="123456789:ABCdef..." required
                            class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
-                    <p class="mt-1 text-xs text-white/40">Send /newbot to @BotFather → follow prompts → copy the token</p>
                 </div>
+
+                <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/60 leading-relaxed">
+                    <p class="font-semibold text-white/80 mb-1">After you click Connect Bot:</p>
+                    <p>• Anyone who searches for <code class="text-emerald-300">@your_bot_username</code> on Telegram and starts a chat → lands in your inbox.</p>
+                    <p>• Share the bot link with your customers: <code class="text-emerald-300">https://t.me/your_bot_username</code></p>
+                    <p>• Replies you send from the inbox arrive in their Telegram.</p>
+                </div>
+
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
                         <flux:button variant="ghost" type="button">Cancel</flux:button>
@@ -889,40 +907,150 @@
     @livewire('connections.whats-app-qr-modal')
 
     {{-- Web Chat: embed-snippet modal (shown after creating a widget OR via "Snippet" button) --}}
-    <flux:modal wire:model="showWebChatModal" class="w-full max-w-xl">
+    <flux:modal wire:model="showWebChatModal" class="w-full max-w-2xl">
         @if($newWebChatId)
             @php
                 $widgetSrc = url('/widget.js');
                 $snippet = '<script src="' . $widgetSrc . '" data-widget-id="' . $newWebChatId . '" defer></script>';
+                $testUrl = url('/webchat-test.html?wid=' . $newWebChatId);
             @endphp
-            <div class="space-y-4">
+            <div class="space-y-5" x-data="{ tab: 'wordpress' }">
+                {{-- Header --}}
                 <div>
                     <flux:heading size="lg">Your Web Chat widget is ready</flux:heading>
-                    <flux:text class="mt-1">Paste this snippet just before <code class="text-xs">&lt;/body&gt;</code> on every page where you want the chat bubble to appear.</flux:text>
+                    <flux:text class="mt-1">Add the snippet below to your website and a green chat bubble appears in the bottom-right corner. Visitors who click it can chat with you — their messages land in this inbox.</flux:text>
                 </div>
 
-                <div class="rounded-xl border border-white/10 bg-zinc-950/60 p-3">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                        <span class="text-[10px] uppercase tracking-wider text-white/40">Embed snippet</span>
-                        <button
-                            type="button"
-                            x-data
-                            x-on:click="navigator.clipboard.writeText($refs.snippet.innerText); $el.innerText = 'Copied'; setTimeout(() => $el.innerText = 'Copy', 1500)"
-                            class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
-                        >
-                            Copy
-                        </button>
+                {{-- Snippet with copy button --}}
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-white/40 mb-2">① Copy this snippet</p>
+                    <div class="rounded-xl border border-white/10 bg-zinc-950/60 p-3">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <span class="text-[10px] text-white/40">embed snippet</span>
+                            <button
+                                type="button"
+                                x-data
+                                x-on:click="navigator.clipboard.writeText($refs.snippet.innerText); $el.innerText = '✓ Copied'; setTimeout(() => $el.innerText = 'Copy', 1500)"
+                                class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
+                            >
+                                Copy
+                            </button>
+                        </div>
+                        <pre x-ref="snippet" class="text-xs text-emerald-200 whitespace-pre-wrap break-all leading-relaxed">{{ $snippet }}</pre>
                     </div>
-                    <pre x-ref="snippet" class="text-xs text-emerald-200 whitespace-pre-wrap break-all leading-relaxed">{{ $snippet }}</pre>
                 </div>
 
-                <div class="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/60 space-y-1">
-                    <p><strong class="text-white/80">Widget ID:</strong> <code class="text-emerald-300">{{ $newWebChatId }}</code></p>
-                    <p>Visitors will see a green chat bubble in the bottom-right corner. Their messages land in this inbox; your replies appear in their bubble within a few seconds.</p>
+                {{-- Platform-specific install instructions (tabs) --}}
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider text-white/40 mb-2">② Paste it on your site — pick where your site lives</p>
+                    <div class="flex flex-wrap gap-1 mb-3 border-b border-white/10">
+                        @foreach(['wordpress' => 'WordPress', 'shopify' => 'Shopify', 'wix' => 'Wix', 'squarespace' => 'Squarespace', 'webflow' => 'Webflow', 'html' => 'Custom HTML'] as $key => $label)
+                            <button
+                                type="button"
+                                x-on:click="tab = '{{ $key }}'"
+                                :class="tab === '{{ $key }}' ? 'bg-emerald-500/15 text-emerald-300 border-b-2 border-emerald-400' : 'text-white/50 hover:text-white/80'"
+                                class="px-3 py-1.5 text-xs font-medium transition rounded-t-md"
+                            >{{ $label }}</button>
+                        @endforeach
+                    </div>
+
+                    <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs text-white/70 leading-relaxed space-y-2 min-h-[140px]">
+                        {{-- WordPress --}}
+                        <div x-show="tab === 'wordpress'" x-cloak>
+                            <p class="text-white/85 font-semibold mb-2">WordPress (easiest way)</p>
+                            <p>① Install the free plugin <strong class="text-white/85">"Insert Headers and Footers"</strong> by WPBeginner (or "WPCode").</p>
+                            <p>② In your WP admin: <strong class="text-white/85">Settings → Insert Headers and Footers</strong>.</p>
+                            <p>③ Paste the snippet into the <strong class="text-white/85">"Scripts in Footer"</strong> box.</p>
+                            <p>④ Click <strong class="text-white/85">Save</strong>. The bubble appears on every page within ~30 seconds (browser cache may delay).</p>
+                            <p class="text-white/45 mt-2">No FTP / no theme editing needed.</p>
+                        </div>
+
+                        {{-- Shopify --}}
+                        <div x-show="tab === 'shopify'" x-cloak>
+                            <p class="text-white/85 font-semibold mb-2">Shopify</p>
+                            <p>① In your Shopify admin: <strong class="text-white/85">Online Store → Themes</strong>.</p>
+                            <p>② On your active theme click <strong class="text-white/85">Actions → Edit code</strong>.</p>
+                            <p>③ Open <code class="text-emerald-300">layout/theme.liquid</code> in the file list.</p>
+                            <p>④ Find the line with <code class="text-emerald-300">&lt;/body&gt;</code> (near the bottom). Paste the snippet on the line just above it.</p>
+                            <p>⑤ Click <strong class="text-white/85">Save</strong>. Refresh your storefront — the bubble shows up.</p>
+                        </div>
+
+                        {{-- Wix --}}
+                        <div x-show="tab === 'wix'" x-cloak>
+                            <p class="text-white/85 font-semibold mb-2">Wix</p>
+                            <p>① In your Wix dashboard: <strong class="text-white/85">Settings → Custom Code</strong> (under "Advanced").</p>
+                            <p>② Click <strong class="text-white/85">+ Add Custom Code</strong>.</p>
+                            <p>③ Paste the snippet into the code box. Set:</p>
+                            <p class="ml-4">• Name: <code class="text-emerald-300">One Inbox Chat</code></p>
+                            <p class="ml-4">• Add Code to Pages: <strong class="text-white/85">All pages</strong></p>
+                            <p class="ml-4">• Place Code in: <strong class="text-white/85">Body — end</strong></p>
+                            <p>④ Click <strong class="text-white/85">Apply</strong>. Publish your site if needed.</p>
+                            <p class="text-white/45 mt-2">Note: Wix free plans don't allow custom code — you need a Premium plan.</p>
+                        </div>
+
+                        {{-- Squarespace --}}
+                        <div x-show="tab === 'squarespace'" x-cloak>
+                            <p class="text-white/85 font-semibold mb-2">Squarespace</p>
+                            <p>① <strong class="text-white/85">Settings → Advanced → Code Injection</strong>.</p>
+                            <p>② Paste the snippet into the <strong class="text-white/85">Footer</strong> box.</p>
+                            <p>③ Click <strong class="text-white/85">Save</strong>.</p>
+                            <p class="text-white/45 mt-2">Note: Code Injection requires a Business plan or higher.</p>
+                        </div>
+
+                        {{-- Webflow --}}
+                        <div x-show="tab === 'webflow'" x-cloak>
+                            <p class="text-white/85 font-semibold mb-2">Webflow</p>
+                            <p>① Open your project → <strong class="text-white/85">Project Settings → Custom Code</strong>.</p>
+                            <p>② Paste the snippet in the <strong class="text-white/85">Footer Code</strong> box.</p>
+                            <p>③ Click <strong class="text-white/85">Save Changes</strong>, then publish your site.</p>
+                        </div>
+
+                        {{-- Custom HTML --}}
+                        <div x-show="tab === 'html'" x-cloak>
+                            <p class="text-white/85 font-semibold mb-2">Plain HTML / your own framework</p>
+                            <p>Open the HTML file (or template) for every page you want the bubble on. Find the closing <code class="text-emerald-300">&lt;/body&gt;</code> tag and paste the snippet on the line right before it. Example:</p>
+                            <pre class="mt-2 p-2 bg-zinc-950/60 rounded text-[11px] text-emerald-200/90 overflow-x-auto"><code>&lt;body&gt;
+  ... your page content ...
+  {{ $snippet }}
+&lt;/body&gt;</code></pre>
+                            <p class="mt-2 text-white/45">Works with React/Vue/Next.js too — drop it in your root layout / <code>_document.tsx</code> / <code>app.html</code>.</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2">
-                    <flux:button variant="ghost" wire:click="closeWebChatModal">Done</flux:button>
+                {{-- Test it --}}
+                <div class="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-4">
+                    <p class="text-[10px] uppercase tracking-wider text-emerald-300/80 mb-1">③ Test it now (without your site)</p>
+                    <p class="text-xs text-white/70">We hosted a demo page that already has your widget embedded. Open it, click the green bubble, send a test message — then watch your inbox.</p>
+                    <a href="{{ url('/webchat-test.html') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-300 hover:text-emerald-200">
+                        <flux:icon.arrow-top-right-on-square class="w-3.5 h-3.5" />
+                        Open test page
+                    </a>
+                </div>
+
+                {{-- Where messages go --}}
+                <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
+                    <p><strong class="text-white/80">Where messages go:</strong> Site visitors' messages appear in your <a href="{{ route('inbox') }}" class="text-emerald-300 hover:underline">Inbox</a> under the channel <strong class="text-white/85">"Web Chat"</strong>. Your replies are pushed back to the chat bubble within ~1.5 seconds.</p>
+                </div>
+
+                {{-- Troubleshooting --}}
+                <details class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                    <summary class="text-xs text-white/60 cursor-pointer hover:text-white/80">Bubble isn't appearing? Click to troubleshoot</summary>
+                    <div class="mt-3 space-y-1.5 text-xs text-white/55 leading-relaxed">
+                        <p><strong class="text-white/80">Wait 30 seconds and refresh.</strong> Many CDNs (Cloudflare, etc.) cache HTML — your snippet update may not be live yet.</p>
+                        <p><strong class="text-white/80">Check browser console</strong> (F12). If you see a CSP error, your site has a Content-Security-Policy that needs <code class="text-emerald-300">{{ parse_url(url('/'), PHP_URL_HOST) }}</code> added to <code class="text-emerald-300">script-src</code>.</p>
+                        <p><strong class="text-white/80">Ad blockers</strong> can sometimes block widgets. Disable yours and reload to confirm.</p>
+                        <p><strong class="text-white/80">Snippet in the wrong place?</strong> It must be in the page <code class="text-emerald-300">&lt;body&gt;</code> — not <code class="text-emerald-300">&lt;head&gt;</code>. The <code>defer</code> attribute means it loads after the page is ready.</p>
+                    </div>
+                </details>
+
+                {{-- Widget id reference --}}
+                <div class="text-[11px] text-white/40 border-t border-white/5 pt-3">
+                    Widget ID: <code class="text-emerald-300/80">{{ $newWebChatId }}</code> — keep this private; anyone with it can post messages to your inbox under this widget.
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <flux:button variant="ghost" wire:click="closeWebChatModal">Close</flux:button>
                 </div>
             </div>
         @endif
