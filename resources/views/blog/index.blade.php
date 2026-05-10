@@ -1,7 +1,50 @@
 <x-layouts.marketing
-    :title="__('Blog — Social Inbox Tips, WhatsApp Marketing & AI Sales Guides | One Inbox')"
+    :title="__('Blog — WhatsApp, Instagram & AI Sales Guides | One Inbox')"
     :description="__('Practical guides on WhatsApp marketing, Instagram DM automation, AI sales bots, and social media customer service. Learn from the One Inbox team.')"
 >
+
+@push('schema')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "Blog",
+    "@@id": "{{ route('blog.index') }}",
+    "name": "One Inbox Blog",
+    "description": "Practical guides on WhatsApp marketing, Instagram DM automation, AI sales bots, and social media customer service.",
+    "url": "{{ route('blog.index') }}",
+    "publisher": {
+        "@@type": "Organization",
+        "name": "One Inbox",
+        "url": "https://ot1-pro.com",
+        "logo": {
+            "@@type": "ImageObject",
+            "url": "https://ot1-pro.com/logo.png"
+        }
+    },
+    "blogPost": [
+        @foreach($posts->take(10) as $i => $post)
+        {
+            "@@type": "BlogPosting",
+            "headline": {!! json_encode($post->title) !!},
+            "url": "{{ route('blog.show', $post->slug) }}",
+            "datePublished": "{{ $post->published_at->toIso8601String() }}",
+            "author": {"@@type": "Organization", "name": {!! json_encode($post->author) !!}}
+        }@if(! $loop->last),@endif
+        @endforeach
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@@type": "ListItem", "position": 1, "name": "Home", "item": "{{ route('home') }}"},
+        {"@@type": "ListItem", "position": 2, "name": "Blog", "item": "{{ route('blog.index') }}"}
+    ]
+}
+</script>
+@endpush
 
     {{-- Hero --}}
     <section class="border-b border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">

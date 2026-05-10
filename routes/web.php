@@ -17,8 +17,7 @@ Route::view('about', 'pages.about')->name('about');
 Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('terms', 'pages.terms')->name('terms');
-// Pricing page hidden until pricing is finalized — see pages/pricing.blade.php (@if(false))
-// Route::view('pricing', 'pages.pricing')->name('pricing');
+Route::view('pricing', 'pages.pricing')->name('pricing');
 Route::view('features', 'pages.features')->name('features');
 
 // Platform landing pages
@@ -45,13 +44,19 @@ Route::view('industries/agencies', 'pages.industries.agencies')->name('industry.
 Route::view('industries/restaurants', 'pages.industries.restaurants')->name('industry.restaurants');
 Route::view('industries/education', 'pages.industries.education')->name('industry.education');
 
+// Public status page for Meta data deletion requests (referenced from the
+// callback's JSON response so end-users can check status).
+Route::get('data-deletion/status/{code}', [\App\Http\Controllers\Webhooks\MetaDataDeletionController::class, 'status'])
+    ->name('data-deletion.status')
+    ->where('code', '[A-Za-z0-9]{40}');
+
 // Sitemap
 Route::get('sitemap.xml', function () {
     $today = now()->toDateString();
     $urls = [
         ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly', 'lastmod' => $today],
         ['loc' => url('/features'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
-        // pricing page disabled — see route comment
+        ['loc' => url('/pricing'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/about'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/contact'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
@@ -96,7 +101,10 @@ Route::get('sitemap.xml', function () {
     }
     $xml .= '</urlset>';
 
-    return response($xml, 200, ['Content-Type' => 'application/xml']);
+    return response($xml, 200, [
+        'Content-Type'  => 'application/xml',
+        'Cache-Control' => 'public, max-age=3600, s-maxage=21600',
+    ]);
 })->name('sitemap');
 
 Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function () {

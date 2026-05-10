@@ -1,7 +1,85 @@
-@if(false) {{-- PRICING PAGE HIDDEN --}}
 <x-layouts.marketing
-    :title="__('One Inbox Pricing — Free Social Media CRM, Plans from \$0/mo')"
-    :description="__('Start free with One Inbox. Affordable social CRM pricing for businesses of all sizes — Free, Starter \$29/mo, Pro \$79/mo, and Enterprise custom plans.')">
+    :title="__('One Inbox Pricing — Free Social Media CRM, Plans from $0/mo')"
+    :description="__('Start free with One Inbox. Affordable social CRM pricing for businesses of all sizes — Free, Starter $29/mo, Pro $79/mo, and Enterprise custom plans.')">
+
+@push('schema')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "Product",
+    "name": "One Inbox",
+    "description": "Unified social inbox with AI sales responder. Manage WhatsApp, Instagram, Facebook, and Telegram from one place.",
+    "brand": {"@@type": "Brand", "name": "One Inbox"},
+    "offers": [
+        {
+            "@@type": "Offer",
+            "name": "Free",
+            "price": "0",
+            "priceCurrency": "USD",
+            "url": "{{ route('register') }}",
+            "availability": "https://schema.org/InStock"
+        },
+        {
+            "@@type": "Offer",
+            "name": "Starter",
+            "price": "29",
+            "priceCurrency": "USD",
+            "url": "{{ route('register') }}",
+            "availability": "https://schema.org/InStock"
+        },
+        {
+            "@@type": "Offer",
+            "name": "Pro",
+            "price": "79",
+            "priceCurrency": "USD",
+            "url": "{{ route('register') }}",
+            "availability": "https://schema.org/InStock"
+        },
+        {
+            "@@type": "Offer",
+            "name": "Enterprise",
+            "priceCurrency": "USD",
+            "url": "https://wa.me/201026361218",
+            "availability": "https://schema.org/InStock",
+            "priceSpecification": {
+                "@@type": "PriceSpecification",
+                "priceCurrency": "USD",
+                "description": "Custom pricing"
+            }
+        }
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@@type": "Question",
+            "name": "Is there really a free plan?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The Free plan includes 1 connected page and 50 AI responses per month with no credit card required."}
+        },
+        {
+            "@@type": "Question",
+            "name": "Can I connect Facebook, Instagram, WhatsApp and Telegram at the same time?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Each connected page or account counts toward your page limit, regardless of platform."}
+        },
+        {
+            "@@type": "Question",
+            "name": "Can I upgrade or downgrade anytime?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Contact us on WhatsApp and we will switch your plan immediately with prorated billing."}
+        },
+        {
+            "@@type": "Question",
+            "name": "What platforms are coming next?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "TikTok DMs and LinkedIn Messages are in active development. Enterprise customers get early access."}
+        }
+    ]
+}
+</script>
+@endpush
+
 
     {{-- Hero --}}
     <section class="py-20 lg:py-28">
@@ -270,4 +348,4 @@
     </section>
 
 </x-layouts.marketing>
-@endif {{-- END PRICING PAGE HIDDEN --}}
+

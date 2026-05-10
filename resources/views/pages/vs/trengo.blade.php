@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('One Inbox vs Trengo — Better Alternative with AI Sales Automation | One Inbox')"
+    :title="__('One Inbox vs Trengo — Better Alternative for Sales Teams')"
     :description="__('Comparing One Inbox vs Trengo? See why growing businesses choose One Inbox — AI sales responder, unified social inbox, and lead scoring at a fraction of the price.')"
 >
 
