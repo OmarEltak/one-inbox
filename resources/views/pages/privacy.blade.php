@@ -100,7 +100,17 @@
                         <li><strong>{{ __('Objection:') }}</strong> {{ __('Object to processing of your data for certain purposes.') }}</li>
                         <li><strong>{{ __('Withdrawal of Consent:') }}</strong> {{ __('Disconnect any social platform at any time via your Connections settings.') }}</li>
                     </ul>
-                    <p class="mt-3">{{ __('To exercise any of these rights, email us at privacy@oneinbox.app. We will respond within 30 days.') }}</p>
+                    <p class="mt-3">{{ __('To exercise any of these rights, email us at privacy@ot1-pro.com. We will respond within 30 days.') }}</p>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7a. Data Deletion (Meta Apps)') }}</h2>
+                    <p class="mt-3">{{ __('If you connected One Inbox via Facebook or Instagram and want all data we hold about you removed, you have two options:') }}</p>
+                    <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
+                        <li>{{ __('Visit') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-purple-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook → Settings → Apps & Websites') }}</a> {{ __('and remove One Inbox Business — Meta will then automatically notify our system to delete your data.') }}</li>
+                        <li>{{ __('Or email us directly at') }} <a href="mailto:privacy@ot1-pro.com" class="text-purple-600 hover:underline">privacy@ot1-pro.com</a> {{ __('with the subject "Data Deletion Request".') }}</li>
+                    </ul>
+                    <p class="mt-3 text-sm">{{ __('Either method removes the connected account, contact profile, conversations, messages, and lead score events linked to your Facebook or Instagram identifier within 30 days. We send a confirmation page where you can verify the deletion completed.') }}</p>
                 </div>
 
                 <div>

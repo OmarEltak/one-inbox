@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('Facebook Messenger Management for Business — Unified Page Inbox | One Inbox')"
+    :title="__('Facebook Messenger Management for Business | One Inbox')"
     :description="__('Manage all your Facebook Page messages from one shared inbox. AI auto-replies, qualifies leads, and escalates hot prospects to your team. Works across multiple Pages. Try free.')"
 >
 
@@ -121,8 +121,33 @@
         </div>
     </section>
 
+    {{-- Related Reading --}}
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div class="mx-auto max-w-6xl px-6">
+            <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related Facebook & social CX guides') }}</h2>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('How to run Messenger and unified social inbox at scale.') }}</p>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @php
+                $related = [
+                    ['facebook-messenger-business-guide', 'Facebook Messenger for Business: Complete Guide', '5 min read'],
+                    ['connect-facebook-page-crm', 'How to Connect a Facebook Page to a CRM', '5 min read'],
+                    ['instagram-vs-facebook-customer-service', 'Instagram vs Facebook for Customer Service', '5 min read'],
+                    ['unified-inbox-vs-separate-apps', 'Unified Inbox vs Separate Apps: Cost Analysis', '5 min read'],
+                ];
+                @endphp
+                @foreach($related as $r)
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-blue-700">
+                    <div class="mb-2 text-xs font-medium uppercase tracking-wider text-blue-600">{{ $r[2] }}</div>
+                    <h3 class="text-base font-semibold text-zinc-900 group-hover:text-blue-700 dark:text-zinc-100 dark:group-hover:text-blue-300">{{ $r[1] }}</h3>
+                    <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600">{{ __('Read more') }} →</span>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     {{-- CTA --}}
-    <section class="pb-20 lg:pb-28">
+    <section class="pb-20 lg:pb-28 pt-16">
         <div class="mx-auto max-w-4xl px-6">
             <div class="rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 p-10 text-center text-white sm:p-16">
                 <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Take control of your Facebook Messenger inbox') }}</h2>

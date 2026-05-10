@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('Telegram Business Inbox — Manage Telegram Messages at Scale | One Inbox')"
+    :title="__('Telegram Business Inbox — Manage Messages at Scale | One Inbox')"
     :description="__('Manage all your Telegram business messages from a shared team inbox. AI auto-replies, scores leads, and routes hot prospects to your team automatically. Try free.')"
 >
 
@@ -122,8 +122,33 @@
         </div>
     </section>
 
+    {{-- Related Reading --}}
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div class="mx-auto max-w-6xl px-6">
+            <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related Telegram & messaging guides') }}</h2>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('How to scale messaging operations across channels.') }}</p>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @php
+                $related = [
+                    ['manage-telegram-business-scale', 'How to Manage Telegram Business at Scale', '5 min read'],
+                    ['unified-inbox-vs-separate-apps', 'Unified Inbox vs Separate Apps: Cost Analysis', '5 min read'],
+                    ['social-inbox-setup-1-hour', 'Social Inbox Setup: Zero to Automated in 1 Hour', '6 min read'],
+                    ['social-response-time-benchmarks', 'Response Time Benchmarks by Industry', '5 min read'],
+                ];
+                @endphp
+                @foreach($related as $r)
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-cyan-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-cyan-700">
+                    <div class="mb-2 text-xs font-medium uppercase tracking-wider text-cyan-600">{{ $r[2] }}</div>
+                    <h3 class="text-base font-semibold text-zinc-900 group-hover:text-cyan-700 dark:text-zinc-100 dark:group-hover:text-cyan-300">{{ $r[1] }}</h3>
+                    <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan-600">{{ __('Read more') }} →</span>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     {{-- CTA --}}
-    <section class="pb-20 lg:pb-28">
+    <section class="pb-20 lg:pb-28 pt-16">
         <div class="mx-auto max-w-4xl px-6">
             <div class="rounded-3xl bg-gradient-to-br from-cyan-600 to-sky-500 p-10 text-center text-white sm:p-16">
                 <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Start managing Telegram like a business pro') }}</h2>

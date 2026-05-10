@@ -39,6 +39,12 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
     // Discord Interactions — set as Interactions Endpoint URL in the Discord Application config.
     Route::post('/discord', [\App\Http\Controllers\Webhooks\DiscordInteractionController::class, 'handle'])
         ->name('webhooks.discord');
+
+    // Meta User Data Deletion Callback. Configure URL in Facebook App Dashboard →
+    // Settings → Advanced → Data Deletion Request URL.
+    // Spec: https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback
+    Route::post('/meta/data-deletion', [\App\Http\Controllers\Webhooks\MetaDataDeletionController::class, 'callback'])
+        ->name('webhooks.meta.data-deletion');
 });
 
 // WebChat widget — public endpoints called by widget.js on customers' sites.

@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('WhatsApp Business Inbox — Manage All WhatsApp Messages in One Place | One Inbox')"
+    :title="__('WhatsApp Business Inbox — Manage Every Message | One Inbox')"
     :description="__('Manage every WhatsApp Business conversation from one unified inbox. AI auto-replies 24/7, scores leads, and hands off hot prospects to your team instantly. Try free.')"
 >
 
@@ -174,8 +174,33 @@
         </div>
     </section>
 
+    {{-- Related Reading --}}
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div class="mx-auto max-w-6xl px-6">
+            <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related WhatsApp guides') }}</h2>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('Deep dives on running WhatsApp Business at scale.') }}</p>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @php
+                $related = [
+                    ['whatsapp-crm-complete-guide', 'WhatsApp CRM: The Complete Guide for 2026', '8 min read'],
+                    ['whatsapp-business-api-setup', 'WhatsApp Business API: How to Get Access', '7 min read'],
+                    ['whatsapp-lead-generation-strategies', 'WhatsApp Lead Generation: 7 Proven Strategies', '7 min read'],
+                    ['whatsapp-ecommerce-cart-recovery', 'WhatsApp Cart Recovery for E-commerce', '6 min read'],
+                ];
+                @endphp
+                @foreach($related as $r)
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-green-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-green-700">
+                    <div class="mb-2 text-xs font-medium uppercase tracking-wider text-green-600">{{ $r[2] }}</div>
+                    <h3 class="text-base font-semibold text-zinc-900 group-hover:text-green-700 dark:text-zinc-100 dark:group-hover:text-green-300">{{ $r[1] }}</h3>
+                    <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-green-600">{{ __('Read more') }} →</span>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     {{-- CTA --}}
-    <section class="pb-20 lg:pb-28">
+    <section class="pb-20 lg:pb-28 pt-16">
         <div class="mx-auto max-w-4xl px-6">
             <div class="rounded-3xl bg-gradient-to-br from-green-600 to-emerald-500 p-10 text-center text-white sm:p-16">
                 <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Start managing WhatsApp like a pro') }}</h2>

@@ -169,11 +169,43 @@
 | 2026-04-19 | robots.txt domain fix | done |
 | 2026-04-19 | Title tags (4 pages) | done |
 | 2026-04-19 | FAQ schema on homepage | done |
-| | FAQ schema on pricing | pending |
-| | og:image default | pending |
-| | Remove hreflang | pending |
-| | Delete adminer.php | MANUAL — do on server |
-| | GSC submission | MANUAL |
+| 2026-05-06 | og:image default (logo.png fallback + width/height) | done |
+| 2026-05-06 | twitter:image added | done |
+| 2026-05-06 | Sitemap `<lastmod>` dates | done |
+| 2026-05-06 | GOOGLE_SITE_VERIFICATION env slot in marketing layout | done |
+| 2026-05-06 | GSC verified (HTML file method) | done |
+| 2026-05-06 | Sitemap submitted (28 pages discovered, status Success) | done |
+| 2026-05-06 | Indexing requested for 5 priority pages | done |
+| 2026-05-06 | /vs/tidio comparison page | done |
+| 2026-05-06 | adminer.php / db.php in prod public/ | already removed |
+| 2026-05-06 | Removed invalid hreflang tags from layout | done |
+| 2026-05-06 | Created 1200×630 og-image.svg, layout updated | done (SVG) |
+| 2026-05-06 | 40 blog posts seeded (was 7) | done |
+| 2026-05-09 | Full SEO audit run on production (`tasks/seo-audit-2026-05-09.md`) | done |
+| 2026-05-09 | `CachePublicMarketing` middleware: strips session cookie + sets `public, max-age=300, s-maxage=3600` for unauthed GETs (CDN can finally cache marketing pages — TTFB was 2–6s on every request) | done |
+| 2026-05-09 | Generated 1200×630 `og-image.png` via GD (`scripts/generate-og-image.php`); FB & LinkedIn previews now work | done |
+| 2026-05-09 | Marketing layout default `og:image` switched from .svg to .png | done |
+| 2026-05-09 | Added `Organization` schema (logo, sameAs, contactPoint with WhatsApp number) site-wide | done |
+| 2026-05-09 | Site-wide `SoftwareApplication` schema upgraded to `AggregateOffer` ($0–$79) | done |
+| 2026-05-09 | Article schema fixed: added required `image`, added `publisher.logo`; breadcrumb position 3 (duplicate URL) dropped | done |
+| 2026-05-09 | `/blog` index: added `Blog` + `BreadcrumbList` schema with most-recent 10 posts | done |
+| 2026-05-09 | **`/pricing` page shipped** — `@if(false)` removed, route enabled, nav links uncommented, `Product`/`Offer` schema for all 4 tiers + FAQ schema added; URL added to sitemap | done |
+| 2026-05-09 | `/features` expanded 235 → ~900 words with 3 new sections (Why teams choose, Team Collaboration, Multi-Platform Coverage) and FAQ schema | done |
+| 2026-05-09 | `SecurityHeaders`: added HSTS (`max-age=31536000; includeSubDomains; preload`) on HTTPS, removed `X-Powered-By` | done |
+| 2026-05-09 | `/sitemap.xml` response now sends `Cache-Control: public, max-age=3600, s-maxage=21600` so Google's crawler doesn't waste budget re-fetching it | done |
+| 2026-05-09 | Footer adds Pricing + Blog links | done |
+| | After deploy: `php artisan config:cache route:cache view:cache event:cache` on prod | TODO |
+| | After deploy: Cloudflare Page Rule for `/blog/*` → Cache Everything, Edge TTL 1d | TODO |
+| | After deploy: re-run audit with WebFetch / GSC URL inspection to confirm TTFB drop | TODO |
+
+## Live URLs Already Shipped (Out of Phase Order — sync with sitemap)
+The original Phase 2/3 plan listed only 4 platform pages and 5 vs/* pages. As of 2026-05-09 the live sitemap has **60 URLs** including:
+- All 4 platform pages: whatsapp-inbox, instagram-dm, facebook-messenger, telegram-inbox ✅
+- All 5 comparison pages: trengo, manychat, freshchat, respond-io, tidio ✅
+- All 5 industry pages: real-estate, ecommerce, agencies, restaurants, education ✅ (Phase 5 — already done)
+- /pricing ✅ (just shipped 2026-05-09)
+- 40 blog posts ✅
+- Mark Phase 2 + Phase 3 + Phase 5 as **complete**.
 
 ---
 

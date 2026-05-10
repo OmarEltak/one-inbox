@@ -29,6 +29,14 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\SetCurrentTeam::class,
         ]);
+
+        // Prepend so this runs LAST on the outbound response — after EncryptCookies
+        // and AddQueuedCookiesToResponse have already attached session/XSRF cookies.
+        // Otherwise stripped cookies get re-added downstream and the CDN still
+        // can't cache the response.
+        $middleware->prependToGroup('web', [
+            \App\Http\Middleware\CachePublicMarketing::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

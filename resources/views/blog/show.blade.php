@@ -9,16 +9,24 @@
 {
     "@@context": "https://schema.org",
     "@@type": "Article",
-    "headline": "{{ addslashes($post->title) }}",
-    "description": "{{ addslashes($post->meta_description) }}",
+    "headline": {!! json_encode($post->title) !!},
+    "description": {!! json_encode($post->meta_description) !!},
+    "image": [
+        {!! json_encode(config('app.url') . '/og-image.png') !!}
+    ],
     "author": {
         "@@type": "Organization",
-        "name": "{{ addslashes($post->author) }}"
+        "name": {!! json_encode($post->author) !!},
+        "url": "https://ot1-pro.com/about"
     },
     "publisher": {
         "@@type": "Organization",
         "name": "One Inbox",
-        "url": "https://ot1-pro.com"
+        "url": "https://ot1-pro.com",
+        "logo": {
+            "@@type": "ImageObject",
+            "url": "https://ot1-pro.com/logo.png"
+        }
     },
     "datePublished": "{{ $post->published_at->toIso8601String() }}",
     "dateModified": "{{ $post->updated_at->toIso8601String() }}",
@@ -26,6 +34,32 @@
         "@@type": "WebPage",
         "@@id": "{{ route('blog.show', $post->slug) }}"
     }
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ route('home') }}"
+        },
+        {
+            "@@type": "ListItem",
+            "position": 2,
+            "name": "Blog",
+            "item": "{{ route('blog.index') }}"
+        },
+        {
+            "@@type": "ListItem",
+            "position": 3,
+            "name": {!! json_encode($post->title) !!},
+            "item": "{{ route('blog.show', $post->slug) }}"
+        }
+    ]
 }
 </script>
 @endpush

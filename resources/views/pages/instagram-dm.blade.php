@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('Instagram DM Management Software — Auto-Reply & Organize DMs | One Inbox')"
+    :title="__('Instagram DM Management Software with AI | One Inbox')"
     :description="__('Manage all your Instagram DMs from one shared inbox. AI auto-replies to messages, qualifies leads, scores prospects, and hands off hot buyers to your team. Try free.')"
 >
 
@@ -144,6 +144,31 @@
                         <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-400">{{ $faq[1] }}</div>
                     </div>
                 </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Related Reading --}}
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div class="mx-auto max-w-6xl px-6">
+            <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related Instagram guides') }}</h2>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('Deep dives on Instagram DM automation and lead generation.') }}</p>
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @php
+                $related = [
+                    ['ai-sales-chatbot-instagram', 'AI Sales Chatbot for Instagram: 2026 Setup Guide', '7 min read'],
+                    ['auto-reply-instagram-comments-ai', 'How to Auto-Reply to Instagram Comments with AI', '6 min read'],
+                    ['instagram-lead-generation-dm-automation', 'Instagram Lead Generation with DM Automation', '6 min read'],
+                    ['instagram-dm-scripts-convert', 'Instagram DM Scripts That Convert Followers', '6 min read'],
+                ];
+                @endphp
+                @foreach($related as $r)
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-pink-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-pink-700">
+                    <div class="mb-2 text-xs font-medium uppercase tracking-wider text-pink-600">{{ $r[2] }}</div>
+                    <h3 class="text-base font-semibold text-zinc-900 group-hover:text-pink-700 dark:text-zinc-100 dark:group-hover:text-pink-300">{{ $r[1] }}</h3>
+                    <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-pink-600">{{ __('Read more') }} →</span>
+                </a>
                 @endforeach
             </div>
         </div>

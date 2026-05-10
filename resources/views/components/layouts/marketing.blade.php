@@ -15,28 +15,31 @@
     <title>{{ $title ?? 'One Inbox — Unified Social Inbox with AI Sales Responder' }}</title>
     <meta name="description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place. AI-powered sales responder closes deals 24/7.' }}">
     <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
+    @if(config('services.google.site_verification'))
+        <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+    @endif
 
-    {{-- Open Graph --}}
+    {{-- Open Graph: 1200×630 branded image. Page can override via $ogImage slot.
+         PNG is the default — Facebook and LinkedIn ignore SVG og:images. --}}
+    @php $ogImageUrl = $ogImage ?? config('app.url') . '/og-image.png'; @endphp
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? 'One Inbox — Unified Social Inbox with AI Sales Responder' }}">
     <meta property="og:description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place.' }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:site_name" content="One Inbox">
-    @if(isset($ogImage))
-        <meta property="og:image" content="{{ $ogImage }}">
-    @endif
+    <meta property="og:image" content="{{ $ogImageUrl }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     {{-- Twitter --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $title ?? 'One Inbox' }}">
     <meta name="twitter:description" content="{{ $description ?? 'Unified Social Inbox with AI Sales Responder' }}">
+    <meta name="twitter:image" content="{{ $ogImageUrl }}">
 
-    {{-- Hreflang --}}
-    <link rel="alternate" hreflang="en" href="{{ url()->current() }}">
-    <link rel="alternate" hreflang="ar" href="{{ url()->current() }}?lang=ar">
-    <link rel="alternate" hreflang="de" href="{{ url()->current() }}?lang=de">
-    <link rel="alternate" hreflang="es" href="{{ url()->current() }}?lang=es">
-    <link rel="alternate" hreflang="x-default" href="{{ url()->current() }}">
+    {{-- hreflang intentionally omitted: Google requires distinct URLs per language;
+         the ?lang=X query string approach used by SetLocale middleware does not produce
+         separately-indexable URLs, so listing them confuses Google rather than helping. --}}
 
     <link rel="icon" href="/logo.png" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -47,7 +50,31 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
     <style>[x-cloak] { display: none !important; }</style>
 
-    {{-- JSON-LD Structured Data --}}
+    {{-- JSON-LD Structured Data (site-wide) --}}
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "One Inbox",
+        "alternateName": "OT1 Pro",
+        "url": "https://ot1-pro.com",
+        "logo": "https://ot1-pro.com/logo.png",
+        "description": "Unified social inbox with AI-powered sales responder for Facebook, Instagram, WhatsApp, and Telegram.",
+        "sameAs": [
+            "https://www.facebook.com/oneinbox",
+            "https://www.instagram.com/oneinbox",
+            "https://twitter.com/oneinbox",
+            "https://www.linkedin.com/company/oneinbox"
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+20-102-636-1218",
+            "contactType": "sales",
+            "availableLanguage": ["English", "Arabic"],
+            "url": "https://wa.me/201026361218"
+        }
+    }
+    </script>
     <script type="application/ld+json">
     {
         "@@context": "https://schema.org",
@@ -57,16 +84,22 @@
         "operatingSystem": "Web",
         "description": "{{ $description ?? 'Unified social inbox with AI-powered sales responder for Facebook, Instagram, WhatsApp, and Telegram.' }}",
         "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+            "@type": "AggregateOffer",
+            "priceCurrency": "USD",
+            "lowPrice": "0",
+            "highPrice": "79",
+            "offerCount": "4"
         },
         "creator": {
             "@type": "Organization",
-            "name": "One Inbox"
+            "name": "One Inbox",
+            "url": "https://ot1-pro.com"
         }
     }
     </script>
+
+    {{-- Page-specific JSON-LD (FAQPage, Article, BreadcrumbList, etc.) --}}
+    @stack('schema')
 </head>
 <body class="min-h-screen bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
 
@@ -81,7 +114,7 @@
             {{-- Desktop Nav Links --}}
             <div class="hidden items-center gap-6 md:flex">
                 <a href="{{ route('features') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Features') }}</a>
-                {{-- <a href="{{ route('pricing') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Pricing') }}</a> --}}
+                <a href="{{ route('pricing') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Pricing') }}</a>
                 <a href="{{ route('about') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('About') }}</a>
                 <a href="{{ route('contact') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Contact') }}</a>
             </div>
@@ -156,7 +189,7 @@
             {{-- Nav Links --}}
             <div class="space-y-1">
                 <a href="{{ route('features') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Features') }}</a>
-                {{-- <a href="{{ route('pricing') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Pricing') }}</a> --}}
+                <a href="{{ route('pricing') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Pricing') }}</a>
                 <a href="{{ route('about') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('About') }}</a>
                 <a href="{{ route('contact') }}" @click="mobileOpen = false" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Contact') }}</a>
             </div>
@@ -226,7 +259,8 @@
                     <h4 class="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Product') }}</h4>
                     <ul class="space-y-2 text-sm text-zinc-500">
                         <li><a href="{{ route('features') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Features') }}</a></li>
-                        {{-- <li><a href="{{ route('pricing') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Pricing') }}</a></li> --}}
+                        <li><a href="{{ route('pricing') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Pricing') }}</a></li>
+                        <li><a href="{{ route('blog.index') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Blog') }}</a></li>
                     </ul>
                 </div>
 
