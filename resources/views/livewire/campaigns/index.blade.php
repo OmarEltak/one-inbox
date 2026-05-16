@@ -4,13 +4,22 @@
             <h1 class="text-2xl font-bold text-white">{{ __('Campaigns') }}</h1>
             <p class="mt-1 text-sm text-white/40">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
         </div>
-        <button wire:click="openCreateModal"
-                class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary">
-            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            {{ __('New Campaign') }}
-        </button>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('campaigns.email.new') }}" wire:navigate
+               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all bg-white/[0.06] hover:bg-white/[0.10]">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {{ __('Email Campaign') }}
+            </a>
+            <button wire:click="openCreateModal"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                {{ __('New Campaign') }}
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -144,6 +153,10 @@
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0">
+                        @if($campaignPlatform === 'email')
+                            <a href="{{ route('campaigns.show', $campaign->id) }}" wire:navigate
+                               class="px-3 py-1.5 rounded-lg text-xs text-white/70 bg-white/[0.06] hover:bg-white/[0.10]">View</a>
+                        @endif
                         @if($campaign->status === 'active')
                             <flux:button
                                 size="sm"

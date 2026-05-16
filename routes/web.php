@@ -50,6 +50,16 @@ Route::get('data-deletion/status/{code}', [\App\Http\Controllers\Webhooks\MetaDa
     ->name('data-deletion.status')
     ->where('code', '[A-Za-z0-9]{40}');
 
+// Public email tracking + unsubscribe (signed URLs).
+Route::middleware('signed')->group(function () {
+    Route::get('e/o/{recipient}', [\App\Http\Controllers\EmailTrackingController::class, 'open'])
+        ->name('email.track.open');
+    Route::get('e/u/{recipient}', [\App\Http\Controllers\EmailTrackingController::class, 'unsubscribeShow'])
+        ->name('email.unsubscribe.show');
+    Route::post('e/u/{recipient}', [\App\Http\Controllers\EmailTrackingController::class, 'unsubscribeConfirm'])
+        ->name('email.unsubscribe.confirm');
+});
+
 // Sitemap
 Route::get('sitemap.xml', function () {
     $today = now()->toDateString();
@@ -138,6 +148,8 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
 
     // Campaigns
     Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware('permission:connections')->name('campaigns.index');
+    Route::get('campaigns/email/new', \App\Livewire\Campaigns\EmailWizard::class)->middleware('permission:connections')->name('campaigns.email.new');
+    Route::get('campaigns/{campaign}', \App\Livewire\Campaigns\Show::class)->middleware('permission:connections')->name('campaigns.show');
 
     // Content
     Route::get('content', \App\Livewire\Content\Index::class)->middleware('permission:connections')->name('content.index');
@@ -162,6 +174,12 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
 
     // Webhook Logs (head admin only via manage-admins permission)
     Route::get('settings/webhook-logs', \App\Livewire\Settings\WebhookLogs::class)->middleware('permission:manage-admins')->name('settings.webhook-logs');
+
+    // Super-admin (OT AI staff) only — manage customer workspaces and page assignments.
+    Route::middleware('super-admin')->prefix('super-admin')->name('super-admin.')->group(function () {
+        Route::get('customers', \App\Livewire\SuperAdmin\Customers::class)->name('customers');
+        Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
+    });
 });
 
 // Team creation (for users without a team)
