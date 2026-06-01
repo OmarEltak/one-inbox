@@ -126,11 +126,6 @@ textarea.\!resize-none {
     50%      { transform: translateY(-8px); }
 }
 
-@keyframes shimmer {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
 @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }
     50%      { background-position: 100% 50%; }
@@ -147,21 +142,6 @@ textarea.\!resize-none {
 .animate-slide-in-left,
 .animate-slide-in-right {
     opacity: 1;
-}
-
-/* Shimmer base structure (no animation): pseudo-element is hidden by default. */
-.btn-shimmer {
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-shimmer::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
-    transform: translateX(-100%);
-    transition: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -188,10 +168,6 @@ textarea.\!resize-none {
     .animate-gradient-shift {
         background-size: 200% 200%;
         animation: gradient-shift 4s ease infinite;
-    }
-
-    .btn-shimmer:hover::after {
-        animation: shimmer 0.75s ease-in-out;
     }
 }
 
@@ -268,12 +244,15 @@ textarea.\!resize-none {
 }
 
 /* Stat cards — gradient top border accent */
-.aio-stat-blue   { border-top: 2px solid #3b82f6 !important; }
-.aio-stat-green  { border-top: 2px solid #00D492 !important; }
-.aio-stat-purple { border-top: 2px solid #7C3AED !important; }
-.aio-stat-orange { border-top: 2px solid #F59E0B !important; }
-.aio-stat-cyan   { border-top: 2px solid #06B6D4 !important; }
-.aio-stat-red    { border-top: 2px solid #F43F5E !important; }
+/* Stat card category accents intentionally carried only by the leading
+   icon-tile (aio-icon-X). Earlier border-top stripes were dropped to
+   avoid the side-stripe pattern call-out in DESIGN.md. */
+.aio-stat-blue,
+.aio-stat-green,
+.aio-stat-purple,
+.aio-stat-orange,
+.aio-stat-cyan,
+.aio-stat-red { /* no-op kept for backwards-compatible blade classnames */ }
 
 /* Icon glow pills */
 .aio-icon-blue   { background: rgba(59,130,246,0.12) !important;  box-shadow: 0 0 16px rgba(59,130,246,0.18); }

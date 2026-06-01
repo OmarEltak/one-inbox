@@ -134,7 +134,9 @@
                 ];
                 @endphp
                 @foreach($features as [$icon, $title, $desc])
-                <div class="rounded-xl bg-white p-6 shadow-sm dark:bg-zinc-900">
+                <div class="rounded-xl p-6 shadow-sm transition-colors {{ $loop->first
+                    ? 'lg:col-span-2 lg:p-8 border border-purple-200 bg-purple-50/60 dark:border-purple-800/60 dark:bg-purple-950/30'
+                    : 'bg-white dark:bg-zinc-900' }}">
                     <div class="text-2xl">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold">{{ $title }}</h3>
                     <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $desc }}</p>

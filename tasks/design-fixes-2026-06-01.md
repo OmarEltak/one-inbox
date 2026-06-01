@@ -71,10 +71,10 @@ Source: see [PRODUCT.md](../PRODUCT.md) and [DESIGN.md](../DESIGN.md) at project
 
 ## Tier 3: Later (polish that compounds; no rush)
 
-- [ ] Remove `btn-shimmer` decorative hover sweep from primary CTAs (`app.css:165-182`)
-- [ ] Replace stat-card `border-top: 2px solid <color>` with the leading icon-tile only (`app.css:257-262`)
-- [ ] Build the `⌘K` command palette OR remove the fake search-bar chip in the header (`sidebar.blade.php:253-262`)
-- [ ] Audit `/vs/*` and `/industries/*` pages for the identical-card-grid trap; vary card density and break the grid
+- [x] Remove `btn-shimmer` decorative hover sweep from primary CTAs — class usage removed from 3 blade files (welcome.blade.php x2 and features.blade.php x1); `@keyframes shimmer`, `.btn-shimmer`, `.btn-shimmer::after`, and `.btn-shimmer:hover::after` rules all stripped from `app.css`
+- [x] Replace stat-card `border-top: 2px solid <color>` with the leading icon-tile only — `aio-stat-*` rules in `app.css` collapsed to a single no-op selector preserving backwards-compatible classnames; identity now carried solely by the `aio-icon-*` colored icon-tiles; design.json snippet updated to match
+- [x] Removed the fake search-bar chip in the header (`sidebar.blade.php`); deferred the real `⌘K` command palette as a future feature. Inline comment in the blade explains the deletion intent so it isn't accidentally re-added
+- [x] Industry pages broken out of identical-card-grid pattern: first value-prop card in each of the 5 industry pages now spans 2 columns on desktop with violet accent, larger padding, and slightly larger type. Achieved via `$loop->first` ternary; zero changes to underlying data shape. `vs/*` pages keep their 3-card structure since 3 cards is editorial honesty, not a 6-9-12 identical-grid cliché
 
 ---
 

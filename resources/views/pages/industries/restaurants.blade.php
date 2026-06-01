@@ -82,7 +82,9 @@
                 ];
                 @endphp
                 @foreach($features as [$icon, $title, $desc])
-                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="rounded-xl border p-5 transition-colors {{ $loop->first
+                    ? 'lg:col-span-2 lg:p-7 border-purple-200 bg-purple-50/60 dark:border-purple-800/60 dark:bg-purple-950/30'
+                    : 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900' }}">
                     <div class="text-2xl">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold">{{ $title }}</h3>
                     <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $desc }}</p>

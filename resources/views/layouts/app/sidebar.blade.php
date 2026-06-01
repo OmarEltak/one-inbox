@@ -327,19 +327,9 @@
                 <span class="text-white/60 font-medium truncate">{{ $title ?? __('Dashboard') }}</span>
             </div>
 
-            {{-- Search bar --}}
-            <div class="hidden lg:flex flex-1 max-w-sm mx-6">
-                <div class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-[#7C3AED]/50"
-                     style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
-                    <svg class="size-4 text-white/25 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <span class="text-white/25 flex-1">Search...</span>
-                    <kbd class="text-[10px] text-white/20 px-1.5 py-0.5 rounded-md font-mono"
-                         style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);">⌘K</kbd>
-                </div>
-            </div>
-
+            {{-- ⌘K command palette intentionally deferred. Removed the
+                 fake search-bar chip; ship a real palette later as its
+                 own feature instead of placeholder UI. --}}
             <flux:spacer />
 
             {{-- Notification bell --}}

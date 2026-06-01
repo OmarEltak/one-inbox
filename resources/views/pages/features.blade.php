@@ -396,7 +396,7 @@
                     <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Ready to get started?') }}</h2>
                     <p class="mx-auto mt-4 max-w-xl text-lg text-purple-100">{{ __('Start your free trial today. No credit card required.') }}</p>
                     @if(Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn-shimmer arrow-slide group mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-purple-700 shadow-lg transition-all hover:bg-purple-50 hover:shadow-xl">
+                        <a href="{{ route('register') }}" class="arrow-slide group mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-purple-700 shadow-lg transition-all hover:bg-purple-50 hover:shadow-xl">
                             {{ __('Get Started Free') }}
                             <svg class="arrow-icon size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                         </a>
