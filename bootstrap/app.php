@@ -18,10 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->alias([
-            'team'       => \App\Http\Middleware\EnsureHasTeam::class,
-            'team.set'   => \App\Http\Middleware\SetCurrentTeam::class,
+            'team'        => \App\Http\Middleware\EnsureHasTeam::class,
+            'team.set'    => \App\Http\Middleware\SetCurrentTeam::class,
             'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
-            'permission' => \App\Http\Middleware\RequirePermission::class,
+            'permission'  => \App\Http\Middleware\RequirePermission::class,
+            'super-admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
         ]);
 
         $middleware->appendToGroup('web', [

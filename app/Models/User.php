@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'google_id',
         'current_team_id',
+        'is_super_admin',
     ];
 
     /**
@@ -52,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 
@@ -133,5 +135,10 @@ class User extends Authenticatable
     public function canManageAdmins(): bool
     {
         return $this->isHeadAdmin() || $this->hasPermission('manage-admins');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
     }
 }
