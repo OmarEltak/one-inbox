@@ -200,12 +200,12 @@
         <div class="mx-auto max-w-4xl px-6">
             <div class="rounded-3xl bg-gradient-to-br from-green-600 to-emerald-500 p-10 text-center text-white sm:p-16">
                 <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Start managing WhatsApp like a pro') }}</h2>
-                <p class="mx-auto mt-4 max-w-xl text-lg text-green-100">{{ __('Connect your WhatsApp Business number in minutes. AI starts handling conversations immediately.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-green-700 shadow-lg transition-all hover:bg-green-50">
+                <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Connect your WhatsApp Business number in minutes. AI starts handling conversations immediately.') }}</p>
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
                     {{ __('Connect WhatsApp Free') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
-                <p class="mt-3 text-sm text-green-200">{{ __('No credit card required') }}</p>
+                <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required') }}</p>
             </div>
         </div>
     </section>
