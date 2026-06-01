@@ -14,7 +14,7 @@
                     <h1 class="text-2xl font-bold text-white">{{ __('Analytics') }}</h1>
                     <p class="mt-1 text-sm text-white/40">{{ __('AI performance and sales insights') }}</p>
                 </div>
-                <div class="flex gap-0.5 rounded-xl p-1" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);">
+                <div class="flex gap-0.5 rounded-xl p-1" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
                     @foreach(['7' => '7d', '14' => '14d', '30' => '30d', '90' => '90d'] as $value => $label)
                         <button
                             wire:click="$set('period', '{{ $value }}')"
@@ -248,7 +248,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-white/[0.07]">
+                                <tr class="border-b border-white/15">
                                     <th class="pb-3 text-left font-medium text-white/40">{{ __('Platform') }}</th>
                                     <th class="pb-3 text-right font-medium text-white/40">{{ __('Conversations') }}</th>
                                     <th class="pb-3 text-right font-medium text-white/40">{{ __('Messages') }}</th>
@@ -374,7 +374,7 @@
                             ];
                         @endphp
                         @foreach($data['leadDistribution'] as $status => $info)
-                            <div class="rounded-xl border-2 p-3 text-center {{ $statusColors[$status] ?? 'border-white/[0.07]' }} bg-transparent">
+                            <div class="rounded-xl border-2 p-3 text-center {{ $statusColors[$status] ?? 'border-white/15' }} bg-transparent">
                                 <p class="text-2xl font-bold text-white/80">{{ $info['count'] }}</p>
                                 <p class="mt-0.5 text-sm font-medium text-white/40">{{ ucfirst($status) }}</p>
                                 <p class="text-xs text-white/40">avg {{ $info['avg_score'] }}</p>

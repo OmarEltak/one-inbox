@@ -190,7 +190,7 @@
                                class="text-xs font-medium text-[#C27AFF] hover:text-purple-300">{{ __('Connect a channel →') }}</a>
                         </div>
                     @endif
-                    <div class="mt-4 rounded-xl p-3 text-center" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+                    <div class="mt-4 rounded-xl p-3 text-center" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15);">
                         <span class="text-sm font-bold text-white">{{ $stats['connectedPages'] }}</span>
                         <span class="text-xs text-white/35 ml-1">{{ __('connected pages') }}</span>
                     </div>

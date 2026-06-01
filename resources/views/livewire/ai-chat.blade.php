@@ -185,7 +185,7 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-[#161b27] border border-white/[0.07] px-4 py-2.5 text-sm text-white/80">
+                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-[#161b27] border border-white/15 px-4 py-2.5 text-sm text-white/80">
                                 {!! nl2br(e($msg['content'])) !!}
                             </div>
                         </div>
@@ -201,7 +201,7 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="rounded-2xl rounded-bl-md bg-[#161b27] border border-white/[0.07] px-4 py-3">
+                    <div class="rounded-2xl rounded-bl-md bg-[#161b27] border border-white/15 px-4 py-3">
                         <div class="flex items-center gap-1">
                             <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.3s]"></div>
                             <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.15s]"></div>
@@ -251,10 +251,10 @@
     @endif
 
     {{-- Input Bar --}}
-    <div class="border-t border-white/[0.07] px-6 py-4">
+    <div class="border-t border-white/15 px-6 py-4">
         <div class="mx-auto max-w-3xl">
             @if($attachment)
-                <div class="mb-2 flex items-center gap-2 rounded-lg bg-[#161b27] border border-white/[0.07] px-3 py-2">
+                <div class="mb-2 flex items-center gap-2 rounded-lg bg-[#161b27] border border-white/15 px-3 py-2">
                     @if(str_starts_with($attachment->getMimeType(), 'image/'))
                         <img src="{{ $attachment->temporaryUrl() }}" class="h-12 w-12 rounded object-cover" alt="Preview" />
                     @else

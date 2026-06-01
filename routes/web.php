@@ -185,6 +185,14 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
 // Team creation (for users without a team)
 Route::middleware(['auth'])->group(function () {
     Route::get('teams/create', \App\Livewire\Teams\Create::class)->name('teams.create');
+
+    Route::post('teams/{team}/switch', function (\App\Models\Team $team, \Illuminate\Http\Request $request) {
+        $user = $request->user();
+        $isMember = $user->teams()->whereKey($team->id)->exists();
+        abort_unless($isMember || $user->isSuperAdmin(), 403);
+        $user->switchTeam($team);
+        return redirect()->back();
+    })->name('teams.switch');
 });
 
 require __DIR__.'/settings.php';

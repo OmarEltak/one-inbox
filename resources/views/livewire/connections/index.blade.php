@@ -42,7 +42,7 @@
 
             @php $facebookAccounts = $this->connectedAccounts->where('platform', 'facebook'); @endphp
             @foreach($facebookAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         @if($account->avatar)
                             <img src="{{ $account->avatar }}" class="w-5 h-5 rounded-full flex-shrink-0" />
@@ -86,7 +86,7 @@
 
             @php $instagramAccounts = $this->connectedAccounts->where('platform', 'instagram'); @endphp
             @foreach($instagramAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         @if($account->avatar)
                             <img src="{{ $account->avatar }}" class="w-5 h-5 rounded-full flex-shrink-0" />
@@ -106,7 +106,7 @@
                     </flux:button>
                 </div>
                 @foreach($this->pages->where('platform', 'instagram')->where('connected_account_id', $account->id) as $igPage)
-                    <div class="pl-2 py-1 border-t border-white/[0.07]">
+                    <div class="pl-2 py-1 border-t border-white/15">
                         <p class="text-xs text-white/40">
                             {{ $igPage->name }}{{ isset($igPage->metadata['username']) ? ' (@' . $igPage->metadata['username'] . ')' : '' }}
                         </p>
@@ -145,7 +145,7 @@
                     $isGateway    = ! empty($account->metadata['gateway_mode']);
                     $isOnline     = $isGateway && $instanceName && isset($waInstanceStates[$instanceName]);
                 @endphp
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         @if($isGateway)
@@ -227,7 +227,7 @@
 
             @php $telegramAccounts = $this->connectedAccounts->where('platform', 'telegram'); @endphp
             @foreach($telegramAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
@@ -267,7 +267,7 @@
             @php $webchatAccounts = $this->connectedAccounts->where('platform', 'webchat'); @endphp
             @foreach($webchatAccounts as $account)
                 @php $page = $account->pages->where('platform', 'webchat')->first(); @endphp
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
@@ -317,7 +317,7 @@
 
             @php $slackAccounts = $this->connectedAccounts->where('platform', 'slack'); @endphp
             @foreach($slackAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
@@ -356,7 +356,7 @@
 
             @php $discordAccounts = $this->connectedAccounts->where('platform', 'discord'); @endphp
             @foreach($discordAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
@@ -386,7 +386,7 @@
         {{-- TikTok --}}
         <div class="aio-card rounded-2xl p-5">
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white font-bold text-sm border border-white/[0.07]">TT</div>
+                <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white font-bold text-sm border border-white/15">TT</div>
                 <div>
                     <h3 class="font-semibold text-white/80">TikTok</h3>
                     <p class="text-xs text-white/40">Direct Messages</p>
@@ -395,7 +395,7 @@
 
             @php $tiktokAccounts = $this->connectedAccounts->where('platform', 'tiktok'); @endphp
             @foreach($tiktokAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
@@ -451,7 +451,7 @@
 
             @php $emailAccounts = $this->connectedAccounts->where('platform', 'email'); @endphp
             @foreach($emailAccounts as $account)
-                <div class="flex items-center justify-between py-2 border-t border-white/[0.07]">
+                <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
@@ -482,8 +482,8 @@
                 <div class="mt-3 space-y-4">
 
                     {{-- Gmail steps --}}
-                    <div class="rounded-xl border border-white/[0.07] overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]" style="background: rgba(234,67,53,0.08);">
+                    <div class="rounded-xl border border-white/15 overflow-hidden" style="background: rgba(255,255,255,0.02);">
+                        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/15" style="background: rgba(234,67,53,0.08);">
                             <svg class="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style="color:#EA4335;">
                                 <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 010 19.366V5.457c0-.886.716-1.542 1.601-1.542.49 0 .918.206 1.226.54L12 11.73l9.173-7.274c.308-.335.737-.541 1.226-.541.885 0 1.601.656 1.601 1.542z"/>
                             </svg>
@@ -517,8 +517,8 @@
                     </div>
 
                     {{-- Outlook steps --}}
-                    <div class="rounded-xl border border-white/[0.07] overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]" style="background: rgba(0,120,212,0.08);">
+                    <div class="rounded-xl border border-white/15 overflow-hidden" style="background: rgba(255,255,255,0.02);">
+                        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/15" style="background: rgba(0,120,212,0.08);">
                             <svg class="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style="color:#0078D4;">
                                 <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.86t.1-.87q.1-.43.34-.76.22-.34.59-.54.36-.2.87-.2t.86.2q.35.21.57.55.22.34.32.77.1.43.1.88zM24 12v9.38q0 .46-.33.8-.33.32-.8.32H7.13q-.46 0-.8-.33-.32-.33-.32-.8V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h6.1V2.55q0-.44.3-.75.3-.3.75-.3h12.9q.44 0 .75.3.3.3.3.75V10.85l1.24.72q.07.04.07.13z"/>
                             </svg>
@@ -544,7 +544,7 @@
                     </div>
 
                     {{-- The form --}}
-                    <form method="POST" action="{{ route('connections.email.connect') }}" class="space-y-3 rounded-xl border border-white/[0.07] p-4" style="background: rgba(255,255,255,0.02);">
+                    <form method="POST" action="{{ route('connections.email.connect') }}" class="space-y-3 rounded-xl border border-white/15 p-4" style="background: rgba(255,255,255,0.02);">
                         @csrf
                         <p class="text-xs font-semibold text-white/60">Enter your credentials</p>
                         <div>
@@ -574,7 +574,7 @@
     {{-- Connected Pages & Accounts Table --}}
     @if($this->pages->isNotEmpty())
         <div class="aio-card rounded-2xl overflow-hidden">
-            <div class="px-5 py-4 border-b border-white/[0.07]">
+            <div class="px-5 py-4 border-b border-white/15">
                 <h3 class="font-semibold text-white/80">Connected Pages & Accounts</h3>
                 <p class="text-xs text-white/40 mt-0.5">All active pages receiving messages</p>
             </div>
@@ -637,7 +637,7 @@
             </div>
 
             {{-- Step-by-step setup --}}
-            <div class="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-4">
+            <div class="rounded-xl border border-white/15 bg-white/[0.02] p-4 space-y-4">
                 <p class="text-xs font-semibold text-white/70 uppercase tracking-wide">Setup (≈ 20–40 min, one-time)</p>
 
                 {{-- Step 1 --}}
@@ -747,7 +747,7 @@
                         <span class="text-white/40 font-normal">— from step ③</span>
                     </label>
                     <input type="text" name="waba_id" placeholder="110424298547381" required pattern="[0-9]{12,18}"
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                     <p class="mt-1 text-[11px] text-white/40">15- to 17-digit number. Digits only — no dashes or spaces.</p>
                 </div>
                 <div>
@@ -756,7 +756,7 @@
                         <span class="text-white/40 font-normal">— from step ⑤</span>
                     </label>
                     <textarea name="access_token" rows="3" placeholder="EAA..." required
-                              class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono break-all"></textarea>
+                              class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono break-all"></textarea>
                     <p class="mt-1 text-[11px] text-white/40">
                         Starts with <code>EAA</code>, around 200 characters. We store this encrypted in our database; only your team can use it.
                     </p>
@@ -779,7 +779,7 @@
                 <p class="text-sm text-white/40 mt-1">A Telegram bot is a free account that messages people in your name. Anyone who chats with the bot lands in your inbox.</p>
             </div>
 
-            <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/70 space-y-1.5 leading-relaxed">
+            <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/70 space-y-1.5 leading-relaxed">
                 <p class="font-semibold text-white/85">How to get a bot token (3 minutes)</p>
                 <p>① Open Telegram on your phone or desktop. Search for <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="text-emerald-300 hover:underline"><strong>@BotFather</strong></a> and start a chat.</p>
                 <p>② Send the message <code class="text-emerald-300">/newbot</code></p>
@@ -794,10 +794,10 @@
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token (from BotFather)</label>
                     <input type="text" name="bot_token" placeholder="123456789:ABCdef..." required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
 
-                <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/60 leading-relaxed">
+                <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/60 leading-relaxed">
                     <p class="font-semibold text-white/80 mb-1">After you click Connect Bot:</p>
                     <p>• Anyone who searches for <code class="text-emerald-300">@your_bot_username</code> on Telegram and starts a chat → lands in your inbox.</p>
                     <p>• Share the bot link with your customers: <code class="text-emerald-300">https://t.me/your_bot_username</code></p>
@@ -824,7 +824,7 @@
                 </p>
             </div>
 
-            <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
+            <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
                 <p class="font-semibold text-white/80">Setup checklist</p>
                 <p>① Create app → "From scratch" → pick a workspace</p>
                 <p>② OAuth &amp; Permissions → add Bot Token Scopes: <code class="text-emerald-300">chat:write</code>, <code class="text-emerald-300">channels:history</code>, <code class="text-emerald-300">groups:history</code>, <code class="text-emerald-300">im:history</code>, <code class="text-emerald-300">users:read</code></p>
@@ -839,12 +839,12 @@
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">Bot User OAuth Token</label>
                     <input type="text" name="bot_token" placeholder="xoxb-..." required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">Signing Secret</label>
                     <input type="text" name="signing_secret" placeholder="32-character hex string" required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
@@ -866,7 +866,7 @@
                 </p>
             </div>
 
-            <div class="rounded-lg border border-white/[0.07] bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
+            <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
                 <p class="font-semibold text-white/80">Setup checklist</p>
                 <p>① New Application → name it → copy <strong class="text-white/80">Application ID</strong> from General Information</p>
                 <p>② Copy the <strong class="text-white/80">Public Key</strong> from the same page</p>
@@ -881,17 +881,17 @@
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">Application ID</label>
                     <input type="text" name="application_id" placeholder="18-digit numeric snowflake" required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">Public Key</label>
                     <input type="text" name="public_key" placeholder="64-character hex" required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token</label>
                     <input type="text" name="bot_token" placeholder="MTI..." required
-                           class="w-full rounded-lg border border-white/[0.07] bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>

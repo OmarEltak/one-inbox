@@ -7,7 +7,7 @@
         </div>
         <div class="flex items-center gap-3">
             <button class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white/60 hover:text-white/80 transition-colors"
-                    style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                    style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -19,7 +19,7 @@
     {{-- Filters --}}
     <div class="flex flex-wrap gap-3">
         <div class="flex items-center gap-2 rounded-xl px-3 py-2 flex-1 max-w-xs"
-             style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);">
+             style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
             <svg class="size-4 text-white/25 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>

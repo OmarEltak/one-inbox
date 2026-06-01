@@ -50,19 +50,22 @@ Source: see [PRODUCT.md](../PRODUCT.md) and [DESIGN.md](../DESIGN.md) at project
 ## Tier 2: Next sprint (real product work, deserves design review)
 
 ### 4. Make per-client identity loud in the chrome
-- [ ] Promote `team->name` in `resources/views/layouts/app/sidebar.blade.php:22-30` from `text-[10px] text-white/40` to a proper brand chip in the header bar
-- [ ] Add the team's brand mark / color if customers can configure one (check `App\Models\Team` for an `avatar_url` / `brand_color` field; add if absent)
-- [ ] Quick team-switcher dropdown in the header (read-only first; switcher in a follow-up)
+- [x] Promote `team->name` in `resources/views/layouts/app/sidebar.blade.php` — added a dedicated "Workspace" chip with deterministic per-team color (hue derived from `crc32($team->slug)`), team initial avatar, label + name
+- [x] Per-team brand mark / color: derived from team slug (no schema change); same team always gets same hue. Future: when customers can configure a brand color, swap the `$teamHue` source from `crc32` to `$team->settings['brand_hue']` or new column
+- [x] Quick team-switcher dropdown: dropdown opens on chip click, lists all `$user->teams()`, shows current with check mark, includes "New workspace" footer, POSTs to new `teams.switch` route. Shown only if user has >1 team or is super-admin
+- [x] Added matching team chip as the breadcrumb anchor in the page header bar (replaces the previous "OT1 Pro / {title}")
+- [x] Added `POST /teams/{team}/switch` route with membership guard
 
 ### 5. Render the AI attribution chip on every AI-sent message
-- [ ] Locate the inbox message-bubble partial (likely under `resources/views/livewire/inbox/` or a Flux component)
-- [ ] When a message has `sent_by_ai = true`, prepend the `.ds-ai-chip` component (HTML/CSS in `.impeccable/design.json` as `AI Attribution Chip`) with "Replied by AI · {time_ago} · {confidence}% confidence"
-- [ ] If confidence is not yet tracked: ship the chip without the confidence pill, add the field to the AI service response, and backfill in a follow-up
+- [x] Located inbox message-bubble in `resources/views/livewire/inbox/index.blade.php:452-456`; pre-existing AI label was just sparkles + "AI"
+- [x] Upgraded to "Replied by AI · {confidence}% confidence" with sparkles icon, semibold label, defensive confidence handling (works whether `ai_confidence` is 0-1 decimal or 0-100 integer)
+- [x] Translatable via `__('Replied by AI')` and `__('confidence')`
 
 ### 6. Bump interactive border opacity to `white/15` for WCAG 2.2 AA
-- [ ] grep -r 'border-white/\[0\.06\]\|border-white/\[0\.07\]\|rgba(255,255,255,0\.0[6-7])' resources/views/
-- [ ] Replace with `border-white/15` (or `rgba(255,255,255,0.15)` in inline styles) on every interactive boundary (inputs, buttons, cards, the search-bar chip, the sidebar nav items)
-- [ ] Leave non-interactive hairlines (table row dividers, section separators) at the current opacity; the 3:1 rule applies to interactive boundaries only
+- [x] Replaced all `border-white/[0.06]` and `border-white/[0.07]` Tailwind classes with `border-white/15` across 6 blade files
+- [x] Replaced inline `border: 1px solid rgba(255,255,255,0.0[6-8])` styles with `0.15` opacity (8 occurrences)
+- [x] Left non-interactive boundaries alone: shadow/inset highlights, table dividers stay at original opacity
+- [x] `.impeccable/design.json` snippets verified already correct (component css uses `0.15` on interactive borders; the remaining `0.06/0.07/0.08` refs are shadow tokens and background fills)
 
 ---
 

@@ -450,9 +450,17 @@
                             : ($message->isFromAi() ? 'bg-purple-500 text-white' : 'bg-blue-500 text-white')
                         }}" style="overflow-wrap: anywhere;">
                             @if($message->isFromAi())
-                                <div class="flex items-center gap-1 mb-0.5">
-                                    <flux:icon name="sparkles" class="w-3 h-3 opacity-70" />
-                                    <span class="text-xs opacity-70">AI</span>
+                                <div class="flex items-center gap-1.5 mb-1 text-xs opacity-80">
+                                    <flux:icon name="sparkles" class="w-3 h-3 flex-shrink-0" />
+                                    <span class="font-semibold">{{ __('Replied by AI') }}</span>
+                                    @if($message->ai_confidence)
+                                        @php
+                                            $confidencePct = $message->ai_confidence <= 1
+                                                ? round($message->ai_confidence * 100)
+                                                : round($message->ai_confidence);
+                                        @endphp
+                                        <span class="opacity-75">&middot; {{ $confidencePct }}% {{ __('confidence') }}</span>
+                                    @endif
                                 </div>
                             @elseif($message->isFromUser() && $message->sentByUser)
                                 <div class="flex items-center gap-1 mb-0.5">

@@ -12,22 +12,88 @@
 
         {{-- ══ SIDEBAR ══ --}}
         <flux:sidebar sticky collapsible="mobile"
-            class="border-e border-white/[0.06]"
+            class="border-e border-white/15"
             style="background: rgba(10,10,20,0.95); backdrop-filter: blur(12px); box-shadow: 4px 0 30px rgba(0,0,0,0.6);">
 
-            {{-- Logo --}}
+            {{-- Logo + Team chip --}}
+            @php
+                // Deterministic team hue from slug; same team always gets the same color.
+                $teamHue = $team ? (crc32($team->slug ?? $team->name) % 360) : 280;
+                $teamInitial = $team ? strtoupper(mb_substr($team->name, 0, 1)) : '?';
+                $userTeams = $team ? $user->teams()->orderBy('name')->get() : collect();
+                $canSwitch = $userTeams->count() > 1 || $user->isSuperAdmin();
+            @endphp
             <flux:sidebar.header class="px-4 py-5">
-                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 group">
-                    <img src="/logo.png" alt="OT1 Pro" class="size-9 rounded-xl flex-shrink-0 object-cover" />
-                    <div class="min-w-0">
-                        <p class="text-sm font-bold text-white leading-tight truncate">OT1 Pro</p>
-                        @if($team)
-                            <p class="text-[10px] text-white/40 truncate">{{ $team->name }}</p>
-                        @endif
-                    </div>
+                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-2.5 group min-w-0 flex-1">
+                    <img src="/logo.png" alt="OT1-Pro" class="size-8 rounded-lg flex-shrink-0 object-cover" />
+                    <p class="text-sm font-bold text-white leading-tight truncate">{{ __('OT1-Pro') }}</p>
                 </a>
-                <flux:sidebar.collapse class="lg:hidden ml-auto text-white/40 hover:text-white/70" />
+                <flux:sidebar.collapse class="lg:hidden ml-1 text-white/40 hover:text-white/70" />
             </flux:sidebar.header>
+
+            {{-- Team identity chip (loud) --}}
+            @if($team)
+                <div class="px-3 pb-3">
+                    @if($canSwitch)
+                        <flux:dropdown position="bottom" align="start" class="w-full">
+                            <button
+                                class="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border border-white/15 hover:border-white/25 hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                                style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.10), hsla({{ $teamHue }}, 65%, 45%, 0.06));"
+                                title="{{ __('Switch workspace') }}"
+                            >
+                                <span class="size-7 rounded-lg flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0 shadow-sm"
+                                      style="background: hsl({{ $teamHue }}, 65%, 50%);">
+                                    {{ $teamInitial }}
+                                </span>
+                                <span class="min-w-0 flex-1 text-left">
+                                    <span class="block text-[10px] uppercase tracking-widest text-white/40 font-semibold leading-tight">{{ __('Workspace') }}</span>
+                                    <span class="block text-sm font-semibold text-white truncate leading-tight">{{ $team->name }}</span>
+                                </span>
+                                <svg class="size-3.5 text-white/40 group-hover:text-white/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l3-3 3 3M7 17l3 3 3-3" />
+                                </svg>
+                            </button>
+                            <flux:menu>
+                                <div class="px-3 py-2 text-[11px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400 font-semibold">{{ __('Switch workspace') }}</div>
+                                @foreach($userTeams as $userTeam)
+                                    @php $ut_hue = crc32($userTeam->slug ?? $userTeam->name) % 360; @endphp
+                                    <form method="POST" action="{{ route('teams.switch', $userTeam) }}" class="w-full">
+                                        @csrf
+                                        <button type="submit" class="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors cursor-pointer {{ $userTeam->id === $team->id ? 'bg-zinc-50 dark:bg-zinc-700/30' : '' }}">
+                                            <span class="size-6 rounded-md flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                                                  style="background: hsl({{ $ut_hue }}, 65%, 50%);">
+                                                {{ strtoupper(mb_substr($userTeam->name, 0, 1)) }}
+                                            </span>
+                                            <span class="flex-1 text-left text-sm text-zinc-900 dark:text-zinc-100 truncate">{{ $userTeam->name }}</span>
+                                            @if($userTeam->id === $team->id)
+                                                <svg class="size-4 text-purple-600 dark:text-purple-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                    </form>
+                                @endforeach
+                                <flux:menu.separator />
+                                <flux:menu.item :href="route('teams.create')" icon="plus" wire:navigate>{{ __('New workspace') }}</flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+                    @else
+                        <div
+                            class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl border border-white/15"
+                            style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.10), hsla({{ $teamHue }}, 65%, 45%, 0.06));"
+                        >
+                            <span class="size-7 rounded-lg flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0 shadow-sm"
+                                  style="background: hsl({{ $teamHue }}, 65%, 50%);">
+                                {{ $teamInitial }}
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-[10px] uppercase tracking-widest text-white/40 font-semibold leading-tight">{{ __('Workspace') }}</span>
+                                <span class="block text-sm font-semibold text-white truncate leading-tight">{{ $team->name }}</span>
+                            </span>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             {{-- Navigation --}}
             <flux:sidebar.nav class="px-3 space-y-0.5 flex-1">
@@ -60,6 +126,10 @@
                     }
                     if ($user->canManageAdmins()) {
                         $navItems[] = ['route' => 'settings.admins', 'label' => 'Settings', 'icon' => 'adjustments-horizontal', 'match' => 'settings.admins*'];
+                    }
+                    if ($user->isSuperAdmin()) {
+                        $navItems[] = ['route' => 'super-admin.customers', 'label' => 'Customers', 'icon' => 'building-office-2', 'match' => 'super-admin.customers'];
+                        $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments'];
                     }
 
                     // Load pages for inbox dropdown
@@ -119,7 +189,7 @@
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-1"
-                         class="mt-0.5 ml-3 pl-4 space-y-0.5 border-l border-white/[0.07]">
+                         class="mt-0.5 ml-3 pl-4 space-y-0.5 border-l border-white/15">
 
                         {{-- All Inbox --}}
                         @php $allActive = $isInboxActive && !request()->query('pageId'); @endphp
@@ -187,7 +257,7 @@
 
             {{-- Bottom: User info --}}
             <div class="px-3 pb-4">
-                <div class="border-t border-white/[0.06] pt-4">
+                <div class="border-t border-white/15 pt-4">
                     <flux:dropdown position="top" align="start" class="w-full">
                         <button class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors group cursor-pointer">
                             <div class="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -232,29 +302,41 @@
 
         {{-- ══ HEADER ══ --}}
         <flux:header sticky
-            class="border-b border-white/[0.06]"
+            class="border-b border-white/15"
             style="background: rgba(10,10,20,0.85); backdrop-filter: blur(16px);">
 
             {{-- Mobile toggle --}}
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-            {{-- Breadcrumb --}}
-            <div class="hidden lg:flex items-center gap-2 text-sm">
-                <span class="font-semibold text-white/70">OT1 Pro</span>
+            {{-- Breadcrumb: team identity is the load-bearing anchor --}}
+            <div class="hidden lg:flex items-center gap-2.5 text-sm min-w-0">
+                @if($team)
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-white/15"
+                          style="background: hsla({{ $teamHue }}, 65%, 50%, 0.10);"
+                          title="{{ __('Current workspace') }}">
+                        <span class="size-4 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                              style="background: hsl({{ $teamHue }}, 65%, 50%);">
+                            {{ $teamInitial }}
+                        </span>
+                        <span class="font-semibold text-white/85 truncate max-w-[180px]">{{ $team->name }}</span>
+                    </span>
+                @else
+                    <span class="font-semibold text-white/70">{{ __('OT1-Pro') }}</span>
+                @endif
                 <span class="text-white/20">/</span>
-                <span class="text-white/40 font-medium">{{ $title ?? 'Dashboard' }}</span>
+                <span class="text-white/60 font-medium truncate">{{ $title ?? __('Dashboard') }}</span>
             </div>
 
             {{-- Search bar --}}
             <div class="hidden lg:flex flex-1 max-w-sm mx-6">
                 <div class="flex items-center gap-2 w-full rounded-xl px-3 py-2 text-sm cursor-pointer transition-all duration-150 hover:border-[#7C3AED]/50"
-                     style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);">
+                     style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
                     <svg class="size-4 text-white/25 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <span class="text-white/25 flex-1">Search...</span>
                     <kbd class="text-[10px] text-white/20 px-1.5 py-0.5 rounded-md font-mono"
-                         style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);">⌘K</kbd>
+                         style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);">⌘K</kbd>
                 </div>
             </div>
 
