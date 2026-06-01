@@ -6,7 +6,7 @@
             <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: March 22, 2025</p>
             <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: March 22, 2025</p>
 
-            <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-400">
+            <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-600">
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Introduction') }}</h2>
@@ -17,10 +17,10 @@
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('2. Information We Collect') }}</h2>
 
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.1 Account Information') }}</h3>
+                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.1 Account Information') }}</h3>
                     <p class="mt-2">{{ __('When you create an account, we collect your name, email address, and password (hashed). If you register via Google OAuth, we receive your Google profile name and email.') }}</p>
 
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.2 Connected Platform Data') }}</h3>
+                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.2 Connected Platform Data') }}</h3>
                     <p class="mt-2">{{ __('When you connect a social media account, we collect and store:') }}</p>
                     <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
                         <li>{{ __('OAuth access tokens and refresh tokens required to communicate with the platform API') }}</li>
@@ -30,7 +30,7 @@
                     </ul>
                     <p class="mt-3">{{ __('Platforms currently supported: Facebook Messenger, Instagram Direct, WhatsApp Business, Telegram, TikTok Direct Messages, and Email (IMAP/SMTP).') }}</p>
 
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.3 TikTok-Specific Data') }}</h3>
+                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.3 TikTok-Specific Data') }}</h3>
                     <p class="mt-2">{{ __('When you connect your TikTok Business account, we access the following permissions with your explicit consent:') }}</p>
                     <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
                         <li><strong>message.list.read</strong> — {{ __('To retrieve and display incoming direct messages in your inbox') }}</li>
@@ -39,10 +39,10 @@
                     </ul>
                     <p class="mt-2">{{ __('We do not access your TikTok content, followers, analytics, videos, or any data beyond what is required for the Business Messaging inbox functionality. TikTok data is used solely to display and manage your direct messages within OT1-Pro and is never shared with or sold to third parties. You can revoke access at any time by disconnecting TikTok from your Connections settings.') }}</p>
 
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.4 Usage Data') }}</h3>
+                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.4 Usage Data') }}</h3>
                     <p class="mt-2">{{ __('We automatically collect certain information about how you interact with our service, including browser type, IP address, pages visited, and actions performed within the app. This data is used solely to improve service performance and reliability.') }}</p>
 
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.5 AI Interaction Data') }}</h3>
+                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.5 AI Interaction Data') }}</h3>
                     <p class="mt-2">{{ __('When you use our AI-powered auto-reply feature, message content is sent to our AI provider (Google Gemini) to generate responses. No message content is stored by the AI provider beyond the immediate API call.') }}</p>
                 </div>
 
@@ -57,7 +57,7 @@
                         <li>{{ __('To improve and develop new features based on usage patterns') }}</li>
                         <li>{{ __('To comply with legal obligations') }}</li>
                     </ul>
-                    <p class="mt-4 font-medium text-zinc-700 dark:text-zinc-300">{{ __('We do not sell, rent, or trade your personal data or your customers\' data to any third party for marketing purposes.') }}</p>
+                    <p class="mt-4 font-medium text-zinc-700 dark:text-zinc-700">{{ __('We do not sell, rent, or trade your personal data or your customers\' data to any third party for marketing purposes.') }}</p>
                 </div>
 
                 <div>
@@ -107,8 +107,8 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7a. Data Deletion (Meta Apps)') }}</h2>
                     <p class="mt-3">{{ __('If you connected OT1-Pro via Facebook or Instagram and want all data we hold about you removed, you have two options:') }}</p>
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li>{{ __('Visit') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-purple-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook → Settings → Apps & Websites') }}</a> {{ __('and remove OT1-Pro Business — Meta will then automatically notify our system to delete your data.') }}</li>
-                        <li>{{ __('Or email us directly at') }} <a href="mailto:privacy@ot1-pro.com" class="text-purple-600 hover:underline">privacy@ot1-pro.com</a> {{ __('with the subject "Data Deletion Request".') }}</li>
+                        <li>{{ __('Visit') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-indigo-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook → Settings → Apps & Websites') }}</a> {{ __('and remove OT1-Pro Business — Meta will then automatically notify our system to delete your data.') }}</li>
+                        <li>{{ __('Or email us directly at') }} <a href="mailto:privacy@ot1-pro.com" class="text-indigo-600 hover:underline">privacy@ot1-pro.com</a> {{ __('with the subject "Data Deletion Request".') }}</li>
                     </ul>
                     <p class="mt-3 text-sm">{{ __('Either method removes the connected account, contact profile, conversations, messages, and lead score events linked to your Facebook or Instagram identifier within 30 days. We send a confirmation page where you can verify the deletion completed.') }}</p>
                 </div>

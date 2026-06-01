@@ -6,7 +6,7 @@
         <div class="mx-auto max-w-4xl px-6">
             <div class="text-center">
                 <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">{{ __('Contact Us') }}</h1>
-                <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
+                <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600">
                     {{ __('Have a question or want to learn more? We\'d love to hear from you.') }}
                 </p>
             </div>
@@ -17,21 +17,21 @@
                     <form action="#" method="POST" class="space-y-6">
                         @csrf
                         <div>
-                            <label for="name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Name') }}</label>
+                            <label for="name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-700">{{ __('Name') }}</label>
                             <input type="text" name="name" id="name" required
-                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100">
                         </div>
                         <div>
-                            <label for="email" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Email') }}</label>
+                            <label for="email" class="block text-sm font-medium text-zinc-700 dark:text-zinc-700">{{ __('Email') }}</label>
                             <input type="email" name="email" id="email" required
-                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100">
                         </div>
                         <div>
-                            <label for="message" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('Message') }}</label>
+                            <label for="message" class="block text-sm font-medium text-zinc-700 dark:text-zinc-700">{{ __('Message') }}</label>
                             <textarea name="message" id="message" rows="5" required
-                                      class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"></textarea>
+                                      class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100"></textarea>
                         </div>
-                        <button type="submit" class="w-full rounded-lg bg-purple-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-purple-700">
+                        <button type="submit" class="w-full rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
                             {{ __('Send Message') }}
                         </button>
                     </form>
@@ -41,11 +41,11 @@
                 <div class="space-y-8">
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Email') }}</h3>
-                        <p class="mt-2 text-zinc-600 dark:text-zinc-400">support@oneinbox.app</p>
+                        <p class="mt-2 text-zinc-600 dark:text-zinc-600">support@oneinbox.app</p>
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Response Time') }}</h3>
-                        <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('We typically respond within 24 hours.') }}</p>
+                        <p class="mt-2 text-zinc-600 dark:text-zinc-600">{{ __('We typically respond within 24 hours.') }}</p>
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Social') }}</h3>

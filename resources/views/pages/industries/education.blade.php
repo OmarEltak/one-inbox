@@ -26,21 +26,21 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-zinc-950 via-purple-950/40 to-zinc-950 py-24 text-white">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-sm font-medium text-purple-300">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
                         {{ __('Education') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Answer Every <span class="text-purple-400">Student Inquiry</span> Instantly — AI-Powered WhatsApp for Education') !!}
+                        {!! __('Answer Every <span class="text-indigo-400">Student Inquiry</span> Instantly — AI-Powered WhatsApp for Education') !!}
                     </h1>
-                    <p class="mt-5 text-lg text-zinc-300">
+                    <p class="mt-5 text-lg text-zinc-700">
                         {{ __('Prospective students and parents message on WhatsApp and Instagram expecting fast answers about courses, fees, and enrollment. OT1-Pro ensures they always get one — instantly.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
                             {{ __('Start Free') }}
                         </a>
                     </div>
@@ -55,9 +55,9 @@
                     ];
                     @endphp
                     @foreach($stats as [$label, $value, $sub])
-                    <div class="rounded-xl bg-zinc-800 p-4 text-center">
+                    <div class="rounded-xl bg-zinc-100 p-4 text-center">
                         <p class="text-xs text-zinc-500">{{ $label }}</p>
-                        <p class="mt-1 text-xl font-bold text-purple-400">{{ $value }}</p>
+                        <p class="mt-1 text-xl font-bold text-indigo-400">{{ $value }}</p>
                         @if($sub)<p class="text-xs text-zinc-600">{{ $sub }}</p>@endif
                     </div>
                     @endforeach
@@ -83,11 +83,11 @@
                 @endphp
                 @foreach($usecases as [$icon, $title, $desc])
                 <div class="rounded-xl border p-5 transition-colors {{ $loop->first
-                    ? 'lg:col-span-2 lg:p-7 border-purple-200 bg-purple-50/60 dark:border-purple-800/60 dark:bg-purple-950/30'
-                    : 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900' }}">
+                    ? 'lg:col-span-2 lg:p-7 border-indigo-200 bg-indigo-50/60 dark:border-indigo-200 dark:bg-indigo-50/60'
+                    : 'border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white' }}">
                     <div class="text-2xl">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold">{{ $title }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $desc }}</p>
+                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $desc }}</p>
                 </div>
                 @endforeach
             </div>
@@ -95,7 +95,7 @@
     </section>
 
     {{-- FAQ --}}
-    <section class="bg-zinc-50 py-20 dark:bg-zinc-900/40">
+    <section class="bg-zinc-50 py-20 dark:bg-zinc-50">
         <div class="mx-auto max-w-3xl px-6">
             <h2 class="mb-10 text-center text-3xl font-bold">{{ __('Frequently Asked Questions') }}</h2>
             @php
@@ -108,12 +108,12 @@
             @endphp
             <div class="space-y-4">
                 @foreach($faqs as [$q, $a])
-                <div x-data="{ open: false }" class="rounded-xl border border-zinc-200 dark:border-zinc-700">
+                <div x-data="{ open: false }" class="rounded-xl border border-zinc-200 dark:border-zinc-200">
                     <button @click="open = !open" class="flex w-full items-center justify-between px-5 py-4 text-left font-medium">
                         <span>{{ $q }}</span>
                         <svg class="size-5 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                     </button>
-                    <div x-show="open" x-collapse class="border-t border-zinc-100 px-5 py-4 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                    <div x-show="open" x-collapse class="border-t border-zinc-100 px-5 py-4 text-zinc-600 dark:border-zinc-200 dark:text-zinc-600">
                         {{ $a }}
                     </div>
                 </div>
@@ -123,11 +123,11 @@
     </section>
 
     {{-- CTA --}}
-    <section class="bg-gradient-to-br from-purple-600 to-blue-600 py-20 text-white">
+    <section class="bg-gradient-to-br from-indigo-600 to-blue-600 py-20 text-zinc-900">
         <div class="mx-auto max-w-3xl px-6 text-center">
             <h2 class="text-3xl font-bold">{{ __('Turn Inquiries Into Enrollments — Automatically') }}</h2>
-            <p class="mt-3 text-purple-100">{{ __('AI answers every student inquiry instantly. Your admissions team closes the ones that matter.') }}</p>
-            <a href="{{ route('register') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-purple-700 transition-all hover:bg-purple-50">
+            <p class="mt-3 text-indigo-100">{{ __('AI answers every student inquiry instantly. Your admissions team closes the ones that matter.') }}</p>
+            <a href="{{ route('register') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-indigo-700 transition-all hover:bg-indigo-50">
                 {{ __('Get Started Free') }}
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>

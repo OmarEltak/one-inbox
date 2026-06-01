@@ -6,7 +6,7 @@
             <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: March 22, 2025</p>
             <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: March 22, 2025</p>
 
-            <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-400">
+            <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-600">
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Acceptance of Terms') }}</h2>

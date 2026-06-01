@@ -26,29 +26,29 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-zinc-950 via-purple-950/40 to-zinc-950 py-24 text-white">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-sm font-medium text-purple-300">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
                         {{ __('Marketing Agencies') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Manage All Your <span class="text-purple-400">Client Inboxes</span> From One Platform') !!}
+                        {!! __('Manage All Your <span class="text-indigo-400">Client Inboxes</span> From One Platform') !!}
                     </h1>
-                    <p class="mt-5 text-lg text-zinc-300">
+                    <p class="mt-5 text-lg text-zinc-700">
                         {{ __('Your clients\' customers are messaging on WhatsApp, Instagram, Facebook, and Telegram — and expecting fast, intelligent replies. OT1-Pro lets your agency handle all of it, with AI doing the heavy lifting.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
                             {{ __('Start Free') }}
                         </a>
-                        {{-- <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-600 px-6 py-3 font-semibold text-zinc-300 transition-colors hover:border-zinc-400 hover:text-white">
+                        {{-- <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-white">
                             {{ __('Agency Pricing') }}
                         </a> --}}
                     </div>
                 </div>
-                <div class="rounded-2xl border border-zinc-700/50 bg-zinc-900/60 p-6">
+                <div class="rounded-2xl border border-zinc-200 bg-white p-6">
                     @php
                     $clients = [
                         ['🏠', __('Real Estate Client'), 'WhatsApp + Instagram', __('12 conversations today')],
@@ -57,12 +57,12 @@
                         ['🏥', __('Clinic'), 'WhatsApp + Telegram', __('5 conversations today')],
                     ];
                     @endphp
-                    <p class="mb-4 text-sm font-semibold text-zinc-400">{{ __('Your client workspaces') }}</p>
+                    <p class="mb-4 text-sm font-semibold text-zinc-600">{{ __('Your client workspaces') }}</p>
                     @foreach($clients as [$icon, $name, $channels, $activity])
-                    <div class="mb-3 flex items-center gap-3 rounded-lg bg-zinc-800 px-4 py-3">
+                    <div class="mb-3 flex items-center gap-3 rounded-lg bg-zinc-100 px-4 py-3">
                         <div class="text-xl">{{ $icon }}</div>
                         <div class="flex-1">
-                            <p class="text-sm font-medium text-zinc-200">{{ $name }}</p>
+                            <p class="text-sm font-medium text-zinc-800">{{ $name }}</p>
                             <p class="text-xs text-zinc-500">{{ $channels }}</p>
                         </div>
                         <span class="text-xs text-green-400">{{ $activity }}</span>
@@ -92,11 +92,11 @@
                 @endphp
                 @foreach($props as [$icon, $title, $desc])
                 <div class="rounded-xl border p-6 transition-colors {{ $loop->first
-                    ? 'lg:col-span-2 lg:p-8 border-purple-200 bg-purple-50/60 dark:border-purple-800/60 dark:bg-purple-950/30'
-                    : 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900' }}">
+                    ? 'lg:col-span-2 lg:p-8 border-indigo-200 bg-indigo-50/60 dark:border-indigo-200 dark:bg-indigo-50/60'
+                    : 'border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white' }}">
                     <div class="text-2xl {{ $loop->first ? 'lg:text-3xl' : '' }}">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold {{ $loop->first ? 'lg:text-lg' : '' }}">{{ $title }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400 {{ $loop->first ? 'lg:text-base' : '' }}">{{ $desc }}</p>
+                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600 {{ $loop->first ? 'lg:text-base' : '' }}">{{ $desc }}</p>
                 </div>
                 @endforeach
             </div>
@@ -104,11 +104,11 @@
     </section>
 
     {{-- Industries Served --}}
-    <section class="bg-zinc-50 py-20 dark:bg-zinc-900/40">
+    <section class="bg-zinc-50 py-20 dark:bg-zinc-50">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
                 <h2 class="text-3xl font-bold">{{ __('Clients Across Every Industry') }}</h2>
-                <p class="mt-3 text-zinc-600 dark:text-zinc-400">{{ __('OT1-Pro works for the clients you already have and the ones you\'re pitching.') }}</p>
+                <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('OT1-Pro works for the clients you already have and the ones you\'re pitching.') }}</p>
             </div>
             <div class="mt-10 flex flex-wrap justify-center gap-3">
                 @php
@@ -119,7 +119,7 @@
                 ];
                 @endphp
                 @foreach($industries as $ind)
-                <span class="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-900">{{ $ind }}</span>
+                <span class="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium dark:border-zinc-200 dark:bg-white">{{ $ind }}</span>
                 @endforeach
             </div>
         </div>
@@ -139,12 +139,12 @@
             @endphp
             <div class="space-y-4">
                 @foreach($faqs as [$q, $a])
-                <div x-data="{ open: false }" class="rounded-xl border border-zinc-200 dark:border-zinc-700">
+                <div x-data="{ open: false }" class="rounded-xl border border-zinc-200 dark:border-zinc-200">
                     <button @click="open = !open" class="flex w-full items-center justify-between px-5 py-4 text-left font-medium">
                         <span>{{ $q }}</span>
                         <svg class="size-5 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                     </button>
-                    <div x-show="open" x-collapse class="border-t border-zinc-100 px-5 py-4 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                    <div x-show="open" x-collapse class="border-t border-zinc-100 px-5 py-4 text-zinc-600 dark:border-zinc-200 dark:text-zinc-600">
                         {{ $a }}
                     </div>
                 </div>
@@ -154,11 +154,11 @@
     </section>
 
     {{-- CTA --}}
-    <section class="bg-gradient-to-br from-purple-600 to-blue-600 py-20 text-white">
+    <section class="bg-gradient-to-br from-indigo-600 to-blue-600 py-20 text-zinc-900">
         <div class="mx-auto max-w-3xl px-6 text-center">
             <h2 class="text-3xl font-bold">{{ __('Offer AI-Powered Social Inbox as an Agency Service') }}</h2>
-            <p class="mt-3 text-purple-100">{{ __('Differentiate your agency with AI inbox management. Start with one client, scale to all of them.') }}</p>
-            <a href="{{ route('register') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-purple-700 transition-all hover:bg-purple-50">
+            <p class="mt-3 text-indigo-100">{{ __('Differentiate your agency with AI inbox management. Start with one client, scale to all of them.') }}</p>
+            <a href="{{ route('register') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-indigo-700 transition-all hover:bg-indigo-50">
                 {{ __('Get Started Free') }}
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>

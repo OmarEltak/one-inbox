@@ -15,7 +15,7 @@
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                         {{ __('Facebook Messenger Management for') }} <span class="text-blue-600 dark:text-blue-400">{{ __('Growing Businesses') }}</span>
                     </h1>
-                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
+                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600">
                         {{ __('Thousands of businesses use Facebook Messenger as their primary customer channel. OT1-Pro gives you a shared team inbox, AI auto-replies, and lead scoring — so no message ever goes unanswered.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -23,16 +23,16 @@
                             {{ __('Connect Facebook Free') }}
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                         </a>
-                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-blue-300 hover:text-blue-700 dark:border-zinc-700 dark:text-zinc-300">
+                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-blue-300 hover:text-blue-700 dark:border-zinc-200 dark:text-zinc-700">
                             {{ __('View Pricing') }}
                         </a> --}}
                     </div>
                     <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required · Free plan available') }}</p>
                 </div>
                 <div class="space-y-4">
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-200 dark:bg-white">
                         <div class="mb-3 flex items-center justify-between">
-                            <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{{ __('Facebook Page Inbox') }}</p>
+                            <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-700">{{ __('Facebook Page Inbox') }}</p>
                             <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{{ __('AI Active') }}</span>
                         </div>
                         @foreach([
@@ -40,13 +40,13 @@
                             ['Fatima R.', 'I want to place a bulk order for my store', '5m ago', '95'],
                             ['Ahmed S.', 'Do you offer a warranty?', '12m ago', '67'],
                         ] as $msg)
-                        <div class="flex items-center gap-3 border-t border-zinc-100 py-3 dark:border-zinc-800">
+                        <div class="flex items-center gap-3 border-t border-zinc-100 py-3 dark:border-zinc-200">
                             <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{{ substr($msg[0], 0, 1) }}</div>
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-medium">{{ $msg[0] }}</p>
                                 <p class="truncate text-xs text-zinc-500">{{ $msg[1] }}</p>
                             </div>
-                            <div class="text-right text-xs text-zinc-400">
+                            <div class="text-right text-xs text-zinc-600">
                                 <p>{{ $msg[2] }}</p>
                                 <p class="font-semibold text-blue-600">{{ $msg[3] }}</p>
                             </div>
@@ -59,7 +59,7 @@
     </section>
 
     {{-- Features --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Everything you need to master Facebook Messenger') }}</h2>
@@ -76,10 +76,10 @@
                 ];
                 @endphp
                 @foreach($features as $feature)
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
                     <div class="mb-3 text-3xl">{{ $feature[0] }}</div>
                     <h3 class="text-lg font-semibold">{{ $feature[1] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $feature[2] }}</p>
+                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $feature[2] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -103,13 +103,13 @@
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
-                <div class="rounded-xl border border-zinc-200 dark:border-zinc-800" x-data>
+                <div class="rounded-xl border border-zinc-200 dark:border-zinc-200" x-data>
                     <button @click="open = open === {{ $i }} ? null : {{ $i }}" class="flex w-full items-center justify-between px-6 py-4 text-left cursor-pointer">
                         <span class="font-medium">{{ $faq[0] }}</span>
-                        <svg class="size-5 flex-shrink-0 text-zinc-400 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                        <svg class="size-5 flex-shrink-0 text-zinc-600 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                     </button>
                     <div x-show="open === {{ $i }}" x-collapse>
-                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-400">{{ $faq[1] }}</div>
+                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-600">{{ $faq[1] }}</div>
                     </div>
                 </div>
                 @endforeach
@@ -118,10 +118,10 @@
     </section>
 
     {{-- Related Reading --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related Facebook & social CX guides') }}</h2>
-            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('How to run Messenger and unified social inbox at scale.') }}</p>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-600">{{ __('How to run Messenger and unified social inbox at scale.') }}</p>
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
@@ -132,7 +132,7 @@
                 ];
                 @endphp
                 @foreach($related as $r)
-                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-blue-700">
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-md dark:border-zinc-200 dark:bg-white dark:hover:border-blue-700">
                     <div class="mb-2 text-xs font-medium uppercase tracking-wider text-blue-600">{{ $r[2] }}</div>
                     <h3 class="text-base font-semibold text-zinc-900 group-hover:text-blue-700 dark:text-zinc-100 dark:group-hover:text-blue-300">{{ $r[1] }}</h3>
                     <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600">{{ __('Read more') }} →</span>

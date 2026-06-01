@@ -17,7 +17,7 @@
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                         {{ __('The WhatsApp Business Inbox Built for') }} <span class="text-green-600 dark:text-green-400">{{ __('Sales Teams') }}</span>
                     </h1>
-                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
+                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600">
                         {{ __('Stop managing WhatsApp in your phone. OT1-Pro gives your entire team a shared WhatsApp Business inbox with AI that replies instantly, qualifies every lead, and never misses a sale — 24/7.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -25,19 +25,19 @@
                             {{ __('Connect WhatsApp Free') }}
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                         </a>
-                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-green-300 hover:text-green-700 dark:border-zinc-700 dark:text-zinc-300">
+                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-green-300 hover:text-green-700 dark:border-zinc-200 dark:text-zinc-700">
                             {{ __('View Pricing') }}
                         </a> --}}
                     </div>
                     <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required · Free plan available') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
                     <div class="space-y-4">
                         @foreach([
                             ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', 'AI', 'Hi! Thanks for reaching out. What product are you interested in today?'],
-                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200', 'Lead', 'I want to know the price of your premium package'],
+                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', 'Lead', 'I want to know the price of your premium package'],
                             ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', 'AI', 'Great choice! The premium package is $299/mo and includes unlimited users. Are you looking for monthly or annual billing? (Annual saves 20%)'],
-                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200', 'Lead', 'Annual sounds good. How do I sign up?'],
+                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', 'Lead', 'Annual sounds good. How do I sign up?'],
                         ] as $msg)
                         <div class="flex {{ $msg[1] === 'Lead' ? 'justify-end' : 'justify-start' }}">
                             <div class="max-w-xs rounded-2xl {{ $msg[1] === 'Lead' ? 'rounded-tr-sm' : 'rounded-tl-sm' }} {{ $msg[0] }} px-4 py-2.5 text-sm">
@@ -56,11 +56,11 @@
     </section>
 
     {{-- Problem / Why section --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-y border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('WhatsApp is your best sales channel. But managing it is a mess.') }}</h2>
-                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ __('Every business faces the same WhatsApp problems. OT1-Pro solves all of them.') }}</p>
+                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-600">{{ __('Every business faces the same WhatsApp problems. OT1-Pro solves all of them.') }}</p>
             </div>
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -74,7 +74,7 @@
                 ];
                 @endphp
                 @foreach($problems as $item)
-                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white">
                     <p class="text-sm text-red-500">❌ {{ $item[0] }}</p>
                     <p class="mt-2 text-sm font-medium text-green-600">✅ {{ $item[1] }}</p>
                 </div>
@@ -88,7 +88,7 @@
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Everything your WhatsApp sales team needs') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Built specifically for businesses that sell and support through WhatsApp.') }}</p>
+                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Built specifically for businesses that sell and support through WhatsApp.') }}</p>
             </div>
             <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -102,10 +102,10 @@
                 ];
                 @endphp
                 @foreach($features as $feature)
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
                     <div class="mb-3 text-3xl">{{ $feature[0] }}</div>
                     <h3 class="text-lg font-semibold">{{ $feature[1] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $feature[2] }}</p>
+                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $feature[2] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -113,7 +113,7 @@
     </section>
 
     {{-- Use Cases --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Who uses OT1-Pro for WhatsApp?') }}</h2>
@@ -130,9 +130,9 @@
                 ];
                 @endphp
                 @foreach($useCases as $useCase)
-                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white">
                     <h3 class="font-semibold text-green-700 dark:text-green-400">{{ $useCase[0] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $useCase[1] }}</p>
+                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $useCase[1] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -156,13 +156,13 @@
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
-                <div class="rounded-xl border border-zinc-200 dark:border-zinc-800" x-data>
+                <div class="rounded-xl border border-zinc-200 dark:border-zinc-200" x-data>
                     <button @click="open = open === {{ $i }} ? null : {{ $i }}" class="flex w-full items-center justify-between px-6 py-4 text-left cursor-pointer">
                         <span class="font-medium">{{ $faq[0] }}</span>
-                        <svg class="size-5 flex-shrink-0 text-zinc-400 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                        <svg class="size-5 flex-shrink-0 text-zinc-600 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                     </button>
                     <div x-show="open === {{ $i }}" x-collapse>
-                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-400">{{ $faq[1] }}</div>
+                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-600">{{ $faq[1] }}</div>
                     </div>
                 </div>
                 @endforeach
@@ -171,10 +171,10 @@
     </section>
 
     {{-- Related Reading --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related WhatsApp guides') }}</h2>
-            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('Deep dives on running WhatsApp Business at scale.') }}</p>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-600">{{ __('Deep dives on running WhatsApp Business at scale.') }}</p>
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
@@ -185,7 +185,7 @@
                 ];
                 @endphp
                 @foreach($related as $r)
-                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-green-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-green-700">
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-green-300 hover:shadow-md dark:border-zinc-200 dark:bg-white dark:hover:border-green-700">
                     <div class="mb-2 text-xs font-medium uppercase tracking-wider text-green-600">{{ $r[2] }}</div>
                     <h3 class="text-base font-semibold text-zinc-900 group-hover:text-green-700 dark:text-zinc-100 dark:group-hover:text-green-300">{{ $r[1] }}</h3>
                     <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-green-600">{{ __('Read more') }} →</span>

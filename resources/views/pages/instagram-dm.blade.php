@@ -15,23 +15,23 @@
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                         {{ __('Instagram DM Management That Turns') }} <span class="text-pink-600 dark:text-pink-400">{{ __('Followers Into Customers') }}</span>
                     </h1>
-                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
+                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600">
                         {{ __('Your Instagram DMs are full of potential buyers asking questions, checking prices, and ready to buy. OT1-Pro makes sure every single one gets a reply — instantly, intelligently, and automatically.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90">
+                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90">
                             {{ __('Connect Instagram Free') }}
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                         </a>
-                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-pink-300 hover:text-pink-700 dark:border-zinc-700 dark:text-zinc-300">
+                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-pink-300 hover:text-pink-700 dark:border-zinc-200 dark:text-zinc-700">
                             {{ __('View Pricing') }}
                         </a> --}}
                     </div>
                     <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required · Free plan available') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="mb-4 flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
-                        <div class="size-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-600"></div>
+                <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-200 dark:bg-white">
+                    <div class="mb-4 flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-200">
+                        <div class="size-8 rounded-full bg-gradient-to-br from-pink-500 to-indigo-600"></div>
                         <div>
                             <p class="text-sm font-semibold">{{ __('Instagram DMs') }}</p>
                             <p class="text-xs text-zinc-500">24 new · AI handling 18</p>
@@ -43,7 +43,7 @@
                         ['@fashion_lover99', 'What sizes do you have available?', '🟢', '78'],
                         ['@new_follower_22', 'Love your page! 😍', '⚪', '12'],
                     ] as $dm)
-                    <div class="flex items-center justify-between border-b border-zinc-50 py-3 last:border-0 dark:border-zinc-800">
+                    <div class="flex items-center justify-between border-b border-zinc-50 py-3 last:border-0 dark:border-zinc-200">
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-medium">{{ $dm[0] }}</p>
                             <p class="truncate text-xs text-zinc-500">{{ $dm[1] }}</p>
@@ -59,11 +59,11 @@
     </section>
 
     {{-- Features --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Stop leaving Instagram sales on the table') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Every unanswered DM is a potential customer lost. OT1-Pro makes sure that never happens.') }}</p>
+                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Every unanswered DM is a potential customer lost. OT1-Pro makes sure that never happens.') }}</p>
             </div>
             <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -77,10 +77,10 @@
                 ];
                 @endphp
                 @foreach($features as $feature)
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
                     <div class="mb-3 text-3xl">{{ $feature[0] }}</div>
                     <h3 class="text-lg font-semibold">{{ $feature[1] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $feature[2] }}</p>
+                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $feature[2] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -103,10 +103,10 @@
                 @endphp
                 @foreach($steps as $step)
                 <div class="flex gap-6">
-                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-600 to-purple-600 text-lg font-bold text-white">{{ $step[0] }}</div>
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-600 to-indigo-600 text-lg font-bold text-white">{{ $step[0] }}</div>
                     <div class="pt-1">
                         <h3 class="text-lg font-semibold">{{ $step[1] }}</h3>
-                        <p class="mt-1 text-zinc-600 dark:text-zinc-400">{{ $step[2] }}</p>
+                        <p class="mt-1 text-zinc-600 dark:text-zinc-600">{{ $step[2] }}</p>
                     </div>
                 </div>
                 @endforeach
@@ -115,7 +115,7 @@
     </section>
 
     {{-- FAQ --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-3xl px-6">
             <div class="text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Instagram DM questions answered') }}</h2>
@@ -131,13 +131,13 @@
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
-                <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900" x-data>
+                <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white" x-data>
                     <button @click="open = open === {{ $i }} ? null : {{ $i }}" class="flex w-full items-center justify-between px-6 py-4 text-left cursor-pointer">
                         <span class="font-medium">{{ $faq[0] }}</span>
-                        <svg class="size-5 flex-shrink-0 text-zinc-400 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                        <svg class="size-5 flex-shrink-0 text-zinc-600 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                     </button>
                     <div x-show="open === {{ $i }}" x-collapse>
-                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-400">{{ $faq[1] }}</div>
+                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-600">{{ $faq[1] }}</div>
                     </div>
                 </div>
                 @endforeach
@@ -146,10 +146,10 @@
     </section>
 
     {{-- Related Reading --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
         <div class="mx-auto max-w-6xl px-6">
             <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related Instagram guides') }}</h2>
-            <p class="mt-2 text-zinc-600 dark:text-zinc-400">{{ __('Deep dives on Instagram DM automation and lead generation.') }}</p>
+            <p class="mt-2 text-zinc-600 dark:text-zinc-600">{{ __('Deep dives on Instagram DM automation and lead generation.') }}</p>
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
@@ -160,7 +160,7 @@
                 ];
                 @endphp
                 @foreach($related as $r)
-                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-pink-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-pink-700">
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-pink-300 hover:shadow-md dark:border-zinc-200 dark:bg-white dark:hover:border-pink-700">
                     <div class="mb-2 text-xs font-medium uppercase tracking-wider text-pink-600">{{ $r[2] }}</div>
                     <h3 class="text-base font-semibold text-zinc-900 group-hover:text-pink-700 dark:text-zinc-100 dark:group-hover:text-pink-300">{{ $r[1] }}</h3>
                     <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-pink-600">{{ __('Read more') }} →</span>
@@ -173,7 +173,7 @@
     {{-- CTA --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-4xl px-6">
-            <div class="rounded-3xl bg-gradient-to-br from-pink-600 to-purple-600 p-10 text-center text-white sm:p-16">
+            <div class="rounded-3xl bg-gradient-to-br from-pink-600 to-indigo-600 p-10 text-center text-white sm:p-16">
                 <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Turn your Instagram DMs into a sales machine') }}</h2>
                 <p class="mx-auto mt-4 max-w-xl text-lg text-pink-100">{{ __('Connect your Instagram account and let AI handle the conversations while you focus on growing your business.') }}</p>
                 <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-pink-700 shadow-lg transition-all hover:bg-pink-50">
