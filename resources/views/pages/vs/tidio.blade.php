@@ -1,27 +1,23 @@
 <x-layouts.marketing
-    :title="__('One Inbox vs Tidio — Better for Social Sales Teams')"
-    :description="__('Comparing One Inbox vs Tidio? See why social-first businesses choose One Inbox — unified WhatsApp, Instagram, Facebook & Telegram inbox with AI sales agent, not just a website chat widget.')"
+    :title="__('OT1-Pro vs Tidio — Better for Social Sales Teams')"
+    :description="__('Comparing OT1-Pro vs Tidio? See why social-first businesses choose OT1-Pro — unified WhatsApp, Instagram, Facebook & Telegram inbox with AI sales agent, not just a website chat widget.')"
 >
 
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/4 top-0 size-[500px] rounded-full bg-purple-500/10 blur-3xl"></div>
-            <div class="absolute right-0 top-1/3 size-[400px] rounded-full bg-violet-500/8 blur-3xl"></div>
-        </div>
         <div class="mx-auto max-w-4xl px-6 text-center">
             <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-4 py-1.5 text-sm font-medium text-purple-700 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
                 {{ __('Comparison') }}
             </div>
             <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                {{ __('One Inbox vs Tidio') }}
+                {{ __('OT1-Pro vs Tidio') }}
             </h1>
             <p class="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-                {{ __('Tidio is a website live chat tool with a chatbot bolted on. One Inbox is a unified social inbox built for businesses that sell on WhatsApp, Instagram, Facebook, and Telegram — with an AI sales agent that closes deals across every channel.') }}
+                {{ __('Tidio is a website live chat tool with a chatbot bolted on. OT1-Pro is a unified social inbox built for businesses that sell on WhatsApp, Instagram, Facebook, and Telegram — with an AI sales agent that closes deals across every channel.') }}
             </p>
             <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-purple-500/25 transition-all hover:bg-purple-700">
-                    {{ __('Start Free with One Inbox') }}
+                    {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
             </div>
@@ -38,7 +34,7 @@
                     <thead>
                         <tr class="border-b border-zinc-200 dark:border-zinc-700">
                             <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-300">{{ __('Feature') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-purple-600">One Inbox</th>
+                            <th class="px-6 py-4 text-center font-semibold text-purple-600">OT1-Pro</th>
                             <th class="px-6 py-4 text-center font-semibold text-zinc-500">Tidio</th>
                         </tr>
                     </thead>
@@ -70,12 +66,12 @@
         </div>
     </section>
 
-    {{-- Where One Inbox Wins --}}
+    {{-- Where OT1-Pro Wins --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Where One Inbox wins') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Three areas where One Inbox is the better fit if you sell on social.') }}</p>
+                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Where OT1-Pro wins') }}</h2>
+                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Three areas where OT1-Pro is the better fit if you sell on social.') }}</p>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-3">
                 @php
@@ -83,17 +79,17 @@
                     [
                         '📱',
                         __('Built for Social, Not for Widgets'),
-                        __('Tidio\'s home turf is the website chat widget. WhatsApp and Instagram are tacked on as upsells. One Inbox is built social-first — WhatsApp Business, Instagram DMs, Facebook Messenger, and Telegram are first-class citizens with native API integrations, not bolt-ons.'),
+                        __('Tidio\'s home turf is the website chat widget. WhatsApp and Instagram are tacked on as upsells. OT1-Pro is built social-first — WhatsApp Business, Instagram DMs, Facebook Messenger, and Telegram are first-class citizens with native API integrations, not bolt-ons.'),
                     ],
                     [
                         '🤖',
                         __('AI Included on the Free Plan'),
-                        __('Tidio\'s Lyro AI is locked behind the Plus plan ($749/mo) and charges per conversation. One Inbox includes a generative AI sales agent on every plan — including the free tier — that learns your products, qualifies leads, and closes deals in any language.'),
+                        __('Tidio\'s Lyro AI is locked behind the Plus plan ($749/mo) and charges per conversation. OT1-Pro includes a generative AI sales agent on every plan — including the free tier — that learns your products, qualifies leads, and closes deals in any language.'),
                     ],
                     [
                         '💰',
                         __('Predictable Flat Pricing'),
-                        __('Tidio prices per conversation, so a viral campaign or busy week can blow up your bill. One Inbox uses flat team-based pricing — your cost is predictable whether you handle 100 messages or 100,000. No surprise overage charges.'),
+                        __('Tidio prices per conversation, so a viral campaign or busy week can blow up your bill. OT1-Pro uses flat team-based pricing — your cost is predictable whether you handle 100 messages or 100,000. No surprise overage charges.'),
                     ],
                 ];
                 @endphp
@@ -118,16 +114,16 @@
                 @php
                 $faqs = [
                     [
-                        __('Is One Inbox a Tidio alternative?'),
-                        __('One Inbox is the right alternative to Tidio if most of your sales conversations happen on WhatsApp, Instagram, Facebook, or Telegram — not on your website chat widget. Tidio shines as a website live chat tool. One Inbox shines for businesses where customers DM, not browse to your homepage to chat.'),
+                        __('Is OT1-Pro a Tidio alternative?'),
+                        __('OT1-Pro is the right alternative to Tidio if most of your sales conversations happen on WhatsApp, Instagram, Facebook, or Telegram — not on your website chat widget. Tidio shines as a website live chat tool. OT1-Pro shines for businesses where customers DM, not browse to your homepage to chat.'),
                     ],
                     [
-                        __('Does One Inbox replace Tidio\'s Lyro AI?'),
-                        __('Yes — and it\'s included free. Tidio charges $749/month for Lyro AI plus per-conversation fees. One Inbox includes a generative AI sales agent on every plan, including the free tier. The AI is trained on your products, pricing, and brand voice, and it qualifies leads, handles objections, and closes deals across all your channels in any language.'),
+                        __('Does OT1-Pro replace Tidio\'s Lyro AI?'),
+                        __('Yes — and it\'s included free. Tidio charges $749/month for Lyro AI plus per-conversation fees. OT1-Pro includes a generative AI sales agent on every plan, including the free tier. The AI is trained on your products, pricing, and brand voice, and it qualifies leads, handles objections, and closes deals across all your channels in any language.'),
                     ],
                     [
-                        __('Can I move my existing customers from Tidio to One Inbox?'),
-                        __('Yes. The migration path is straightforward: connect your WhatsApp Business number, Instagram, Facebook Page, and Telegram bot to One Inbox in a few minutes. New conversations flow into One Inbox immediately. You can keep Tidio running for the website chat widget if you still need that, or wait for One Inbox\'s upcoming web widget.'),
+                        __('Can I move my existing customers from Tidio to OT1-Pro?'),
+                        __('Yes. The migration path is straightforward: connect your WhatsApp Business number, Instagram, Facebook Page, and Telegram bot to OT1-Pro in a few minutes. New conversations flow into OT1-Pro immediately. You can keep Tidio running for the website chat widget if you still need that, or wait for OT1-Pro\'s upcoming web widget.'),
                     ],
                 ];
                 @endphp
@@ -150,10 +146,10 @@
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-4xl px-6">
             <div class="rounded-3xl bg-gradient-to-br from-purple-600 to-violet-600 p-10 text-center text-white sm:p-16">
-                <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Try One Inbox free — no credit card required') }}</h2>
+                <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Try OT1-Pro free — no credit card required') }}</h2>
                 <p class="mx-auto mt-4 max-w-xl text-lg text-purple-100">{{ __('Join social-first businesses that switched from Tidio to close more deals on WhatsApp and Instagram with AI.') }}</p>
                 <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-purple-700 shadow-lg transition-all hover:bg-purple-50">
-                    {{ __('Start Free with One Inbox') }}
+                    {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
                 <p class="mt-3 text-sm text-purple-200">{{ __('No credit card required · Free plan available') }}</p>
@@ -169,18 +165,18 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "Is One Inbox a Tidio alternative?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "One Inbox is the right alternative to Tidio if most of your sales conversations happen on WhatsApp, Instagram, Facebook, or Telegram — not on your website chat widget. Tidio shines as a website live chat tool. One Inbox shines for businesses where customers DM, not browse to your homepage to chat."}
+            "name": "Is OT1-Pro a Tidio alternative?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "OT1-Pro is the right alternative to Tidio if most of your sales conversations happen on WhatsApp, Instagram, Facebook, or Telegram — not on your website chat widget. Tidio shines as a website live chat tool. OT1-Pro shines for businesses where customers DM, not browse to your homepage to chat."}
         },
         {
             "@@type": "Question",
-            "name": "Does One Inbox replace Tidio's Lyro AI?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes — and it's included free. Tidio charges $749/month for Lyro AI plus per-conversation fees. One Inbox includes a generative AI sales agent on every plan, including the free tier."}
+            "name": "Does OT1-Pro replace Tidio's Lyro AI?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes — and it's included free. Tidio charges $749/month for Lyro AI plus per-conversation fees. OT1-Pro includes a generative AI sales agent on every plan, including the free tier."}
         },
         {
             "@@type": "Question",
-            "name": "Can I move my existing customers from Tidio to One Inbox?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The migration path is straightforward: connect your WhatsApp Business number, Instagram, Facebook Page, and Telegram bot to One Inbox in a few minutes. New conversations flow into One Inbox immediately."}
+            "name": "Can I move my existing customers from Tidio to OT1-Pro?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The migration path is straightforward: connect your WhatsApp Business number, Instagram, Facebook Page, and Telegram bot to OT1-Pro in a few minutes. New conversations flow into OT1-Pro immediately."}
         }
     ]
 }

@@ -1,14 +1,10 @@
 <x-layouts.marketing
-    :title="__('Instagram DM Management Software with AI | One Inbox')"
+    :title="__('Instagram DM Management Software with AI | OT1-Pro')"
     :description="__('Manage all your Instagram DMs from one shared inbox. AI auto-replies to messages, qualifies leads, scores prospects, and hands off hot buyers to your team. Try free.')"
 >
 
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/4 top-0 size-[500px] rounded-full bg-pink-500/10 blur-3xl"></div>
-            <div class="absolute right-0 top-1/3 size-[400px] rounded-full bg-purple-500/8 blur-3xl"></div>
-        </div>
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid items-center gap-12 lg:grid-cols-2">
                 <div>
@@ -17,10 +13,10 @@
                         {{ __('Instagram DM Management') }}
                     </div>
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                        {{ __('Instagram DM Management That Turns') }} <span class="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">{{ __('Followers Into Customers') }}</span>
+                        {{ __('Instagram DM Management That Turns') }} <span class="text-pink-600 dark:text-pink-400">{{ __('Followers Into Customers') }}</span>
                     </h1>
                     <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
-                        {{ __('Your Instagram DMs are full of potential buyers asking questions, checking prices, and ready to buy. One Inbox makes sure every single one gets a reply — instantly, intelligently, and automatically.') }}
+                        {{ __('Your Instagram DMs are full of potential buyers asking questions, checking prices, and ready to buy. OT1-Pro makes sure every single one gets a reply — instantly, intelligently, and automatically.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
                         <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90">
@@ -67,7 +63,7 @@
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Stop leaving Instagram sales on the table') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Every unanswered DM is a potential customer lost. One Inbox makes sure that never happens.') }}</p>
+                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Every unanswered DM is a potential customer lost. OT1-Pro makes sure that never happens.') }}</p>
             </div>
             <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -100,7 +96,7 @@
             <div class="mt-16 space-y-8">
                 @php
                 $steps = [
-                    ['01', __('Connect your Instagram account'), __('Link your Instagram Business account to One Inbox with one click via Facebook Login. Takes under 2 minutes.')],
+                    ['01', __('Connect your Instagram account'), __('Link your Instagram Business account to OT1-Pro with one click via Facebook Login. Takes under 2 minutes.')],
                     ['02', __('Train your AI sales agent'), __('Tell the AI about your products, prices, shipping policy, and brand personality. Upload a product catalog or paste your FAQ — done.')],
                     ['03', __('Let AI handle the DMs'), __('AI starts responding immediately. You review the dashboard, check lead scores, and step in only when a deal needs the human touch.')],
                 ];
@@ -127,8 +123,8 @@
             <div class="mt-12 space-y-4" x-data="{ open: null }">
                 @php
                 $faqs = [
-                    [__('Does Instagram allow automated DM replies?'), __('Yes. One Inbox uses Meta\'s official Instagram Messaging API, which is fully compliant with Instagram\'s terms of service. Your account is safe — no grey-area tools or unofficial access.')],
-                    [__('Can the AI reply to Instagram comments too?'), __('One Inbox currently handles Instagram DMs. Comment-to-DM flows (where you reply to a comment and trigger a DM) are on the roadmap.')],
+                    [__('Does Instagram allow automated DM replies?'), __('Yes. OT1-Pro uses Meta\'s official Instagram Messaging API, which is fully compliant with Instagram\'s terms of service. Your account is safe — no grey-area tools or unofficial access.')],
+                    [__('Can the AI reply to Instagram comments too?'), __('OT1-Pro currently handles Instagram DMs. Comment-to-DM flows (where you reply to a comment and trigger a DM) are on the roadmap.')],
                     [__('Will my followers know they\'re talking to an AI?'), __('That\'s your choice. You can configure the AI to identify itself or to respond as your brand. Many businesses configure a brand persona with a name like "Sara from [Brand]."')],
                     [__('How does it handle multiple languages?'), __('The AI automatically detects the language of the incoming message and replies in the same language. No configuration needed — it works out of the box.')],
                     [__('Can I see all my DMs across multiple Instagram accounts?'), __('Yes. Connect multiple Instagram Business accounts and manage all their DMs from one unified dashboard with separate AI configs per account.')],
@@ -198,7 +194,7 @@
         {
             "@@type": "Question",
             "name": "Does Instagram allow automated DM replies?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox uses Meta's official Instagram Messaging API, which is fully compliant with Instagram's terms of service. Your account is safe."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. OT1-Pro uses Meta's official Instagram Messaging API, which is fully compliant with Instagram's terms of service. Your account is safe."}
         },
         {
             "@@type": "Question",

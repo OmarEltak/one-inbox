@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('WhatsApp Inbox for Real Estate Agents — One Inbox')"
+    :title="__('WhatsApp Inbox for Real Estate Agents — OT1-Pro')"
     :description="__('Manage property inquiries from WhatsApp, Instagram, Facebook, and Telegram in one inbox. AI responds 24/7 so you never miss a buyer or renter lead.')"
     :canonical="route('industry.real-estate')"
 >
@@ -13,7 +13,7 @@
         {
             "@@type": "Question",
             "name": "{{ addslashes(__('Can I manage WhatsApp leads from multiple property listings in one inbox?')) }}",
-            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. One Inbox connects your WhatsApp Business API number alongside Instagram, Facebook, and Telegram. All leads from all platforms appear in one unified inbox that your whole team shares.')) }}" }
+            "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. OT1-Pro connects your WhatsApp Business API number alongside Instagram, Facebook, and Telegram. All leads from all platforms appear in one unified inbox that your whole team shares.')) }}" }
         },
         {
             "@@type": "Question",
@@ -42,7 +42,7 @@
                         {!! __('Close More Property Deals with a <span class="text-purple-400">WhatsApp Inbox</span> for Real Estate') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-300">
-                        {{ __('Buyers and renters message you on WhatsApp, Instagram, and Facebook — often at night, on weekends, when your agents are unavailable. One Inbox and its AI responder make sure every lead gets an instant, intelligent reply.') }}
+                        {{ __('Buyers and renters message you on WhatsApp, Instagram, and Facebook — often at night, on weekends, when your agents are unavailable. OT1-Pro and its AI responder make sure every lead gets an instant, intelligent reply.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a href="{{ route('register') }}" class="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">
@@ -150,7 +150,7 @@
             <h2 class="mb-10 text-center text-3xl font-bold">{{ __('Frequently Asked Questions') }}</h2>
             @php
             $faqs = [
-                [__('Can I manage WhatsApp leads from multiple property listings in one inbox?'), __('Yes. One Inbox connects your WhatsApp Business API number alongside Instagram, Facebook, and Telegram. All leads from all platforms appear in one unified inbox that your whole team shares.')],
+                [__('Can I manage WhatsApp leads from multiple property listings in one inbox?'), __('Yes. OT1-Pro connects your WhatsApp Business API number alongside Instagram, Facebook, and Telegram. All leads from all platforms appear in one unified inbox that your whole team shares.')],
                 [__('How does the AI handle real estate inquiries?'), __('You provide your property listings, pricing, and key FAQs. The AI answers questions about availability, pricing, location, and amenities — and qualifies buyers by budget and timeline before connecting them to a human agent.')],
                 [__('Can multiple agents work the same WhatsApp number?'), __('Yes. With the WhatsApp Business API, your entire team works from one number simultaneously. Conversations are assigned to specific agents so nothing falls through the cracks.')],
                 [__('Does it work for rental agencies as well as property sales?'), __('Absolutely. The AI adapts to rental or sales workflows. Configure it with your available units, pricing, lease terms, and it handles inquiries for both.')],

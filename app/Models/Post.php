@@ -23,7 +23,7 @@ class Post extends Model
 
     public function getMetaTitleAttribute($value): string
     {
-        return $value ?: $this->title . ' | One Inbox Blog';
+        return $value ?: $this->title . ' | OT1-Pro Blog';
     }
 
     public function getMetaDescriptionAttribute($value): string

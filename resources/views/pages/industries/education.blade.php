@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('WhatsApp Inbox for Schools & Education — One Inbox')"
+    :title="__('WhatsApp Inbox for Schools & Education — OT1-Pro')"
     :description="__('Handle student inquiries, enrollment questions, and parent communications via WhatsApp, Instagram, and Facebook. AI responds instantly to every inquiry, 24/7.')"
     :canonical="route('industry.education')"
 >
@@ -37,7 +37,7 @@
                         {!! __('Answer Every <span class="text-purple-400">Student Inquiry</span> Instantly — AI-Powered WhatsApp for Education') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-300">
-                        {{ __('Prospective students and parents message on WhatsApp and Instagram expecting fast answers about courses, fees, and enrollment. One Inbox ensures they always get one — instantly.') }}
+                        {{ __('Prospective students and parents message on WhatsApp and Instagram expecting fast answers about courses, fees, and enrollment. OT1-Pro ensures they always get one — instantly.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a href="{{ route('register') }}" class="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">
@@ -101,7 +101,7 @@
                 [__('Can the AI answer enrollment and admission questions?'), __('Yes. You configure the AI with your programs, fees, admission requirements, and deadlines. It answers prospective student inquiries accurately and around the clock — a huge advantage during enrollment season.')],
                 [__('Can it handle Arabic and English inquiries?'), __('Yes. The AI detects the language the student or parent is writing in and responds in the same language — no configuration needed. Ideal for bilingual institutions.')],
                 [__('Can multiple departments use the same inbox?'), __('Yes. Use assignment rules to route enrollment inquiries to admissions, fee questions to finance, and academic questions to the relevant department — all from one shared inbox.')],
-                [__('Does it work for universities, schools, and training centers?'), __('Yes. One Inbox works for any educational institution handling inquiries via WhatsApp or social media — from language schools to universities.')],
+                [__('Does it work for universities, schools, and training centers?'), __('Yes. OT1-Pro works for any educational institution handling inquiries via WhatsApp or social media — from language schools to universities.')],
             ];
             @endphp
             <div class="space-y-4">

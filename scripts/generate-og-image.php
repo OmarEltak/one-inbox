@@ -59,12 +59,12 @@ $lineHeight = 84;
 $startY = 280;
 if ($titleFont !== null) {
     imagettftext($im, 56, 0, 80, $startY, $white, $titleFont, 'Every message.');
-    imagettftext($im, 56, 0, 80, $startY + $lineHeight, $accentPurple, $titleFont, 'One inbox.');
+    imagettftext($im, 56, 0, 80, $startY + $lineHeight, $accentPurple, $titleFont, 'OT1-Pro.');
     imagettftext($im, 56, 0, 80, $startY + 2 * $lineHeight, $white, $titleFont, 'Zero missed sales.');
 } else {
     // Fallback when no TTF font is available — bigger bitmap font tile.
     imagestring($im, 5, 80, $startY - 14, 'Every message.', $white);
-    imagestring($im, 5, 80, $startY - 14 + $lineHeight, 'One inbox.', $accentPurple);
+    imagestring($im, 5, 80, $startY - 14 + $lineHeight, 'OT1-Pro.', $accentPurple);
     imagestring($im, 5, 80, $startY - 14 + 2 * $lineHeight, 'Zero missed sales.', $white);
 }
 

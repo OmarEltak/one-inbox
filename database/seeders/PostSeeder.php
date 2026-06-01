@@ -18,11 +18,11 @@ class PostSeeder extends Seeder
                 'title'            => 'How to Manage WhatsApp Business Messages at Scale (2025 Guide)',
                 'slug'             => 'manage-whatsapp-business-messages-at-scale',
                 'excerpt'          => 'As your business grows, managing WhatsApp Business messages across multiple agents becomes a serious challenge. Here\'s how to do it without chaos.',
-                'meta_title'       => 'How to Manage WhatsApp Business Messages at Scale — One Inbox',
+                'meta_title'       => 'How to Manage WhatsApp Business Messages at Scale — OT1-Pro',
                 'meta_description' => 'Learn how to manage WhatsApp Business messages at scale with team inboxes, AI auto-replies, and assignment rules. 2025 guide for growing businesses.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(2),
                 'content'          => <<<HTML
 <p>When you first set up WhatsApp Business, replying to every message yourself feels manageable. But once orders start coming in, inquiries stack up, and you've got three agents trying to work out of the same phone — things break down fast.</p>
@@ -54,7 +54,7 @@ class PostSeeder extends Seeder
 <li>Integration with CRM, ticketing systems, and AI responders</li>
 </ul>
 
-<p>To use the API, you need a platform that sits in front of it — this is called a <strong>shared WhatsApp inbox</strong> or a <strong>WhatsApp team inbox</strong>. One Inbox is one example; others include Trengo, Respond.io, and Freshchat.</p>
+<p>To use the API, you need a platform that sits in front of it — this is called a <strong>shared WhatsApp inbox</strong> or a <strong>WhatsApp team inbox</strong>. OT1-Pro is one example; others include Trengo, Respond.io, and Freshchat.</p>
 
 <h2>Setting Up a Team Workflow That Actually Works</h2>
 
@@ -101,7 +101,7 @@ class PostSeeder extends Seeder
 
 <h2>Getting Started</h2>
 
-<p>If you're managing more than 50 WhatsApp conversations a day, a shared inbox pays for itself quickly. One Inbox connects your WhatsApp Business API account alongside Facebook, Instagram, and Telegram — so your whole team works from one place, with AI handling the repetitive stuff.</p>
+<p>If you're managing more than 50 WhatsApp conversations a day, a shared inbox pays for itself quickly. OT1-Pro connects your WhatsApp Business API account alongside Facebook, Instagram, and Telegram — so your whole team works from one place, with AI handling the repetitive stuff.</p>
 
 <p>Start free, no credit card required.</p>
 HTML,
@@ -114,11 +114,11 @@ HTML,
                 'title'            => 'Best WhatsApp Business Inbox Tools in 2025 (Honest Comparison)',
                 'slug'             => 'best-whatsapp-business-inbox-tools-2025',
                 'excerpt'          => 'Not every WhatsApp inbox tool is worth the price. We compared the top options on features, pricing, and ease of use so you don\'t have to.',
-                'meta_title'       => 'Best WhatsApp Business Inbox Tools in 2025 — One Inbox',
-                'meta_description' => 'Compare the best WhatsApp Business inbox tools in 2025: One Inbox, Trengo, Respond.io, ManyChat, and Freshchat. Pricing, features, and honest pros & cons.',
+                'meta_title'       => 'Best WhatsApp Business Inbox Tools in 2025 — OT1-Pro',
+                'meta_description' => 'Compare the best WhatsApp Business inbox tools in 2025: OT1-Pro, Trengo, Respond.io, ManyChat, and Freshchat. Pricing, features, and honest pros & cons.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '7 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(5),
                 'content'          => <<<HTML
 <p>A WhatsApp Business inbox tool lets your team manage customer conversations together — with assignment, automation, and analytics. But with so many options at wildly different price points, choosing the right one matters.</p>
@@ -138,9 +138,9 @@ HTML,
 
 <h2>The Top WhatsApp Business Inbox Tools</h2>
 
-<h3>1. One Inbox — Best for AI-Powered Multichannel</h3>
+<h3>1. OT1-Pro — Best for AI-Powered Multichannel</h3>
 
-<p>One Inbox connects WhatsApp, Facebook Messenger, Instagram DMs, and Telegram into a single team inbox. The standout feature is the <strong>AI sales responder</strong>: trained on your business context, it handles inquiries, qualifies leads, and closes simple deals around the clock.</p>
+<p>OT1-Pro connects WhatsApp, Facebook Messenger, Instagram DMs, and Telegram into a single team inbox. The standout feature is the <strong>AI sales responder</strong>: trained on your business context, it handles inquiries, qualifies leads, and closes simple deals around the clock.</p>
 
 <p><strong>Best for:</strong> Small to mid-size businesses that want WhatsApp + other social channels + AI automation without paying enterprise prices.</p>
 
@@ -236,7 +236,7 @@ HTML,
 
 <p>| Tool | Starting Price | AI Responder | Channels | Best For |</p>
 <p>|------|---------------|--------------|----------|----------|</p>
-<p>| One Inbox | Free / $29 | ✅ Built-in | WA, IG, FB, TG | SMBs, AI-first |</p>
+<p>| OT1-Pro | Free / $29 | ✅ Built-in | WA, IG, FB, TG | SMBs, AI-first |</p>
 <p>| Trengo | ~€99/mo | Partial | Many | Larger teams |</p>
 <p>| Respond.io | $79/mo | Partial | Many | Complex automation |</p>
 <p>| ManyChat | Free / $15 | ❌ | FB, IG, WA | Campaigns |</p>
@@ -244,7 +244,7 @@ HTML,
 
 <h2>Bottom Line</h2>
 
-<p>If you're a small or growing business that wants WhatsApp + other social channels + genuine AI automation without enterprise pricing, One Inbox is worth starting with. It's free to try, and the AI responder alone can save hours of manual replies per day.</p>
+<p>If you're a small or growing business that wants WhatsApp + other social channels + genuine AI automation without enterprise pricing, OT1-Pro is worth starting with. It's free to try, and the AI responder alone can save hours of manual replies per day.</p>
 HTML,
             ],
 
@@ -255,11 +255,11 @@ HTML,
                 'title'            => 'Instagram DM Management for Business: The Complete 2025 Guide',
                 'slug'             => 'instagram-dm-management-for-business',
                 'excerpt'          => 'Instagram DMs are now a serious sales channel. But managing them without the right tools means missed orders and frustrated customers. Here\'s how to handle them at scale.',
-                'meta_title'       => 'Instagram DM Management for Business (2025 Guide) — One Inbox',
+                'meta_title'       => 'Instagram DM Management for Business (2025 Guide) — OT1-Pro',
                 'meta_description' => 'Learn how to manage Instagram DMs for business at scale. Team inbox setup, automation, AI responses, and response time tips for growing brands.',
                 'category'         => 'Instagram',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(8),
                 'content'          => <<<HTML
 <p>Instagram DMs have quietly become one of the highest-converting sales channels for consumer brands. Customers who DM you are already interested — they're a few messages away from buying. But the native Instagram interface isn't built for business teams handling hundreds of conversations a day.</p>
@@ -291,7 +291,7 @@ HTML,
 <h2>Setting Up Your Instagram DM Workflow</h2>
 
 <h3>Step 1: Connect your Instagram Business Account via API</h3>
-<p>You need a <strong>professional Instagram account</strong> (Business or Creator) connected to a Facebook Page. This is what enables API access through tools like One Inbox.</p>
+<p>You need a <strong>professional Instagram account</strong> (Business or Creator) connected to a Facebook Page. This is what enables API access through tools like OT1-Pro.</p>
 
 <h3>Step 2: Route conversations by intent</h3>
 <p>Not every DM needs the same treatment. Set up routing rules:</p>
@@ -331,7 +331,7 @@ HTML,
 <li><strong>Conversion from DM</strong> — how many DM conversations result in a sale? Track this with UTM links or order codes</li>
 </ul>
 
-<p>One Inbox connects Instagram alongside your other social channels, so your team handles WhatsApp, Facebook, and Telegram from the same place. The AI responder works across all channels simultaneously.</p>
+<p>OT1-Pro connects Instagram alongside your other social channels, so your team handles WhatsApp, Facebook, and Telegram from the same place. The AI responder works across all channels simultaneously.</p>
 HTML,
             ],
 
@@ -342,11 +342,11 @@ HTML,
                 'title'            => 'AI Sales Responder for WhatsApp: Close Deals While You Sleep',
                 'slug'             => 'ai-sales-responder-whatsapp',
                 'excerpt'          => 'An AI sales responder on WhatsApp isn\'t just a chatbot — it\'s a 24/7 sales rep that qualifies leads, answers questions, and closes deals. Here\'s how it works.',
-                'meta_title'       => 'AI Sales Responder for WhatsApp: Close Deals 24/7 — One Inbox',
+                'meta_title'       => 'AI Sales Responder for WhatsApp: Close Deals 24/7 — OT1-Pro',
                 'meta_description' => 'See how an AI sales responder on WhatsApp qualifies leads, answers product questions, and closes sales automatically — without hiring more staff.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(12),
                 'content'          => <<<HTML
 <p>Your customers don't shop on a 9-to-5 schedule. They message you at 11 pm, on weekends, during holidays — and if you don't respond within minutes, they move on to a competitor who does. An <strong>AI sales responder</strong> solves this problem permanently.</p>
@@ -395,7 +395,7 @@ HTML,
 <li><strong>Escalation rules</strong> — what situations always need a human?</li>
 </ul>
 
-<p>In One Inbox, you fill out a business profile form. The AI uses that as its knowledge base and responds within your defined boundaries.</p>
+<p>In OT1-Pro, you fill out a business profile form. The AI uses that as its knowledge base and responds within your defined boundaries.</p>
 
 <h2>Real Results: What to Expect</h2>
 
@@ -422,7 +422,7 @@ HTML,
 
 <h2>Getting Started</h2>
 
-<p>One Inbox includes an AI sales responder as a core feature — not an add-on. Connect your WhatsApp account, fill in your business profile, and the AI starts handling conversations immediately. You can monitor every conversation, override responses, and fine-tune the training as you go.</p>
+<p>OT1-Pro includes an AI sales responder as a core feature — not an add-on. Connect your WhatsApp account, fill in your business profile, and the AI starts handling conversations immediately. You can monitor every conversation, override responses, and fine-tune the training as you go.</p>
 HTML,
             ],
 
@@ -433,11 +433,11 @@ HTML,
                 'title'            => 'Unified Social Inbox: Why Every Growing Business Needs One in 2025',
                 'slug'             => 'unified-social-inbox-guide',
                 'excerpt'          => 'Switching between WhatsApp, Instagram, Facebook, and Telegram wastes time and loses customers. A unified social inbox fixes that — here\'s everything you need to know.',
-                'meta_title'       => 'Unified Social Inbox: Complete Guide for 2025 — One Inbox',
+                'meta_title'       => 'Unified Social Inbox: Complete Guide for 2025 — OT1-Pro',
                 'meta_description' => 'Learn what a unified social inbox is, why your business needs one, and how to set it up for WhatsApp, Instagram, Facebook Messenger, and Telegram.',
                 'category'         => 'Social CX',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(15),
                 'content'          => <<<HTML
 <p>The average customer-facing business today manages conversations across at least 3–4 messaging channels. They're on WhatsApp because it's convenient. They DM on Instagram because they found you there. They message on Facebook because your ad ran there. And they might be on Telegram too.</p>
@@ -484,7 +484,7 @@ HTML,
 
 <h2>How to Set Up a Unified Inbox for Your Business</h2>
 
-<p><strong>Step 1: Choose your platform.</strong> Options include One Inbox, Trengo, Respond.io, Freshchat. Compare on price, channel coverage, and whether AI is core or a bolt-on.</p>
+<p><strong>Step 1: Choose your platform.</strong> Options include OT1-Pro, Trengo, Respond.io, Freshchat. Compare on price, channel coverage, and whether AI is core or a bolt-on.</p>
 
 <p><strong>Step 2: Connect your accounts.</strong> You'll need admin access to your Facebook Page, Instagram Business account, and WhatsApp Business API credentials. Most platforms guide you through this with an OAuth flow.</p>
 
@@ -517,11 +517,11 @@ HTML,
                 'title'            => 'How to Set Up a Shared WhatsApp Inbox for Your Team',
                 'slug'             => 'shared-whatsapp-inbox-team-setup',
                 'excerpt'          => 'A shared WhatsApp inbox lets multiple agents handle customer conversations from the same number — with assignment, history, and analytics. Here\'s how to set one up.',
-                'meta_title'       => 'How to Set Up a Shared WhatsApp Inbox for Your Team — One Inbox',
+                'meta_title'       => 'How to Set Up a Shared WhatsApp Inbox for Your Team — OT1-Pro',
                 'meta_description' => 'Step-by-step guide to setting up a shared WhatsApp Business inbox for your team. Multiple agents, one number, with assignment and reporting.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(18),
                 'content'          => <<<HTML
 <p>A shared WhatsApp inbox gives your entire team access to a single WhatsApp Business number — with no credential sharing, no double replies, and full visibility into every conversation.</p>
@@ -533,7 +533,7 @@ HTML,
 <ul>
 <li>A <strong>WhatsApp Business API</strong> number (not the WhatsApp Business app — those are different things)</li>
 <li>A Facebook Business Manager account (required for the WhatsApp Business API)</li>
-<li>A shared inbox platform (One Inbox, Trengo, Respond.io, etc.)</li>
+<li>A shared inbox platform (OT1-Pro, Trengo, Respond.io, etc.)</li>
 </ul>
 
 <p>If you're currently using the WhatsApp Business app, you'll need to migrate. This means registering your number with a BSP (Business Solution Provider) or Meta directly. The process takes 1–3 business days.</p>
@@ -542,7 +542,7 @@ HTML,
 
 <p>There are two paths:</p>
 
-<p><strong>Option A: Via a platform that acts as BSP.</strong> Many shared inbox tools (including One Inbox) are Meta BSPs or work with BSPs. You connect through them directly — they handle the API setup.</p>
+<p><strong>Option A: Via a platform that acts as BSP.</strong> Many shared inbox tools (including OT1-Pro) are Meta BSPs or work with BSPs. You connect through them directly — they handle the API setup.</p>
 
 <p><strong>Option B: Via Meta directly.</strong> You apply for Cloud API access through Meta's Business Manager. More control, but more complex setup.</p>
 
@@ -610,7 +610,7 @@ HTML,
 
 <p>Adjust your assignment rules based on what you observe. Most teams hit a stable workflow within 1–2 weeks.</p>
 
-<p>One Inbox includes all of this — WhatsApp API connection, team management, assignment rules, saved replies, and AI responder — in a single platform. Free to start.</p>
+<p>OT1-Pro includes all of this — WhatsApp API connection, team management, assignment rules, saved replies, and AI responder — in a single platform. Free to start.</p>
 HTML,
             ],
 
@@ -621,11 +621,11 @@ HTML,
                 'title'            => 'Facebook Messenger for Business: Complete 2025 Setup Guide',
                 'slug'             => 'facebook-messenger-business-guide',
                 'excerpt'          => 'Facebook Messenger handles over 1 billion conversations a day. For businesses, it\'s a powerful sales and support channel — if you set it up right.',
-                'meta_title'       => 'Facebook Messenger for Business: 2025 Setup Guide — One Inbox',
+                'meta_title'       => 'Facebook Messenger for Business: 2025 Setup Guide — OT1-Pro',
                 'meta_description' => 'Learn how to use Facebook Messenger for business: page inbox setup, team management, auto-replies, AI responder, and best practices for 2025.',
                 'category'         => 'Facebook',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(22),
                 'content'          => <<<HTML
 <p>Facebook Messenger is one of the most underutilized business tools in the social media ecosystem. It's free, customers already use it, and it connects directly to your Facebook Page. Yet most businesses treat it as an afterthought — checking it once a day and missing the conversations that drive sales.</p>
@@ -693,7 +693,7 @@ HTML,
 <li><strong>Both</strong> matter if you're running a Facebook Page and WhatsApp Business simultaneously — which is most consumer-facing businesses</li>
 </ul>
 
-<p>The practical answer: use both, from one inbox, with one AI responder covering both. That's exactly what One Inbox is built for.</p>
+<p>The practical answer: use both, from one inbox, with one AI responder covering both. That's exactly what OT1-Pro is built for.</p>
 
 <h2>Key Metrics for Messenger</h2>
 
@@ -712,11 +712,11 @@ HTML,
                 'title'            => 'WhatsApp CRM: The Complete Guide for 2026',
                 'slug'             => 'whatsapp-crm-complete-guide',
                 'excerpt'          => 'A WhatsApp CRM connects every customer conversation, contact record, and sales pipeline stage to your WhatsApp Business number. Here\'s how it works and what to look for.',
-                'meta_title'       => 'WhatsApp CRM: Complete Guide for 2026 — One Inbox',
+                'meta_title'       => 'WhatsApp CRM: Complete Guide for 2026 — OT1-Pro',
                 'meta_description' => 'What is a WhatsApp CRM, how does it work, and which one should you choose? Complete 2026 guide covering features, pricing, and setup for sales teams.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '8 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(6),
                 'content'          => <<<HTML
 <p>If you've ever lost a hot lead because their message got buried under a hundred others, or had a sales rep follow up with a customer twice while another rep didn't follow up at all — you already understand why WhatsApp CRM exists.</p>
@@ -754,7 +754,7 @@ HTML,
 
 <p>A self-hosted gateway scans the WhatsApp Web QR code from your phone, then forwards messages through an unofficial bridge. Faster to set up, no per-message cost, but technically against WhatsApp's Terms of Service if used at high volume. Best for SMB and side-projects, not for enterprises that need compliance guarantees.</p>
 
-<p>One Inbox supports both paths — Cloud API for official enterprise use, QR gateway for fast SMB setup.</p>
+<p>OT1-Pro supports both paths — Cloud API for official enterprise use, QR gateway for fast SMB setup.</p>
 
 <h2>Must-Have Features in a WhatsApp CRM</h2>
 
@@ -824,7 +824,7 @@ HTML,
 
 <p>The fastest way to test a WhatsApp CRM is to connect a single number to a free trial and run real conversations through it for a week. Track three metrics: response time, conversation-to-deal rate, and time spent per conversation. If those three improve, you've found the right tool.</p>
 
-<p>One Inbox includes WhatsApp CRM features on every plan — including the free tier — with native AI sales agent, multi-channel inbox, and flat team pricing. Start free at one-inbox.test/register.</p>
+<p>OT1-Pro includes WhatsApp CRM features on every plan — including the free tier — with native AI sales agent, multi-channel inbox, and flat team pricing. Start free at one-inbox.test/register.</p>
 HTML,
             ],
 
@@ -835,11 +835,11 @@ HTML,
                 'title'            => 'How to Auto-Reply to Instagram Comments with AI (2026 Guide)',
                 'slug'             => 'auto-reply-instagram-comments-ai',
                 'excerpt'          => 'Manually replying to every Instagram comment is impossible past a certain point. Here\'s how to set up AI to handle comment replies automatically — without sounding like a bot.',
-                'meta_title'       => 'AI Auto-Reply to Instagram Comments: 2026 Setup Guide — One Inbox',
+                'meta_title'       => 'AI Auto-Reply to Instagram Comments: 2026 Setup Guide — OT1-Pro',
                 'meta_description' => 'Learn how to auto-reply to Instagram comments with AI in 2026. Includes setup steps, prompt templates, and how to convert comments into DM conversations that close.',
                 'category'         => 'Instagram',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(4),
                 'content'          => <<<HTML
 <p>If you run an Instagram account with even modest reach — say 10,000 followers — you already know how impossible it is to reply to every comment. Yet every unreplied comment is a missed opportunity: comments are public buying signals, and the people commenting are warm leads.</p>
@@ -880,7 +880,7 @@ HTML,
 
 <p>You need a platform with Meta-approved access to Instagram Comments and Messages APIs. The platform listens for comment events via webhook, sends them to its AI engine, and posts the reply.</p>
 
-<p>One Inbox handles this end-to-end — connect your Instagram via the Connections page, and the AI starts replying within minutes.</p>
+<p>OT1-Pro handles this end-to-end — connect your Instagram via the Connections page, and the AI starts replying within minutes.</p>
 
 <h3>3. Configure Comment Trigger Rules</h3>
 
@@ -946,7 +946,7 @@ HTML,
 
 <p>The fastest path: connect Instagram to a unified inbox tool, write a 200-word system prompt for your brand voice, and let it run for a week. Sample 50 replies, refine the prompt, then leave it on. The AI gets better the more conversations it sees.</p>
 
-<p>One Inbox handles Instagram comment replies and auto-DMs out of the box, including the AI sales agent that qualifies leads and books appointments. Free plan available.</p>
+<p>OT1-Pro handles Instagram comment replies and auto-DMs out of the box, including the AI sales agent that qualifies leads and books appointments. Free plan available.</p>
 HTML,
             ],
 
@@ -957,11 +957,11 @@ HTML,
                 'title'            => 'AI Sales Chatbot for Instagram: 2026 Setup Guide',
                 'slug'             => 'ai-sales-chatbot-instagram',
                 'excerpt'          => 'An Instagram AI sales chatbot replies to DMs 24/7, qualifies leads, and closes deals while you sleep. Here\'s how to set one up that actually sells.',
-                'meta_title'       => 'AI Sales Chatbot for Instagram: 2026 Setup Guide — One Inbox',
+                'meta_title'       => 'AI Sales Chatbot for Instagram: 2026 Setup Guide — OT1-Pro',
                 'meta_description' => 'Learn how to set up an AI sales chatbot for Instagram in 2026. Covers tooling, prompt design, lead qualification, handoff to humans, and real conversion examples.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '7 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(2),
                 'content'          => <<<HTML
 <p>Instagram is now the #1 sales channel for many DTC brands, course creators, and service businesses. The DMs flood in — at all hours, in multiple languages, with the same questions repeated a thousand times. An AI sales chatbot solves this without losing the human touch buyers expect.</p>
@@ -1000,7 +1000,7 @@ HTML,
 
 <p>Pick a platform that handles Instagram DMs natively and includes a generative AI sales agent. Avoid tools where the AI is rule-based or template-based — those feel like robots and customers tune them out.</p>
 
-<p>One Inbox is built around generative AI specifically tuned for sales conversations across Instagram, WhatsApp, Facebook, and Telegram.</p>
+<p>OT1-Pro is built around generative AI specifically tuned for sales conversations across Instagram, WhatsApp, Facebook, and Telegram.</p>
 
 <h3>3. Train the AI on Your Business</h3>
 
@@ -1075,7 +1075,7 @@ HTML,
 
 <p>The minimum viable setup is: connect Instagram, write a 500-word system prompt, set up basic lead scoring, run for a week, then iterate. Within 30 days, a properly tuned AI sales chatbot can handle 80% of inbound DMs autonomously and lift conversion rate 30-50%.</p>
 
-<p>One Inbox includes the AI sales agent on every plan, with native Instagram DM integration, lead scoring, and AI-human handoff. Start free at one-inbox.test/register.</p>
+<p>OT1-Pro includes the AI sales agent on every plan, with native Instagram DM integration, lead scoring, and AI-human handoff. Start free at one-inbox.test/register.</p>
 HTML,
             ],
 
@@ -1086,11 +1086,11 @@ HTML,
                 'title'            => 'WhatsApp Business API: How to Get Access and Set It Up (2026)',
                 'slug'             => 'whatsapp-business-api-setup',
                 'excerpt'          => 'The WhatsApp Business API unlocks bulk messaging, multi-agent inboxes, and AI integration. Here\'s the no-fluff path to getting it set up.',
-                'meta_title'       => 'WhatsApp Business API: 2026 Setup Guide — One Inbox',
+                'meta_title'       => 'WhatsApp Business API: 2026 Setup Guide — OT1-Pro',
                 'meta_description' => 'Step-by-step guide to getting WhatsApp Business API access in 2026. Cloud API vs On-Premises, BSP vs direct, costs, and approval timelines explained.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '7 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(8),
                 'content'          => <<<HTML
 <p>If you\'ve ever tried to apply for WhatsApp Business API access, you know it\'s a maze. Multiple paths, confusing terminology, and providers selling the same thing at wildly different prices. This guide cuts through it: what you need, how to get it, and what to avoid.</p>
@@ -1130,7 +1130,7 @@ HTML,
 
 <h3>Path 3: SaaS Platform With Built-In API</h3>
 
-<p>Tools like One Inbox connect directly to your Cloud API token and give you a multi-channel inbox + AI on top. You bring the API access, they provide the UX.</p>
+<p>Tools like OT1-Pro connect directly to your Cloud API token and give you a multi-channel inbox + AI on top. You bring the API access, they provide the UX.</p>
 
 <p>Pros: no per-message markup, full ownership of your number, modern features. Cons: you still need to do the Meta setup yourself (~30 min).</p>
 
@@ -1175,7 +1175,7 @@ HTML,
 <li>Run a test conversation end-to-end before going live</li>
 </ol>
 
-<p>One Inbox supports Cloud API directly — no BSP markup. Connect in the Settings → Connections page once you have your access token. Free plan available.</p>
+<p>OT1-Pro supports Cloud API directly — no BSP markup. Connect in the Settings → Connections page once you have your access token. Free plan available.</p>
 HTML,
             ],
 
@@ -1186,11 +1186,11 @@ HTML,
                 'title'            => 'WhatsApp Lead Generation: 7 Proven Strategies for 2026',
                 'slug'             => 'whatsapp-lead-generation-strategies',
                 'excerpt'          => 'Stop chasing cold leads. WhatsApp converts at 3-5x the rate of email and ads. Here are 7 strategies that actually fill your pipeline.',
-                'meta_title'       => 'WhatsApp Lead Generation: 7 Proven Strategies for 2026 — One Inbox',
+                'meta_title'       => 'WhatsApp Lead Generation: 7 Proven Strategies for 2026 — OT1-Pro',
                 'meta_description' => 'Generate leads on WhatsApp with 7 proven strategies: click-to-chat ads, QR codes, status-based capture, AI qualification, and more.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '7 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(10),
                 'content'          => <<<HTML
 <p>Email open rates are 20%. Cold call answer rates are 5%. WhatsApp message read rates? <strong>98%, usually within 5 minutes</strong>. That\'s why every modern sales team is moving lead generation from forms and emails to WhatsApp conversations.</p>
@@ -1277,7 +1277,7 @@ HTML,
 
 <p>Start with one. Measure conversion. Layer in the next one once it\'s working.</p>
 
-<p>One Inbox handles all 7 strategies in one platform — including AI qualification and lead scoring out of the box. Free plan available.</p>
+<p>OT1-Pro handles all 7 strategies in one platform — including AI qualification and lead scoring out of the box. Free plan available.</p>
 HTML,
             ],
 
@@ -1288,11 +1288,11 @@ HTML,
                 'title'            => 'How to Set Up a WhatsApp Chatbot Without Coding (2026)',
                 'slug'             => 'whatsapp-chatbot-no-code',
                 'excerpt'          => 'You don\'t need a developer or a six-figure budget to deploy a WhatsApp chatbot. Here\'s the no-code setup that takes 30 minutes.',
-                'meta_title'       => 'WhatsApp Chatbot Without Coding: 2026 Setup Guide — One Inbox',
+                'meta_title'       => 'WhatsApp Chatbot Without Coding: 2026 Setup Guide — OT1-Pro',
                 'meta_description' => 'Build a WhatsApp chatbot with no coding. Step-by-step guide to AI vs flow-based bots, setup in 30 minutes, and what to automate first.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(12),
                 'content'          => <<<HTML
 <p>"Chatbot" used to mean hiring a developer, paying $5,000+ for a custom build, and waiting two months. In 2026, you can have a working WhatsApp chatbot live in 30 minutes — no code. Here\'s how.</p>
@@ -1384,7 +1384,7 @@ HTML,
 
 <p>No-code WhatsApp chatbot platforms typically run $0-$200/month. Plus WhatsApp Cloud API conversation fees (a few cents per conversation). Most SMBs spend under $100/month total — vs $5,000+ for a custom build.</p>
 
-<p>One Inbox includes a generative AI chatbot on every plan, including the free tier. Connect your WhatsApp number, paste your knowledge, and go live in 30 minutes.</p>
+<p>OT1-Pro includes a generative AI chatbot on every plan, including the free tier. Connect your WhatsApp number, paste your knowledge, and go live in 30 minutes.</p>
 HTML,
             ],
 
@@ -1395,11 +1395,11 @@ HTML,
                 'title'            => 'WhatsApp for E-commerce: Recover Abandoned Carts Automatically',
                 'slug'             => 'whatsapp-ecommerce-cart-recovery',
                 'excerpt'          => '70% of online shoppers abandon their carts. WhatsApp recovers 30-45% of them — vs 8-12% for email. Here\'s how to set it up.',
-                'meta_title'       => 'WhatsApp Cart Recovery for E-commerce: 2026 Guide — One Inbox',
+                'meta_title'       => 'WhatsApp Cart Recovery for E-commerce: 2026 Guide — OT1-Pro',
                 'meta_description' => 'Recover abandoned carts with WhatsApp automation. 30-45% recovery rate vs 8-12% with email. Setup guide for Shopify, WooCommerce, and custom stores.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(14),
                 'content'          => <<<HTML
 <p>The average e-commerce store loses <strong>70% of its potential revenue</strong> to cart abandonment. Email cart recovery flows recover 8-12% of those lost sales. WhatsApp recovers 30-45%. The math is dramatic — and the setup is simpler than you\'d expect.</p>
@@ -1512,7 +1512,7 @@ HTML,
 
 <p>This is sales, not just recovery. And it scales because AI handles 80% of the replies automatically.</p>
 
-<p>One Inbox connects to Shopify, WooCommerce, and custom stores via webhook. Cart recovery sequences run on autopilot with AI handling replies. Free plan available.</p>
+<p>OT1-Pro connects to Shopify, WooCommerce, and custom stores via webhook. Cart recovery sequences run on autopilot with AI handling replies. Free plan available.</p>
 HTML,
             ],
 
@@ -1523,11 +1523,11 @@ HTML,
                 'title'            => 'How to Automate WhatsApp Replies Without Losing the Human Touch',
                 'slug'             => 'automate-whatsapp-replies-human-touch',
                 'excerpt'          => 'Automation done badly feels robotic and pushes customers away. Here\'s how to scale WhatsApp replies while keeping conversations warm.',
-                'meta_title'       => 'How to Automate WhatsApp Replies Without Sounding Robotic — One Inbox',
+                'meta_title'       => 'How to Automate WhatsApp Replies Without Sounding Robotic — OT1-Pro',
                 'meta_description' => 'Scale WhatsApp customer service without losing the human touch. Hybrid AI-human workflows, brand voice prompts, and handoff rules that work.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(16),
                 'content'          => <<<HTML
 <p>The fear about automating WhatsApp is real: badly-automated chats feel like talking to a vending machine. Customers tune out, abandon conversations, and tell their friends your brand is impersonal. But hand-replying to every message doesn\'t scale past a few hundred a day.</p>
@@ -1621,7 +1621,7 @@ Bad: "The price for the blue hoodie is \$48.00 USD. Shipping fee applies for ord
 
 <p>If reply rates drop or sentiment trends negative, refine the prompt. Read 20 real conversations a week. The fix is almost always "the AI is too formal" or "the AI doesn\'t reference what the customer said."</p>
 
-<p>One Inbox\'s AI sales agent is generative (Gemini-powered), context-aware, and includes brand voice prompts in every plan. Free tier available.</p>
+<p>OT1-Pro\'s AI sales agent is generative (Gemini-powered), context-aware, and includes brand voice prompts in every plan. Free tier available.</p>
 HTML,
             ],
 
@@ -1636,7 +1636,7 @@ HTML,
                 'meta_description' => 'Turn Instagram followers into qualified leads with DM automation. Funnel design, AI qualification, and conversion benchmarks for 2026.',
                 'category'         => 'Instagram',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(18),
                 'content'          => <<<HTML
 <p>If you\'re still measuring Instagram success in followers and likes, you\'re measuring vanity. The real metric is leads in your inbox — qualified, engaged, ready to buy. DM automation makes that scalable.</p>
@@ -1718,7 +1718,7 @@ HTML,
 
 <p>For most Instagram-first DTC brands, this funnel produces 10-30 qualified leads per 100 comments.</p>
 
-<p>One Inbox runs this entire funnel — comment monitoring, keyword triggers, AI qualification, lead scoring, and team handoff — natively for Instagram. Free plan available.</p>
+<p>OT1-Pro runs this entire funnel — comment monitoring, keyword triggers, AI qualification, lead scoring, and team handoff — natively for Instagram. Free plan available.</p>
 HTML,
             ],
 
@@ -1733,7 +1733,7 @@ HTML,
                 'meta_description' => 'Convert Instagram comments to DM conversations using AI. Step-by-step setup, message templates, and conversion benchmarks.',
                 'category'         => 'Instagram',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(20),
                 'content'          => <<<HTML
 <p>Every public comment on your Instagram post is a public statement of interest. But comments don\'t convert — DMs do. The path from "great post!" to "where do I buy?" is moving the conversation private. Here\'s how to do it at scale.</p>
@@ -1835,7 +1835,7 @@ What size are you looking for?</p>
 
 <p>That\'s 3-5 sales from one Instagram post — without you manually doing anything. Multiply across daily posts, and the math is dramatic.</p>
 
-<p>One Inbox handles comment monitoring, public replies, auto-DMs, and AI qualification natively. Connect Instagram, set the keyword triggers, and the funnel runs itself.</p>
+<p>OT1-Pro handles comment monitoring, public replies, auto-DMs, and AI qualification natively. Connect Instagram, set the keyword triggers, and the funnel runs itself.</p>
 HTML,
             ],
 
@@ -1846,11 +1846,11 @@ HTML,
                 'title'            => 'Instagram DM Scripts That Convert Followers Into Customers',
                 'slug'             => 'instagram-dm-scripts-convert',
                 'excerpt'          => 'Steal these proven Instagram DM scripts for sales, support, lead nurturing, and re-engagement. Tested across thousands of conversations.',
-                'meta_title'       => 'Instagram DM Scripts That Convert Followers Into Customers — One Inbox',
+                'meta_title'       => 'Instagram DM Scripts That Convert Followers Into Customers — OT1-Pro',
                 'meta_description' => 'Copy-paste Instagram DM scripts for sales, lead qualification, support, follow-up, and re-engagement. Tested for high conversion rates.',
                 'category'         => 'Instagram',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subHours(22),
                 'content'          => <<<HTML
 <p>The right Instagram DM at the right moment turns a curious follower into a paying customer. The wrong one earns a Mute or worse. Here are 12 proven DM scripts you can use today, organized by use case.</p>
@@ -1955,7 +1955,7 @@ HTML,
 
 <p>You don\'t copy-paste these manually. You feed them as examples to your AI sales agent. The AI uses them as patterns and generates similar replies for variations the customer asks. That\'s how you scale 12 scripts into thousands of personalized responses.</p>
 
-<p>One Inbox\'s AI agent learns from script examples in your system prompt and applies the patterns to every Instagram DM. Connect Instagram, paste the scripts, go live.</p>
+<p>OT1-Pro\'s AI agent learns from script examples in your system prompt and applies the patterns to every Instagram DM. Connect Instagram, paste the scripts, go live.</p>
 HTML,
             ],
 
@@ -1966,11 +1966,11 @@ HTML,
                 'title'            => 'How to Manage Instagram DMs for a Large Team (2026 Guide)',
                 'slug'             => 'manage-instagram-dms-large-team',
                 'excerpt'          => 'Once your team has 5+ people sharing Instagram DM duties, the native app stops working. Here\'s the team-inbox setup that scales.',
-                'meta_title'       => 'How to Manage Instagram DMs for a Large Team — One Inbox',
+                'meta_title'       => 'How to Manage Instagram DMs for a Large Team — OT1-Pro',
                 'meta_description' => 'Scale Instagram DM management across a team. Assignment workflows, role permissions, response time SLAs, and inbox tools that handle high volume.',
                 'category'         => 'Instagram',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDay(),
                 'content'          => <<<HTML
 <p>The native Instagram app was built for one person checking their DMs from one phone. Once your team has 5, 10, or 50 people sharing the same Instagram inbox, the cracks show fast: missed messages, double replies, no accountability, no metrics. Here\'s how to scale.</p>
@@ -2073,7 +2073,7 @@ HTML,
 
 <p>Look for: native Instagram integration (not via Meta Business Suite), multi-user with roles, auto-assignment rules, AI on every plan, real-time sync, analytics dashboard, mobile app for agents on the go.</p>
 
-<p>One Inbox supports unlimited agents on Pro and Enterprise plans, with role-based permissions, auto-assignment, and AI handling Tier-0 across Instagram, WhatsApp, Facebook, and Telegram. Try free.</p>
+<p>OT1-Pro supports unlimited agents on Pro and Enterprise plans, with role-based permissions, auto-assignment, and AI handling Tier-0 across Instagram, WhatsApp, Facebook, and Telegram. Try free.</p>
 HTML,
             ],
 
@@ -2084,11 +2084,11 @@ HTML,
                 'title'            => 'Instagram vs Facebook for Customer Service: The 2026 Data',
                 'slug'             => 'instagram-vs-facebook-customer-service',
                 'excerpt'          => 'Should you prioritize Instagram DMs or Facebook Messenger for customer service? The data is clearer than you\'d expect.',
-                'meta_title'       => 'Instagram vs Facebook for Customer Service: 2026 Data — One Inbox',
+                'meta_title'       => 'Instagram vs Facebook for Customer Service: 2026 Data — OT1-Pro',
                 'meta_description' => 'Comparing Instagram DM vs Facebook Messenger for customer service in 2026. Demographics, response speed, conversion rates, and which to prioritize.',
                 'category'         => 'Social CX',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(2),
                 'content'          => <<<HTML
 <p>Most teams treat Instagram DMs and Facebook Messenger as the same channel. They\'re not. The data — demographics, response expectations, conversion patterns — varies dramatically. Here\'s where each wins, and how to allocate effort accordingly.</p>
@@ -2141,7 +2141,7 @@ HTML,
 <li><strong>Real estate:</strong> Tied — both critical</li>
 </ul>
 
-<h2>The Right Answer Is "Both, From One Inbox"</h2>
+<h2>The Right Answer Is "Both, From OT1-Pro"</h2>
 
 <p>The volume isn\'t the problem — the context-switching is. Agents juggling three apps make more mistakes than agents working from one unified inbox.</p>
 
@@ -2169,7 +2169,7 @@ HTML,
 
 <p>Don\'t pick between Instagram and Facebook. Connect both to a unified inbox, set channel-specific SLAs, and let AI handle the volume so your humans focus on the high-value conversations.</p>
 
-<p>One Inbox supports both natively, with channel-aware AI tone and unified analytics. Free plan available.</p>
+<p>OT1-Pro supports both natively, with channel-aware AI tone and unified analytics. Free plan available.</p>
 HTML,
             ],
 
@@ -2180,11 +2180,11 @@ HTML,
                 'title'            => 'How to Manage 1,000+ Social Messages Per Day Without Burning Out',
                 'slug'             => 'manage-1000-social-messages-per-day',
                 'excerpt'          => 'When inbound social messages cross 1,000 per day, manual reply workflows collapse. Here\'s the operating system that scales without burning your team out.',
-                'meta_title'       => 'Manage 1,000+ Social Messages Per Day — Operations Guide | One Inbox',
+                'meta_title'       => 'Manage 1,000+ Social Messages Per Day — Operations Guide | OT1-Pro',
                 'meta_description' => 'Operating system for handling 1,000+ daily social messages. Triage rules, AI deflection, team structure, and tool stack that work at scale.',
                 'category'         => 'Social CX',
                 'reading_time'     => '7 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(3),
                 'content'          => <<<HTML
 <p>At a few hundred messages a day, a small team can keep up with hustle. Past 1,000, the math breaks: 1,000 messages at 2 minutes each = 33 agent-hours/day. Five full-time people doing nothing but reply. Nobody can afford that. Here\'s the operating system that handles 1,000+ messages with a fraction of the team.</p>
@@ -2285,7 +2285,7 @@ HTML,
 
 <p>If your message volume is doubling every 6 months and your team can\'t keep up, the answer is rarely "hire more people." It\'s "deflect more with AI" + "make the existing team more effective." The tools to do both are now affordable for SMBs, not just enterprises.</p>
 
-<p>One Inbox is built for this volume — generative AI, multi-channel, auto-assignment, analytics, and unlimited agents on Pro/Enterprise plans. Free trial available.</p>
+<p>OT1-Pro is built for this volume — generative AI, multi-channel, auto-assignment, analytics, and unlimited agents on Pro/Enterprise plans. Free trial available.</p>
 HTML,
             ],
 
@@ -2296,11 +2296,11 @@ HTML,
                 'title'            => 'Social Media Response Time Benchmarks by Industry (2026)',
                 'slug'             => 'social-response-time-benchmarks',
                 'excerpt'          => 'How fast do customers expect a response on Instagram, WhatsApp, and Facebook? Here are the 2026 benchmarks by industry.',
-                'meta_title'       => 'Social Media Response Time Benchmarks 2026 — One Inbox',
+                'meta_title'       => 'Social Media Response Time Benchmarks 2026 — OT1-Pro',
                 'meta_description' => 'Industry-specific benchmarks for response times on Instagram, WhatsApp, Facebook. Compare your performance to e-commerce, SaaS, hospitality, and more.',
                 'category'         => 'Social CX',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(4),
                 'content'          => <<<HTML
 <p>Customers don\'t care that your team has 200 messages in queue. They\'ve sent one — and they\'re measuring you against the speed of every other brand they\'ve messaged this week. Here are the response time benchmarks for 2026, by industry.</p>
@@ -2407,7 +2407,7 @@ HTML,
 
 <p>Two-thirds of social media inquiries arrive outside business hours. Without AI fallback, your effective response time is "next business day" — which in 2026 is unacceptable to most consumer audiences.</p>
 
-<p>One Inbox\'s AI sales agent handles inquiries 24/7 and only escalates the high-priority ones. Free plan available with full AI access.</p>
+<p>OT1-Pro\'s AI sales agent handles inquiries 24/7 and only escalates the high-priority ones. Free plan available with full AI access.</p>
 HTML,
             ],
 
@@ -2418,11 +2418,11 @@ HTML,
                 'title'            => 'Unified Inbox vs Separate Apps: 2026 Cost & Efficiency Analysis',
                 'slug'             => 'unified-inbox-vs-separate-apps',
                 'excerpt'          => 'Should you use the native WhatsApp, Instagram, and Facebook apps — or a unified inbox tool? The cost-benefit math is dramatic.',
-                'meta_title'       => 'Unified Inbox vs Separate Apps: Cost Analysis 2026 — One Inbox',
+                'meta_title'       => 'Unified Inbox vs Separate Apps: Cost Analysis 2026 — OT1-Pro',
                 'meta_description' => 'Real cost comparison between using native social apps and a unified inbox. Time savings, error reduction, and ROI breakdown for SMBs.',
                 'category'         => 'Social CX',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(5),
                 'content'          => <<<HTML
 <p>"We use the native apps — they\'re free." Sounds smart. Until you measure the hidden cost of context-switching, missed messages, and zero analytics. Here\'s the math comparing free native apps vs paid unified inbox tools.</p>
@@ -2510,7 +2510,7 @@ HTML,
 <li>Sales conversations (not just support) running through DMs</li>
 </ul>
 
-<p>One Inbox starts at \$0 (free plan) and scales without per-seat pricing. The free tier alone replaces native apps for most SMBs. Try free.</p>
+<p>OT1-Pro starts at \$0 (free plan) and scales without per-seat pricing. The free tier alone replaces native apps for most SMBs. Try free.</p>
 HTML,
             ],
 
@@ -2521,11 +2521,11 @@ HTML,
                 'title'            => 'How to Reduce Social Media Response Time by 80% (Without Hiring)',
                 'slug'             => 'reduce-social-response-time-80-percent',
                 'excerpt'          => 'Slow social response kills conversions. Here\'s the exact playbook to cut response time 80% without adding headcount.',
-                'meta_title'       => 'Reduce Social Media Response Time by 80% Without Hiring — One Inbox',
+                'meta_title'       => 'Reduce Social Media Response Time by 80% Without Hiring — OT1-Pro',
                 'meta_description' => 'Cut social media response time by 80% with AI deflection, auto-assignment, mobile alerts, and template responses. No new hires needed.',
                 'category'         => 'Social CX',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(6),
                 'content'          => <<<HTML
 <p>If your average social media response time is 2+ hours, you\'re losing customers to faster competitors. Here\'s the playbook to cut that to 20-30 minutes — without hiring more people.</p>
@@ -2617,7 +2617,7 @@ Combined effective response time: ~36 minutes weighted</p>
 
 <p>Most teams hit 80% reduction by week 3. The remaining work is fine-tuning, not transformation.</p>
 
-<p>One Inbox includes everything you need on the free plan: AI deflection, auto-assignment, mobile app, SLA tracking. Try free.</p>
+<p>OT1-Pro includes everything you need on the free plan: AI deflection, auto-assignment, mobile app, SLA tracking. Try free.</p>
 HTML,
             ],
 
@@ -2628,11 +2628,11 @@ HTML,
                 'title'            => 'How to Scale Customer Support Without Hiring More Agents',
                 'slug'             => 'scale-customer-support-without-hiring',
                 'excerpt'          => 'You don\'t solve a customer support bottleneck by hiring. You solve it by removing the bottleneck. Here\'s how.',
-                'meta_title'       => 'Scale Customer Support Without Hiring More Agents — One Inbox',
+                'meta_title'       => 'Scale Customer Support Without Hiring More Agents — OT1-Pro',
                 'meta_description' => 'Practical playbook to scale customer support without growing headcount. AI deflection, knowledge base, self-serve, and process improvements.',
                 'category'         => 'Social CX',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(7),
                 'content'          => <<<HTML
 <p>The default reaction to a busy support queue: hire more people. The smarter reaction: figure out why each existing person can\'t handle more. Most support bottlenecks aren\'t headcount problems — they\'re process problems. Here\'s how to scale without growing your team.</p>
@@ -2726,7 +2726,7 @@ HTML,
 
 <p>Until then, optimize before you hire.</p>
 
-<p>One Inbox includes the full stack — AI deflection, agent tools, analytics — on every plan. Free tier replaces a lot of what you\'d otherwise build manually.</p>
+<p>OT1-Pro includes the full stack — AI deflection, agent tools, analytics — on every plan. Free tier replaces a lot of what you\'d otherwise build manually.</p>
 HTML,
             ],
 
@@ -2737,11 +2737,11 @@ HTML,
                 'title'            => 'AI vs Human Support: When to Hand Off (and How)',
                 'slug'             => 'ai-vs-human-support-handoff',
                 'excerpt'          => 'AI can handle most messages — but not all. The art is knowing when to hand off to humans, and doing it without breaking the customer experience.',
-                'meta_title'       => 'AI vs Human Support: When to Hand Off and How — One Inbox',
+                'meta_title'       => 'AI vs Human Support: When to Hand Off and How — OT1-Pro',
                 'meta_description' => 'Decision rules for when AI should escalate to humans in customer support. Handoff patterns, prompt design, and seamless conversation transfer.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(8),
                 'content'          => <<<HTML
 <p>The mistake most teams make with AI support is binary: either AI handles everything (terrible) or AI handles nothing (slow). The real answer is hybrid — AI handles 60-80%, humans handle the rest, and the handoff is invisible to the customer.</p>
@@ -2841,7 +2841,7 @@ HTML,
 <li><strong>Reverse handoffs:</strong> are humans handing back successfully?</li>
 </ul>
 
-<p>One Inbox\'s AI agent has built-in handoff triggers, sentiment detection, and full context transfer when a human takes over. Free plan available.</p>
+<p>OT1-Pro\'s AI agent has built-in handoff triggers, sentiment detection, and full context transfer when a human takes over. Free plan available.</p>
 HTML,
             ],
 
@@ -2852,11 +2852,11 @@ HTML,
                 'title'            => 'How to Write an AI Sales Prompt That Actually Closes Deals',
                 'slug'             => 'ai-sales-prompt-closes-deals',
                 'excerpt'          => 'A great AI sales prompt is the difference between a chatbot that answers questions and one that closes sales. Here\'s the framework that works.',
-                'meta_title'       => 'How to Write an AI Sales Prompt That Closes Deals — One Inbox',
+                'meta_title'       => 'How to Write an AI Sales Prompt That Closes Deals — OT1-Pro',
                 'meta_description' => 'Step-by-step framework for writing an AI sales prompt that converts conversations to revenue. Includes examples and prompt templates.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '7 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(9),
                 'content'          => <<<HTML
 <p>Most "AI prompts" are descriptions: "You are a helpful customer service assistant." Those produce helpful customer service. They don\'t produce sales. To get an AI that actually closes deals, the prompt needs to teach the AI <em>how to sell</em>. Here\'s the framework.</p>
@@ -2962,7 +2962,7 @@ You: We don\'t run sales often, but right now you can save \$5 by using BUNDLE i
 <li>Iteration discipline (review weekly)</li>
 </ul>
 
-<p>One Inbox provides a guided system prompt builder, plus lead scoring, handoff, and analytics out of the box. Free plan available.</p>
+<p>OT1-Pro provides a guided system prompt builder, plus lead scoring, handoff, and analytics out of the box. Free plan available.</p>
 HTML,
             ],
 
@@ -2973,11 +2973,11 @@ HTML,
                 'title'            => 'AI Lead Scoring: How It Works and Why You Need It',
                 'slug'             => 'ai-lead-scoring',
                 'excerpt'          => 'AI lead scoring tells you which conversations to prioritize, before your team wastes hours on time-wasters. Here\'s how it works.',
-                'meta_title'       => 'AI Lead Scoring: How It Works and Why You Need It — One Inbox',
+                'meta_title'       => 'AI Lead Scoring: How It Works and Why You Need It — OT1-Pro',
                 'meta_description' => 'AI lead scoring explained. How AI scores leads 0-100 from conversation signals, why it beats manual tagging, and how to use scores in workflows.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(10),
                 'content'          => <<<HTML
 <p>If your sales team treats every inbound message the same, they\'re wasting their best hours on tire-kickers while hot leads go cold. AI lead scoring fixes this — automatically.</p>
@@ -3076,7 +3076,7 @@ HTML,
 
 <p>You can\'t build this from scratch easily — it requires NLP models trained on sales conversations. Use a platform that has it built in.</p>
 
-<p>One Inbox includes AI lead scoring on every plan. Each conversation auto-scores; team gets Slack alerts on high-scorers. Free plan available.</p>
+<p>OT1-Pro includes AI lead scoring on every plan. Each conversation auto-scores; team gets Slack alerts on high-scorers. Free plan available.</p>
 HTML,
             ],
 
@@ -3087,11 +3087,11 @@ HTML,
                 'title'            => 'How to Connect a Facebook Page to a CRM (2026)',
                 'slug'             => 'connect-facebook-page-crm',
                 'excerpt'          => 'Disconnected Facebook Page conversations are lost sales. Here\'s how to plug your Page into a CRM so every message becomes a tracked lead.',
-                'meta_title'       => 'How to Connect a Facebook Page to a CRM in 2026 — One Inbox',
+                'meta_title'       => 'How to Connect a Facebook Page to a CRM in 2026 — OT1-Pro',
                 'meta_description' => 'Step-by-step guide to connecting your Facebook Page to a CRM. OAuth setup, webhook configuration, contact sync, and lead pipeline integration.',
                 'category'         => 'How-To',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(11),
                 'content'          => <<<HTML
 <p>Your Facebook Page generates leads daily through Messenger, comments, and reviews. Without a CRM connection, each one lives in Meta\'s tools — separate from your sales pipeline. Here\'s how to bridge that gap.</p>
@@ -3194,7 +3194,7 @@ HTML,
 <li>Build automated workflows triggered by conversation events</li>
 </ul>
 
-<p>One Inbox connects to Facebook Pages in 60 seconds via OAuth, with native Messenger + comment + review handling. Free plan available.</p>
+<p>OT1-Pro connects to Facebook Pages in 60 seconds via OAuth, with native Messenger + comment + review handling. Free plan available.</p>
 HTML,
             ],
 
@@ -3205,11 +3205,11 @@ HTML,
                 'title'            => 'How to Manage Telegram Business Messages at Scale',
                 'slug'             => 'manage-telegram-business-scale',
                 'excerpt'          => 'Telegram is huge in some markets — and ignored by most CRMs. Here\'s how to manage Telegram business messages without becoming a slave to your phone.',
-                'meta_title'       => 'How to Manage Telegram Business Messages at Scale — One Inbox',
+                'meta_title'       => 'How to Manage Telegram Business Messages at Scale — OT1-Pro',
                 'meta_description' => 'Setup guide for managing Telegram business messages with team inboxes, AI auto-replies, and bot integration. Optimized for 2026.',
                 'category'         => 'How-To',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(12),
                 'content'          => <<<HTML
 <p>Telegram has 900M+ active users and dominates customer messaging in Eastern Europe, Russia, parts of Asia, and the Middle East. Yet most CRMs treat it as an afterthought. Here\'s how to handle Telegram business messages properly.</p>
@@ -3301,7 +3301,7 @@ HTML,
 
 <p>For most businesses, Telegram is one channel of many. Don\'t use a Telegram-only tool — pick a multi-channel inbox so Telegram conversations sit alongside WhatsApp, Instagram, and Facebook.</p>
 
-<p>One Inbox supports Telegram natively, with AI auto-reply, multi-language, and unified analytics. Connect your bot in 30 seconds.</p>
+<p>OT1-Pro supports Telegram natively, with AI auto-reply, multi-language, and unified analytics. Connect your bot in 30 seconds.</p>
 HTML,
             ],
 
@@ -3312,11 +3312,11 @@ HTML,
                 'title'            => '10 Ways AI Can Increase Your Social Media Sales',
                 'slug'             => 'ai-increase-social-media-sales',
                 'excerpt'          => 'AI isn\'t just for support deflection. Used right, it actively grows revenue. Here are 10 specific ways AI can lift your social media sales.',
-                'meta_title'       => '10 Ways AI Can Increase Your Social Media Sales — One Inbox',
+                'meta_title'       => '10 Ways AI Can Increase Your Social Media Sales — OT1-Pro',
                 'meta_description' => '10 concrete ways to use AI to grow social media sales: lead qualification, instant replies, upselling, abandoned cart recovery, and more.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(13),
                 'content'          => <<<HTML
 <p>Most "AI for sales" content treats AI as a cost-saver. The bigger story: AI as a revenue-generator. Here are 10 specific, measurable ways AI can grow your social media sales today.</p>
@@ -3365,7 +3365,7 @@ HTML,
 
 <p>None of these alone is transformative. Stacked together: 30-60% revenue lift typical for businesses moving from manual social to AI-augmented social. Same team, same channels, same customers — just faster, more contextual, never offline.</p>
 
-<p>One Inbox\'s AI agent does all 10 across WhatsApp, Instagram, Facebook, and Telegram. Free plan available.</p>
+<p>OT1-Pro\'s AI agent does all 10 across WhatsApp, Instagram, Facebook, and Telegram. Free plan available.</p>
 HTML,
             ],
 
@@ -3376,11 +3376,11 @@ HTML,
                 'title'            => 'Social Inbox Setup Guide: From Zero to Fully Automated in 1 Hour',
                 'slug'             => 'social-inbox-setup-1-hour',
                 'excerpt'          => 'You can have a fully working multi-channel social inbox with AI in under an hour. Here\'s the exact setup playbook.',
-                'meta_title'       => 'Social Inbox Setup: Zero to Automated in 1 Hour — One Inbox',
+                'meta_title'       => 'Social Inbox Setup: Zero to Automated in 1 Hour — OT1-Pro',
                 'meta_description' => 'Step-by-step setup of a multi-channel social inbox with AI. WhatsApp, Instagram, Facebook, Telegram — all configured in 60 minutes.',
                 'category'         => 'How-To',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(14),
                 'content'          => <<<HTML
 <p>The "I\'ll set this up next month" mindset kills most social inbox projects. The reality is you can have a fully working setup with AI in under 60 minutes. Here\'s the exact timeline.</p>
@@ -3475,7 +3475,7 @@ HTML,
 <li><strong>AI not following instructions</strong> — make examples in prompt more specific.</li>
 </ul>
 
-<p>One Inbox is built for fast setup — every channel connectable in minutes, AI configured via guided wizard. Free plan, no credit card required.</p>
+<p>OT1-Pro is built for fast setup — every channel connectable in minutes, AI configured via guided wizard. Free plan, no credit card required.</p>
 HTML,
             ],
 
@@ -3490,7 +3490,7 @@ HTML,
                 'meta_description' => 'Set up an AI sales bot that actually sells. Tools, training, prompt design, lead handoff, and conversion benchmarks for 2026.',
                 'category'         => 'How-To',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(15),
                 'content'          => <<<HTML
 <p>An AI sales bot is different from an FAQ chatbot. It\'s trained to <em>sell</em> — qualify leads, recommend products, handle objections, close deals. Here\'s how to set one up that actually drives revenue.</p>
@@ -3567,7 +3567,7 @@ HTML,
 <li>Set-and-forget (no weekly iteration = quality stagnates)</li>
 </ul>
 
-<p>One Inbox\'s AI sales bot is generative, multi-channel, includes lead scoring, handoff, and analytics out of the box. Free plan available.</p>
+<p>OT1-Pro\'s AI sales bot is generative, multi-channel, includes lead scoring, handoff, and analytics out of the box. Free plan available.</p>
 HTML,
             ],
 
@@ -3578,11 +3578,11 @@ HTML,
                 'title'            => 'How to Track Social Media Leads in a CRM',
                 'slug'             => 'track-social-media-leads-crm',
                 'excerpt'          => 'Social media leads disappear into chat threads if you don\'t track them. Here\'s how to systematically capture every lead in your CRM.',
-                'meta_title'       => 'How to Track Social Media Leads in a CRM — One Inbox',
+                'meta_title'       => 'How to Track Social Media Leads in a CRM — OT1-Pro',
                 'meta_description' => 'Step-by-step guide to tracking social media leads in a CRM. Auto-capture from DMs, contact enrichment, attribution, and pipeline integration.',
                 'category'         => 'How-To',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(16),
                 'content'          => <<<HTML
 <p>If you can\'t answer "how many leads did Instagram generate last month" with a number, your social leads are leaking. Here\'s the system to track every social DM as a CRM lead.</p>
@@ -3675,7 +3675,7 @@ HTML,
 <li><strong>Auto-archive cold leads</strong> — 90 days of no activity = move to archived</li>
 </ul>
 
-<p>One Inbox is a CRM and inbox in one — auto-captures contacts, scores leads, tracks sources, reports by channel. Free plan available.</p>
+<p>OT1-Pro is a CRM and inbox in one — auto-captures contacts, scores leads, tracks sources, reports by channel. Free plan available.</p>
 HTML,
             ],
 
@@ -3686,11 +3686,11 @@ HTML,
                 'title'            => 'Team Inbox Setup: How to Assign and Manage Social Conversations',
                 'slug'             => 'team-inbox-setup-assign-manage',
                 'excerpt'          => 'A team inbox is more than shared access. It\'s how you turn 5 individuals into a coordinated customer-facing team. Here\'s the setup.',
-                'meta_title'       => 'Team Inbox Setup: How to Assign and Manage Conversations — One Inbox',
+                'meta_title'       => 'Team Inbox Setup: How to Assign and Manage Conversations — OT1-Pro',
                 'meta_description' => 'Build a team inbox for social media customer service. Roles, assignment rules, accountability, SLAs, and metrics that keep teams coordinated.',
                 'category'         => 'How-To',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(17),
                 'content'          => <<<HTML
 <p>Five agents working in the same inbox without a system is chaos: double replies, missed messages, no accountability. Five agents in a properly-set-up team inbox is a coordinated machine. Here\'s what makes the difference.</p>
@@ -3788,7 +3788,7 @@ HTML,
 <li><strong>Tracking the wrong things</strong> → optimizing volume over satisfaction</li>
 </ul>
 
-<p>One Inbox includes role-based permissions, auto-assignment rules, SLAs, internal notes, and team analytics on every paid plan. Free trial available.</p>
+<p>OT1-Pro includes role-based permissions, auto-assignment rules, SLAs, internal notes, and team analytics on every paid plan. Free trial available.</p>
 HTML,
             ],
 
@@ -3799,11 +3799,11 @@ HTML,
                 'title'            => 'WhatsApp for Real Estate Agents: Scripts + Automation Guide',
                 'slug'             => 'whatsapp-real-estate-agents',
                 'excerpt'          => 'Real estate runs on WhatsApp. Here are scripts and automation patterns top agents use to convert inquiries into closings.',
-                'meta_title'       => 'WhatsApp for Real Estate: Scripts + Automation Guide — One Inbox',
+                'meta_title'       => 'WhatsApp for Real Estate: Scripts + Automation Guide — OT1-Pro',
                 'meta_description' => 'WhatsApp playbook for real estate agents. Lead capture, qualification scripts, viewing booking automation, and follow-up sequences that close deals.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(18),
                 'content'          => <<<HTML
 <p>Real estate is the most WhatsApp-driven industry on earth. Buyers and sellers expect to message, not call. Agents who master WhatsApp close 2-3x more deals than agents stuck on phone tag. Here\'s the playbook.</p>
@@ -3895,7 +3895,7 @@ Quarterly: "Market update for [their area]: prices up/down X%."</p>
 <li>Don\'t use WhatsApp Business app for high-volume — switch to Cloud API to avoid bans</li>
 </ul>
 
-<p>One Inbox supports real estate workflows: WhatsApp + Instagram + Facebook unified, AI sales agent trained on your listings, calendar integration. Try free.</p>
+<p>OT1-Pro supports real estate workflows: WhatsApp + Instagram + Facebook unified, AI sales agent trained on your listings, calendar integration. Try free.</p>
 HTML,
             ],
 
@@ -3906,11 +3906,11 @@ HTML,
                 'title'            => 'How to Manage Multiple WhatsApp Business Numbers (2026)',
                 'slug'             => 'manage-multiple-whatsapp-numbers',
                 'excerpt'          => 'Running 3 brands or 5 store locations from one WhatsApp account is messy. Here\'s how to manage multiple WhatsApp Business numbers cleanly.',
-                'meta_title'       => 'How to Manage Multiple WhatsApp Business Numbers — One Inbox',
+                'meta_title'       => 'How to Manage Multiple WhatsApp Business Numbers — OT1-Pro',
                 'meta_description' => 'Manage multiple WhatsApp Business numbers from one inbox. Use cases, setup, team routing, and unified analytics for multi-brand operations.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(19),
                 'content'          => <<<HTML
 <p>Multi-location businesses, multi-brand companies, and agencies often run 3, 5, or 20+ WhatsApp Business numbers. The native WhatsApp Business app supports one number per device — useless at scale. Here\'s the multi-number setup that works.</p>
@@ -3974,7 +3974,7 @@ HTML,
 <li><strong>Document which number is for which purpose</strong> — sounds obvious, gets lost in big orgs</li>
 </ul>
 
-<p>One Inbox supports unlimited WhatsApp numbers under one account on Pro/Enterprise plans, with per-number AI, routing, and analytics. Free trial available.</p>
+<p>OT1-Pro supports unlimited WhatsApp numbers under one account on Pro/Enterprise plans, with per-number AI, routing, and analytics. Free trial available.</p>
 HTML,
             ],
 
@@ -3985,11 +3985,11 @@ HTML,
                 'title'            => 'WhatsApp vs SMS for Business: Which Wins in 2026?',
                 'slug'             => 'whatsapp-vs-sms-business',
                 'excerpt'          => 'WhatsApp and SMS look similar but behave very differently for business messaging. Here\'s when to use which — and why.',
-                'meta_title'       => 'WhatsApp vs SMS for Business: 2026 Comparison — One Inbox',
+                'meta_title'       => 'WhatsApp vs SMS for Business: 2026 Comparison — OT1-Pro',
                 'meta_description' => 'WhatsApp vs SMS comparison for business messaging in 2026. Costs, deliverability, engagement rates, and use case fit.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '5 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(20),
                 'content'          => <<<HTML
 <p>SMS is older, simpler, universal. WhatsApp is newer, richer, dominant in many markets. For business messaging in 2026, which should you prioritize? Here\'s the data-driven answer.</p>
@@ -4076,7 +4076,7 @@ HTML,
 
 <p>SMS-to-WhatsApp funnels work well: send a low-cost SMS inviting a WhatsApp conversation. The cold list becomes warm leads.</p>
 
-<p>One Inbox is WhatsApp-first but supports email integration as a secondary channel. Free plan available.</p>
+<p>OT1-Pro is WhatsApp-first but supports email integration as a secondary channel. Free plan available.</p>
 HTML,
             ],
 
@@ -4087,11 +4087,11 @@ HTML,
                 'title'            => 'WhatsApp Business Compliance: What You Need to Know in 2026',
                 'slug'             => 'whatsapp-business-compliance',
                 'excerpt'          => 'Get WhatsApp compliance wrong and your number gets banned. Here\'s the 2026 rulebook on opt-ins, templates, and policy.',
-                'meta_title'       => 'WhatsApp Business Compliance Guide 2026 — One Inbox',
+                'meta_title'       => 'WhatsApp Business Compliance Guide 2026 — OT1-Pro',
                 'meta_description' => 'Stay compliant with WhatsApp Business policy. Opt-in rules, message template approval, prohibited content, GDPR considerations, and ban prevention.',
                 'category'         => 'WhatsApp Business',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(21),
                 'content'          => <<<HTML
 <p>WhatsApp suspends numbers daily for compliance violations. Once suspended, your business is offline until you go through Meta\'s appeal process — which can take days or never resolve. Here\'s how to stay compliant.</p>
@@ -4199,7 +4199,7 @@ HTML,
 <li>Monitor Quality Rating in WhatsApp Manager weekly</li>
 </ul>
 
-<p>One Inbox tracks opt-ins, manages templates, monitors Quality Rating, and helps you stay compliant. Free plan available.</p>
+<p>OT1-Pro tracks opt-ins, manages templates, monitors Quality Rating, and helps you stay compliant. Free plan available.</p>
 HTML,
             ],
 
@@ -4210,11 +4210,11 @@ HTML,
                 'title'            => 'ROI of AI Social Media Support: Real Numbers from 2026',
                 'slug'             => 'roi-ai-social-media-support',
                 'excerpt'          => 'Is AI social media support worth the cost? Here are the actual numbers — productivity gains, revenue lift, and break-even thresholds.',
-                'meta_title'       => 'ROI of AI Social Media Support: 2026 Numbers — One Inbox',
+                'meta_title'       => 'ROI of AI Social Media Support: 2026 Numbers — OT1-Pro',
                 'meta_description' => 'Real ROI data on AI for social media support. Productivity gains, cost savings, revenue lift, and the break-even point for SMBs in 2026.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '6 min read',
-                'author'           => 'One Inbox Team',
+                'author'           => 'OT1-Pro Team',
                 'published_at'     => now()->subDays(22),
                 'content'          => <<<HTML
 <p>"AI is the future" is a slogan. The question that matters: does it pay back the cost? Here\'s the actual ROI math from 2026 social media support deployments.</p>
@@ -4311,7 +4311,7 @@ HTML,
 
 <p>Beyond direct ROI: businesses without AI social support in 2026 are at a competitive disadvantage. Customers expect instant responses. Competitors with AI win the customers you can\'t respond to fast enough.</p>
 
-<p>One Inbox\'s free plan lets you test AI social support with zero financial risk. If it pays back the time investment, upgrade. If not, no commitment.</p>
+<p>OT1-Pro\'s free plan lets you test AI social support with zero financial risk. If it pays back the time investment, upgrade. If not, no commitment.</p>
 HTML,
             ],
 

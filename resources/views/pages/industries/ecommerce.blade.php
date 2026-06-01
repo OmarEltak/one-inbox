@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('WhatsApp Inbox for E-commerce Stores — One Inbox')"
+    :title="__('WhatsApp Inbox for E-commerce Stores — OT1-Pro')"
     :description="__('Manage order inquiries, shipping questions, and returns from WhatsApp, Instagram, and Facebook in one inbox. AI handles 90% of questions automatically.')"
     :canonical="route('industry.ecommerce')"
 >
@@ -42,7 +42,7 @@
                         {!! __('Handle <span class="text-purple-400">Every Order Inquiry</span> on WhatsApp and Social — Automatically') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-300">
-                        {{ __('E-commerce customers flood WhatsApp, Instagram, and Facebook with "Where\'s my order?" questions all day. One Inbox\'s AI answers them instantly — freeing your team to focus on selling, not support.') }}
+                        {{ __('E-commerce customers flood WhatsApp, Instagram, and Facebook with "Where\'s my order?" questions all day. OT1-Pro\'s AI answers them instantly — freeing your team to focus on selling, not support.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a href="{{ route('register') }}" class="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">
@@ -107,7 +107,7 @@
     <section class="bg-zinc-50 py-20 dark:bg-zinc-900/40">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold">{{ __('All Your Sales Channels. One Inbox.') }}</h2>
+                <h2 class="text-3xl font-bold">{{ __('All Your Sales Channels. OT1-Pro.') }}</h2>
                 <p class="mt-3 text-zinc-600 dark:text-zinc-400">{{ __('Your customers shop and ask questions across every platform. You shouldn\'t need 4 different apps to keep up.') }}</p>
             </div>
             <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

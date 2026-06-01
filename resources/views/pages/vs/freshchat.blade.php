@@ -1,27 +1,23 @@
 <x-layouts.marketing
-    :title="__('One Inbox vs Freshchat — Social CRM Alternative | One Inbox')"
-    :description="__('Comparing One Inbox vs Freshchat? One Inbox is built specifically for social messaging sales — WhatsApp, Instagram, Facebook & Telegram with AI lead qualification.')"
+    :title="__('OT1-Pro vs Freshchat — Social CRM Alternative | OT1-Pro')"
+    :description="__('Comparing OT1-Pro vs Freshchat? OT1-Pro is built specifically for social messaging sales — WhatsApp, Instagram, Facebook & Telegram with AI lead qualification.')"
 >
 
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/4 top-0 size-[500px] rounded-full bg-purple-500/10 blur-3xl"></div>
-            <div class="absolute right-0 top-1/3 size-[400px] rounded-full bg-violet-500/8 blur-3xl"></div>
-        </div>
         <div class="mx-auto max-w-4xl px-6 text-center">
             <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-4 py-1.5 text-sm font-medium text-purple-700 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
                 {{ __('Comparison') }}
             </div>
             <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                {{ __('One Inbox vs Freshchat') }}
+                {{ __('OT1-Pro vs Freshchat') }}
             </h1>
             <p class="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-                {{ __('Freshchat is a powerful customer support platform built for enterprise ticketing. One Inbox is built specifically for social messaging sales — giving you an AI that qualifies leads, scores prospects, and closes deals across WhatsApp, Instagram, Facebook, and Telegram.') }}
+                {{ __('Freshchat is a powerful customer support platform built for enterprise ticketing. OT1-Pro is built specifically for social messaging sales — giving you an AI that qualifies leads, scores prospects, and closes deals across WhatsApp, Instagram, Facebook, and Telegram.') }}
             </p>
             <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-purple-500/25 transition-all hover:bg-purple-700">
-                    {{ __('Start Free with One Inbox') }}
+                    {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
                 {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-purple-300 hover:text-purple-700 dark:border-zinc-700 dark:text-zinc-300">
@@ -41,7 +37,7 @@
                     <thead>
                         <tr class="border-b border-zinc-200 dark:border-zinc-700">
                             <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-300">{{ __('Feature') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-purple-600">One Inbox</th>
+                            <th class="px-6 py-4 text-center font-semibold text-purple-600">OT1-Pro</th>
                             <th class="px-6 py-4 text-center font-semibold text-zinc-500">Freshchat</th>
                         </tr>
                     </thead>
@@ -72,12 +68,12 @@
         </div>
     </section>
 
-    {{-- Where One Inbox Wins --}}
+    {{-- Where OT1-Pro Wins --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Where One Inbox wins') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Three areas where One Inbox is the better choice over Freshchat for social sales teams.') }}</p>
+                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Where OT1-Pro wins') }}</h2>
+                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Three areas where OT1-Pro is the better choice over Freshchat for social sales teams.') }}</p>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-3">
                 @php
@@ -85,17 +81,17 @@
                     [
                         '🎯',
                         __('Built for Sales, Not Support Tickets'),
-                        __('Freshchat is built around customer support workflows — tickets, SLAs, resolution times, and help desk routing. One Inbox is built around sales — AI that qualifies leads, scores buying intent, and pushes toward a close. If your goal is to generate revenue from DMs, One Inbox is the right tool.'),
+                        __('Freshchat is built around customer support workflows — tickets, SLAs, resolution times, and help desk routing. OT1-Pro is built around sales — AI that qualifies leads, scores buying intent, and pushes toward a close. If your goal is to generate revenue from DMs, OT1-Pro is the right tool.'),
                     ],
                     [
                         '💸',
                         __('Flat Team Pricing vs. Per-Agent Costs'),
-                        __('Freshchat charges per agent per month — costs grow rapidly as your team expands. One Inbox charges a flat team price. A 5-person sales team costs the same as a 10-person team on One Inbox. As you scale, the cost advantage compounds significantly.'),
+                        __('Freshchat charges per agent per month — costs grow rapidly as your team expands. OT1-Pro charges a flat team price. A 5-person sales team costs the same as a 10-person team on OT1-Pro. As you scale, the cost advantage compounds significantly.'),
                     ],
                     [
                         '🔌',
                         __('WhatsApp & Telegram Without Add-Ons'),
-                        __('With Freshchat, WhatsApp requires additional setup and often extra costs. Telegram isn\'t supported at all. With One Inbox, WhatsApp, Instagram, Facebook, and Telegram are all included in every plan — no add-ons, no surprises on your invoice.'),
+                        __('With Freshchat, WhatsApp requires additional setup and often extra costs. Telegram isn\'t supported at all. With OT1-Pro, WhatsApp, Instagram, Facebook, and Telegram are all included in every plan — no add-ons, no surprises on your invoice.'),
                     ],
                 ];
                 @endphp
@@ -120,16 +116,16 @@
                 @php
                 $faqs = [
                     [
-                        __('Is One Inbox cheaper than Freshchat?'),
-                        __('For most small and mid-size teams, yes. Freshchat\'s per-agent pricing adds up quickly — a team of 5 agents can easily exceed $100/month on Freshchat. One Inbox Pro is $79/month for the whole team with unlimited AI responses. For growing sales teams, the math is straightforward.'),
+                        __('Is OT1-Pro cheaper than Freshchat?'),
+                        __('For most small and mid-size teams, yes. Freshchat\'s per-agent pricing adds up quickly — a team of 5 agents can easily exceed $100/month on Freshchat. OT1-Pro Pro is $79/month for the whole team with unlimited AI responses. For growing sales teams, the math is straightforward.'),
                     ],
                     [
-                        __('Does One Inbox work for customer support too?'),
-                        __('One Inbox handles both sales and support conversations in the same inbox. You can assign support conversations to specific team members, use the AI for FAQ-style questions, and escalate complex cases to human agents. It\'s not a ticketing system, but it covers most support use cases for businesses that operate through social messaging.'),
+                        __('Does OT1-Pro work for customer support too?'),
+                        __('OT1-Pro handles both sales and support conversations in the same inbox. You can assign support conversations to specific team members, use the AI for FAQ-style questions, and escalate complex cases to human agents. It\'s not a ticketing system, but it covers most support use cases for businesses that operate through social messaging.'),
                     ],
                     [
-                        __('Can I migrate from Freshchat to One Inbox?'),
-                        __('Yes. Connect your WhatsApp, Instagram, Facebook, and Telegram accounts to One Inbox, train your AI agent with your product and support information, and onboard your team. The transition is fast — most teams are fully operational in One Inbox within a day.'),
+                        __('Can I migrate from Freshchat to OT1-Pro?'),
+                        __('Yes. Connect your WhatsApp, Instagram, Facebook, and Telegram accounts to OT1-Pro, train your AI agent with your product and support information, and onboard your team. The transition is fast — most teams are fully operational in OT1-Pro within a day.'),
                     ],
                 ];
                 @endphp
@@ -152,10 +148,10 @@
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-4xl px-6">
             <div class="rounded-3xl bg-gradient-to-br from-purple-600 to-violet-600 p-10 text-center text-white sm:p-16">
-                <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Try One Inbox free — no credit card required') }}</h2>
-                <p class="mx-auto mt-4 max-w-xl text-lg text-purple-100">{{ __('See why social sales teams choose One Inbox over Freshchat for lead qualification and deal closing.') }}</p>
+                <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Try OT1-Pro free — no credit card required') }}</h2>
+                <p class="mx-auto mt-4 max-w-xl text-lg text-purple-100">{{ __('See why social sales teams choose OT1-Pro over Freshchat for lead qualification and deal closing.') }}</p>
                 <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-purple-700 shadow-lg transition-all hover:bg-purple-50">
-                    {{ __('Start Free with One Inbox') }}
+                    {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
                 <p class="mt-3 text-sm text-purple-200">{{ __('No credit card required · Free plan available') }}</p>
@@ -171,18 +167,18 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "Is One Inbox cheaper than Freshchat?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "For most small and mid-size teams, yes. Freshchat's per-agent pricing adds up quickly. One Inbox Pro is $79/month for the whole team with unlimited AI responses."}
+            "name": "Is OT1-Pro cheaper than Freshchat?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "For most small and mid-size teams, yes. Freshchat's per-agent pricing adds up quickly. OT1-Pro Pro is $79/month for the whole team with unlimited AI responses."}
         },
         {
             "@@type": "Question",
-            "name": "Does One Inbox work for customer support too?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "One Inbox handles both sales and support conversations in the same inbox. You can assign support conversations to specific team members, use the AI for FAQ-style questions, and escalate complex cases to human agents."}
+            "name": "Does OT1-Pro work for customer support too?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "OT1-Pro handles both sales and support conversations in the same inbox. You can assign support conversations to specific team members, use the AI for FAQ-style questions, and escalate complex cases to human agents."}
         },
         {
             "@@type": "Question",
-            "name": "Can I migrate from Freshchat to One Inbox?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Connect your WhatsApp, Instagram, Facebook, and Telegram accounts to One Inbox, train your AI agent with your product and support information, and onboard your team. Most teams are fully operational within a day."}
+            "name": "Can I migrate from Freshchat to OT1-Pro?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Connect your WhatsApp, Instagram, Facebook, and Telegram accounts to OT1-Pro, train your AI agent with your product and support information, and onboard your team. Most teams are fully operational within a day."}
         }
     ]
 }

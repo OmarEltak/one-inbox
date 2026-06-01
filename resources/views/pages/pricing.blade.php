@@ -1,15 +1,15 @@
 <x-layouts.marketing
-    :title="__('One Inbox Pricing — Free Social Media CRM, Plans from $0/mo')"
-    :description="__('Start free with One Inbox. Affordable social CRM pricing for businesses of all sizes — Free, Starter $29/mo, Pro $79/mo, and Enterprise custom plans.')">
+    :title="__('OT1-Pro Pricing — Free Social Media CRM, Plans from $0/mo')"
+    :description="__('Start free with OT1-Pro. Affordable social CRM pricing for businesses of all sizes — Free, Starter $29/mo, Pro $79/mo, and Enterprise custom plans.')">
 
 @push('schema')
 <script type="application/ld+json">
 {
     "@@context": "https://schema.org",
     "@@type": "Product",
-    "name": "One Inbox",
+    "name": "OT1-Pro",
     "description": "Unified social inbox with AI sales responder. Manage WhatsApp, Instagram, Facebook, and Telegram from one place.",
-    "brand": {"@@type": "Brand", "name": "One Inbox"},
+    "brand": {"@@type": "Brand", "name": "OT1-Pro"},
     "offers": [
         {
             "@@type": "Offer",
@@ -93,7 +93,7 @@
                     <span class="text-purple-600">{{ __('every platform, every lead.') }}</span>
                 </h1>
                 <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-                    {{ __('Stop paying for 4 different tools. One Inbox unifies Facebook, Instagram, WhatsApp & Telegram with an AI that converts conversations into customers — automatically.') }}
+                    {{ __('Stop paying for 4 different tools. OT1-Pro unifies Facebook, Instagram, WhatsApp & Telegram with an AI that converts conversations into customers — automatically.') }}
                 </p>
             </div>
 

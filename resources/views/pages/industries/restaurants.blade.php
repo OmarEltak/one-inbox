@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('WhatsApp for Restaurants: Orders, Reservations & Delivery — One Inbox')"
+    :title="__('WhatsApp for Restaurants: Orders, Reservations & Delivery — OT1-Pro')"
     :description="__('Take reservations, handle delivery orders, and answer menu questions via WhatsApp and Instagram — with AI that works around the clock, even during dinner rush.')"
     :canonical="route('industry.restaurants')"
 >

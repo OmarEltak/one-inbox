@@ -1,14 +1,10 @@
 <x-layouts.marketing
-    :title="__('WhatsApp Business Inbox — Manage Every Message | One Inbox')"
+    :title="__('WhatsApp Business Inbox — Manage Every Message | OT1-Pro')"
     :description="__('Manage every WhatsApp Business conversation from one unified inbox. AI auto-replies 24/7, scores leads, and hands off hot prospects to your team instantly. Try free.')"
 >
 
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/4 top-0 size-[500px] rounded-full bg-green-500/10 blur-3xl"></div>
-            <div class="absolute right-0 top-1/3 size-[400px] rounded-full bg-emerald-500/8 blur-3xl"></div>
-        </div>
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid items-center gap-12 lg:grid-cols-2">
                 <div>
@@ -19,10 +15,10 @@
                         {{ __('WhatsApp Business Inbox') }}
                     </div>
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                        {{ __('The WhatsApp Business Inbox Built for') }} <span class="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">{{ __('Sales Teams') }}</span>
+                        {{ __('The WhatsApp Business Inbox Built for') }} <span class="text-green-600 dark:text-green-400">{{ __('Sales Teams') }}</span>
                     </h1>
                     <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
-                        {{ __('Stop managing WhatsApp in your phone. One Inbox gives your entire team a shared WhatsApp Business inbox with AI that replies instantly, qualifies every lead, and never misses a sale — 24/7.') }}
+                        {{ __('Stop managing WhatsApp in your phone. OT1-Pro gives your entire team a shared WhatsApp Business inbox with AI that replies instantly, qualifies every lead, and never misses a sale — 24/7.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
                         <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-green-500/25 transition-all hover:bg-green-700">
@@ -64,7 +60,7 @@
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('WhatsApp is your best sales channel. But managing it is a mess.') }}</h2>
-                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ __('Every business faces the same WhatsApp problems. One Inbox solves all of them.') }}</p>
+                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ __('Every business faces the same WhatsApp problems. OT1-Pro solves all of them.') }}</p>
             </div>
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -120,7 +116,7 @@
     <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/50">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Who uses One Inbox for WhatsApp?') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Who uses OT1-Pro for WhatsApp?') }}</h2>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -152,8 +148,8 @@
             <div class="mt-12 space-y-4" x-data="{ open: null }">
                 @php
                 $faqs = [
-                    [__('Does One Inbox work with WhatsApp Business API?'), __('Yes. One Inbox connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you.')],
-                    [__('Can multiple team members use the same WhatsApp number?'), __('Absolutely. One Inbox gives your entire team shared access to a single WhatsApp Business number. Conversations can be assigned to specific agents, and everyone sees the full history.')],
+                    [__('Does OT1-Pro work with WhatsApp Business API?'), __('Yes. OT1-Pro connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you.')],
+                    [__('Can multiple team members use the same WhatsApp number?'), __('Absolutely. OT1-Pro gives your entire team shared access to a single WhatsApp Business number. Conversations can be assigned to specific agents, and everyone sees the full history.')],
                     [__('Will the AI sound robotic to my customers?'), __('No. You train the AI with your brand voice, product details, and communication style. It sounds like your best sales rep — not a generic chatbot.')],
                     [__('Can I take over a conversation from the AI?'), __('Yes, at any time. You can pause AI on any conversation and reply manually. When you\'re done, re-enable AI and it picks up where it left off with full context.')],
                     [__('What happens when the AI can\'t answer a question?'), __('The AI recognizes when it\'s out of its depth and automatically flags the conversation for human review. Your team gets notified instantly.')],
@@ -222,13 +218,13 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "Does One Inbox work with WhatsApp Business API?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you."}
+            "name": "Does OT1-Pro work with WhatsApp Business API?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. OT1-Pro connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you."}
         },
         {
             "@@type": "Question",
             "name": "Can multiple team members use the same WhatsApp number?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Absolutely. One Inbox gives your entire team shared access to a single WhatsApp Business number. Conversations can be assigned to specific agents, and everyone sees the full history."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Absolutely. OT1-Pro gives your entire team shared access to a single WhatsApp Business number. Conversations can be assigned to specific agents, and everyone sees the full history."}
         },
         {
             "@@type": "Question",

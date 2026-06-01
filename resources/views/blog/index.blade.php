@@ -1,6 +1,6 @@
 <x-layouts.marketing
-    :title="__('Blog — WhatsApp, Instagram & AI Sales Guides | One Inbox')"
-    :description="__('Practical guides on WhatsApp marketing, Instagram DM automation, AI sales bots, and social media customer service. Learn from the One Inbox team.')"
+    :title="__('Blog — WhatsApp, Instagram & AI Sales Guides | OT1-Pro')"
+    :description="__('Practical guides on WhatsApp marketing, Instagram DM automation, AI sales bots, and social media customer service. Learn from the OT1-Pro team.')"
 >
 
 @push('schema')
@@ -9,12 +9,12 @@
     "@@context": "https://schema.org",
     "@@type": "Blog",
     "@@id": "{{ route('blog.index') }}",
-    "name": "One Inbox Blog",
+    "name": "OT1-Pro Blog",
     "description": "Practical guides on WhatsApp marketing, Instagram DM automation, AI sales bots, and social media customer service.",
     "url": "{{ route('blog.index') }}",
     "publisher": {
         "@@type": "Organization",
-        "name": "One Inbox",
+        "name": "OT1-Pro",
         "url": "https://ot1-pro.com",
         "logo": {
             "@@type": "ImageObject",
@@ -49,7 +49,7 @@
     {{-- Hero --}}
     <section class="border-b border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-800 dark:bg-zinc-900/50">
         <div class="mx-auto max-w-6xl px-6 text-center">
-            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">{{ __('One Inbox Blog') }}</h1>
+            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">{{ __('OT1-Pro Blog') }}</h1>
             <p class="mx-auto mt-4 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
                 {{ __('Practical guides on WhatsApp marketing, Instagram DM automation, AI sales, and social media customer service.') }}
             </p>

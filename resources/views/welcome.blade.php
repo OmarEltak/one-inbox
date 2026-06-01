@@ -1,14 +1,10 @@
 <x-layouts.marketing
-    :title="__('One Inbox — Unified Social Inbox with AI Sales Responder')"
+    :title="__('OT1-Pro — Unified Social Inbox with AI Sales Responder')"
     :description="__('Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place. AI-powered sales responder closes deals 24/7.')"
 >
 
     {{-- Hero Section --}}
     <section class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/4 size-[600px] rounded-full bg-purple-500/10 blur-3xl animate-float"></div>
-            <div class="absolute right-0 top-1/4 size-[400px] rounded-full bg-blue-500/10 blur-3xl animate-float" style="animation-delay: 1.5s"></div>
-        </div>
 
         <div class="mx-auto max-w-6xl px-6 text-center">
             <div class="mx-auto max-w-3xl">
@@ -24,7 +20,7 @@
                 {{-- Heading --}}
                 <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl animate-fade-in-up anim-delay-1">
                     {{ __('Every message.') }}<br>
-                    <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">{{ __('One inbox.') }}</span><br>
+                    <span class="text-purple-600 dark:text-purple-400">{{ __('OT1-Pro.') }}</span><br>
                     {{ __('Zero missed sales.') }}
                 </h1>
 
@@ -90,7 +86,7 @@
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center" x-data x-intersect.once="$el.classList.add('animate-fade-in-up')" style="opacity:0">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Everything you need to sell through DMs') }}</h2>
-                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ __('Stop switching between apps. One Inbox brings all your customer conversations together with AI that sells for you.') }}</p>
+                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">{{ __('Stop switching between apps. OT1-Pro brings all your customer conversations together with AI that sells for you.') }}</p>
             </div>
 
             @php
@@ -188,7 +184,7 @@
 
             @php
             $testimonials = [
-                ['text' => __('\"One Inbox transformed how we handle customer messages. Our response time dropped from hours to seconds.\"'), 'name' => 'Sarah M.', 'role' => __('E-commerce Owner')],
+                ['text' => __('\"OT1-Pro transformed how we handle customer messages. Our response time dropped from hours to seconds.\"'), 'name' => 'Sarah M.', 'role' => __('E-commerce Owner')],
                 ['text' => __('\"The AI handles 80% of our conversations perfectly. We only step in for complex deals. Game changer.\"'), 'name' => 'Ahmed K.', 'role' => __('Sales Manager')],
                 ['text' => __('\"Lead scoring alone was worth it. We can finally focus on the leads that matter most.\"'), 'name' => 'Maria L.', 'role' => __('Agency Owner')],
             ];
@@ -223,7 +219,7 @@
             <div class="mt-12 space-y-4" x-data="{ openFaq: null }">
                 @php
                 $faqs = [
-                    [__('What platforms does One Inbox support?'), __('One Inbox supports Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram. Connect all four from a single dashboard.')],
+                    [__('What platforms does OT1-Pro support?'), __('OT1-Pro supports Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram. Connect all four from a single dashboard.')],
                     [__('How does the AI sales responder work?'), __('You configure the AI with your product information, pricing, and brand voice. It then automatically responds to incoming messages, qualifies leads based on conversation signals, and guides customers toward a purchase.')],
                     [__('Can I take over from the AI mid-conversation?'), __('Absolutely. You can pause the AI on any conversation and take over manually at any time. When you\'re done, resume AI and it picks up where you left off.')],
                     [__('Is there a free plan?'), __('Yes! Our Starter plan is free and includes 1 connected channel and 100 AI responses per month. Upgrade anytime as your business grows.')],
@@ -255,11 +251,9 @@
     {{-- CTA Section --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6" x-data x-intersect.once="$el.classList.add('animate-fade-in-up')" style="opacity:0">
-            <div class="overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 animate-gradient-shift p-10 text-center text-white sm:p-16 relative">
+            <div class="overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 p-10 text-center text-white sm:p-16 relative">
                 {{-- Decorative elements --}}
                 <div class="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div class="absolute -top-24 -right-24 size-64 rounded-full bg-white/5 blur-2xl"></div>
-                    <div class="absolute -bottom-24 -left-24 size-64 rounded-full bg-white/5 blur-2xl"></div>
                 </div>
 
                 <div class="relative">
@@ -290,10 +284,10 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "What platforms does One Inbox support?",
+            "name": "What platforms does OT1-Pro support?",
             "acceptedAnswer": {
                 "@@type": "Answer",
-                "text": "One Inbox supports Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram. Connect all four from a single dashboard."
+                "text": "OT1-Pro supports Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram. Connect all four from a single dashboard."
             }
         },
         {

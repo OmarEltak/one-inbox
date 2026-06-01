@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('meta_description', 160)->nullable();
             $table->string('category')->default('general');
             $table->string('reading_time')->default('5 min read');
-            $table->string('author')->default('One Inbox Team');
+            $table->string('author')->default('OT1-Pro Team');
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
         });

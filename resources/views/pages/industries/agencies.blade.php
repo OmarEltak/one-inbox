@@ -1,5 +1,5 @@
 <x-layouts.marketing
-    :title="__('Social Media Inbox for Marketing Agencies — One Inbox')"
+    :title="__('Social Media Inbox for Marketing Agencies — OT1-Pro')"
     :description="__('Manage multiple client social inboxes from one platform. AI responds to leads across WhatsApp, Instagram, Facebook, and Telegram for all your clients simultaneously.')"
     :canonical="route('industry.agencies')"
 >
@@ -12,7 +12,7 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "{{ addslashes(__('Can I manage multiple client accounts from one One Inbox login?')) }}",
+            "name": "{{ addslashes(__('Can I manage multiple client accounts from one OT1-Pro login?')) }}",
             "acceptedAnswer": { "@@type": "Answer", "text": "{{ addslashes(__('Yes. Each client gets their own team workspace. You can switch between clients instantly, and the AI is configured separately for each client\'s business context.')) }}" }
         },
         {
@@ -37,7 +37,7 @@
                         {!! __('Manage All Your <span class="text-purple-400">Client Inboxes</span> From One Platform') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-300">
-                        {{ __('Your clients\' customers are messaging on WhatsApp, Instagram, Facebook, and Telegram — and expecting fast, intelligent replies. One Inbox lets your agency handle all of it, with AI doing the heavy lifting.') }}
+                        {{ __('Your clients\' customers are messaging on WhatsApp, Instagram, Facebook, and Telegram — and expecting fast, intelligent replies. OT1-Pro lets your agency handle all of it, with AI doing the heavy lifting.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a href="{{ route('register') }}" class="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-700">
@@ -77,7 +77,7 @@
     <section class="py-20">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold">{{ __('Why Agencies Choose One Inbox') }}</h2>
+                <h2 class="text-3xl font-bold">{{ __('Why Agencies Choose OT1-Pro') }}</h2>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -106,7 +106,7 @@
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
                 <h2 class="text-3xl font-bold">{{ __('Clients Across Every Industry') }}</h2>
-                <p class="mt-3 text-zinc-600 dark:text-zinc-400">{{ __('One Inbox works for the clients you already have and the ones you\'re pitching.') }}</p>
+                <p class="mt-3 text-zinc-600 dark:text-zinc-400">{{ __('OT1-Pro works for the clients you already have and the ones you\'re pitching.') }}</p>
             </div>
             <div class="mt-10 flex flex-wrap justify-center gap-3">
                 @php
@@ -129,7 +129,7 @@
             <h2 class="mb-10 text-center text-3xl font-bold">{{ __('Frequently Asked Questions') }}</h2>
             @php
             $faqs = [
-                [__('Can I manage multiple client accounts from one One Inbox login?'), __('Yes. Each client gets their own team workspace. You can switch between clients instantly, and the AI is configured separately for each client\'s business context.')],
+                [__('Can I manage multiple client accounts from one OT1-Pro login?'), __('Yes. Each client gets their own team workspace. You can switch between clients instantly, and the AI is configured separately for each client\'s business context.')],
                 [__('Can each client have their own AI responder persona?'), __('Yes. Each workspace has its own AI configuration — separate business description, product/service info, and tone guidelines. The AI acts as the client\'s own brand voice, not a generic bot.')],
                 [__('Can I white-label the platform for my clients?'), __('Contact us for agency and white-label options. We work with agencies to find the right structure for your business model.')],
                 [__('How does billing work for agencies with multiple clients?'), __('Each workspace is billed separately. Enterprise plans cover multiple workspaces at a volume discount. Contact us to discuss your agency\'s needs.')],

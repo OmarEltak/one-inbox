@@ -3,23 +3,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'One Inbox — Unified Social Inbox with AI Sales Responder' }}</title>
+    <title>{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}</title>
     <meta name="description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place. AI-powered sales responder closes deals 24/7.' }}">
     <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
 
     {{-- Open Graph --}}
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $title ?? 'One Inbox — Unified Social Inbox with AI Sales Responder' }}">
+    <meta property="og:title" content="{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}">
     <meta property="og:description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place.' }}">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:site_name" content="One Inbox">
+    <meta property="og:site_name" content="OT1-Pro">
     @if(isset($ogImage))
         <meta property="og:image" content="{{ $ogImage }}">
     @endif
 
     {{-- Twitter --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title ?? 'One Inbox' }}">
+    <meta name="twitter:title" content="{{ $title ?? 'OT1-Pro' }}">
     <meta name="twitter:description" content="{{ $description ?? 'Unified Social Inbox with AI Sales Responder' }}">
 
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -30,7 +30,7 @@
     {
         "@@context": "https://schema.org",
         "@@type": "SoftwareApplication",
-        "name": "One Inbox",
+        "name": "OT1-Pro",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "description": "{{ $description ?? 'Unified social inbox with AI-powered sales responder for Facebook, Instagram, WhatsApp, and Telegram.' }}",
@@ -41,7 +41,7 @@
         },
         "creator": {
             "@@type": "Organization",
-            "name": "One Inbox"
+            "name": "OT1-Pro"
         }
     }
     </script>
@@ -56,7 +56,7 @@
                 <div class="flex size-8 items-center justify-center rounded-lg bg-purple-600">
                     <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
                 </div>
-                One Inbox
+                OT1-Pro
             </a>
             <div class="hidden items-center gap-6 md:flex">
                 <a href="{{ route('features') }}" class="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Features') }}</a>
@@ -110,7 +110,7 @@
                         <div class="flex size-8 items-center justify-center rounded-lg bg-purple-600">
                             <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
                         </div>
-                        One Inbox
+                        OT1-Pro
                     </div>
                     <p class="mt-3 text-sm text-zinc-500">{{ __('Unified social inbox with AI-powered sales responder.') }}</p>
                 </div>
@@ -174,7 +174,7 @@
                 </div>
             </div>
             <div class="mt-8 border-t border-zinc-200 pt-8 text-center dark:border-zinc-800">
-                <p class="text-sm text-zinc-500">&copy; {{ date('Y') }} One Inbox. {{ __('All rights reserved.') }}</p>
+                <p class="text-sm text-zinc-500">&copy; {{ date('Y') }} OT1-Pro. {{ __('All rights reserved.') }}</p>
             </div>
         </div>
     </footer>

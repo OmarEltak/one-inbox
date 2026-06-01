@@ -698,7 +698,7 @@
                     <p class="font-semibold text-white/85">⑤ Generate a permanent System User access token — paste it below</p>
                     <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-white/30">
                         <li>Open <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener" class="text-blue-400 hover:underline">business.facebook.com/settings/system-users</a></li>
-                        <li>Click <strong class="text-white/80">Add → Create System User</strong>. Name it (e.g. "One Inbox API"), set role to <strong class="text-white/80">Admin</strong></li>
+                        <li>Click <strong class="text-white/80">Add → Create System User</strong>. Name it (e.g. "OT1-Pro API"), set role to <strong class="text-white/80">Admin</strong></li>
                         <li>With the system user selected, click <strong class="text-white/80">Add Assets → Apps</strong> → choose your WhatsApp app from step ④, toggle <strong class="text-white/80">"Develop app"</strong> to on, save</li>
                         <li>Click <strong class="text-white/80">Add Assets → WhatsApp Accounts</strong> → choose the WABA, toggle <strong class="text-white/80">"Manage WhatsApp account"</strong> to on, save</li>
                         <li>Now click <strong class="text-white/80">Generate New Token</strong></li>
@@ -981,7 +981,7 @@
                             <p>① In your Wix dashboard: <strong class="text-white/85">Settings → Custom Code</strong> (under "Advanced").</p>
                             <p>② Click <strong class="text-white/85">+ Add Custom Code</strong>.</p>
                             <p>③ Paste the snippet into the code box. Set:</p>
-                            <p class="ml-4">• Name: <code class="text-emerald-300">One Inbox Chat</code></p>
+                            <p class="ml-4">• Name: <code class="text-emerald-300">OT1-Pro Chat</code></p>
                             <p class="ml-4">• Add Code to Pages: <strong class="text-white/85">All pages</strong></p>
                             <p class="ml-4">• Place Code in: <strong class="text-white/85">Body — end</strong></p>
                             <p>④ Click <strong class="text-white/85">Apply</strong>. Publish your site if needed.</p>

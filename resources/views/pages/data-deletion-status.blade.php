@@ -1,6 +1,6 @@
 <x-layouts.marketing
-    :title="__('Data Deletion Status — One Inbox')"
-    :description="__('Status of your One Inbox data deletion request.')">
+    :title="__('Data Deletion Status — OT1-Pro')"
+    :description="__('Status of your OT1-Pro data deletion request.')">
 
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-2xl px-6">

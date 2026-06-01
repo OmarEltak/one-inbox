@@ -21,7 +21,7 @@
     },
     "publisher": {
         "@@type": "Organization",
-        "name": "One Inbox",
+        "name": "OT1-Pro",
         "url": "https://ot1-pro.com",
         "logo": {
             "@@type": "ImageObject",
@@ -108,7 +108,7 @@
 
             {{-- CTA Box --}}
             <div class="mt-16 rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 p-8 text-center text-white">
-                <h2 class="text-2xl font-bold">{{ __('Ready to try One Inbox?') }}</h2>
+                <h2 class="text-2xl font-bold">{{ __('Ready to try OT1-Pro?') }}</h2>
                 <p class="mt-2 text-purple-100">{{ __('Connect WhatsApp, Instagram, Facebook & Telegram with AI that sells for you.') }}</p>
                 <a href="{{ route('register') }}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-purple-700 transition-all hover:bg-purple-50">
                     {{ __('Get Started Free') }}

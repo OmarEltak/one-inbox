@@ -1,5 +1,5 @@
 /**
- * One Inbox — Web Chat Widget (v1)
+ * OT1-Pro — Web Chat Widget (v1)
  *
  * Embed:
  *   <script src="https://your-domain/widget.js" data-widget-id="wc_xxx" defer></script>
@@ -270,7 +270,7 @@
         textAlign: 'center', fontSize: '10px', color: '#9ca3af',
         padding: '4px 0 8px', background: 'white'
       },
-      textContent: 'Powered by One Inbox'
+      textContent: 'Powered by OT1-Pro'
     });
 
     panel.appendChild(header);

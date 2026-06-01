@@ -1,14 +1,10 @@
 <x-layouts.marketing
-    :title="__('Facebook Messenger Management for Business | One Inbox')"
+    :title="__('Facebook Messenger Management for Business | OT1-Pro')"
     :description="__('Manage all your Facebook Page messages from one shared inbox. AI auto-replies, qualifies leads, and escalates hot prospects to your team. Works across multiple Pages. Try free.')"
 >
 
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/4 top-0 size-[500px] rounded-full bg-blue-500/10 blur-3xl"></div>
-            <div class="absolute right-0 top-1/3 size-[400px] rounded-full bg-indigo-500/8 blur-3xl"></div>
-        </div>
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid items-center gap-12 lg:grid-cols-2">
                 <div>
@@ -17,10 +13,10 @@
                         {{ __('Facebook Messenger Management') }}
                     </div>
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                        {{ __('Facebook Messenger Management for') }} <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{{ __('Growing Businesses') }}</span>
+                        {{ __('Facebook Messenger Management for') }} <span class="text-blue-600 dark:text-blue-400">{{ __('Growing Businesses') }}</span>
                     </h1>
                     <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
-                        {{ __('Thousands of businesses use Facebook Messenger as their primary customer channel. One Inbox gives you a shared team inbox, AI auto-replies, and lead scoring — so no message ever goes unanswered.') }}
+                        {{ __('Thousands of businesses use Facebook Messenger as their primary customer channel. OT1-Pro gives you a shared team inbox, AI auto-replies, and lead scoring — so no message ever goes unanswered.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
                         <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-700">
@@ -99,11 +95,11 @@
             <div class="mt-12 space-y-4" x-data="{ open: null }">
                 @php
                 $faqs = [
-                    [__('Does One Inbox work with the official Facebook API?'), __('Yes. One Inbox uses Meta\'s official Messenger Platform API. Your Facebook Page and account are fully compliant — no unofficial tools or at-risk integrations.')],
+                    [__('Does OT1-Pro work with the official Facebook API?'), __('Yes. OT1-Pro uses Meta\'s official Messenger Platform API. Your Facebook Page and account are fully compliant — no unofficial tools or at-risk integrations.')],
                     [__('Can I manage multiple Facebook Pages in one inbox?'), __('Yes. Connect as many Facebook Pages as your plan allows and manage all their conversations from a single unified inbox with separate AI configurations per Page.')],
                     [__('How do I train the AI for my Facebook Page?'), __('After connecting your Page, you fill in a simple AI configuration form: your business description, product details, pricing, common questions, and brand tone. The AI is ready in minutes.')],
                     [__('What if a customer sends a complaint or negative message?'), __('You can configure the AI to flag sensitive conversations (complaints, refund requests, angry messages) for immediate human review. The AI won\'t try to handle situations it\'s not trained for.')],
-                    [__('Does it work with Facebook ads (click-to-Messenger)?'), __('Yes. Any conversation started from a Facebook ad that clicks into Messenger will land in your One Inbox — with the same AI handling, lead scoring, and team routing.')],
+                    [__('Does it work with Facebook ads (click-to-Messenger)?'), __('Yes. Any conversation started from a Facebook ad that clicks into Messenger will land in your OT1-Pro — with the same AI handling, lead scoring, and team routing.')],
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
@@ -169,8 +165,8 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "Does One Inbox work with the official Facebook API?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox uses Meta's official Messenger Platform API. Your Facebook Page and account are fully compliant — no unofficial tools or at-risk integrations."}
+            "name": "Does OT1-Pro work with the official Facebook API?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. OT1-Pro uses Meta's official Messenger Platform API. Your Facebook Page and account are fully compliant — no unofficial tools or at-risk integrations."}
         },
         {
             "@@type": "Question",
@@ -180,7 +176,7 @@
         {
             "@@type": "Question",
             "name": "Does it work with Facebook ads (click-to-Messenger)?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Any conversation started from a Facebook ad that clicks into Messenger will land in your One Inbox — with AI handling, lead scoring, and team routing."}
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Any conversation started from a Facebook ad that clicks into Messenger will land in your OT1-Pro — with AI handling, lead scoring, and team routing."}
         }
     ]
 }

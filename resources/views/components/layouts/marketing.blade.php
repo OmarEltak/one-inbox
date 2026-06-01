@@ -12,7 +12,7 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'One Inbox — Unified Social Inbox with AI Sales Responder' }}</title>
+    <title>{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}</title>
     <meta name="description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place. AI-powered sales responder closes deals 24/7.' }}">
     <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
     @if(config('services.google.site_verification'))
@@ -23,17 +23,17 @@
          PNG is the default — Facebook and LinkedIn ignore SVG og:images. --}}
     @php $ogImageUrl = $ogImage ?? config('app.url') . '/og-image.png'; @endphp
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $title ?? 'One Inbox — Unified Social Inbox with AI Sales Responder' }}">
+    <meta property="og:title" content="{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}">
     <meta property="og:description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place.' }}">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:site_name" content="One Inbox">
+    <meta property="og:site_name" content="OT1-Pro">
     <meta property="og:image" content="{{ $ogImageUrl }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
     {{-- Twitter --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title ?? 'One Inbox' }}">
+    <meta name="twitter:title" content="{{ $title ?? 'OT1-Pro' }}">
     <meta name="twitter:description" content="{{ $description ?? 'Unified Social Inbox with AI Sales Responder' }}">
     <meta name="twitter:image" content="{{ $ogImageUrl }}">
 
@@ -55,7 +55,7 @@
     {
         "@@context": "https://schema.org",
         "@type": "Organization",
-        "name": "One Inbox",
+        "name": "OT1-Pro",
         "alternateName": "OT1 Pro",
         "url": "https://ot1-pro.com",
         "logo": "https://ot1-pro.com/logo.png",
@@ -79,7 +79,7 @@
     {
         "@@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "One Inbox",
+        "name": "OT1-Pro",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "description": "{{ $description ?? 'Unified social inbox with AI-powered sales responder for Facebook, Instagram, WhatsApp, and Telegram.' }}",
@@ -92,7 +92,7 @@
         },
         "creator": {
             "@type": "Organization",
-            "name": "One Inbox",
+            "name": "OT1-Pro",
             "url": "https://ot1-pro.com"
         }
     }

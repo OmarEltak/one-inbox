@@ -21,7 +21,7 @@ namespace App\Services;
  *
  * NOTE FOR THE DASHBOARD:
  *   These prices are billed by Meta directly to the WhatsApp Business Account
- *   owner — NOT by One Inbox. Always surface that disclaimer in any UI that
+ *   owner — NOT by OT1-Pro. Always surface that disclaimer in any UI that
  *   displays an estimate.
  */
 final class WhatsAppCloudPricing

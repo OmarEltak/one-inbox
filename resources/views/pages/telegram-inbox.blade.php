@@ -1,14 +1,10 @@
 <x-layouts.marketing
-    :title="__('Telegram Business Inbox — Manage Messages at Scale | One Inbox')"
+    :title="__('Telegram Business Inbox — Manage Messages at Scale | OT1-Pro')"
     :description="__('Manage all your Telegram business messages from a shared team inbox. AI auto-replies, scores leads, and routes hot prospects to your team automatically. Try free.')"
 >
 
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
-        <div class="pointer-events-none absolute inset-0 -z-10">
-            <div class="absolute left-1/4 top-0 size-[500px] rounded-full bg-cyan-500/10 blur-3xl"></div>
-            <div class="absolute right-0 top-1/3 size-[400px] rounded-full bg-sky-500/8 blur-3xl"></div>
-        </div>
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid items-center gap-12 lg:grid-cols-2">
                 <div>
@@ -17,10 +13,10 @@
                         {{ __('Telegram Business Inbox') }}
                     </div>
                     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                        {{ __('Telegram Business Inbox for') }} <span class="bg-gradient-to-r from-cyan-600 to-sky-500 bg-clip-text text-transparent">{{ __('Sales & Support Teams') }}</span>
+                        {{ __('Telegram Business Inbox for') }} <span class="text-cyan-600 dark:text-cyan-400">{{ __('Sales & Support Teams') }}</span>
                     </h1>
                     <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400">
-                        {{ __('Telegram is the fastest-growing business messaging platform — especially in the Middle East, Eastern Europe, and Southeast Asia. One Inbox gives you a professional shared inbox with AI automation so you never miss a business conversation.') }}
+                        {{ __('Telegram is the fastest-growing business messaging platform — especially in the Middle East, Eastern Europe, and Southeast Asia. OT1-Pro gives you a professional shared inbox with AI automation so you never miss a business conversation.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
                         <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all hover:bg-cyan-700">
@@ -67,17 +63,17 @@
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Professional Telegram inbox for serious businesses') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Telegram gives you direct access to highly engaged customers. One Inbox makes sure you convert them.') }}</p>
+                <p class="mt-4 text-zinc-600 dark:text-zinc-400">{{ __('Telegram gives you direct access to highly engaged customers. OT1-Pro makes sure you convert them.') }}</p>
             </div>
             <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
                 $features = [
-                    ['🤖', __('AI Bot Replies'), __('Connect your Telegram bot to One Inbox. AI takes over — answering questions, sharing product info, and guiding customers toward a purchase automatically.')],
+                    ['🤖', __('AI Bot Replies'), __('Connect your Telegram bot to OT1-Pro. AI takes over — answering questions, sharing product info, and guiding customers toward a purchase automatically.')],
                     ['🗂️', __('Unified Team Inbox'), __('All Telegram conversations land in one shared inbox. Assign threads to team members, add internal notes, and track every interaction.')],
                     ['📊', __('Lead Scoring'), __('AI scores every Telegram conversation by purchase intent. Focus your team\'s time on the leads most likely to convert — not everyone who says "hello."')],
                     ['🔀', __('Smart Routing'), __('High-score leads get automatically assigned to your best closers. Support questions go to your support team. Everything routes to the right person.')],
                     ['🌐', __('100+ Languages'), __('Telegram is global. Your AI responds in Russian, Arabic, Persian, Turkish, English, and 100+ more languages — automatically matching the customer\'s language.')],
-                    ['📁', __('Contact Management'), __('Every Telegram user who messages your bot becomes a contact in One Inbox — with their full conversation history, lead score, and notes attached.')],
+                    ['📁', __('Contact Management'), __('Every Telegram user who messages your bot becomes a contact in OT1-Pro — with their full conversation history, lead score, and notes attached.')],
                 ];
                 @endphp
                 @foreach($features as $feature)
@@ -100,11 +96,11 @@
             <div class="mt-12 space-y-4" x-data="{ open: null }">
                 @php
                 $faqs = [
-                    [__('How does One Inbox connect to Telegram?'), __('You connect via a Telegram Bot. You create a free bot through Telegram\'s BotFather, paste the bot token into One Inbox, and your bot\'s conversations flow into your shared inbox instantly.')],
-                    [__('Does it work with Telegram channels and groups?'), __('One Inbox currently handles direct messages to your Telegram bot. Channel and group management is on the roadmap for a future update.')],
+                    [__('How does OT1-Pro connect to Telegram?'), __('You connect via a Telegram Bot. You create a free bot through Telegram\'s BotFather, paste the bot token into OT1-Pro, and your bot\'s conversations flow into your shared inbox instantly.')],
+                    [__('Does it work with Telegram channels and groups?'), __('OT1-Pro currently handles direct messages to your Telegram bot. Channel and group management is on the roadmap for a future update.')],
                     [__('Can the AI handle complex product questions?'), __('Yes. You train the AI by providing your product catalog, FAQs, pricing, and policies. The more detail you give it, the better it handles complex questions without human intervention.')],
                     [__('Is Telegram compliant with business messaging rules?'), __('Telegram has no restrictions on business bots — unlike WhatsApp or Instagram. You can send messages freely as long as users initiated the conversation with your bot.')],
-                    [__('Can I use One Inbox for Telegram and other platforms simultaneously?'), __('Yes. One Inbox unifies Telegram with Facebook, Instagram, and WhatsApp in one dashboard. Your team manages all channels from a single interface.')],
+                    [__('Can I use OT1-Pro for Telegram and other platforms simultaneously?'), __('Yes. OT1-Pro unifies Telegram with Facebook, Instagram, and WhatsApp in one dashboard. Your team manages all channels from a single interface.')],
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
@@ -170,8 +166,8 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "How does One Inbox connect to Telegram?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "You connect via a Telegram Bot. Create a free bot through Telegram's BotFather, paste the bot token into One Inbox, and your bot's conversations flow into your shared inbox instantly."}
+            "name": "How does OT1-Pro connect to Telegram?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "You connect via a Telegram Bot. Create a free bot through Telegram's BotFather, paste the bot token into OT1-Pro, and your bot's conversations flow into your shared inbox instantly."}
         },
         {
             "@@type": "Question",
@@ -180,8 +176,8 @@
         },
         {
             "@@type": "Question",
-            "name": "Can I use One Inbox for Telegram and other platforms simultaneously?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. One Inbox unifies Telegram with Facebook, Instagram, and WhatsApp in one dashboard. Your team manages all channels from a single interface."}
+            "name": "Can I use OT1-Pro for Telegram and other platforms simultaneously?",
+            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. OT1-Pro unifies Telegram with Facebook, Instagram, and WhatsApp in one dashboard. Your team manages all channels from a single interface."}
         }
     ]
 }

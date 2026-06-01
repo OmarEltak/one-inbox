@@ -1,4 +1,4 @@
-<x-layouts.marketing :title="__('Privacy Policy') . ' — One Inbox'" :description="__('One Inbox Privacy Policy — how we collect, use, and protect your data.')">
+<x-layouts.marketing :title="__('Privacy Policy') . ' — OT1-Pro'" :description="__('OT1-Pro Privacy Policy — how we collect, use, and protect your data.')">
 
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-3xl px-6">
@@ -10,8 +10,8 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Introduction') }}</h2>
-                    <p class="mt-3">{{ __('One Inbox ("we", "us", or "our") operates a unified social media inbox platform that allows businesses to manage messages from multiple social platforms in one place. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service at ot1-pro.com.') }}</p>
-                    <p class="mt-3">{{ __('By using One Inbox, you agree to the collection and use of information in accordance with this policy. If you disagree with any part of this policy, please do not use our service.') }}</p>
+                    <p class="mt-3">{{ __('OT1-Pro ("we", "us", or "our") operates a unified social media inbox platform that allows businesses to manage messages from multiple social platforms in one place. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service at ot1-pro.com.') }}</p>
+                    <p class="mt-3">{{ __('By using OT1-Pro, you agree to the collection and use of information in accordance with this policy. If you disagree with any part of this policy, please do not use our service.') }}</p>
                 </div>
 
                 <div>
@@ -37,7 +37,7 @@
                         <li><strong>message.list.send</strong> — {{ __('To send replies to direct messages on your behalf') }}</li>
                         <li><strong>message.list.manage</strong> — {{ __('To manage conversation state (e.g., mark as read) within your inbox') }}</li>
                     </ul>
-                    <p class="mt-2">{{ __('We do not access your TikTok content, followers, analytics, videos, or any data beyond what is required for the Business Messaging inbox functionality. TikTok data is used solely to display and manage your direct messages within One Inbox and is never shared with or sold to third parties. You can revoke access at any time by disconnecting TikTok from your Connections settings.') }}</p>
+                    <p class="mt-2">{{ __('We do not access your TikTok content, followers, analytics, videos, or any data beyond what is required for the Business Messaging inbox functionality. TikTok data is used solely to display and manage your direct messages within OT1-Pro and is never shared with or sold to third parties. You can revoke access at any time by disconnecting TikTok from your Connections settings.') }}</p>
 
                     <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-200 mt-5">{{ __('2.4 Usage Data') }}</h3>
                     <p class="mt-2">{{ __('We automatically collect certain information about how you interact with our service, including browser type, IP address, pages visited, and actions performed within the app. This data is used solely to improve service performance and reliability.') }}</p>
@@ -49,7 +49,7 @@
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('3. How We Use Your Information') }}</h2>
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li>{{ __('To provide and operate the One Inbox service, including fetching, displaying, and sending messages on your behalf') }}</li>
+                        <li>{{ __('To provide and operate the OT1-Pro service, including fetching, displaying, and sending messages on your behalf') }}</li>
                         <li>{{ __('To generate AI-powered reply suggestions and auto-responses when you enable that feature') }}</li>
                         <li>{{ __('To display analytics and conversation statistics in your dashboard') }}</li>
                         <li>{{ __('To send you transactional emails (e.g., password resets, billing receipts)') }}</li>
@@ -105,9 +105,9 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7a. Data Deletion (Meta Apps)') }}</h2>
-                    <p class="mt-3">{{ __('If you connected One Inbox via Facebook or Instagram and want all data we hold about you removed, you have two options:') }}</p>
+                    <p class="mt-3">{{ __('If you connected OT1-Pro via Facebook or Instagram and want all data we hold about you removed, you have two options:') }}</p>
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li>{{ __('Visit') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-purple-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook → Settings → Apps & Websites') }}</a> {{ __('and remove One Inbox Business — Meta will then automatically notify our system to delete your data.') }}</li>
+                        <li>{{ __('Visit') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-purple-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook → Settings → Apps & Websites') }}</a> {{ __('and remove OT1-Pro Business — Meta will then automatically notify our system to delete your data.') }}</li>
                         <li>{{ __('Or email us directly at') }} <a href="mailto:privacy@ot1-pro.com" class="text-purple-600 hover:underline">privacy@ot1-pro.com</a> {{ __('with the subject "Data Deletion Request".') }}</li>
                     </ul>
                     <p class="mt-3 text-sm">{{ __('Either method removes the connected account, contact profile, conversations, messages, and lead score events linked to your Facebook or Instagram identifier within 30 days. We send a confirmation page where you can verify the deletion completed.') }}</p>
@@ -120,17 +120,17 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __("9. Children's Privacy") }}</h2>
-                    <p class="mt-3">{{ __('One Inbox is a business tool intended for users aged 18 and older. We do not knowingly collect personal information from individuals under 18. If we become aware that a minor has provided us data, we will delete it promptly.') }}</p>
+                    <p class="mt-3">{{ __('OT1-Pro is a business tool intended for users aged 18 and older. We do not knowingly collect personal information from individuals under 18. If we become aware that a minor has provided us data, we will delete it promptly.') }}</p>
                 </div>
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('10. International Data Transfers') }}</h2>
-                    <p class="mt-3">{{ __('Your data may be processed in countries outside your own. By using One Inbox, you consent to your data being transferred to and processed in these countries. We ensure appropriate safeguards are in place for such transfers.') }}</p>
+                    <p class="mt-3">{{ __('Your data may be processed in countries outside your own. By using OT1-Pro, you consent to your data being transferred to and processed in these countries. We ensure appropriate safeguards are in place for such transfers.') }}</p>
                 </div>
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('11. Changes to This Policy') }}</h2>
-                    <p class="mt-3">{{ __('We may update this Privacy Policy from time to time. We will notify you of significant changes by email or by displaying a prominent notice in the app. Continued use of One Inbox after changes constitutes acceptance of the updated policy.') }}</p>
+                    <p class="mt-3">{{ __('We may update this Privacy Policy from time to time. We will notify you of significant changes by email or by displaying a prominent notice in the app. Continued use of OT1-Pro after changes constitutes acceptance of the updated policy.') }}</p>
                 </div>
 
                 <div>

@@ -1,6 +1,6 @@
 <x-layouts.marketing
-    :title="__('Features — Unified Inbox, AI Responder & Lead Scoring | One Inbox')"
-    :description="__('Discover One Inbox features: manage Facebook, Instagram, WhatsApp & Telegram in one place. AI sales responder, lead scoring, analytics, and team collaboration.')">
+    :title="__('Features — Unified Inbox, AI Responder & Lead Scoring | OT1-Pro')"
+    :description="__('Discover OT1-Pro features: manage Facebook, Instagram, WhatsApp & Telegram in one place. AI sales responder, lead scoring, analytics, and team collaboration.')">
 
 @push('schema')
 <script type="application/ld+json">
@@ -10,12 +10,12 @@
     "mainEntity": [
         {
             "@@type": "Question",
-            "name": "Which messaging platforms does One Inbox support?",
+            "name": "Which messaging platforms does OT1-Pro support?",
             "acceptedAnswer": {"@@type": "Answer", "text": "Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram are fully supported today. TikTok DMs and LinkedIn Messages are in active development."}
         },
         {
             "@@type": "Question",
-            "name": "Do I need a developer to set up One Inbox?",
+            "name": "Do I need a developer to set up OT1-Pro?",
             "acceptedAnswer": {"@@type": "Answer", "text": "No. Each platform is connected through a guided OAuth flow. WhatsApp uses an in-app QR connect that works without writing any code."}
         },
         {
@@ -38,7 +38,7 @@
             <div class="text-center animate-fade-in-up">
                 <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">{{ __('Powerful features for modern sales teams') }}</h1>
                 <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto">
-                    {{ __('One Inbox gives sales and support teams a single place to manage every customer conversation across WhatsApp, Instagram, Facebook, and Telegram — with an AI agent that qualifies leads, answers questions, and hands off hot prospects automatically.') }}
+                    {{ __('OT1-Pro gives sales and support teams a single place to manage every customer conversation across WhatsApp, Instagram, Facebook, and Telegram — with an AI agent that qualifies leads, answers questions, and hands off hot prospects automatically.') }}
                 </p>
                 <p class="mt-4 text-base text-zinc-500 dark:text-zinc-500 max-w-3xl mx-auto">
                     {{ __('Stop juggling four different apps and missing messages. Everything below is included on every plan, including the free tier.') }}
@@ -75,7 +75,6 @@
                     <div class="card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
                         {{-- Decorative grid dots --}}
                         <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                        <div class="pointer-events-none absolute -top-12 -right-12 size-32 rounded-full bg-blue-500/10 blur-2xl"></div>
                         <div class="relative space-y-4">
                             <div class="flex items-center gap-4">
                                 <div class="flex size-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
@@ -104,7 +103,6 @@
                 <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-right')" style="opacity:0">
                     <div class="order-2 lg:order-1 card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
                         <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                        <div class="pointer-events-none absolute -bottom-12 -left-12 size-32 rounded-full bg-purple-500/10 blur-2xl"></div>
                         <div class="relative space-y-4">
                             <div class="flex items-center gap-4">
                                 <div class="flex size-12 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
@@ -179,7 +177,6 @@
                     </div>
                     <div class="card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
                         <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                        <div class="pointer-events-none absolute -top-12 -left-12 size-32 rounded-full bg-orange-500/10 blur-2xl"></div>
                         <div class="relative space-y-4">
                             <div class="flex items-center gap-4">
                                 <div class="flex size-12 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30">
@@ -207,13 +204,13 @@
         </div>
     </section>
 
-    {{-- Why teams choose One Inbox --}}
+    {{-- Why teams choose OT1-Pro --}}
     <section class="border-y border-zinc-200 bg-zinc-50 py-20 lg:py-28 dark:border-zinc-800 dark:bg-zinc-900/50">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
                 <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Built for the way real sales teams work') }}</h2>
                 <p class="mx-auto mt-5 max-w-3xl text-lg text-zinc-600 dark:text-zinc-400">
-                    {{ __('Most CRMs were built for email and phone. Most chat tools were built for website visitors. One Inbox is the only tool built specifically for businesses whose customers reach them on WhatsApp, Instagram, Facebook, and Telegram — the platforms they actually use.') }}
+                    {{ __('Most CRMs were built for email and phone. Most chat tools were built for website visitors. OT1-Pro is the only tool built specifically for businesses whose customers reach them on WhatsApp, Instagram, Facebook, and Telegram — the platforms they actually use.') }}
                 </p>
             </div>
 
@@ -282,7 +279,6 @@
                 </div>
                 <div class="card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                    <div class="pointer-events-none absolute -top-12 -right-12 size-32 rounded-full bg-green-500/10 blur-2xl"></div>
                     <div class="relative space-y-4">
                         <div class="flex items-center gap-4">
                             <div class="flex size-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30">
@@ -315,7 +311,6 @@
             <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-right')" style="opacity:0">
                 <div class="order-2 lg:order-1 card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                    <div class="pointer-events-none absolute -bottom-12 -right-12 size-32 rounded-full bg-pink-500/10 blur-2xl"></div>
                     <div class="relative grid grid-cols-2 gap-3">
                         <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-800">
                             <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ __('WhatsApp') }}</p>
@@ -372,11 +367,11 @@
             <h2 class="text-3xl font-bold tracking-tight">{{ __('Frequently asked questions') }}</h2>
             <div class="mt-10 divide-y divide-zinc-200 dark:divide-zinc-800">
                 <div class="py-6">
-                    <h3 class="text-lg font-semibold">{{ __('Which messaging platforms does One Inbox support?') }}</h3>
+                    <h3 class="text-lg font-semibold">{{ __('Which messaging platforms does OT1-Pro support?') }}</h3>
                     <p class="mt-3 text-zinc-600 dark:text-zinc-400">{{ __('Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram are fully supported today. TikTok DMs and LinkedIn Messages are in active development. Email and an embeddable web chat widget round out the channel set.') }}</p>
                 </div>
                 <div class="py-6">
-                    <h3 class="text-lg font-semibold">{{ __('Do I need a developer to set up One Inbox?') }}</h3>
+                    <h3 class="text-lg font-semibold">{{ __('Do I need a developer to set up OT1-Pro?') }}</h3>
                     <p class="mt-3 text-zinc-600 dark:text-zinc-400">{{ __('No. Each platform is connected through a guided OAuth flow. WhatsApp uses an in-app QR connect that works without writing any code. Most teams are up and replying within an hour of signing up.') }}</p>
                 </div>
                 <div class="py-6">
@@ -394,10 +389,8 @@
     {{-- CTA --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6" x-data x-intersect.once="$el.classList.add('animate-fade-in-up')" style="opacity:0">
-            <div class="overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 animate-gradient-shift p-10 text-center text-white sm:p-16 relative">
+            <div class="overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 p-10 text-center text-white sm:p-16 relative">
                 <div class="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div class="absolute -top-24 -right-24 size-64 rounded-full bg-white/5 blur-2xl"></div>
-                    <div class="absolute -bottom-24 -left-24 size-64 rounded-full bg-white/5 blur-2xl"></div>
                 </div>
                 <div class="relative">
                     <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Ready to get started?') }}</h2>

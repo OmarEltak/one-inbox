@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-01T00:00:00Z",
+  "title": "Design System: OT1-Pro",
+  "extensions": {
+    "colorMeta": {
+      "midnight-base": {
+        "role": "neutral",
+        "displayName": "Midnight Base",
+        "canonical": "oklch(15% 0.008 290)",
+        "tonalRamp": ["#0A0A0F", "#111127", "#1A1A2E", "#262640", "#3D3D5C", "#5E5E7A", "#8989A3", "#C8C8D6"]
+      },
+      "midnight-deep": {
+        "role": "neutral",
+        "displayName": "Midnight Deep",
+        "canonical": "oklch(16% 0.012 290)",
+        "tonalRamp": ["#0D0D1A", "#141426", "#1F1F38", "#2D2D52", "#454570", "#67678F", "#9494B0", "#CFCFE0"]
+      },
+      "midnight-violet": {
+        "role": "neutral",
+        "displayName": "Midnight Violet",
+        "canonical": "oklch(18% 0.022 290)",
+        "tonalRamp": ["#111127", "#1A1A36", "#26264B", "#363665", "#50507F", "#73739C", "#9E9EBA", "#D5D5E5"]
+      },
+      "ink-elevated": {
+        "role": "neutral",
+        "displayName": "Ink Elevated",
+        "canonical": "oklch(22% 0.005 290)",
+        "tonalRamp": ["#191C1D", "#23272A", "#333740", "#4A4F59", "#666D78", "#888F99", "#B0B6BD", "#DDE0E4"]
+      },
+      "pro-violet": {
+        "role": "primary",
+        "displayName": "Pro Violet",
+        "canonical": "oklch(56% 0.24 290)",
+        "purpose": "The one accent. Reserved for active nav, primary CTA, AI attribution, brand mark. Stay under 10% of any screen.",
+        "tonalRamp": ["#1E0D45", "#321561", "#4A1C8D", "#6122B5", "#7C3AED", "#9560F0", "#B387F4", "#D5B6F9"]
+      },
+      "pro-violet-deep": {
+        "role": "primary",
+        "displayName": "Pro Violet Deep",
+        "canonical": "oklch(50% 0.22 290)",
+        "purpose": "Gradient partner and :hover state of Pro Violet.",
+        "tonalRamp": ["#1A0A3F", "#2C115A", "#421982", "#5520A5", "#6D28D9", "#8954E0", "#A87CE9", "#CDB1F2"]
+      },
+      "pro-violet-tint": {
+        "role": "primary",
+        "displayName": "Pro Violet Tint",
+        "canonical": "oklch(72% 0.18 295)",
+        "purpose": "Lower-prominence violet on dark surfaces. Active-tab icons. Never used on light surface.",
+        "tonalRamp": ["#3E1A6B", "#5A268F", "#7B36B3", "#9D4DD3", "#C27AFF", "#D49EFF", "#E2BFFF", "#F1DFFF"]
+      },
+      "signal-cyan": {
+        "role": "secondary",
+        "displayName": "Signal Cyan",
+        "canonical": "oklch(70% 0.13 215)",
+        "purpose": "Information-needing-a-glance signal. Paired with Pro Violet on user-avatar gradients and the unread stat-card top border. Never used for state.",
+        "tonalRamp": ["#013140", "#024B5E", "#036680", "#0594B5", "#06B6D4", "#43CEE3", "#7EDFED", "#BDF0F7"]
+      },
+      "marketing-violet": {
+        "role": "tertiary",
+        "displayName": "Marketing Violet",
+        "canonical": "oklch(58% 0.27 305)",
+        "purpose": "Brighter purple for marketing CTAs on light backgrounds. On probation: new brand surfaces should default to Pro Violet on Paper.",
+        "tonalRamp": ["#2B0860", "#460E8E", "#6515B8", "#8021D6", "#9333EA", "#AC5BF0", "#C385F5", "#DCB3F9"]
+      },
+      "marketing-azure": {
+        "role": "tertiary",
+        "displayName": "Marketing Azure",
+        "canonical": "oklch(58% 0.21 260)",
+        "purpose": "Currently paired with Marketing Violet in the hero gradient text. The gradient-text usage is banned; the color itself is documented but should rarely appear in new work.",
+        "tonalRamp": ["#0A1F4D", "#13316E", "#1C4292", "#1F58BB", "#2563EB", "#5183EF", "#7CA4F2", "#ACC5F7"]
+      },
+      "channel-facebook": {
+        "role": "semantic-channel",
+        "displayName": "Facebook Blue",
+        "canonical": "oklch(56% 0.23 260)",
+        "purpose": "Channel identifier only. Appears on FB channel chips, badges, icons. Never on chrome.",
+        "tonalRamp": ["#04173A", "#0A2761", "#103789", "#1A53BE", "#1877F2", "#5292F5", "#85B0F8", "#BDD2FC"]
+      },
+      "channel-instagram": {
+        "role": "semantic-channel",
+        "displayName": "Instagram Pink",
+        "canonical": "oklch(58% 0.21 0)",
+        "purpose": "Channel identifier only.",
+        "tonalRamp": ["#3D0820", "#601038", "#891954", "#B62574", "#E1306C", "#E96693", "#F195B5", "#F8C5D5"]
+      },
+      "channel-whatsapp": {
+        "role": "semantic-channel",
+        "displayName": "WhatsApp Green",
+        "canonical": "oklch(70% 0.19 145)",
+        "purpose": "Channel identifier only.",
+        "tonalRamp": ["#04331C", "#085030", "#0D7146", "#159B5F", "#25D366", "#5DDE89", "#92E9AE", "#C5F4D2"]
+      },
+      "channel-telegram": {
+        "role": "semantic-channel",
+        "displayName": "Telegram Cyan",
+        "canonical": "oklch(56% 0.13 230)",
+        "purpose": "Channel identifier only.",
+        "tonalRamp": ["#012238", "#013656", "#024F7B", "#0271AB", "#0088CC", "#3AA4D9", "#74BFE5", "#B2DCF0"]
+      },
+      "channel-tiktok": {
+        "role": "semantic-channel",
+        "displayName": "TikTok Magenta",
+        "canonical": "oklch(56% 0.24 12)",
+        "purpose": "Channel identifier only.",
+        "tonalRamp": ["#3F081A", "#62102B", "#8B1A3F", "#B92355", "#EE1D52", "#F25579", "#F88BA5", "#FCC2D1"]
+      },
+      "channel-snapchat": {
+        "role": "semantic-channel",
+        "displayName": "Snapchat Yellow",
+        "canonical": "oklch(94% 0.20 105)",
+        "purpose": "Channel identifier only. WCAG note: yellow at this saturation fails on white; always use paired with the channel initials chip.",
+        "tonalRamp": ["#403E00", "#646100", "#8E8A00", "#BFBA00", "#FFFC00", "#FFFD52", "#FFFD93", "#FFFEC8"]
+      },
+      "channel-email": {
+        "role": "semantic-channel",
+        "displayName": "Email Orange",
+        "canonical": "oklch(70% 0.17 50)",
+        "purpose": "Channel identifier only. Email is the latest channel addition.",
+        "tonalRamp": ["#3F1B05", "#62290B", "#893A12", "#B7501E", "#F97316", "#FB9852", "#FCB68B", "#FDD5C0"]
+      },
+      "status-hot": {
+        "role": "semantic-status",
+        "displayName": "Hot Red",
+        "canonical": "oklch(63% 0.22 22)",
+        "purpose": "Lead status: high intent, ready to buy.",
+        "tonalRamp": ["#3D0810", "#5F0F1A", "#871A28", "#B4253B", "#FB2C36", "#FC5C66", "#FD8E96", "#FEC3C8"]
+      },
+      "status-warm": {
+        "role": "semantic-status",
+        "displayName": "Warm Amber",
+        "canonical": "oklch(75% 0.16 70)",
+        "purpose": "Lead status: engaged, in qualification.",
+        "tonalRamp": ["#3E2604", "#623B0A", "#895611", "#B7771C", "#F59E0B", "#F8B547", "#FBCB7E", "#FCE1B3"]
+      },
+      "status-cold": {
+        "role": "semantic-status",
+        "displayName": "Cold Indigo",
+        "canonical": "oklch(64% 0.18 275)",
+        "purpose": "Lead status: minimal recent activity.",
+        "tonalRamp": ["#1A1C42", "#272A66", "#383E8E", "#4F54B5", "#6366F1", "#888BF4", "#ADAFF7", "#D2D3FA"]
+      },
+      "status-converted": {
+        "role": "semantic-status",
+        "displayName": "Converted Green",
+        "canonical": "oklch(75% 0.18 165)",
+        "purpose": "Lead status: closed, deal won.",
+        "tonalRamp": ["#013324", "#015038", "#017051", "#01996F", "#00D492", "#46DCA9", "#83E6BF", "#BCF1D7"]
+      },
+      "status-new": {
+        "role": "semantic-status",
+        "displayName": "New Gray",
+        "canonical": "oklch(70% 0.01 270)",
+        "purpose": "Lead status: just arrived, not yet triaged.",
+        "tonalRamp": ["#1F2226", "#33373D", "#494E55", "#62686F", "#99A1AF", "#B0B6C1", "#C8CCD3", "#DFE2E6"]
+      },
+      "status-lost": {
+        "role": "semantic-status",
+        "displayName": "Lost Gray",
+        "canonical": "oklch(50% 0.01 250)",
+        "purpose": "Lead status: closed-lost or unresponsive.",
+        "tonalRamp": ["#14181C", "#21262C", "#30373F", "#454D57", "#6A7282", "#878F9E", "#A5ABB7", "#C5C9D1"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(98% 0.003 290)",
+        "purpose": "Primary brand background. Tinted slightly toward Pro Violet at chroma 0.003.",
+        "tonalRamp": ["#1A1A1B", "#2D2D2E", "#454547", "#666669", "#909093", "#B5B5B7", "#DADADB", "#FAFAFA"]
+      },
+      "paper-tinted": {
+        "role": "neutral",
+        "displayName": "Paper Tinted",
+        "canonical": "oklch(96% 0.003 290)",
+        "purpose": "Card and section-band background on brand surfaces.",
+        "tonalRamp": ["#19191A", "#2C2C2D", "#444446", "#646467", "#8E8E91", "#B3B3B5", "#D8D8D9", "#F5F5F5"]
+      },
+      "rule-light": {
+        "role": "neutral",
+        "displayName": "Rule Light",
+        "canonical": "oklch(91% 0.004 290)",
+        "purpose": "Hairline dividers on brand surfaces.",
+        "tonalRamp": ["#171718", "#27272A", "#3B3B3F", "#575759", "#7C7C7E", "#9D9DA0", "#C2C2C3", "#E5E5E5"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "oklch(54% 0.005 290)",
+        "purpose": "Body text on brand pages.",
+        "tonalRamp": ["#0E0E0F", "#19191A", "#252527", "#373739", "#4D4D50", "#737373", "#A1A1A3", "#D2D2D3"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(26% 0.005 290)",
+        "purpose": "Titles and primary text on brand pages.",
+        "tonalRamp": ["#070708", "#0F0F10", "#171718", "#262626", "#3D3D3E", "#5C5C5D", "#85858A", "#BFBFC2"]
+      },
+      "ink-deep": {
+        "role": "neutral",
+        "displayName": "Ink Deep",
+        "canonical": "oklch(20% 0.005 290)",
+        "purpose": "Rare 'shout' text on brand. Use sparingly.",
+        "tonalRamp": ["#040405", "#08080A", "#101012", "#171717", "#2A2A2C", "#454547", "#6F6F73", "#A8A8AC"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Brand hero headlines only. Product UI never uses display weight at display size." },
+      "headline": { "displayName": "Headline", "purpose": "Brand section headlines, product page titles." },
+      "title": { "displayName": "Title", "purpose": "Card titles, modal headers, sidebar group labels." },
+      "body": { "displayName": "Body", "purpose": "Product UI body text. The default everything-else at 14px." },
+      "body-marketing": { "displayName": "Body (Marketing)", "purpose": "Brand prose at 17px. Max 65-75ch line length." },
+      "label": { "displayName": "Label", "purpose": "Stat card labels, table column headers, badge text. Uppercase with letter-spacing 0.075em." },
+      "mono": { "displayName": "Mono", "purpose": "Keyboard shortcut chips, timestamps in compact UI." }
+    },
+    "shadows": [
+      { "name": "sidebar-elevation", "value": "4px 0 30px rgba(0,0,0,0.6)", "purpose": "Sidebar separates from gradient body. Diffuse, directional, runs full height." },
+      { "name": "header-bottom", "value": "inset 0 -1px 0 rgba(255,255,255,0.06)", "purpose": "Sticky header bottom hairline; pairs with backdrop-filter: blur(16px)." },
+      { "name": "card-resting", "value": "0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.3)", "purpose": "Card at rest. 1px inset highlight + soft drop." },
+      { "name": "card-hover", "value": "0 1px 0 rgba(255,255,255,0.07) inset, 0 8px 32px rgba(0,0,0,0.4)", "purpose": "Card lifts on hover; pair with border-color shift to rgba(124,58,237,0.25)." },
+      { "name": "ai-glow", "value": "0 2px 12px rgba(124,58,237,0.35)", "purpose": "AI-attributed surface. Active sidebar nav pill, primary CTA, AI-replied chip. Never decorative." },
+      { "name": "ai-glow-hover", "value": "0 4px 20px rgba(124,58,237,0.5)", "purpose": "AI-attributed surface on hover. Slightly more intense glow." },
+      { "name": "notification-ring", "value": "0 0 0 2px #0A0A0F", "purpose": "Hard contrast ring around notification dot. Lets red dot read on any background." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default ease for state transitions. No bounce." },
+      { "name": "ease-out-quint", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Slightly more pronounced ease-out for sidebar/menu reveals." },
+      { "name": "duration-instant", "value": "120ms", "purpose": "Hover background change, table row highlight." },
+      { "name": "duration-fast", "value": "200ms", "purpose": "Button hover, focus ring, color transitions." },
+      { "name": "duration-medium", "value": "300ms", "purpose": "Card lift, modal open, dropdown reveal." },
+      { "name": "duration-slow", "value": "600ms", "purpose": "Marketing entrance animations (fade-in-up). Must respect prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px", "purpose": "Phone-landscape. Stat cards collapse to 2 columns." },
+      { "name": "md", "value": "768px", "purpose": "Tablet. Inbox row metadata visible." },
+      { "name": "lg", "value": "1024px", "purpose": "Desktop. Sidebar always visible. Header search bar visible. Stat cards at 4 columns." },
+      { "name": "xl", "value": "1280px", "purpose": "Wide desktop. Inbox three-pane layout becomes comfortable." },
+      { "name": "2xl", "value": "1536px", "purpose": "Power-user wide. Optional secondary detail panel." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button (Product)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid Pro Violet on dark; the main affirmative action in the product. The violet means 'this commits the AI to action'.",
+      "html": "<button class=\"ds-btn-primary\">Connect inbox</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%); color: #ffffff; padding: 10px 20px; border: none; border-radius: 12px; font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: normal; cursor: pointer; box-shadow: 0 2px 12px rgba(124,58,237,0.35); transition: box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1), transform 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { box-shadow: 0 4px 20px rgba(124,58,237,0.5); } .ds-btn-primary:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Primary Button (Marketing)",
+      "kind": "button",
+      "refersTo": "button-primary-marketing",
+      "description": "Larger primary CTA for marketing hero sections. Solid color, no decorative shimmer.",
+      "html": "<button class=\"ds-btn-primary-marketing\">Start closing on autopilot</button>",
+      "css": ".ds-btn-primary-marketing { background: #9333EA; color: #ffffff; padding: 14px 32px; border: none; border-radius: 12px; font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: normal; cursor: pointer; box-shadow: 0 4px 16px rgba(147,51,234,0.25); transition: background-color 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary-marketing:hover { background-color: #7E22CE; box-shadow: 0 6px 24px rgba(147,51,234,0.35); } .ds-btn-primary-marketing:focus-visible { outline: 2px solid #9333EA; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Translucent surface on dark backgrounds. Used for 'Cancel', 'See How It Works', non-destructive secondary actions.",
+      "html": "<button class=\"ds-btn-secondary\">See How It Works</button>",
+      "css": ".ds-btn-secondary { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.80); padding: 10px 20px; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 200ms cubic-bezier(0.25, 1, 0.5, 1), color 200ms cubic-bezier(0.25, 1, 0.5, 1), border-color 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-secondary:hover { background: rgba(255,255,255,0.08); color: #ffffff; border-color: rgba(255,255,255,0.25); } .ds-btn-secondary:focus-visible { outline: 2px solid rgba(124,58,237,0.7); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Badge (Hot)",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Lead status pill. Always paired with a label, never standalone color. Five other variants follow the same pattern with different colors.",
+      "html": "<span class=\"ds-badge-hot\"><span class=\"ds-badge-dot\"></span>Hot lead</span>",
+      "css": ".ds-badge-hot { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; background: rgba(244,63,94,0.15); color: #FB7185; border: 1px solid rgba(244,63,94,0.3); font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; } .ds-badge-hot .ds-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #FB2C36; }"
+    },
+    {
+      "name": "Channel Chip (Instagram)",
+      "kind": "chip",
+      "refersTo": "card-product",
+      "description": "Per-conversation channel identifier. Shows platform initials in the channel color on a translucent surface. Critical for the agency operator's per-client clarity.",
+      "html": "<span class=\"ds-channel-chip-ig\"><span class=\"ds-channel-initials\">IG</span><span class=\"ds-channel-name\">@brandname</span></span>",
+      "css": ".ds-channel-chip-ig { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 6px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #99A1AF; font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 11px; font-weight: 500; max-width: 140px; transition: border-color 150ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-channel-chip-ig:hover { border-color: rgba(124,58,237,0.3); } .ds-channel-initials { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 6px; background: rgba(225,48,108,0.13); color: #E1306C; font-size: 9px; font-weight: 700; flex-shrink: 0; } .ds-channel-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "The signature dashboard primitive. Top-left label, top-right colored icon-tile, bottom-left big number with caption, bottom-right sparkline.",
+      "html": "<a class=\"ds-stat-card\" href=\"#\"><div class=\"ds-stat-top\"><span class=\"ds-stat-label\">Total Messages</span><span class=\"ds-stat-icon\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z\"/></svg></span></div><div class=\"ds-stat-bottom\"><div><span class=\"ds-stat-number\">12,348</span><span class=\"ds-stat-caption\">192 today</span></div><svg class=\"ds-stat-spark\" viewBox=\"0 0 80 40\" fill=\"none\"><polyline points=\"0,35 13,28 26,30 39,18 52,22 65,12 80,8\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></div></a>",
+      "css": ".ds-stat-card { display: block; padding: 20px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15); border-top: 2px solid #7C3AED; box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.3); color: rgba(255,255,255,0.80); text-decoration: none; font-family: 'Cairo', ui-sans-serif, sans-serif; transition: border-color 200ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1), transform 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-stat-card:hover { border-color: rgba(124,58,237,0.25); border-top-color: #7C3AED; box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 8px 32px rgba(0,0,0,0.4); transform: translateY(-2px); } .ds-stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; } .ds-stat-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.075em; } .ds-stat-icon { display: inline-flex; align-items: center; justify-content: center; padding: 8px; border-radius: 12px; background: rgba(124,58,237,0.12); color: #C27AFF; box-shadow: 0 0 16px rgba(124,58,237,0.18); } .ds-stat-icon svg { width: 16px; height: 16px; } .ds-stat-bottom { display: flex; align-items: flex-end; justify-content: space-between; } .ds-stat-number { display: block; font-size: 30px; font-weight: 700; color: #ffffff; line-height: 1; } .ds-stat-caption { display: block; margin-top: 4px; font-size: 11px; color: rgba(255,255,255,0.55); } .ds-stat-spark { width: 80px; height: 40px; color: rgba(124,58,237,0.4); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard product input. Translucent surface on dark, focus state lifts background and shifts border to Pro Violet at 50% opacity.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Contact name</span><input class=\"ds-input\" type=\"text\" placeholder=\"Type to search...\"></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font-family: 'Cairo', ui-sans-serif, sans-serif; } .ds-field-label { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.70); } .ds-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 14px; color: rgba(255,255,255,0.85); font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.5; outline: none; transition: background-color 200ms cubic-bezier(0.25, 1, 0.5, 1), border-color 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-input::placeholder { color: rgba(255,255,255,0.30); } .ds-input:hover { border-color: rgba(255,255,255,0.22); } .ds-input:focus { background: rgba(255,255,255,0.06); border-color: rgba(124,58,237,0.50); color: #ffffff; }"
+    },
+    {
+      "name": "Sidebar Nav Item (Active)",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "The active sidebar pill is the one place in the product where the Pro Violet gradient lives as a load-bearing UI element. The gradient + glow communicates 'you are here, the AI knows it.'",
+      "html": "<a class=\"ds-nav-active\" href=\"#\"><svg class=\"ds-nav-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6\"/></svg><span>Home</span></a>",
+      "css": ".ds-nav-active { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35); color: #ffffff; font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 14px; font-weight: 500; text-decoration: none; transition: box-shadow 200ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-active:hover { box-shadow: 0 4px 20px rgba(124,58,237,0.5); } .ds-nav-active:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; } .ds-nav-icon { width: 18px; height: 18px; flex-shrink: 0; }"
+    },
+    {
+      "name": "Sidebar Nav Item (Resting)",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Resting sidebar item. Quiet text and subtle hover state. The contrast with the active state is what gives the active state its meaning.",
+      "html": "<a class=\"ds-nav-rest\" href=\"#\"><svg class=\"ds-nav-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z\"/></svg><span>Contacts</span></a>",
+      "css": ".ds-nav-rest { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: rgba(255,255,255,0.60); font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 14px; font-weight: 500; text-decoration: none; transition: background-color 120ms cubic-bezier(0.25, 1, 0.5, 1), color 120ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-rest:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); } .ds-nav-icon { width: 18px; height: 18px; flex-shrink: 0; color: currentColor; opacity: 0.7; }"
+    },
+    {
+      "name": "AI Attribution Chip",
+      "kind": "custom",
+      "refersTo": "badge-status",
+      "description": "The signature OT1-Pro component. Every AI-sent message is visually attributed with this chip. Makes the AI a teammate, not a black box.",
+      "html": "<div class=\"ds-ai-chip\"><svg class=\"ds-ai-sparkle\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z\"/></svg><span class=\"ds-ai-label\">Replied by AI</span><span class=\"ds-ai-meta\">2m · 96% confidence</span></div>",
+      "css": ".ds-ai-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 9999px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.30); color: #C27AFF; font-family: 'Cairo', ui-sans-serif, sans-serif; font-size: 11.5px; font-weight: 500; box-shadow: 0 0 12px rgba(124,58,237,0.18); } .ds-ai-sparkle { width: 12px; height: 12px; color: #C27AFF; flex-shrink: 0; } .ds-ai-label { font-weight: 600; color: #D4A8FF; } .ds-ai-meta { color: rgba(194,122,255,0.65); font-size: 11px; } @media (prefers-reduced-motion: no-preference) { .ds-ai-chip { animation: ds-ai-glow-pulse 3s cubic-bezier(0.25, 1, 0.5, 1) 1; } @keyframes ds-ai-glow-pulse { 0% { box-shadow: 0 0 0 rgba(124,58,237,0); } 50% { box-shadow: 0 0 18px rgba(124,58,237,0.32); } 100% { box-shadow: 0 0 12px rgba(124,58,237,0.18); } } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Operator's Console at Midnight",
+    "overview": "OT1-Pro looks the way an agency operator's command station looks at 1am: every channel visible at once, the AI quietly closing in the background, no decorative lights, no marketing buzz, no app trying to feel friendly. The interface is the operator's situational awareness, rendered in the lowest possible visual noise so the actual signal (a hot lead, a stalled conversation, an AI confidence dip) is impossible to miss. The aesthetic is built from three layers stacked deliberately: a midnight gradient product surface carrying tinted-white at 3-7% opacity, a paper-white brand surface with the same violet accent at higher saturation, and a small set of named status colors (hot, warm, cold, converted, lost) and channel colors (FB blue, IG pink, WA green, TG cyan) reserved exclusively for state and identity. What this system explicitly rejects: the conversion-bro chatbot SaaS lane (ManyChat, ChatFuel, GoHighLevel) and the legacy-CRM lane (Salesforce, HubSpot circa 2014). OT1-Pro is the operator's tool, not the affiliate marketer's funnel and not the corporate seat-license.",
+    "keyCharacteristics": [
+      "Dual register: dark-default product, light-default brand, one shared palette and type family.",
+      "One accent color (Pro Violet #7C3AED) that earns its rarity by meaning 'the AI is at work.'",
+      "Cairo as the system font, picked for native Arabic and Latin support at small sizes.",
+      "Color is never decorative: it is identity (channel), state (status), or attribution (AI vs human).",
+      "Motion serves feedback. Decorative motion is forbidden."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Pro Violet appears on ≤10% of any given screen. Its rarity is what makes it read as 'the AI is at work.' When in doubt, use a neutral and let the AI's purple do the talking elsewhere.", "section": "colors" },
+      { "name": "The Color-Means-Something Rule", "body": "Every non-neutral color in this system has a job. Channel colors mean 'this conversation is from this platform.' Status colors mean 'this lead is at this temperature.' Pro Violet means 'this is AI.' Cyan means 'this needs your glance.' Any use of color outside these meanings is decoration and forbidden.", "section": "colors" },
+      { "name": "The Translucent Surface Cap", "body": "Tinted-white surfaces (rgba(255,255,255,X)) cap at 0.08 opacity. Anything more opaque should become a solid #191C1D or graduate to a separate card surface. Stacked translucency past 0.08 reads as plastic, not graphite.", "section": "colors" },
+      { "name": "The One Family Rule", "body": "Cairo for everything except mono cases. No display serif. No editorial-script accent. No secondary sans for 'marketing only.' The product and the brand share a voice.", "section": "typography" },
+      { "name": "The 14px Body Rule", "body": "Product body text is 14px. This is small enough to support density without slipping into illegible territory thanks to Cairo's larger x-height. Do not raise product body to 16px because 'the web standard is 16px.' OT1-Pro's web standard is 14px; the operator wants more on screen, not less.", "section": "typography" },
+      { "name": "The 65ch Line Cap Rule", "body": "Brand prose caps at 65–75 characters per line. Long-form content (blog, about) explicitly. This is a hard cap; respect it even when the column would visually allow more.", "section": "typography" },
+      { "name": "The Arabic-Width Rule", "body": "Arabic text occupies roughly 80% the width of equivalent English at the same point size. Containers that fit English copy at the design-intent width must not collapse when Arabic shortens the line; treat it as honest, not as a layout bug.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Every new surface starts flat. Shadow is added only when the surface has a function the shadow makes possible: lift on hover (interactivity), glow when AI is the actor (attribution), header-over-content (spatial preservation). A shadow without a job is decoration and forbidden.", "section": "elevation" },
+      { "name": "The Glassmorphism-Has-One-Job Rule", "body": "Backdrop blur is permitted only on the sticky header and the sticky sidebar — surfaces that overlay scrolling content and need to preserve spatial context. It is forbidden on cards, modals, badges, and any other ambient use. New uses require explicit justification in PR description.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Pro Violet #7C3AED only for: active nav, primary CTA, AI-attribution, brand mark. Stay under 10% of any screen.",
+      "Do pair every status color with a text label. Color-blind operators must be able to triage.",
+      "Do keep product body type at 14px. Density is a feature.",
+      "Do test every new screen in dir=\"rtl\" before considering it done. RTL is a layout, not a translation.",
+      "Do use the channel color (FB blue, IG pink, WA green, TG cyan) on per-channel chips and badges, never anywhere else.",
+      "Do respect prefers-reduced-motion. Currently nothing in app.css does; new components must.",
+      "Do raise interactive border opacity to at least rgba(255,255,255,0.15) for WCAG 2.2 AA 3:1 contrast. The current white/06 and white/07 borders fail this.",
+      "Do attribute every AI-sent message visually: 'Replied by AI · 2m · 96% confidence'. Silent AI is a trust failure."
+    ],
+    "donts": [
+      "Don't use gradient text. The current marketing hero (bg-clip-text from purple to blue on 'One inbox.') is on the impeccable absolute-ban list. Replace with a solid color and use weight or size for emphasis.",
+      "Don't use glassmorphism on cards, modals, or badges. The header and sidebar are the only sanctioned glass surfaces because they sit above scrolling content and serve spatial preservation.",
+      "Don't add floating animated gradient blobs to any new page. The current hero (size-[600px] rounded-full bg-purple-500/10 blur-3xl animate-float) is exactly the 'generic AI tool template' reflex. Remove it.",
+      "Don't use side-stripe borders wider than 1px as colored accents. The aio-stat-X border-top: 2px solid <color> is on probation: replace with the leading colored icon-tile pattern.",
+      "Don't use the hero-metric template: big number, small label, gradient accent, supporting stats. SaaS cliché.",
+      "Don't build identical card grids. If the brand site needs to list features, vary the cards by content density and image presence; don't ship nine icon + heading + paragraph clones.",
+      "Don't use the btn-shimmer decorative hover sweep on production CTAs. Function only.",
+      "Don't put modals on top of modals. If a flow needs three modals to complete, the flow is the bug.",
+      "Don't use em dashes in copy. Use commas, colons, semicolons, periods, or parentheses.",
+      "Don't use exclamation points in product copy. They read amateurish and trigger the ManyChat-lane association.",
+      "Don't ship the 'One Inbox' name in new code or copy. The brand is OT1-Pro.",
+      "Don't treat the AI as a black-box feature. It is a teammate. Name it, attribute it, show its state.",
+      "Don't copy the Salesforce/HubSpot information architecture: bloated nav, 12-field forms, settings organized by team org chart. Organize by user task."
+    ]
+  }
+}
