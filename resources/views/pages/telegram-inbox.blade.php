@@ -146,8 +146,8 @@
     {{-- CTA --}}
     <section class="pb-20 lg:pb-28 pt-16">
         <div class="mx-auto max-w-4xl px-6">
-            <div class="rounded-3xl bg-gradient-to-br from-cyan-600 to-sky-500 p-10 text-center text-white sm:p-16">
-                <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Start managing Telegram like a business pro') }}</h2>
+            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
+                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Start managing Telegram like a business pro') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Connect your Telegram bot and give your team a professional inbox with AI automation from day one.') }}</p>
                 <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
                     {{ __('Connect Telegram Free') }}

@@ -389,11 +389,11 @@
     {{-- CTA --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6" x-data x-intersect.once="$el.classList.add('animate-fade-in-up')" style="opacity:0">
-            <div class="overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-600 p-10 text-center text-white sm:p-16 relative">
+            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <div class="pointer-events-none absolute inset-0 overflow-hidden">
                 </div>
                 <div class="relative">
-                    <h2 class="text-3xl font-bold sm:text-4xl">{{ __('Ready to get started?') }}</h2>
+                    <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Ready to get started?') }}</h2>
                     <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Start your free trial today. No credit card required.') }}</p>
                     @if(Route::has('register'))
                         <a href="{{ route('register') }}" class="arrow-slide group mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md hover:shadow-xl">
