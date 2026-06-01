@@ -91,7 +91,7 @@
     <section class="py-20">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold">{{ __('The Real Estate Lead Problem') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('The Real Estate Lead Problem') }}</h2>
                 <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('Property buyers don\'t wait. If you\'re slow, they move to the next listing.') }}</p>
             </div>
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -119,7 +119,7 @@
     <section class="bg-zinc-50 py-20 dark:bg-zinc-50">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold">{{ __('Built for Real Estate Teams') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Built for Real Estate Teams') }}</h2>
                 <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('Everything a real estate agency needs to handle leads at speed.') }}</p>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -175,11 +175,11 @@
     </section>
 
     {{-- CTA --}}
-    <section class="bg-gradient-to-br from-indigo-600 to-blue-600 py-20 text-zinc-900">
+    <section class="border-t border-zinc-200 bg-zinc-50 py-20 lg:py-28">
         <div class="mx-auto max-w-3xl px-6 text-center">
-            <h2 class="text-3xl font-bold">{{ __('Stop Losing Real Estate Leads After Hours') }}</h2>
-            <p class="mt-3 text-indigo-100">{{ __('Set up your unified inbox and AI responder in minutes. Free to start.') }}</p>
-            <a href="{{ route('register') }}" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 font-semibold text-indigo-700 transition-all hover:bg-indigo-50">
+            <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Stop Losing Real Estate Leads After Hours') }}</h2>
+            <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up your unified inbox and AI responder in minutes. Free to start.') }}</p>
+            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
                 {{ __('Get Started Free') }}
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>
