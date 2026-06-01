@@ -95,7 +95,7 @@ class Index extends Component
                     ->find($this->pageId);
 
                 if ($page) {
-                    \App\Jobs\SyncPageConversations::dispatch($page);
+                    \App\Jobs\SyncPageConversations::dispatch(pageId: $page->id);
                 }
             }
         }

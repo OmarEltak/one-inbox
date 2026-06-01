@@ -36,7 +36,7 @@ class SyncConversations extends Command
         }
 
         foreach ($pages as $page) {
-            SyncPageConversations::dispatch($page);
+            SyncPageConversations::dispatch(pageId: $page->id);
             $this->line("Dispatched sync for: [{$page->id}] {$page->name} ({$page->platform})");
         }
 
