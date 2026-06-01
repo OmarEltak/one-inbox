@@ -137,33 +137,33 @@
                          x-transition:leave-start="opacity-100 scale-100"
                          x-transition:leave-end="opacity-0 scale-95"
                          class="absolute end-0 mt-1.5 w-36 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-                        <a href="?lang=en" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'en' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
-                            @if($currentLocale === 'en')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                        <a href="?lang=en" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'en' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
+                            @if($currentLocale === 'en')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                             English
                         </a>
-                        <a href="?lang=ar" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'ar' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
-                            @if($currentLocale === 'ar')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                        <a href="?lang=ar" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'ar' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
+                            @if($currentLocale === 'ar')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                             العربية
                         </a>
-                        <a href="?lang=de" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'de' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
-                            @if($currentLocale === 'de')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                        <a href="?lang=de" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'de' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
+                            @if($currentLocale === 'de')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                             Deutsch
                         </a>
-                        <a href="?lang=es" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'es' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
-                            @if($currentLocale === 'es')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                        <a href="?lang=es" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'es' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
+                            @if($currentLocale === 'es')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                             Español
                         </a>
                     </div>
                 </div>
 
                 @auth
-                    <a href="{{ route('dashboard') }}" class="rounded-lg bg-purple-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700">{{ __('Dashboard') }}</a>
+                    <a href="{{ route('dashboard') }}" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700">{{ __('Dashboard') }}</a>
                 @else
                     @if(Route::has('login'))
                         <a href="{{ route('login') }}" class="rounded-lg px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{{ __('Log in') }}</a>
                     @endif
                     @if(Route::has('register'))
-                        <a href="{{ route('register') }}" class="rounded-lg bg-purple-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700">{{ __('Get Started Free') }}</a>
+                        <a href="{{ route('register') }}" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700">{{ __('Get Started Free') }}</a>
                     @endif
                 @endauth
             </div>
@@ -199,20 +199,20 @@
             <div class="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
                 <p class="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Language') }}</p>
                 <div class="grid grid-cols-2 gap-1">
-                    <a href="?lang=en" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'en' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
-                        @if($currentLocale === 'en')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                    <a href="?lang=en" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'en' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
+                        @if($currentLocale === 'en')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                         English
                     </a>
-                    <a href="?lang=ar" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'ar' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
-                        @if($currentLocale === 'ar')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                    <a href="?lang=ar" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'ar' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
+                        @if($currentLocale === 'ar')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                         العربية
                     </a>
-                    <a href="?lang=de" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'de' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
-                        @if($currentLocale === 'de')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                    <a href="?lang=de" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'de' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
+                        @if($currentLocale === 'de')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                         Deutsch
                     </a>
-                    <a href="?lang=es" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'es' ? 'font-semibold text-purple-700 bg-purple-50 dark:text-purple-300 dark:bg-purple-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
-                        @if($currentLocale === 'es')<svg class="size-3.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
+                    <a href="?lang=es" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'es' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
+                        @if($currentLocale === 'es')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                         Español
                     </a>
                 </div>
@@ -221,14 +221,14 @@
             {{-- Auth Buttons --}}
             <div class="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="block w-full rounded-lg bg-purple-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-purple-700">{{ __('Dashboard') }}</a>
+                    <a href="{{ route('dashboard') }}" class="block w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-indigo-700">{{ __('Dashboard') }}</a>
                 @else
                     <div class="flex flex-col gap-2">
                         @if(Route::has('login'))
                             <a href="{{ route('login') }}" class="block rounded-lg border border-zinc-300 px-4 py-2.5 text-center text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">{{ __('Log in') }}</a>
                         @endif
                         @if(Route::has('register'))
-                            <a href="{{ route('register') }}" class="block rounded-lg bg-purple-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-purple-700">{{ __('Get Started Free') }}</a>
+                            <a href="{{ route('register') }}" class="block rounded-lg bg-indigo-600 px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-indigo-700">{{ __('Get Started Free') }}</a>
                         @endif
                     </div>
                 @endauth
