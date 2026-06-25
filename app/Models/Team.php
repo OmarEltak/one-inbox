@@ -94,6 +94,17 @@ class Team extends Model
         return $this->ai_enabled;
     }
 
+    /**
+     * Whether AI is allowed to react to new messages right now.
+     * Combines the team toggle with the plan quota — if either is off, no AI
+     * jobs should be queued. Single source of truth for AI dispatch sites.
+     */
+    public function canDispatchAi(): bool
+    {
+        return $this->isAiEnabled()
+            && \App\Http\Middleware\EnforcePlanLimits::hasAiCredits($this);
+    }
+
     public function toggleAi(bool $enabled): void
     {
         $this->update([

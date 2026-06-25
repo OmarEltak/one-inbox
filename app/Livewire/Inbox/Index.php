@@ -547,7 +547,7 @@ class Index extends Component
         $conversation->update(['ai_paused' => ! $wasPaused]);
 
         // When resuming AI, dispatch a response for the last inbound message
-        if ($wasPaused) {
+        if ($wasPaused && $conversation->page?->team?->canDispatchAi()) {
             $lastInbound = $conversation->messages()
                 ->where('direction', 'inbound')
                 ->latest()

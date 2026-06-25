@@ -240,7 +240,7 @@ class ProcessIncomingMessage implements ShouldQueue
             ScoreLeadJob::dispatch($message->id, $contact->id);
 
             $team = $page->team;
-            if ($team->isAiEnabled()) {
+            if ($team->canDispatchAi()) {
                 SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                     now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
                 );
@@ -332,7 +332,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -454,7 +454,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -574,7 +574,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -696,7 +696,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -793,7 +793,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -886,7 +886,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -962,7 +962,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -1046,7 +1046,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );
@@ -1321,7 +1321,7 @@ class ProcessIncomingMessage implements ShouldQueue
         ScoreLeadJob::dispatch($message->id, $contact->id);
 
         $team = $page->team;
-        if ($team->isAiEnabled()) {
+        if ($team->canDispatchAi()) {
             SendAiResponse::dispatch($conversation->id, $message->id)->delay(
                 now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
             );

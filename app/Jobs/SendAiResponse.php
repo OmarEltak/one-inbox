@@ -39,8 +39,10 @@ class SendAiResponse implements ShouldQueue
 
         $team = $conversation->page->team;
 
-        // Double-check AI is still enabled (could have been turned off since dispatch)
-        if (! $team->isAiEnabled()) {
+        // Single gate: team toggle + plan quota. If either is off, AI must not react.
+        // (Dispatch sites already check this, but the job may have been queued before
+        // credits were exhausted — re-check at consume time.)
+        if (! $team->canDispatchAi()) {
             return;
         }
 
@@ -61,13 +63,6 @@ class SendAiResponse implements ShouldQueue
 
         // Human agent has taken over this conversation
         if ($conversation->ai_paused) {
-            return;
-        }
-
-        // Check AI credit limits
-        if (! EnforcePlanLimits::hasAiCredits($team)) {
-            Log::info("Team {$team->id} has exhausted AI credits, skipping AI response");
-            broadcast(new AiLimitReached($team->id));
             return;
         }
 
@@ -120,8 +115,14 @@ class SendAiResponse implements ShouldQueue
                 'last_message_preview' => \Illuminate\Support\Str::limit($responseText, 100),
             ]);
 
-            // Increment AI credits used
+            // Increment AI credits used. If this push crossed the plan limit, fire
+            // AiLimitReached exactly once — subsequent dispatches are gated by
+            // canDispatchAi() so this event won't repeat per-message.
             $team->increment('ai_credits_used');
+            if (! EnforcePlanLimits::hasAiCredits($team)) {
+                Log::info("Team {$team->id} just reached AI credit limit");
+                broadcast(new AiLimitReached($team->id));
+            }
 
             // Broadcast real-time update
             broadcast(AiResponseSent::fromMessage($aiMessage, $conversation));
