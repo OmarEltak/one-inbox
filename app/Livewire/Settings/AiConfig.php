@@ -27,6 +27,7 @@ class AiConfig extends Component
 
     // Working Hours
     public array $working_hours = [];
+    public bool $is_24_7 = false;
     public string $timezone = 'Africa/Cairo';
 
     // Toggle
@@ -76,6 +77,7 @@ class AiConfig extends Component
             $this->response_delay_min_seconds = $config->response_delay_min_seconds ?? 30;
             $this->response_delay_max_seconds = $config->response_delay_max_seconds ?? 180;
             $this->working_hours = $config->working_hours ?? $this->defaultWorkingHours();
+            $this->is_24_7 = (bool) ($config->is_24_7 ?? false);
             $this->timezone = $config->timezone ?? 'UTC';
             $this->is_active = $config->is_active ?? true;
         } else {
@@ -123,6 +125,7 @@ class AiConfig extends Component
             'response_delay_min_seconds' => $this->response_delay_min_seconds,
             'response_delay_max_seconds' => $this->response_delay_max_seconds,
             'working_hours' => $this->working_hours,
+            'is_24_7' => $this->is_24_7,
             'timezone' => $this->timezone,
             'is_active' => $this->is_active,
         ];
@@ -185,6 +188,7 @@ class AiConfig extends Component
         $this->response_delay_min_seconds = 30;
         $this->response_delay_max_seconds = 180;
         $this->working_hours = $this->defaultWorkingHours();
+        $this->is_24_7 = false;
         $this->timezone = 'UTC';
         $this->is_active = true;
     }

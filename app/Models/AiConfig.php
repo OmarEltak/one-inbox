@@ -21,6 +21,7 @@ class AiConfig extends Model
         'response_delay_min_seconds',
         'response_delay_max_seconds',
         'working_hours',
+        'is_24_7',
         'timezone',
         'escalation_rules',
         'sales_methodology',
@@ -34,6 +35,7 @@ class AiConfig extends Model
             'pricing_info' => 'array',
             'faq' => 'array',
             'working_hours' => 'array',
+            'is_24_7' => 'boolean',
             'escalation_rules' => 'array',
             'sales_methodology' => 'array',
             'is_active' => 'boolean',
@@ -59,6 +61,10 @@ class AiConfig extends Model
 
     public function isWithinWorkingHours(): bool
     {
+        if ($this->is_24_7) {
+            return true;
+        }
+
         if (empty($this->working_hours)) {
             return true;
         }

@@ -232,30 +232,40 @@
                             <flux:heading size="lg" class="mb-1">Working Hours</flux:heading>
                             <flux:text size="sm" class="mb-4">AI will only respond during these hours. Outside of them, messages wait for humans.</flux:text>
 
-                            <div class="mb-4">
-                                <flux:select wire:model="timezone" label="Timezone">
-                                    @foreach(['UTC', 'Asia/Beirut', 'Asia/Dubai', 'Asia/Riyadh', 'Europe/London', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles'] as $tz)
-                                        <flux:select.option value="{{ $tz }}">{{ $tz }}</flux:select.option>
-                                    @endforeach
-                                </flux:select>
+                            <div class="mb-4 flex items-center justify-between rounded-lg border border-zinc-200 dark:border-zinc-700 p-3">
+                                <div>
+                                    <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">Always on (24/7)</div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400">When on, the AI replies any time of day — schedule below is ignored.</div>
+                                </div>
+                                <flux:switch wire:model.live="is_24_7" />
                             </div>
 
-                            <div class="space-y-2">
-                                @foreach(['monday' => 'Mon', 'tuesday' => 'Tue', 'wednesday' => 'Wed', 'thursday' => 'Thu', 'friday' => 'Fri', 'saturday' => 'Sat', 'sunday' => 'Sun'] as $day => $label)
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10">
-                                            <flux:switch wire:model.live="working_hours.{{ $day }}.enabled" />
+                            <div @class(['opacity-50 pointer-events-none' => $is_24_7])>
+                                <div class="mb-4">
+                                    <flux:select wire:model="timezone" label="Timezone">
+                                        @foreach(['UTC', 'Asia/Beirut', 'Asia/Dubai', 'Asia/Riyadh', 'Europe/London', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles'] as $tz)
+                                            <flux:select.option value="{{ $tz }}">{{ $tz }}</flux:select.option>
+                                        @endforeach
+                                    </flux:select>
+                                </div>
+
+                                <div class="space-y-2">
+                                    @foreach(['monday' => 'Mon', 'tuesday' => 'Tue', 'wednesday' => 'Wed', 'thursday' => 'Thu', 'friday' => 'Fri', 'saturday' => 'Sat', 'sunday' => 'Sun'] as $day => $label)
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10">
+                                                <flux:switch wire:model.live="working_hours.{{ $day }}.enabled" />
+                                            </div>
+                                            <span class="w-10 text-sm font-medium {{ ($working_hours[$day]['enabled'] ?? false) ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400' }}">{{ $label }}</span>
+                                            @if($working_hours[$day]['enabled'] ?? false)
+                                                <flux:input wire:model="working_hours.{{ $day }}.start" type="time" size="sm" class="w-32" />
+                                                <span class="text-zinc-400">to</span>
+                                                <flux:input wire:model="working_hours.{{ $day }}.end" type="time" size="sm" class="w-32" />
+                                            @else
+                                                <span class="text-sm text-zinc-400">Closed</span>
+                                            @endif
                                         </div>
-                                        <span class="w-10 text-sm font-medium {{ ($working_hours[$day]['enabled'] ?? false) ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400' }}">{{ $label }}</span>
-                                        @if($working_hours[$day]['enabled'] ?? false)
-                                            <flux:input wire:model="working_hours.{{ $day }}.start" type="time" size="sm" class="w-32" />
-                                            <span class="text-zinc-400">to</span>
-                                            <flux:input wire:model="working_hours.{{ $day }}.end" type="time" size="sm" class="w-32" />
-                                        @else
-                                            <span class="text-sm text-zinc-400">Closed</span>
-                                        @endif
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
                             </div>
                         </section>
 
