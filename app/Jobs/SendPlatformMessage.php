@@ -91,17 +91,19 @@ class SendPlatformMessage implements ShouldQueue
      */
     protected function humanizeSendError(string $raw): string
     {
-        // 24-hour messaging window violation (Instagram + Facebook Messenger)
-        if (str_contains($raw, '2534022')
+        // 24-hour messaging window violation (Instagram + Facebook Messenger).
+        // Meta returns error code 10, subcode 2018278 for this — check for the subcode
+        // in the raw message string as well as Arabic/English keyword variants.
+        if (str_contains($raw, '2018278')
+            || str_contains($raw, '2534022')
             || str_contains($raw, 'outside the allowed')
-            || str_contains($raw, 'خارج الفترة')) {
-            return 'Outside the 24-hour messaging window. Instagram only allows replies within 24 hours of the contact\'s last message.';
+            || str_contains($raw, 'خارج الفترة')
+            || str_contains($raw, 'خارج الإطار الزمني')
+            || str_contains($raw, 'support inbox messaging')) {
+            return 'Outside the 24-hour messaging window. The contact needs to send you a message first before you can reply.';
         }
         if (str_contains($raw, '10303') || str_contains($raw, 'message_tag')) {
             return 'Outside messaging window — a valid message tag is required.';
-        }
-        if (str_contains($raw, '2018278') || str_contains($raw, 'support inbox messaging')) {
-            return 'This Instagram account does not have messaging enabled (must be Business / Creator).';
         }
         if (str_contains($raw, '190') || str_contains($raw, 'expired') || str_contains($raw, 'OAuthException')) {
             return 'Access token expired. Reconnect this account in Connections.';
@@ -203,51 +205,29 @@ class SendPlatformMessage implements ShouldQueue
             return $response->json('message_id');
         }
 
-        $err = $response->json('error') ?? [];
-        $errCode = (int) ($err['code'] ?? 0);
+        $err        = $response->json('error') ?? [];
+        $errCode    = (int) ($err['code'] ?? 0);
+        $errSubCode = (int) ($err['error_subcode'] ?? 0);
 
-        // Error 2018278: recipient is an Instagram user who contacted the Facebook page
-        // via Meta's cross-platform inbox (messaging a FB Page from Instagram). Their ID
-        // is an Instagram account ID, not a Facebook PSID — we must send via the page's
-        // linked Instagram Business Account endpoint instead of the Messenger endpoint.
-        if ($errCode === 2018278 && $page->platform === 'facebook') {
-            $igAccountId = $page->metadata['linked_instagram_account_id'] ?? null;
+        // Error subcode 2018278 = outside the 24-hour messaging window.
+        // Retry with the HUMAN_AGENT tag which allows a 7-day window for human replies.
+        if ($errSubCode === 2018278) {
+            $taggedPayload = array_merge($payload, [
+                'messaging_type' => 'MESSAGE_TAG',
+                'tag'            => 'HUMAN_AGENT',
+            ]);
 
-            if (! $igAccountId) {
-                $igLookup = Http::withToken($page->page_access_token)
-                    ->get("https://graph.facebook.com/{$version}/{$page->platform_page_id}", [
-                        'fields' => 'instagram_business_account',
-                    ]);
-                $igAccountId = $igLookup->json('instagram_business_account.id');
+            $taggedResponse = Http::withToken($page->page_access_token)->post($url, $taggedPayload);
 
-                // Cache it in page metadata for future sends
-                if ($igAccountId) {
-                    $page->update(['metadata' => array_merge($page->metadata ?? [], [
-                        'linked_instagram_account_id' => $igAccountId,
-                    ])]);
-                }
+            if ($taggedResponse->successful()) {
+                return $taggedResponse->json('message_id');
             }
 
-            if ($igAccountId) {
-                $igUrl = "https://graph.facebook.com/{$version}/{$igAccountId}/messages";
-                $igResponse = Http::withToken($page->page_access_token)->post($igUrl, $payload);
-
-                if ($igResponse->successful()) {
-                    return $igResponse->json('message_id');
-                }
-
-                Log::error('Meta IG-via-FB send failed (fallback)', [
-                    'status' => $igResponse->status(),
-                    'body'   => $igResponse->body(),
-                    'ig_account_id' => $igAccountId,
-                    'recipient'     => $recipientId,
-                ]);
-                $igErr  = $igResponse->json('error') ?? [];
-                $igCode = $igErr['code'] ?? 'unknown';
-                $igSub  = $igErr['error_subcode'] ?? '-';
-                $igMsg  = $igErr['message'] ?? 'Send failed';
-                throw new \RuntimeException("Send failed (code {$igCode}/{$igSub}): {$igMsg}");
-            }
+            Log::warning('HUMAN_AGENT retry also failed for 24-hour window', [
+                'status' => $taggedResponse->status(),
+                'body'   => $taggedResponse->body(),
+            ]);
+            // Fall through to throw the original error
         }
 
         Log::error('Meta send failed', [
