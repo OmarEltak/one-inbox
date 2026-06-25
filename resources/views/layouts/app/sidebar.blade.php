@@ -382,6 +382,8 @@
             </flux:dropdown>
         </flux:header>
 
+        @include('partials.ai-quota-banner')
+
         {{ $slot }}
 
         @fluxScripts
@@ -410,6 +412,9 @@
                             });
                         }
                         Livewire.dispatch('refreshInbox');
+                    })
+                    .listen('.ai.limit', function () {
+                        window.dispatchEvent(new CustomEvent('ai-limit-reached'));
                     });
             }
 
