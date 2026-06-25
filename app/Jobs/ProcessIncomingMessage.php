@@ -109,14 +109,20 @@ class ProcessIncomingMessage implements ShouldQueue
                 ->orWhereJsonContains('metadata->oauth_user_id', $pageId);
         };
 
+        // The Page model enforces "at most one active row per (platform_page_id, platform)"
+        // via its saved() observer. latest() is a defensive tiebreaker if that invariant
+        // is ever violated (race condition, manual DB edit) — prefer the most recently
+        // connected row, which matches last-write-wins ownership.
         $page = Page::where('platform', $platform)
             ->where($matchOn)
             ->where('is_active', true)
             ->whereHas('connectedAccount', fn ($q) => $q->where('is_active', true))
+            ->latest()
             ->first()
             ?? Page::where('platform', $platform)
                 ->where($matchOn)
                 ->where('is_active', true)
+                ->latest()
                 ->first();
 
         // For non-echo events, sender == page itself is a duplicate-of-echo edge case
