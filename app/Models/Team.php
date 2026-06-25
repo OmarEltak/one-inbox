@@ -112,5 +112,6 @@ class Team extends Model
     public function clearActivePagesCache(): void
     {
         Cache::forget("team.{$this->id}.active_pages");
+        Cache::forget("dashboard.{$this->id}");
     }
 }

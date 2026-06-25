@@ -203,17 +203,63 @@ class SendPlatformMessage implements ShouldQueue
             return $response->json('message_id');
         }
 
-        Log::error('Meta send failed', [
-            'status' => $response->status(),
-            'body' => $response->body(),
-            'url' => $url,
-            'recipient' => $recipientId,
-            'page_id' => $page->id,
-        ]);
         $err = $response->json('error') ?? [];
+        $errCode = (int) ($err['code'] ?? 0);
+
+        // Error 2018278: recipient is an Instagram user who contacted the Facebook page
+        // via Meta's cross-platform inbox (messaging a FB Page from Instagram). Their ID
+        // is an Instagram account ID, not a Facebook PSID — we must send via the page's
+        // linked Instagram Business Account endpoint instead of the Messenger endpoint.
+        if ($errCode === 2018278 && $page->platform === 'facebook') {
+            $igAccountId = $page->metadata['linked_instagram_account_id'] ?? null;
+
+            if (! $igAccountId) {
+                $igLookup = Http::withToken($page->page_access_token)
+                    ->get("https://graph.facebook.com/{$version}/{$page->platform_page_id}", [
+                        'fields' => 'instagram_business_account',
+                    ]);
+                $igAccountId = $igLookup->json('instagram_business_account.id');
+
+                // Cache it in page metadata for future sends
+                if ($igAccountId) {
+                    $page->update(['metadata' => array_merge($page->metadata ?? [], [
+                        'linked_instagram_account_id' => $igAccountId,
+                    ])]);
+                }
+            }
+
+            if ($igAccountId) {
+                $igUrl = "https://graph.facebook.com/{$version}/{$igAccountId}/messages";
+                $igResponse = Http::withToken($page->page_access_token)->post($igUrl, $payload);
+
+                if ($igResponse->successful()) {
+                    return $igResponse->json('message_id');
+                }
+
+                Log::error('Meta IG-via-FB send failed (fallback)', [
+                    'status' => $igResponse->status(),
+                    'body'   => $igResponse->body(),
+                    'ig_account_id' => $igAccountId,
+                    'recipient'     => $recipientId,
+                ]);
+                $igErr  = $igResponse->json('error') ?? [];
+                $igCode = $igErr['code'] ?? 'unknown';
+                $igSub  = $igErr['error_subcode'] ?? '-';
+                $igMsg  = $igErr['message'] ?? 'Send failed';
+                throw new \RuntimeException("Send failed (code {$igCode}/{$igSub}): {$igMsg}");
+            }
+        }
+
+        Log::error('Meta send failed', [
+            'status'    => $response->status(),
+            'body'      => $response->body(),
+            'url'       => $url,
+            'recipient' => $recipientId,
+            'page_id'   => $page->id,
+        ]);
         $code = $err['code'] ?? 'unknown';
-        $sub = $err['error_subcode'] ?? '-';
-        $msg = $err['message'] ?? 'Send failed';
+        $sub  = $err['error_subcode'] ?? '-';
+        $msg  = $err['message'] ?? 'Send failed';
         throw new \RuntimeException("Send failed (code {$code}/{$sub}): {$msg}");
     }
 

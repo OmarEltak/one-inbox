@@ -36,8 +36,15 @@ class Dashboard extends Component
             $today = now()->startOfDay();
             $weekStart = now()->startOfWeek();
 
+            // Scope all conversation/message stats to active pages only so that
+            // disconnected pages don't continue appearing in the dashboard numbers.
+            $activePageIds = \App\Models\Page::where('team_id', $teamId)
+                ->where('is_active', true)
+                ->pluck('id');
+
             // Combined conversation stats in a single query
             $convStats = Conversation::where('team_id', $teamId)
+                ->whereIn('page_id', $activePageIds)
                 ->selectRaw("
                     COUNT(*) as total,
                     SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as today,
@@ -55,6 +62,7 @@ class Dashboard extends Component
             $msgStats = DB::table('messages')
                 ->join('conversations', 'messages.conversation_id', '=', 'conversations.id')
                 ->where('conversations.team_id', $teamId)
+                ->whereIn('conversations.page_id', $activePageIds)
                 ->selectRaw("
                     COUNT(*) as total,
                     SUM(CASE WHEN messages.created_at >= ? THEN 1 ELSE 0 END) as today,
@@ -68,8 +76,10 @@ class Dashboard extends Component
             $aiMessages = (int) $msgStats->ai;
             $humanMessages = (int) $msgStats->human;
 
-            // Combined contact stats in a single query
+            // Contact stats — scoped to contacts that have conversations on active pages.
+            // Avoids showing thousands of contacts from disconnected platforms (e.g. Instagram).
             $contactStats = Contact::where('team_id', $teamId)
+                ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds))
                 ->selectRaw("
                     COUNT(*) as total,
                     SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as new_week
@@ -79,29 +89,33 @@ class Dashboard extends Component
             $totalContacts = (int) $contactStats->total;
             $newContactsWeek = (int) $contactStats->new_week;
 
-            // Platform breakdown
+            // Platform breakdown — only active pages
             $platformStats = Conversation::where('team_id', $teamId)
+                ->whereIn('page_id', $activePageIds)
                 ->selectRaw('platform, count(*) as total')
                 ->groupBy('platform')
                 ->pluck('total', 'platform')
                 ->all();
 
-            // Lead status breakdown
+            // Lead pipeline — only contacts on active pages
             $leadStats = Contact::where('team_id', $teamId)
+                ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds))
                 ->selectRaw('lead_status, count(*) as total')
                 ->groupBy('lead_status')
                 ->pluck('total', 'lead_status')
                 ->all();
 
-            // Hot leads
+            // Hot leads — only contacts on active pages
             $hotLeads = Contact::where('team_id', $teamId)
+                ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds))
                 ->where('lead_score', '>=', 70)
                 ->orderByDesc('lead_score')
                 ->limit(5)
                 ->get();
 
-            // Recent conversations
+            // Recent conversations — only active pages
             $recentConversations = Conversation::where('team_id', $teamId)
+                ->whereIn('page_id', $activePageIds)
                 ->with('contact')
                 ->orderByDesc('last_message_at')
                 ->limit(5)

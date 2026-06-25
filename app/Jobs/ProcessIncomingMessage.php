@@ -151,8 +151,16 @@ class ProcessIncomingMessage implements ShouldQueue
 
             if ($anyMatch) {
                 if (! $anyMatch->is_active) {
-                    $anyMatch->update(['is_active' => true]);
-                    Log::info("Instagram: reactivated inactive page {$anyMatch->id} for entry.id={$pageId}");
+                    // Only reactivate if the connected account is still active.
+                    // Both page and account inactive = intentional disconnect by the user.
+                    // Reactivating would undo the disconnect and make the account reappear in the UI.
+                    if ($anyMatch->connectedAccount?->is_active) {
+                        $anyMatch->update(['is_active' => true]);
+                        Log::info("Instagram: reactivated inactive page {$anyMatch->id} for entry.id={$pageId}");
+                    } else {
+                        Log::info("Instagram: skipping self-heal for intentionally disconnected page {$anyMatch->id} (connected account also inactive)");
+                        $anyMatch = null;
+                    }
                 }
                 $page = $anyMatch;
             }

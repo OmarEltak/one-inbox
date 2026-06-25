@@ -1360,3 +1360,73 @@ Then `php artisan config:clear` + `queue:restart` in both dirs. Post-swap signed
 
 ### Pushed to origin
 `f444ea9..8bd63da main -> main` (3 commits: IG routing/UI, journal, signature verifier).
+
+---
+
+## 2026-05-13 — Super-Admin / OT AI shared-account model
+
+### Why
+Meta App Review is stalled. Workaround: one Facebook account (OT AI) becomes admin on each customer's pages. OT AI logs into our app, all pages land in OT AI's team, then a platform-owner UI hands each page off to a customer workspace.
+
+### Changes
+- `database/migrations/2026_05_13_000001_add_is_super_admin_to_users_table.php` — adds `users.is_super_admin` boolean.
+- `app/Models/User.php` — fillable + cast + `isSuperAdmin()` helper.
+- `app/Console/Commands/GrantSuperAdmin.php` — `php artisan super-admin:grant {email} [--revoke]`.
+- `app/Http/Middleware/EnsureSuperAdmin.php` — 403 unless `isSuperAdmin()`; aliased as `super-admin` in `bootstrap/app.php`.
+- `app/Livewire/SuperAdmin/Customers.php` + view — create customer (Team + owner User + password), list with page/user counts, reset password, delete.
+- `app/Livewire/SuperAdmin/PageAssignments.php` + view — table of every Page with platform filter & search; per-row dropdown to a customer team. Move also reassigns conversations + (source-team-only) contacts and clears the active-pages cache for source and target.
+- `routes/web.php` — `/super-admin/customers`, `/super-admin/page-assignments` under `auth, verified, team, throttle, super-admin`.
+- `resources/views/layouts/app/sidebar.blade.php` — appends two nav items only when `$user->isSuperAdmin()`.
+
+### Granted
+`php artisan super-admin:grant omareltak7@gmail.com` → `id=1` on local dev DB.
+
+### Operator flow
+1. Create FB account "OT AI" → add as admin to each customer page (off-platform).
+2. Log into the app as OT AI → Connections → Connect with Facebook → all customer pages import into OT AI's team.
+3. Sidebar → Customers → New Customer → enter company + login.
+4. Sidebar → Page Assignments → pick target team per page → Move.
+5. Share the login. Customer uses existing `/settings/admins` to add their own team.
+
+### Not done
+- No "transfer back" or audit log of moves.
+- Contacts with conversations spanning multiple pages stay on source team for those pages; only contacts whose `team_id` still equals the source get moved.
+- Production DB still needs the migration + grant run separately.
+
+---
+
+## 2026-06-25 — Fix: Instagram account reappears after disconnect
+
+### Root cause
+`ProcessIncomingMessage::handleMetaMessage()` contained a "self-heal" block (lines ~141-159) that re-activated any inactive Instagram Page whenever a new webhook message arrived for it. After the user clicked Disconnect (which sets both Page.is_active=false and ConnectedAccount.is_active=false), an incoming IG DM would trigger the self-heal, setting Page.is_active=true again. Because the `connectedAccounts` Livewire query surfaces accounts with at least one active page (by design, so orphaned pages can be disconnected), the IG ConnectedAccount would reappear in the UI on next login.
+
+### Fix
+`app/Jobs/ProcessIncomingMessage.php` — self-heal block now checks `$anyMatch->connectedAccount?->is_active` before reactivating. If both the page and its connected account are inactive (= intentional disconnect), the self-heal is skipped and the message is dropped gracefully. If the account is still active but only the page is inactive (stale state), self-heal runs as before.
+
+Applied to BOTH:
+- `C:\Users\NanoChip\Herd\one-inbox\app\Jobs\ProcessIncomingMessage.php`
+- `C:\Users\NanoChip\Herd\one-inbox-prod\app\Jobs\ProcessIncomingMessage.php`
+
+### Cleanup
+Ran tinker on prod DB to deactivate the lingering active page left by prior self-heals:
+- Account 24 (Omar Mohamed Eltak) — had 1 active page with inactive ConnectedAccount → page deactivated.
+
+---
+
+## 2026-06-25 — Fix: Dashboard shows data from disconnected pages
+
+### Root cause
+`Dashboard::render()` queried all `Conversation` rows by `team_id` only, with no filter on `page_id` / active pages. After disconnecting a page, its historical conversations still counted toward every dashboard stat (messages, conversations, unread, platform breakdown, recent conversations).
+
+Additionally, `clearActivePagesCache()` only forgot `team.{id}.active_pages` — not the `dashboard.{id}` cache — so even with a correct query, stale numbers would persist for up to 5 minutes after a disconnect.
+
+### Fix
+**`app\Livewire\Dashboard.php`** (both dirs):
+- Added `$activePageIds` lookup (active pages for the team) at the top of the cache closure.
+- Added `->whereIn('page_id', $activePageIds)` to: conversation stats, message stats join, platform breakdown, recent conversations.
+- Contacts left unscoped (contacts are team-wide, not per-page).
+
+**`app\Models\Team.php`** (both dirs):
+- `clearActivePagesCache()` now also calls `Cache::forget("dashboard.{$this->id}")`.
+
+**Prod cache busted immediately** via tinker — cleared `dashboard.3`, `dashboard.6`, `dashboard.8`.
