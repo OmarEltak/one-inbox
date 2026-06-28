@@ -71,8 +71,10 @@ return [
         'api_key' => env('GEMINI_API_KEY'),
         // 2.5 series. 2.0 was retired from the free tier and now requires billing
         // on most new projects; 2.5 Flash still has a usable free-tier quota.
+        // Both reply and scoring use the same model for now — switch scoring back
+        // to gemini-2.5-flash-lite once on paid tier for cheaper high-volume scoring.
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
-        'scoring_model' => env('GEMINI_SCORING_MODEL', 'gemini-2.5-flash-lite'),
+        'scoring_model' => env('GEMINI_SCORING_MODEL', 'gemini-2.5-flash'),
     ],
 
     'ai' => [
