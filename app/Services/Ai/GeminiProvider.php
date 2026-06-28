@@ -224,6 +224,13 @@ class GeminiProvider implements AiProviderInterface
                 'generationConfig' => [
                     'temperature' => 0.7,
                     'maxOutputTokens' => $maxOutputTokens,
+                    // Gemini 2.5 burns hidden "thinking" tokens against the output
+                    // budget by default. For short customer replies and JSON scoring
+                    // we don't want any of that — it adds latency and starves the
+                    // actual response. thinkingBudget=0 disables it entirely.
+                    'thinkingConfig' => [
+                        'thinkingBudget' => 0,
+                    ],
                 ],
             ]);
 
