@@ -69,8 +69,10 @@ return [
     */
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
-        'scoring_model' => env('GEMINI_SCORING_MODEL', 'gemini-2.0-flash-lite'),
+        // 2.5 series. 2.0 was retired from the free tier and now requires billing
+        // on most new projects; 2.5 Flash still has a usable free-tier quota.
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'scoring_model' => env('GEMINI_SCORING_MODEL', 'gemini-2.5-flash-lite'),
     ],
 
     'ai' => [
