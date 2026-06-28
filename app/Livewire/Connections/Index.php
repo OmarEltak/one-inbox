@@ -3,6 +3,7 @@
 namespace App\Livewire\Connections;
 
 use App\Models\ConnectedAccount;
+use App\Models\OnboardingRequest;
 use App\Models\Page;
 use App\Services\EvolutionApiService;
 use App\Services\Platforms\FacebookPlatform;
@@ -19,6 +20,13 @@ class Index extends Component
 {
     /** Live Evolution API instance names, keyed for O(1) lookup. Populated in mount(). */
     public array $waInstanceStates = [];
+
+    // Managed-onboarding request form (Facebook/Instagram while Meta app is unverified)
+    public string $requestPlatform      = 'facebook';
+    public string $requestBusinessName  = '';
+    public string $requestPageUrl       = '';
+    public string $requestContactPhone  = '';
+    public string $requestNotes         = '';
 
     public function mount(): void
     {
@@ -264,6 +272,78 @@ class Index extends Component
     {
         unset($this->connectedAccounts, $this->pages);
         $this->refreshWaStates();
+    }
+
+    /**
+     * Open requests for the current team, keyed by platform. Used in the view to swap
+     * the "Connect" CTA for a "Request submitted — awaiting setup" status on platforms
+     * where the user already has a pending/in-progress onboarding request.
+     */
+    #[Computed]
+    public function openOnboardingByPlatform(): array
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return [];
+        }
+
+        return OnboardingRequest::where('team_id', $team->id)
+            ->whereIn('status', [OnboardingRequest::STATUS_PENDING, OnboardingRequest::STATUS_IN_PROGRESS])
+            ->get()
+            ->keyBy('platform')
+            ->all();
+    }
+
+    public function openRequestForm(string $platform): void
+    {
+        $this->requestPlatform = in_array($platform, ['facebook', 'instagram'], true) ? $platform : 'facebook';
+        $this->dispatch('open-modal', name: 'onboarding-request');
+    }
+
+    public function submitOnboardingRequest(): void
+    {
+        $team = Auth::user()->currentTeam;
+        $user = Auth::user();
+        if (! $team || ! $user) {
+            return;
+        }
+
+        $this->validate([
+            'requestPlatform'     => 'required|in:facebook,instagram',
+            'requestBusinessName' => 'required|string|max:120',
+            'requestPageUrl'      => 'nullable|url|max:255',
+            'requestContactPhone' => 'nullable|string|max:40',
+            'requestNotes'        => 'nullable|string|max:1500',
+        ]);
+
+        // Prevent stacking — one open request per platform per team.
+        $existing = OnboardingRequest::where('team_id', $team->id)
+            ->where('platform', $this->requestPlatform)
+            ->whereIn('status', [OnboardingRequest::STATUS_PENDING, OnboardingRequest::STATUS_IN_PROGRESS])
+            ->first();
+
+        if ($existing) {
+            session()->flash('error', 'You already have an open request for this platform — wait for us to process it.');
+            $this->dispatch('close-modal', name: 'onboarding-request');
+            return;
+        }
+
+        OnboardingRequest::create([
+            'team_id'              => $team->id,
+            'requested_by_user_id' => $user->id,
+            'platform'             => $this->requestPlatform,
+            'business_name'        => $this->requestBusinessName,
+            'page_url'             => $this->requestPageUrl ?: null,
+            'contact_phone'        => $this->requestContactPhone ?: null,
+            'notes'                => $this->requestNotes ?: null,
+            'status'               => OnboardingRequest::STATUS_PENDING,
+        ]);
+
+        $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactPhone', 'requestNotes']);
+        unset($this->openOnboardingByPlatform);
+
+        session()->flash('success', 'Request submitted. We will set up your page within 24 hours and email you when it is ready.');
+        $this->dispatch('close-modal', name: 'onboarding-request');
     }
 
     public function render()

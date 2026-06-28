@@ -27,6 +27,25 @@
         </div>
     @endif
 
+    @php $metaVerified = (bool) config('services.meta.app_verified'); @endphp
+
+    @unless($metaVerified)
+        <div class="mb-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM9.401 19.5h5.198a2.25 2.25 0 002.026-3.247L13.426 4.252a2.25 2.25 0 00-3.852 0L4.974 16.253A2.25 2.25 0 007 19.5h2.401z" /></svg>
+                <div class="text-sm">
+                    <p class="font-medium text-amber-200">Facebook &amp; Instagram are on managed onboarding</p>
+                    <p class="text-amber-200/70 mt-1">
+                        While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add
+                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-100">our account</a>
+                        as an admin to your page, then click "Request connection" below. We'll set it up within 24 hours.
+                        Telegram, Email, Slack and Discord are self-serve as usual.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endunless
+
     {{-- Available Platforms --}}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
 
@@ -66,9 +85,21 @@
             <div class="{{ $facebookAccounts->isNotEmpty() ? 'mt-3' : '' }}">
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
-                @else
+                @elseif($metaVerified)
                     <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="primary" size="sm" class="w-full">
                         {{ $facebookAccounts->isNotEmpty() ? 'Add Another Account' : 'Connect with Facebook' }}
+                    </flux:button>
+                @elseif(isset($this->openOnboardingByPlatform['facebook']))
+                    @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
+                    <div class="rounded-lg bg-blue-500/10 border border-blue-500/30 p-3 text-xs">
+                        <p class="text-blue-300 font-medium capitalize">
+                            {{ str_replace('_', ' ', $fbReq->status) }}
+                        </p>
+                        <p class="text-blue-300/70 mt-0.5">Requested {{ $fbReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
+                    </div>
+                @else
+                    <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" class="w-full">
+                        Request connection
                     </flux:button>
                 @endif
             </div>
@@ -117,12 +148,24 @@
             <div class="{{ $instagramAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
-                @else
+                @elseif($metaVerified)
                     <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
                         {{ $instagramAccounts->isNotEmpty() ? 'Add via Meta' : 'Connect via Meta' }}
                     </flux:button>
                     <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? 'Add Direct (IG Login)' : 'Connect Direct (IG Login)' }}
+                    </flux:button>
+                @elseif(isset($this->openOnboardingByPlatform['instagram']))
+                    @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
+                    <div class="rounded-lg bg-purple-500/10 border border-purple-500/30 p-3 text-xs">
+                        <p class="text-purple-300 font-medium capitalize">
+                            {{ str_replace('_', ' ', $igReq->status) }}
+                        </p>
+                        <p class="text-purple-300/70 mt-0.5">Requested {{ $igReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
+                    </div>
+                @else
+                    <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
+                        Request connection
                     </flux:button>
                 @endif
             </div>
@@ -186,32 +229,13 @@
             @endforeach
 
             <div class="{{ $whatsappAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
-                {{-- Cloud API: official Meta path. Currently the only enabled connect option;
-                     QR is hidden until we ship a more reliable gateway. --}}
-                <flux:modal.trigger name="whatsapp-connect">
-                    <flux:button variant="primary" size="sm" class="w-full" icon="shield-check">
-                        {{ $whatsappAccounts->isNotEmpty() ? 'Add via Cloud API' : 'Connect via Cloud API' }}
-                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-green-500/30 text-green-100 border border-green-400/30">Official</span>
-                    </flux:button>
-                </flux:modal.trigger>
-
-                {{-- QR Scan — second connection path. Hidden when WUZAPI_QR_ENABLED=false. --}}
-                @if(config('services.wuzapi.qr_enabled'))
-                    <flux:button
-                        variant="outline"
-                        size="sm"
-                        class="w-full"
-                        icon="qr-code"
-                        wire:click="$dispatch('open-whatsapp-qr')"
-                    >
-                        {{ $whatsappAccounts->isNotEmpty() ? 'Add via QR Scan' : 'Connect via QR Scan' }}
-                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-yellow-400/15 text-yellow-300 border border-yellow-400/20">Personal use</span>
-                    </flux:button>
-                @endif
-
-                <p class="text-[10px] text-white/40 leading-relaxed text-center px-2">
-                    Cloud API is Meta's official WhatsApp Business pipe — stable, supports message templates, never drops because of WhatsApp updates.
-                </p>
+                <div class="rounded-lg bg-zinc-500/10 border border-zinc-500/30 p-3 text-xs text-center">
+                    <span class="inline-flex items-center gap-1.5 text-zinc-300 font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Currently unavailable
+                    </span>
+                    <p class="text-zinc-400/80 mt-1">WhatsApp connections are temporarily disabled while we rebuild the gateway. Coming back soon.</p>
+                </div>
             </div>
         </div>
 
@@ -1054,5 +1078,66 @@
                 </div>
             </div>
         @endif
+    </flux:modal>
+
+    {{-- Managed onboarding request form (FB/IG while Meta unverified) --}}
+    <flux:modal name="onboarding-request" class="md:w-[560px]">
+        <form wire:submit.prevent="submitOnboardingRequest" class="space-y-5">
+            <div>
+                <flux:heading size="lg">Request {{ ucfirst($requestPlatform) }} connection</flux:heading>
+                <flux:text class="mt-2">
+                    To connect your {{ ucfirst($requestPlatform) }} page, we need temporary admin access via our account.
+                </flux:text>
+            </div>
+
+            <div class="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm space-y-2">
+                <p class="font-medium text-blue-200">Before submitting:</p>
+                <ol class="list-decimal list-inside text-blue-100/80 space-y-1 leading-relaxed">
+                    <li>Open your Facebook Business Page → <em>Settings</em> → <em>Page roles</em></li>
+                    <li>Add
+                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-white">
+                            our admin account
+                        </a>
+                        as a Page admin</li>
+                    <li>Submit this form so we know which page is yours</li>
+                </ol>
+                <p class="text-blue-100/60 text-xs pt-1">We'll set up the connection within 24 hours and notify you by email.</p>
+            </div>
+
+            <flux:input
+                wire:model="requestBusinessName"
+                label="Business / Page name"
+                placeholder="e.g. Brandk"
+                required
+            />
+
+            <flux:input
+                wire:model="requestPageUrl"
+                label="Page URL"
+                placeholder="https://www.facebook.com/yourpage"
+                description="Helps us find the right page if multiple are admin-shared."
+            />
+
+            <flux:input
+                wire:model="requestContactPhone"
+                label="Best phone or WhatsApp (optional)"
+                placeholder="+201234567890"
+                description="So we can ping you if we need clarification."
+            />
+
+            <flux:textarea
+                wire:model="requestNotes"
+                label="Anything we should know? (optional)"
+                rows="3"
+                placeholder="e.g. multiple admins, business verification status..."
+            />
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200/10">
+                <flux:modal.close>
+                    <flux:button variant="ghost" type="button">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button variant="primary" type="submit">Submit request</flux:button>
+            </div>
+        </form>
     </flux:modal>
 </div>

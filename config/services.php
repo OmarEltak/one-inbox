@@ -47,6 +47,11 @@ return [
         'instagram_app_id' => env('META_INSTAGRAM_APP_ID', env('META_APP_ID', '')),
         'instagram_app_secret' => env('META_INSTAGRAM_APP_SECRET', env('META_APP_SECRET', '')),
         'instagram_app_secret_legacy' => env('META_INSTAGRAM_APP_SECRET_LEGACY', ''),
+        // Set true once the Meta App has Advanced Access approved by Meta. While false,
+        // the customer-facing Connections page routes Facebook/Instagram through the
+        // managed onboarding flow (admin connects on the customer's behalf and
+        // re-assigns the page) instead of direct OAuth.
+        'app_verified' => env('META_APP_VERIFIED', false),
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN', ''),
         'graph_api_version' => env('META_GRAPH_API_VERSION', 'v21.0'),
         'login_config_id' => env('META_LOGIN_CONFIG_ID', ''),

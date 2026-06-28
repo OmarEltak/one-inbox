@@ -179,6 +179,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     Route::middleware('super-admin')->prefix('super-admin')->name('super-admin.')->group(function () {
         Route::get('customers', \App\Livewire\SuperAdmin\Customers::class)->name('customers');
         Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
+        Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
     });
 });
 

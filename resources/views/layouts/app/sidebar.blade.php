@@ -130,6 +130,7 @@
                     if ($user->isSuperAdmin()) {
                         $navItems[] = ['route' => 'super-admin.customers', 'label' => 'Customers', 'icon' => 'building-office-2', 'match' => 'super-admin.customers'];
                         $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments'];
+                        $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests'];
                     }
 
                     // Load pages for inbox dropdown
