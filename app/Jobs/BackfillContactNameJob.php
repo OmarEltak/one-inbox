@@ -98,45 +98,44 @@ class BackfillContactNameJob implements ShouldQueue
             $version = config('services.meta.graph_api_version', 'v21.0');
             $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
 
+            // Same cascade as ProcessIncomingMessage::fetchMetaSenderProfile.
             if ($isInstagramBusiness) {
-                $resp = Http::get("https://graph.instagram.com/{$version}/{$senderId}", [
-                    'fields'       => 'name,username,profile_picture_url',
-                    'access_token' => $page->page_access_token,
-                ]);
-                if ($resp->successful()) {
-                    $d = $resp->json();
-                    return [
-                        'name'   => $d['name'] ?? $d['username'] ?? null,
-                        'avatar' => $d['profile_picture_url'] ?? null,
-                    ];
-                }
+                $host = "https://graph.instagram.com/{$version}";
+                $fields = 'name,username,profile_picture_url';
+                $avatarKey = 'profile_picture_url';
             } else {
-                // Cascade: direct /{PSID} → falls back to /conversations?user_id=.
-                // See ProcessIncomingMessage::fetchMetaSenderProfile for rationale.
-                $direct = Http::get("https://graph.facebook.com/{$version}/{$senderId}", [
-                    'fields'       => 'name,first_name,last_name,profile_pic',
-                    'access_token' => $page->page_access_token,
-                ]);
-                if ($direct->successful()) {
-                    $d = $direct->json();
-                    $name = $d['name'] ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
-                    if ($name || ! empty($d['profile_pic'])) {
-                        return ['name' => $name ?: null, 'avatar' => $d['profile_pic'] ?? null];
-                    }
-                }
+                $host = "https://graph.facebook.com/{$version}";
+                $fields = 'name,first_name,last_name,profile_pic';
+                $avatarKey = 'profile_pic';
+            }
+            $convPlatform = $page->platform === 'instagram' ? 'instagram' : 'messenger';
 
-                $conv = Http::get("https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations", [
-                    'user_id'      => $senderId,
-                    'fields'       => 'participants',
-                    'platform'     => 'messenger',
-                    'access_token' => $page->page_access_token,
-                ]);
-                if ($conv->successful()) {
-                    foreach ($conv->json('data', []) as $c) {
-                        foreach ($c['participants']['data'] ?? [] as $p) {
-                            if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
-                                return ['name' => $p['name'], 'avatar' => null];
-                            }
+            $direct = Http::get("{$host}/{$senderId}", [
+                'fields'       => $fields,
+                'access_token' => $page->page_access_token,
+            ]);
+            if ($direct->successful()) {
+                $d = $direct->json();
+                $name = $d['name']
+                    ?? ($d['username'] ?? null)
+                    ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
+                $avatar = $d[$avatarKey] ?? null;
+                if ($name || $avatar) {
+                    return ['name' => $name ?: null, 'avatar' => $avatar];
+                }
+            }
+
+            $conv = Http::get("{$host}/{$page->platform_page_id}/conversations", [
+                'user_id'      => $senderId,
+                'fields'       => 'participants',
+                'platform'     => $convPlatform,
+                'access_token' => $page->page_access_token,
+            ]);
+            if ($conv->successful()) {
+                foreach ($conv->json('data', []) as $c) {
+                    foreach ($c['participants']['data'] ?? [] as $p) {
+                        if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
+                            return ['name' => $p['name'], 'avatar' => null];
                         }
                     }
                 }

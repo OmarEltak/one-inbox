@@ -653,7 +653,8 @@ class ProcessIncomingMessage implements ShouldQueue
         WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
 
         $contact = $this->findOrCreateContact($page, 'telegram', $senderId, [
-            'name' => $senderName ?: 'Telegram User',
+            'name'   => $senderName ?: 'Telegram User',
+            'avatar' => $this->fetchTelegramAvatar($senderId, $page->page_access_token),
         ]);
 
         $conversation = $this->findOrCreateConversation($page, 'telegram', $chatId, $contact);
@@ -971,6 +972,44 @@ class ProcessIncomingMessage implements ShouldQueue
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
     }
 
+    /**
+     * Fetch the sender's Telegram profile photo via Bot API.
+     * Returns the raw CDN URL (bound to this bot token — dies if the token rotates).
+     * Cheap: two GETs, one image head-of-line, no auth beyond the token we already have.
+     */
+    private function fetchTelegramAvatar(string $userId, ?string $botToken): ?string
+    {
+        if (! $botToken) {
+            return null;
+        }
+        try {
+            $photos = \Illuminate\Support\Facades\Http::timeout(5)
+                ->get("https://api.telegram.org/bot{$botToken}/getUserProfilePhotos", [
+                    'user_id' => $userId,
+                    'limit'   => 1,
+                ])->json();
+
+            $fileId = $photos['result']['photos'][0][0]['file_id'] ?? null;
+            if (! $fileId) {
+                return null; // user has no profile photo or privacy hides it
+            }
+
+            $file = \Illuminate\Support\Facades\Http::timeout(5)
+                ->get("https://api.telegram.org/bot{$botToken}/getFile", ['file_id' => $fileId])
+                ->json();
+
+            $filePath = $file['result']['file_path'] ?? null;
+            if (! $filePath) {
+                return null;
+            }
+
+            return "https://api.telegram.org/file/bot{$botToken}/{$filePath}";
+        } catch (\Throwable $e) {
+            Log::debug('Telegram avatar fetch failed', ['user' => $userId, 'error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
     private function fetchSlackUserName(string $userId, string $botToken): ?string
     {
         try {
@@ -1061,80 +1100,72 @@ class ProcessIncomingMessage implements ShouldQueue
             $version = config('services.meta.graph_api_version', 'v21.0');
             $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
 
+            // Cascade strategy for every Meta variant:
+            //   1. direct /{SENDER_ID} — returns name + avatar when Meta permits it
+            //      (users with a role on the app, or after Advanced Access approval).
+            //   2. /{PAGE_ID}/conversations?user_id={SENDER_ID} — participant list,
+            //      name only, works for all senders that have an existing conversation.
+            //
+            // Host and field names differ per variant:
+            //   - IG Business Login  → graph.instagram.com, profile_picture_url
+            //   - FB / IG via FB Login → graph.facebook.com,  profile_pic
+            // Conversation platform param is 'instagram' for IG pages, 'messenger' for FB.
             if ($isInstagramBusiness) {
-                // Instagram Business Login: use graph.instagram.com
-                $response = \Illuminate\Support\Facades\Http::get(
-                    "https://graph.instagram.com/{$version}/{$senderId}",
-                    [
-                        'fields'       => 'name,username,profile_picture_url',
-                        'access_token' => $page->page_access_token,
-                    ]
-                );
-
-                if ($response->successful()) {
-                    $data = $response->json();
-                    return [
-                        'name'   => $data['name'] ?? $data['username'] ?? null,
-                        'avatar' => $data['profile_picture_url'] ?? null,
-                    ];
-                }
+                $host   = "https://graph.instagram.com/{$version}";
+                $fields = 'name,username,profile_picture_url';
+                $avatarKey = 'profile_picture_url';
             } else {
-                // Cascade: direct /{PSID} first — returns name + profile_pic for PSIDs
-                // that Meta lets us read (admins/devs/testers of the app, or all users
-                // once pages_messaging Advanced Access is approved). Falls back to
-                // /{PAGE_ID}/conversations?user_id={PSID} (participants list, name only)
-                // when the direct call is rejected with code=100 subcode=33.
-                $direct = \Illuminate\Support\Facades\Http::get(
-                    "https://graph.facebook.com/{$version}/{$senderId}",
-                    [
-                        'fields'       => 'name,first_name,last_name,profile_pic',
-                        'access_token' => $page->page_access_token,
-                    ]
-                );
+                $host   = "https://graph.facebook.com/{$version}";
+                $fields = 'name,first_name,last_name,profile_pic';
+                $avatarKey = 'profile_pic';
+            }
+            $convPlatform = $page->platform === 'instagram' ? 'instagram' : 'messenger';
 
-                if ($direct->successful()) {
-                    $d = $direct->json();
-                    $name = $d['name'] ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
-                    if ($name || ! empty($d['profile_pic'])) {
-                        return [
-                            'name'   => $name ?: null,
-                            'avatar' => $d['profile_pic'] ?? null,
-                        ];
-                    }
+            $direct = \Illuminate\Support\Facades\Http::get("{$host}/{$senderId}", [
+                'fields'       => $fields,
+                'access_token' => $page->page_access_token,
+            ]);
+
+            if ($direct->successful()) {
+                $d = $direct->json();
+                $name = $d['name']
+                    ?? ($d['username'] ?? null)
+                    ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
+                $avatar = $d[$avatarKey] ?? null;
+                if ($name || $avatar) {
+                    return ['name' => $name ?: null, 'avatar' => $avatar];
                 }
+            }
 
-                // Direct call denied or empty — try /conversations?user_id= (name only).
-                $conv = \Illuminate\Support\Facades\Http::get(
-                    "https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations",
-                    [
-                        'user_id'      => $senderId,
-                        'fields'       => 'participants',
-                        'platform'     => 'messenger',
-                        'access_token' => $page->page_access_token,
-                    ]
-                );
+            // Direct call denied or empty — fall back to /conversations?user_id= (name only).
+            $conv = \Illuminate\Support\Facades\Http::get("{$host}/{$page->platform_page_id}/conversations", [
+                'user_id'      => $senderId,
+                'fields'       => 'participants',
+                'platform'     => $convPlatform,
+                'access_token' => $page->page_access_token,
+            ]);
 
-                if ($conv->successful()) {
-                    foreach ($conv->json('data', []) as $c) {
-                        foreach ($c['participants']['data'] ?? [] as $p) {
-                            if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
-                                return ['name' => $p['name'], 'avatar' => null];
-                            }
+            if ($conv->successful()) {
+                foreach ($conv->json('data', []) as $c) {
+                    foreach ($c['participants']['data'] ?? [] as $p) {
+                        if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
+                            return ['name' => $p['name'], 'avatar' => null];
                         }
                     }
                 }
-
-                Log::warning('Meta sender profile fetch: both endpoints returned nothing usable', [
-                    'sender_id'      => $senderId,
-                    'page_id'        => $page->id,
-                    'platform'       => $page->platform,
-                    'direct_status'  => $direct->status(),
-                    'direct_error'   => $direct->json('error'),
-                    'conv_status'    => $conv->status(),
-                    'conv_error'     => $conv->json('error'),
-                    'token_prefix'   => substr((string) $page->page_access_token, 0, 8),
-                ]);
             }
+
+            Log::warning('Meta sender profile fetch: both endpoints returned nothing usable', [
+                'sender_id'      => $senderId,
+                'page_id'        => $page->id,
+                'platform'       => $page->platform,
+                'auth_type'      => $page->metadata['auth_type'] ?? null,
+                'direct_status'  => $direct->status(),
+                'direct_error'   => $direct->json('error'),
+                'conv_status'    => $conv->status(),
+                'conv_error'     => $conv->json('error'),
+                'token_prefix'   => substr((string) $page->page_access_token, 0, 8),
+            ]);
         } catch (\Throwable $e) {
             Log::warning("Failed to fetch Meta sender profile for {$senderId}", ['error' => $e->getMessage()]);
         }
