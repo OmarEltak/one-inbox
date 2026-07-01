@@ -83,12 +83,22 @@ return [
     ],
 
     'ai' => [
-        'provider' => env('AI_PROVIDER', 'gemini'), // gemini, ollama, claude, openai
+        'provider' => env('AI_PROVIDER', 'gemini'), // gemini, ollama, nararouter, claude, openai
     ],
 
     'ollama' => [
         'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
         'model'    => env('OLLAMA_MODEL', 'qwen2.5:7b'),
+    ],
+
+    // NaraRouter — OpenAI-compatible chat completions router. One key routes to
+    // Claude, GPT, Gemini, etc. depending on the model name. Default reply and
+    // scoring both use the same model unless explicitly split via env.
+    'nararouter' => [
+        'api_key'       => env('NARAROUTER_API_KEY'),
+        'base_url'      => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
+        'model'         => env('NARAROUTER_MODEL', 'claude-sonnet-4.5'),
+        'scoring_model' => env('NARAROUTER_SCORING_MODEL', env('NARAROUTER_MODEL', 'claude-sonnet-4.5')),
     ],
 
     /*
