@@ -182,8 +182,7 @@ class OllamaProvider implements AiProviderInterface
 
         $response = $this->callOllama($systemPrompt, $conversationHistory, 2000);
 
-        // Replace customer-facing fallback with admin-appropriate message
-        if (str_contains($response, 'connect you with a team member')) {
+        if ($response === '') {
             return 'The AI service is temporarily unavailable. Please check that Ollama is running and try again.';
         }
 

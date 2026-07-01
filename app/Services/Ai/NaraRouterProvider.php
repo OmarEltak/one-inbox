@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Ai;
 
 use App\Contracts\AiProviderInterface;
+use App\Exceptions\AiQuotaExhausted;
 use App\Models\AiConfig;
 use App\Models\Contact;
 use App\Models\Conversation;
@@ -200,10 +201,17 @@ class NaraRouterProvider implements AiProviderInterface
         $conversationHistory = array_slice($history, 0, -1);
         $conversationHistory[] = ['role' => 'user', 'content' => $message];
 
-        $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 2000);
+        // Admin path: we want a visible message when things break (unlike the
+        // customer path which stays silent). Catch quota specifically so the
+        // admin knows what happened; treat empty as a generic outage.
+        try {
+            $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 2000);
+        } catch (AiQuotaExhausted) {
+            return 'The AI service is temporarily unavailable — daily quota reached. Try again after the quota resets, or upgrade your plan.';
+        }
 
-        if (str_contains($response, 'connect you with a team member')) {
-            return 'The AI service is temporarily unavailable (API rate limit or error). Please try again in a few minutes.';
+        if ($response === '') {
+            return 'The AI service is temporarily unavailable (API error). Please try again in a few minutes.';
         }
 
         return $response;
@@ -251,7 +259,15 @@ class NaraRouterProvider implements AiProviderInterface
                 'model'  => $model,
             ]);
 
-            return 'I apologize, I\'m having a moment. Let me connect you with a team member.';
+            // 429 typically means daily/per-minute quota exhausted or rate limited.
+            // Signal it specifically so callers can pause AI and notify the team;
+            // any other failure is a silent no-reply so the customer never sees
+            // an English apology from the bot.
+            if ($response->status() === 429) {
+                throw new AiQuotaExhausted('NaraRouter returned 429 (quota/rate limit).');
+            }
+
+            return '';
         }
 
         return $response->json('choices.0.message.content', '');

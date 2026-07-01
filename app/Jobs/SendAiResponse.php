@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Contracts\AiProviderInterface;
 use App\Events\AiLimitReached;
 use App\Events\AiResponseSent;
+use App\Exceptions\AiQuotaExhausted;
 use App\Http\Middleware\EnforcePlanLimits;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -126,6 +127,14 @@ class SendAiResponse implements ShouldQueue
 
             // Broadcast real-time update
             broadcast(AiResponseSent::fromMessage($aiMessage, $conversation));
+        } catch (AiQuotaExhausted $e) {
+            // Upstream provider is out of tokens for the day / rate limited.
+            // Pause AI for this team so we stop hammering the provider, and
+            // broadcast to the header banner. No message goes to the customer.
+            Log::warning("AI upstream quota exhausted for team {$team->id}", ['error' => $e->getMessage()]);
+            $team->markAiUpstreamPaused();
+            broadcast(new AiLimitReached($team->id));
+            return;
         } catch (\Throwable $e) {
             Log::error("AI response failed for conversation {$this->conversationId}", [
                 'error' => $e->getMessage(),

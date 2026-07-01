@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use App\Contracts\AiProviderInterface;
+use App\Exceptions\AiQuotaExhausted;
 use App\Models\AiConfig;
 use App\Models\Contact;
 use App\Models\Conversation;
@@ -184,11 +185,14 @@ class GeminiProvider implements AiProviderInterface
         // Add the current message
         $conversationHistory[] = ['role' => 'user', 'content' => $message];
 
-        $response = $this->callGemini($this->model, $systemPrompt, $conversationHistory, 2000);
+        try {
+            $response = $this->callGemini($this->model, $systemPrompt, $conversationHistory, 2000);
+        } catch (AiQuotaExhausted) {
+            return 'The AI service is temporarily unavailable — daily quota reached. Try again after the quota resets, or upgrade your plan.';
+        }
 
-        // Replace customer-facing fallback with admin-appropriate message
-        if (str_contains($response, 'connect you with a team member')) {
-            return 'The AI service is temporarily unavailable (API rate limit or error). Please try again in a few minutes.';
+        if ($response === '') {
+            return 'The AI service is temporarily unavailable (API error). Please try again in a few minutes.';
         }
 
         return $response;
@@ -237,10 +241,14 @@ class GeminiProvider implements AiProviderInterface
         if ($response->failed()) {
             Log::error('Gemini API call failed', [
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'body'   => $response->body(),
             ]);
 
-            return 'I apologize, I\'m having a moment. Let me connect you with a team member.';
+            if ($response->status() === 429) {
+                throw new AiQuotaExhausted('Gemini returned 429 (quota/rate limit).');
+            }
+
+            return '';
         }
 
         $data = $response->json();

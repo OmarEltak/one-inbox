@@ -1,8 +1,10 @@
 @php
     $bannerTeam = auth()->user()?->currentTeam;
-    $showAiBanner = $bannerTeam
+    $planExhausted = $bannerTeam
         && $bannerTeam->isAiEnabled()
         && ! \App\Http\Middleware\EnforcePlanLimits::hasAiCredits($bannerTeam);
+    $upstreamPaused = $bannerTeam && $bannerTeam->isAiEnabled() && $bannerTeam->isAiUpstreamLimited();
+    $showAiBanner   = $planExhausted || $upstreamPaused;
 @endphp
 
 <div
@@ -18,7 +20,11 @@
             <p class="text-sm text-amber-900 dark:text-amber-200 truncate">
                 <span class="font-medium">AI auto-replies are paused</span>
                 <span class="text-amber-700/80 dark:text-amber-300/80">
-                    — you've reached your plan's AI credit limit. New incoming messages will sit in your inbox without an AI reply.
+                    @if($planExhausted)
+                        — you've reached your plan's AI credit limit. New incoming messages will land in your inbox without an AI reply.
+                    @else
+                        — your AI token limits are used up for now. New incoming messages will land in your inbox without an AI reply.
+                    @endif
                 </span>
             </p>
         </div>

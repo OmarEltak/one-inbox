@@ -96,13 +96,44 @@ class Team extends Model
 
     /**
      * Whether AI is allowed to react to new messages right now.
-     * Combines the team toggle with the plan quota — if either is off, no AI
-     * jobs should be queued. Single source of truth for AI dispatch sites.
+     * Combines the team toggle, the plan quota, and any active upstream pause
+     * (set when the AI provider signals quota exhaustion). If any is off,
+     * no AI jobs should be queued. Single source of truth for dispatch sites.
      */
     public function canDispatchAi(): bool
     {
         return $this->isAiEnabled()
-            && \App\Http\Middleware\EnforcePlanLimits::hasAiCredits($this);
+            && \App\Http\Middleware\EnforcePlanLimits::hasAiCredits($this)
+            && ! $this->isAiUpstreamLimited();
+    }
+
+    /**
+     * True while a temporary AI provider outage is remembered (typically 24h
+     * from when the upstream API returned quota-exhausted). Cache-backed so
+     * this survives page refreshes but auto-expires without any cleanup job.
+     */
+    public function isAiUpstreamLimited(): bool
+    {
+        return Cache::has($this->aiUpstreamPausedCacheKey());
+    }
+
+    public function markAiUpstreamPaused(?\DateInterval $ttl = null): void
+    {
+        Cache::put(
+            $this->aiUpstreamPausedCacheKey(),
+            now()->toIso8601String(),
+            $ttl ?? now()->addHours(24),
+        );
+    }
+
+    public function clearAiUpstreamPause(): void
+    {
+        Cache::forget($this->aiUpstreamPausedCacheKey());
+    }
+
+    protected function aiUpstreamPausedCacheKey(): string
+    {
+        return "ai_upstream_paused:{$this->id}";
     }
 
     public function toggleAi(bool $enabled): void
