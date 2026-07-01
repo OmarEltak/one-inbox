@@ -90,7 +90,7 @@
                 >
                     <div class="flex items-start gap-3">
                         <div class="relative flex-shrink-0">
-                            <flux:avatar :name="$conversation->contact?->name ?? 'Unknown'" size="sm" />
+                            <flux:avatar :name="$conversation->contact?->name ?? 'Unknown'" :src="$conversation->contact?->avatar" size="sm" />
                             <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-zinc-900 {{ match($conversation->platform) { 'facebook' => 'bg-blue-500', 'instagram' => 'bg-pink-500', 'whatsapp' => 'bg-green-500', 'telegram' => 'bg-cyan-500', default => 'bg-gray-400' } }}"></span>
                         </div>
 
@@ -201,7 +201,7 @@
                 <button wire:click="$set('selectedConversationId', null)" class="md:hidden cursor-pointer">
                     <flux:icon name="arrow-left" class="w-5 h-5" />
                 </button>
-                <flux:avatar :name="$conv->contact?->name ?? 'Unknown'" size="sm" />
+                <flux:avatar :name="$conv->contact?->name ?? 'Unknown'" :src="$conv->contact?->avatar" size="sm" />
                 <div class="flex-1 min-w-0">
                     <flux:heading size="sm">{{ $conv->contact?->name ?? 'Unknown' }}</flux:heading>
                     <flux:text size="xs">

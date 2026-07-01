@@ -1087,13 +1087,30 @@ class ProcessIncomingMessage implements ShouldQueue
                     ]
                 );
 
-                if ($response->successful()) {
-                    $data = $response->json();
-                    $name = $data['name'] ?? trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
+                $data = $response->json();
+                $name = $data['name'] ?? trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
+                $avatar = $data['profile_pic'] ?? null;
 
+                // Full-visibility log: catches 4xx/5xx AND the "200 with empty body" case
+                // that was silently returning null before. Remove or downgrade once we know
+                // which failure mode is actually hitting us in prod.
+                if (! $response->successful() || (! $name && ! $avatar)) {
+                    Log::warning('Meta sender profile fetch returned no usable data', [
+                        'sender_id'    => $senderId,
+                        'page_id'      => $page->id,
+                        'platform'     => $page->platform,
+                        'http_status'  => $response->status(),
+                        'fb_error'     => $data['error'] ?? null,
+                        'body_keys'    => is_array($data) ? array_keys($data) : gettype($data),
+                        'body_sample'  => \Illuminate\Support\Str::limit((string) $response->body(), 500),
+                        'token_prefix' => substr((string) $page->page_access_token, 0, 8),
+                    ]);
+                }
+
+                if ($response->successful()) {
                     return [
                         'name'   => $name ?: null,
-                        'avatar' => $data['profile_pic'] ?? null,
+                        'avatar' => $avatar,
                     ];
                 }
             }

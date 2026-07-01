@@ -66,10 +66,16 @@
                         {{-- Contact name + avatar --}}
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
-                                <div class="size-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                                     style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
-                                    {{ strtoupper(substr($contact->name ?? 'U', 0, 1)) }}
-                                </div>
+                                @if($contact->avatar)
+                                    <img src="{{ $contact->avatar }}" alt="{{ $contact->name ?? 'Contact' }}"
+                                         class="size-9 rounded-full object-cover flex-shrink-0"
+                                         onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'size-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0', style: 'background: linear-gradient(135deg, #3b82f6, #8b5cf6);', textContent: '{{ strtoupper(substr($contact->name ?? 'U', 0, 1)) }}'}))" />
+                                @else
+                                    <div class="size-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                                         style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                                        {{ strtoupper(substr($contact->name ?? 'U', 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <p class="font-medium text-[#f1f5f9]">{{ $contact->name ?? 'Unknown' }}</p>
                                     @if($contact->email)
@@ -180,10 +186,15 @@
             <div class="space-y-5">
                 {{-- Header --}}
                 <div class="flex items-center gap-4">
-                    <div class="size-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-                         style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
-                        {{ strtoupper(substr($sc->name ?? 'U', 0, 1)) }}
-                    </div>
+                    @if($sc->avatar)
+                        <img src="{{ $sc->avatar }}" alt="{{ $sc->name ?? 'Contact' }}"
+                             class="size-14 rounded-full object-cover flex-shrink-0" />
+                    @else
+                        <div class="size-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                             style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                            {{ strtoupper(substr($sc->name ?? 'U', 0, 1)) }}
+                        </div>
+                    @endif
                     <div class="flex-1 min-w-0">
                         <h3 class="text-lg font-bold text-[#f1f5f9] truncate">{{ $sc->name ?? 'Unknown' }}</h3>
                         <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1">

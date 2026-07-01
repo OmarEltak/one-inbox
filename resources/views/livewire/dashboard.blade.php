@@ -288,7 +288,11 @@
                                     <div class="relative flex-shrink-0">
                                         <div class="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
                                              style="background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(6,182,212,0.4)); border: 1px solid rgba(255,255,255,0.1);">
-                                            {{ strtoupper(substr($conv->contact?->name ?? 'U', 0, 1)) }}
+                                            @if($conv->contact?->avatar)
+                                                <img src="{{ $conv->contact->avatar }}" alt="{{ $conv->contact->name ?? 'Contact' }}" class="w-full h-full rounded-full object-cover" />
+                                            @else
+                                                {{ strtoupper(substr($conv->contact?->name ?? 'U', 0, 1)) }}
+                                            @endif
                                         </div>
                                         <span class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2"
                                               style="background: {{ $pColor }}; border-color: #0A0A0F;"></span>
