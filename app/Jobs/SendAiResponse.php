@@ -83,6 +83,20 @@ class SendAiResponse implements ShouldQueue
             return; // Human took over, don't send AI response
         }
 
+        // Debounce burst messages. If the customer sent additional messages
+        // after our trigger, the LATER-dispatched job for the most recent
+        // message will fire and generate one reply that addresses the whole
+        // burst via conversation history. Skipping here saves 1 API call per
+        // extra rapid-fire message.
+        $newerInboundExists = $conversation->messages()
+            ->where('id', '>', $this->triggerMessageId)
+            ->where('direction', 'inbound')
+            ->exists();
+
+        if ($newerInboundExists) {
+            return;
+        }
+
         if ($this->shouldEscalate($triggerMessage->content ?? '')) {
             $labels = $conversation->labels ?? [];
             if (! in_array('escalated', $labels)) {

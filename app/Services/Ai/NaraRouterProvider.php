@@ -222,7 +222,7 @@ class NaraRouterProvider implements AiProviderInterface
      * system-role message (in contrast to Gemini's separate system_instruction
      * field), and reads the reply from choices[0].message.content.
      */
-    protected function callChat(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 500): string
+    protected function callChat(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 1000): string
     {
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],

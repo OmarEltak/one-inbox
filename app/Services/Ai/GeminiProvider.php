@@ -198,7 +198,7 @@ class GeminiProvider implements AiProviderInterface
         return $response;
     }
 
-    protected function callGemini(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 500): string
+    protected function callGemini(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 1000): string
     {
         $contents = [];
 

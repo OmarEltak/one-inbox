@@ -207,6 +207,18 @@
                             <flux:heading size="lg" class="mb-1">Response Timing</flux:heading>
                             <flux:text size="sm" class="mb-4">Set a random delay range so responses feel natural, not instant.</flux:text>
 
+                            <div class="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3.5 text-sm">
+                                <div class="flex items-start gap-2.5">
+                                    <flux:icon name="light-bulb" class="w-4 h-4 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
+                                    <div class="text-emerald-900 dark:text-emerald-200 leading-relaxed">
+                                        <span class="font-medium">Longer delays save you AI tokens.</span>
+                                        <span class="text-emerald-800/80 dark:text-emerald-300/80">
+                                            Customers often send multiple messages in a row (e.g. "Hi", "are you there", "I have a question"). With a longer delay, the AI waits for the full burst and replies to everything at once instead of firing a separate reply — and a separate token bill — for each message. We recommend at least <span class="font-medium">60 seconds</span> for cost efficiency.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <flux:input
                                     wire:model="response_delay_min_seconds"

@@ -196,7 +196,7 @@ class OllamaProvider implements AiProviderInterface
             || str_contains($m, 'moondream') || str_contains($m, 'bakllava');
     }
 
-    protected function callOllama(string $systemPrompt, array $history, int $maxTokens = 500): string
+    protected function callOllama(string $systemPrompt, array $history, int $maxTokens = 1000): string
     {
         $messages = [['role' => 'system', 'content' => $systemPrompt]];
 

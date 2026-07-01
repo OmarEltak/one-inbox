@@ -21,9 +21,10 @@ class AiConfig extends Component
     public string $tone = 'friendly';
     public string $language = 'en';
 
-    // Timing
-    public int $response_delay_min_seconds = 30;
-    public int $response_delay_max_seconds = 180;
+    // Timing — defaults chosen to batch bursts of rapid customer messages
+    // into a single AI reply, saving tokens.
+    public int $response_delay_min_seconds = 60;
+    public int $response_delay_max_seconds = 120;
 
     // Working Hours
     public array $working_hours = [];
@@ -185,8 +186,8 @@ class AiConfig extends Component
         $this->faq = [];
         $this->tone = 'friendly';
         $this->language = 'en';
-        $this->response_delay_min_seconds = 30;
-        $this->response_delay_max_seconds = 180;
+        $this->response_delay_min_seconds = 60;
+        $this->response_delay_max_seconds = 120;
         $this->working_hours = $this->defaultWorkingHours();
         $this->is_24_7 = false;
         $this->timezone = 'UTC';
