@@ -111,17 +111,23 @@ class BackfillContactNameJob implements ShouldQueue
                     ];
                 }
             } else {
-                $resp = Http::get("https://graph.facebook.com/{$version}/{$senderId}", [
-                    'fields'       => 'name,first_name,last_name,profile_pic',
+                // Same rationale as ProcessIncomingMessage::fetchMetaSenderProfile:
+                // the direct /{PSID} node lookup is rejected (code 100 subcode 33),
+                // but /{PAGE_ID}/conversations?user_id={PSID} returns the participant name.
+                $resp = Http::get("https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations", [
+                    'user_id'      => $senderId,
+                    'fields'       => 'participants',
+                    'platform'     => 'messenger',
                     'access_token' => $page->page_access_token,
                 ]);
                 if ($resp->successful()) {
-                    $d = $resp->json();
-                    $name = $d['name'] ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
-                    return [
-                        'name'   => $name ?: null,
-                        'avatar' => $d['profile_pic'] ?? null,
-                    ];
+                    foreach ($resp->json('data', []) as $conv) {
+                        foreach ($conv['participants']['data'] ?? [] as $p) {
+                            if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
+                                return ['name' => $p['name'], 'avatar' => null];
+                            }
+                        }
+                    }
                 }
             }
         } catch (\Throwable $e) {

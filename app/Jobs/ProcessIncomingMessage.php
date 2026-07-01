@@ -1079,29 +1079,42 @@ class ProcessIncomingMessage implements ShouldQueue
                     ];
                 }
             } else {
+                // Direct /{PSID} node lookup returns 400 code=100 subcode=33 ("cannot be
+                // loaded due to missing permissions") for tokens without full Messenger
+                // permissions on unverified apps. Meta's page-conversations endpoint,
+                // scoped to this specific user, returns the participant's real name with
+                // the same token — this is the path BackfillContactNames already uses.
                 $response = \Illuminate\Support\Facades\Http::get(
-                    "https://graph.facebook.com/{$version}/{$senderId}",
+                    "https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations",
                     [
-                        'fields'       => 'name,first_name,last_name,profile_pic',
+                        'user_id'      => $senderId,
+                        'fields'       => 'participants',
+                        'platform'     => 'messenger',
                         'access_token' => $page->page_access_token,
                     ]
                 );
 
                 $data = $response->json();
-                $name = $data['name'] ?? trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
-                $avatar = $data['profile_pic'] ?? null;
+                $name = null;
 
-                // Full-visibility log: catches 4xx/5xx AND the "200 with empty body" case
-                // that was silently returning null before. Remove or downgrade once we know
-                // which failure mode is actually hitting us in prod.
-                if (! $response->successful() || (! $name && ! $avatar)) {
+                if ($response->successful()) {
+                    foreach ($data['data'] ?? [] as $conv) {
+                        foreach ($conv['participants']['data'] ?? [] as $p) {
+                            if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
+                                $name = $p['name'];
+                                break 2;
+                            }
+                        }
+                    }
+                }
+
+                if (! $response->successful() || ! $name) {
                     Log::warning('Meta sender profile fetch returned no usable data', [
                         'sender_id'    => $senderId,
                         'page_id'      => $page->id,
                         'platform'     => $page->platform,
                         'http_status'  => $response->status(),
                         'fb_error'     => $data['error'] ?? null,
-                        'body_keys'    => is_array($data) ? array_keys($data) : gettype($data),
                         'body_sample'  => \Illuminate\Support\Str::limit((string) $response->body(), 500),
                         'token_prefix' => substr((string) $page->page_access_token, 0, 8),
                     ]);
@@ -1109,8 +1122,8 @@ class ProcessIncomingMessage implements ShouldQueue
 
                 if ($response->successful()) {
                     return [
-                        'name'   => $name ?: null,
-                        'avatar' => $avatar,
+                        'name'   => $name,
+                        'avatar' => null,
                     ];
                 }
             }
