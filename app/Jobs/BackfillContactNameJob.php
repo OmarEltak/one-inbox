@@ -111,18 +111,29 @@ class BackfillContactNameJob implements ShouldQueue
                     ];
                 }
             } else {
-                // Same rationale as ProcessIncomingMessage::fetchMetaSenderProfile:
-                // the direct /{PSID} node lookup is rejected (code 100 subcode 33),
-                // but /{PAGE_ID}/conversations?user_id={PSID} returns the participant name.
-                $resp = Http::get("https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations", [
+                // Cascade: direct /{PSID} → falls back to /conversations?user_id=.
+                // See ProcessIncomingMessage::fetchMetaSenderProfile for rationale.
+                $direct = Http::get("https://graph.facebook.com/{$version}/{$senderId}", [
+                    'fields'       => 'name,first_name,last_name,profile_pic',
+                    'access_token' => $page->page_access_token,
+                ]);
+                if ($direct->successful()) {
+                    $d = $direct->json();
+                    $name = $d['name'] ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
+                    if ($name || ! empty($d['profile_pic'])) {
+                        return ['name' => $name ?: null, 'avatar' => $d['profile_pic'] ?? null];
+                    }
+                }
+
+                $conv = Http::get("https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations", [
                     'user_id'      => $senderId,
                     'fields'       => 'participants',
                     'platform'     => 'messenger',
                     'access_token' => $page->page_access_token,
                 ]);
-                if ($resp->successful()) {
-                    foreach ($resp->json('data', []) as $conv) {
-                        foreach ($conv['participants']['data'] ?? [] as $p) {
+                if ($conv->successful()) {
+                    foreach ($conv->json('data', []) as $c) {
+                        foreach ($c['participants']['data'] ?? [] as $p) {
                             if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
                                 return ['name' => $p['name'], 'avatar' => null];
                             }

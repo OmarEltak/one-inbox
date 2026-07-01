@@ -1079,12 +1079,32 @@ class ProcessIncomingMessage implements ShouldQueue
                     ];
                 }
             } else {
-                // Direct /{PSID} node lookup returns 400 code=100 subcode=33 ("cannot be
-                // loaded due to missing permissions") for tokens without full Messenger
-                // permissions on unverified apps. Meta's page-conversations endpoint,
-                // scoped to this specific user, returns the participant's real name with
-                // the same token — this is the path BackfillContactNames already uses.
-                $response = \Illuminate\Support\Facades\Http::get(
+                // Cascade: direct /{PSID} first — returns name + profile_pic for PSIDs
+                // that Meta lets us read (admins/devs/testers of the app, or all users
+                // once pages_messaging Advanced Access is approved). Falls back to
+                // /{PAGE_ID}/conversations?user_id={PSID} (participants list, name only)
+                // when the direct call is rejected with code=100 subcode=33.
+                $direct = \Illuminate\Support\Facades\Http::get(
+                    "https://graph.facebook.com/{$version}/{$senderId}",
+                    [
+                        'fields'       => 'name,first_name,last_name,profile_pic',
+                        'access_token' => $page->page_access_token,
+                    ]
+                );
+
+                if ($direct->successful()) {
+                    $d = $direct->json();
+                    $name = $d['name'] ?? trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? ''));
+                    if ($name || ! empty($d['profile_pic'])) {
+                        return [
+                            'name'   => $name ?: null,
+                            'avatar' => $d['profile_pic'] ?? null,
+                        ];
+                    }
+                }
+
+                // Direct call denied or empty — try /conversations?user_id= (name only).
+                $conv = \Illuminate\Support\Facades\Http::get(
                     "https://graph.facebook.com/{$version}/{$page->platform_page_id}/conversations",
                     [
                         'user_id'      => $senderId,
@@ -1094,38 +1114,26 @@ class ProcessIncomingMessage implements ShouldQueue
                     ]
                 );
 
-                $data = $response->json();
-                $name = null;
-
-                if ($response->successful()) {
-                    foreach ($data['data'] ?? [] as $conv) {
-                        foreach ($conv['participants']['data'] ?? [] as $p) {
+                if ($conv->successful()) {
+                    foreach ($conv->json('data', []) as $c) {
+                        foreach ($c['participants']['data'] ?? [] as $p) {
                             if (($p['id'] ?? null) !== $page->platform_page_id && ! empty($p['name'])) {
-                                $name = $p['name'];
-                                break 2;
+                                return ['name' => $p['name'], 'avatar' => null];
                             }
                         }
                     }
                 }
 
-                if (! $response->successful() || ! $name) {
-                    Log::warning('Meta sender profile fetch returned no usable data', [
-                        'sender_id'    => $senderId,
-                        'page_id'      => $page->id,
-                        'platform'     => $page->platform,
-                        'http_status'  => $response->status(),
-                        'fb_error'     => $data['error'] ?? null,
-                        'body_sample'  => \Illuminate\Support\Str::limit((string) $response->body(), 500),
-                        'token_prefix' => substr((string) $page->page_access_token, 0, 8),
-                    ]);
-                }
-
-                if ($response->successful()) {
-                    return [
-                        'name'   => $name,
-                        'avatar' => null,
-                    ];
-                }
+                Log::warning('Meta sender profile fetch: both endpoints returned nothing usable', [
+                    'sender_id'      => $senderId,
+                    'page_id'        => $page->id,
+                    'platform'       => $page->platform,
+                    'direct_status'  => $direct->status(),
+                    'direct_error'   => $direct->json('error'),
+                    'conv_status'    => $conv->status(),
+                    'conv_error'     => $conv->json('error'),
+                    'token_prefix'   => substr((string) $page->page_access_token, 0, 8),
+                ]);
             }
         } catch (\Throwable $e) {
             Log::warning("Failed to fetch Meta sender profile for {$senderId}", ['error' => $e->getMessage()]);
