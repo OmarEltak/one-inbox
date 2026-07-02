@@ -184,6 +184,26 @@ class Index extends Component
             ->count();
     }
 
+    /**
+     * Count of spam-marked conversations for the current team. Drives the
+     * conditional "Spam (N)" filter chip in the header — when the team has
+     * no spam, the chip stays hidden so we don't advertise an empty view.
+     */
+    #[Computed]
+    public function spamCount(): int
+    {
+        $team = Auth::user()->currentTeam;
+
+        if (! $team) {
+            return 0;
+        }
+
+        return Conversation::where('team_id', $team->id)
+            ->where('sales_stage', Conversation::STAGE_SPAM)
+            ->whereHas('page', fn ($q) => $q->where('is_active', true))
+            ->count();
+    }
+
     #[Computed]
     public function selectedConversation(): ?Conversation
     {

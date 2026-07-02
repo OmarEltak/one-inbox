@@ -85,8 +85,18 @@ class Index extends Component
             return collect();
         }
 
+        // Scope to contacts that have at least one conversation on an ACTIVE
+        // page. Without this the list keeps showing contacts from
+        // disconnected/inactive pages forever (same class of bug that
+        // once produced the 17,505-contact dashboard). Same pattern as
+        // Dashboard.php's activePageIds scope.
+        $activePageIds = \App\Models\Page::where('team_id', $team->id)
+            ->where('is_active', true)
+            ->pluck('id');
+
         $query = Contact::with(['platforms', 'conversations' => fn ($q) => $q->with('page:id,name,platform')->select('id', 'contact_id', 'page_id', 'platform')])
-            ->where('team_id', $team->id);
+            ->where('team_id', $team->id)
+            ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds));
 
         if ($this->search) {
             $query->where(function ($q) {

@@ -47,14 +47,18 @@
                 <flux:badge as="button" wire:click="setFilter('telegram')" :variant="$filter === 'telegram' ? 'solid' : 'outline'" color="cyan" size="sm">TG</flux:badge>
                 @endif
 
-                {{-- Sales-stage filters. Escalated and Completed are common
-                     enough to warrant their own chip. Spam is deliberately
-                     under a dropdown alongside labels — it's not something
-                     you want the operator glancing at all day. --}}
+                {{-- Sales-stage filters. Escalated + Done get their own chip
+                     because they're common. Spam is styled subtly (zinc, no
+                     bright accent) and only appears when the team has at
+                     least one spam-marked conversation, so a fresh team
+                     isn't cluttered with a chip pointing to an empty view. --}}
                 <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm">Escalated</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm">Done</flux:badge>
-                @if($filter === 'spam')
-                    <flux:badge as="button" wire:click="setFilter('all')" variant="solid" color="zinc" size="sm">Spam (click to clear)</flux:badge>
+                @if($this->spamCount > 0 || $filter === 'spam')
+                    <flux:badge as="button" wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" :variant="$filter === 'spam' ? 'solid' : 'outline'" color="zinc" size="sm">
+                        <flux:icon name="no-symbol" class="w-3 h-3" />
+                        Spam ({{ $this->spamCount }})
+                    </flux:badge>
                 @endif
 
                 {{-- Label filters — collapsed into a dropdown --}}
