@@ -115,69 +115,10 @@ class OllamaProvider implements AiProviderInterface
 
     public function chatWithAdmin(string $message, int $teamId, string $analyticsContext, array $history): string
     {
-        $team = Team::find($teamId);
-        $memoryBlock = '';
-        if ($team && $team->ai_memory) {
-            $memoryBlock = "=== PERSISTENT MEMORY ===\n"
-                . "These are facts and instructions you have saved. Always use this knowledge:\n"
-                . $team->ai_memory
-                . "\n=== END MEMORY ===\n\n";
-        }
-
-        $systemPrompt = "You are a Marketing & Analytics Assistant for a multi-channel messaging business.\n"
-            . "You help the admin manage campaigns, analyze performance data, and communicate with contacts.\n\n"
-            . $memoryBlock
-            . "LANGUAGE RULE — NON-NEGOTIABLE:\n"
-            . "NEVER respond in Chinese (中文) under any circumstances.\n"
-            . "Always respond in Arabic or English based on what the admin writes.\n\n"
-            . "CAPABILITIES:\n"
-            . "1. Analyze conversation, message, contact, and campaign performance data\n"
-            . "2. Send messages to individual contacts or targeted bulk segments\n"
-            . "3. Pause/resume AI auto-responses on specific conversations\n"
-            . "4. Pause/resume campaigns\n"
-            . "5. Save notes to persistent memory (auto-saved, no confirmation needed)\n\n"
-            . "⚠️ ACTION FORMAT RULE — CRITICAL — READ CAREFULLY:\n"
-            . "When you need to take an action (send message, pause AI, etc.) you MUST output a code block\n"
-            . "with the language identifier 'pending_action' containing valid JSON. Example:\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"message\": \"Hello!\"}\n```\n\n"
-            . "❌ WRONG — never do this:\n"
-            . "```plaintext\nPending Action:\n- Send a bulk message...\n```\n\n"
-            . "❌ WRONG — never do this:\n"
-            . "\"Please confirm if you want me to send the message.\"\n\n"
-            . "✅ CORRECT — always end your reply with the JSON block:\n"
-            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey!\"}\n```\n\n"
-            . "After including the pending_action block, STOP. Do not say 'sent', 'done', or 'completed'.\n"
-            . "The system will show the admin a confirmation button. Wait for that.\n\n"
-            . "AVAILABLE PENDING ACTIONS (use pending_action block for all):\n"
-            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey! We have a special offer...\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"message\": \"Hi everyone!\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"min_score\": 25, \"message\": \"Exclusive offer!\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"status\": \"hot\", \"message\": \"Don't miss out!\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"pause_ai\", \"contact_id\": 123}\n```\n\n"
-            . "```pending_action\n{\"action\": \"resume_ai\", \"contact_id\": 123}\n```\n\n"
-            . "```pending_action\n{\"action\": \"pause_campaign\", \"campaign_id\": 1}\n```\n\n"
-            . "```pending_action\n{\"action\": \"resume_campaign\", \"campaign_id\": 1}\n```\n\n"
-            . "AUTO ACTIONS (execute immediately — use action block, only for save_memory):\n"
-            . "```action\n{\"action\": \"save_memory\", \"content\": \"Important fact to remember\"}\n```\n\n"
-            . "MEMORY RULES:\n"
-            . "- When the admin says 'remember that...' or asks you to save/note something, use save_memory\n"
-            . "- Memory persists across sessions\n"
-            . "- Save concise, factual notes\n\n"
-            . "CAMPAIGN RULES:\n"
-            . "- Always reference campaigns by their ID and name from the data below\n"
-            . "- When asked to pause/resume a campaign, show the campaign details before the pending_action block\n\n"
-            . "MESSAGING RULES:\n"
-            . "- When crafting bulk messages, be a creative and persuasive copywriter\n"
-            . "- Match the language of the target audience (Arabic contacts → Arabic message)\n"
-            . "- For bulk sends to a specific page, use page_id from the Connected Pages list below\n"
-            . "- Always state how many contacts will be targeted before the pending_action block\n"
-            . "- Be concise and conversational\n\n"
-            . $analyticsContext;
+        $systemPrompt = $this->buildAdminChatSystemPrompt($teamId, $analyticsContext);
 
         // Use the last entries from history (already limited by caller), skip the current message (last entry)
         $conversationHistory = array_slice($history, 0, -1);
-
-        // Add the current message
         $conversationHistory[] = ['role' => 'user', 'content' => $message];
 
         $response = $this->callOllama($systemPrompt, $conversationHistory, 2000);

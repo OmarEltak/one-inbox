@@ -117,13 +117,34 @@ class Team extends Model
         return Cache::has($this->aiUpstreamPausedCacheKey());
     }
 
-    public function markAiUpstreamPaused(?\DateInterval $ttl = null): void
+    /**
+     * Pause AI dispatch for this team. Reason is stored alongside the flag
+     * so the header banner can show accurate text ("quota reached" vs
+     * "provider outage"). Defaults to 24h TTL — pass a shorter DateInterval
+     * for transient outages that recover fast.
+     */
+    public function markAiUpstreamPaused(?\DateInterval $ttl = null, string $reason = 'quota'): void
     {
         Cache::put(
             $this->aiUpstreamPausedCacheKey(),
-            now()->toIso8601String(),
-            $ttl ?? now()->addHours(24),
+            ['at' => now()->toIso8601String(), 'reason' => $reason],
+            $ttl ?? new \DateInterval('P1D'),
         );
+    }
+
+    /**
+     * Why is AI paused? Returns 'quota' (default), 'outage', or null when
+     * not paused. Used by the banner partial to render the right message.
+     */
+    public function aiUpstreamPauseReason(): ?string
+    {
+        $val = Cache::get($this->aiUpstreamPausedCacheKey());
+        if (! $val) {
+            return null;
+        }
+        // Back-compat: earlier cache entries stored just the ISO timestamp
+        // as a string, not an array. Treat those as 'quota'.
+        return is_array($val) ? ($val['reason'] ?? 'quota') : 'quota';
     }
 
     public function clearAiUpstreamPause(): void

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Services\Ai;
 
 use App\Contracts\AiProviderInterface;
+use App\Exceptions\AiAllProvidersUnavailable;
 use App\Exceptions\AiQuotaExhausted;
 use App\Models\AiConfig;
 use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Team;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -29,10 +31,28 @@ class NaraRouterProvider implements AiProviderInterface
 {
     use BuildsConversationPrompts;
 
+    // Cache key used to remember which model is currently active on the
+    // failover chain, plus a strict 6-hour reset window. Structure:
+    //   [ 'model' => 'mistral-medium-latest', 'reset_at' => 1719936000 ]
+    protected const FAILOVER_STATE_CACHE_KEY = 'nararouter:failover_state';
+    protected const FAILOVER_RESET_HOURS     = 6;
+
     protected string $apiKey;
     protected string $baseUrl;
     protected string $model;
     protected string $scoringModel;
+
+    /**
+     * Ordered failover chain. Index 0 is the preferred model; we always try
+     * to reset to it every FAILOVER_RESET_HOURS. When one model returns 5xx
+     * we cascade to the next; when we run out, AiAllProvidersUnavailable
+     * bubbles up and the customer-facing banner activates.
+     *
+     * Overridable via env NARAROUTER_FALLBACK_MODELS (comma-separated).
+     *
+     * @var array<int, string>
+     */
+    protected array $modelChain;
 
     public function __construct()
     {
@@ -40,6 +60,59 @@ class NaraRouterProvider implements AiProviderInterface
         $this->baseUrl      = rtrim(config('services.nararouter.base_url', 'https://router.bynara.id/v1'), '/');
         $this->model        = config('services.nararouter.model', 'claude-sonnet-4.5');
         $this->scoringModel = config('services.nararouter.scoring_model', $this->model);
+
+        $configuredChain = config('services.nararouter.fallback_models');
+        $chainString = is_string($configuredChain) && $configuredChain !== ''
+            ? $configuredChain
+            : 'claude-sonnet-4.5,mistral-medium-latest,mistral-large-latest,claude-haiku-4.5';
+
+        $this->modelChain = array_values(array_unique(array_filter(
+            array_map(fn ($m) => trim($m), explode(',', $chainString)),
+        )));
+    }
+
+    /**
+     * Current model per cached failover state. Returns the head of the chain
+     * (default: claude-sonnet-4.5) whenever the cache is empty or the 6h
+     * reset window has elapsed. This is where the "reset to sonnet every
+     * 6 hours" behaviour lives.
+     */
+    protected function currentModel(): string
+    {
+        $state = Cache::get(self::FAILOVER_STATE_CACHE_KEY);
+
+        if (! $state || ($state['reset_at'] ?? 0) < time()) {
+            return $this->modelChain[0] ?? $this->model;
+        }
+
+        $active = $state['model'] ?? null;
+        if (in_array($active, $this->modelChain, true)) {
+            return $active;
+        }
+        return $this->modelChain[0] ?? $this->model;
+    }
+
+    /**
+     * Update the cached active model while preserving the original 6h window.
+     * If no window exists yet (first fallback event), open one now.
+     */
+    protected function markActiveModel(string $model): void
+    {
+        $state   = Cache::get(self::FAILOVER_STATE_CACHE_KEY);
+        $resetAt = ($state['reset_at'] ?? null);
+
+        // Preserve the existing window if any; otherwise open a fresh 6h one
+        // starting from this call. This ensures the "reset every 6h" behaviour
+        // is measured from FIRST fallback, not from every successful call.
+        if (! $resetAt || $resetAt < time()) {
+            $resetAt = now()->addHours(self::FAILOVER_RESET_HOURS)->timestamp;
+        }
+
+        Cache::put(
+            self::FAILOVER_STATE_CACHE_KEY,
+            ['model' => $model, 'reset_at' => $resetAt],
+            now()->addHours(self::FAILOVER_RESET_HOURS + 1), // outer TTL is just cleanup
+        );
     }
 
     public function generateResponse(Conversation $conversation, Message $incomingMessage, AiConfig $config): string
@@ -138,76 +211,21 @@ class NaraRouterProvider implements AiProviderInterface
      */
     public function chatWithAdmin(string $message, int $teamId, string $analyticsContext, array $history): string
     {
-        $team        = Team::find($teamId);
-        $memoryBlock = '';
-        if ($team && $team->ai_memory) {
-            $memoryBlock = "=== PERSISTENT MEMORY ===\n"
-                . "These are facts and instructions you have saved. Always use this knowledge:\n"
-                . $team->ai_memory
-                . "\n=== END MEMORY ===\n\n";
-        }
-
-        $systemPrompt = "You are a Marketing & Analytics Assistant for a multi-channel messaging business.\n"
-            . "You help the admin manage campaigns, analyze performance data, and communicate with contacts.\n\n"
-            . $memoryBlock
-            . "LANGUAGE RULE — NON-NEGOTIABLE:\n"
-            . "NEVER respond in Chinese (中文) under any circumstances.\n"
-            . "Always respond in Arabic or English based on what the admin writes.\n\n"
-            . "CAPABILITIES:\n"
-            . "1. Analyze conversation, message, contact, and campaign performance data\n"
-            . "2. Send messages to individual contacts or targeted bulk segments\n"
-            . "3. Pause/resume AI auto-responses on specific conversations\n"
-            . "4. Pause/resume campaigns\n"
-            . "5. Save notes to persistent memory (auto-saved, no confirmation needed)\n\n"
-            . "⚠️ ACTION FORMAT RULE — CRITICAL — READ CAREFULLY:\n"
-            . "When you need to take an action (send message, pause AI, etc.) you MUST output a code block\n"
-            . "with the language identifier 'pending_action' containing valid JSON. Example:\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"message\": \"Hello!\"}\n```\n\n"
-            . "❌ WRONG — never do this:\n"
-            . "```plaintext\nPending Action:\n- Send a bulk message...\n```\n\n"
-            . "❌ WRONG — never do this:\n"
-            . "\"Please confirm if you want me to send the message.\"\n\n"
-            . "✅ CORRECT — always end your reply with the JSON block:\n"
-            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey!\"}\n```\n\n"
-            . "After including the pending_action block, STOP. Do not say 'sent', 'done', or 'completed'.\n"
-            . "The system will show the admin a confirmation button. Wait for that.\n\n"
-            . "AVAILABLE PENDING ACTIONS (use pending_action block for all):\n"
-            . "```pending_action\n{\"action\": \"send_message\", \"contact_id\": 123, \"message\": \"Hey! We have a special offer...\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"message\": \"Hi everyone!\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"page_id\": 25, \"min_score\": 25, \"message\": \"Exclusive offer!\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"send_bulk_message\", \"status\": \"hot\", \"message\": \"Don't miss out!\"}\n```\n\n"
-            . "```pending_action\n{\"action\": \"pause_ai\", \"contact_id\": 123}\n```\n\n"
-            . "```pending_action\n{\"action\": \"resume_ai\", \"contact_id\": 123}\n```\n\n"
-            . "```pending_action\n{\"action\": \"pause_campaign\", \"campaign_id\": 1}\n```\n\n"
-            . "```pending_action\n{\"action\": \"resume_campaign\", \"campaign_id\": 1}\n```\n\n"
-            . "AUTO ACTIONS (execute immediately — use action block, only for save_memory):\n"
-            . "```action\n{\"action\": \"save_memory\", \"content\": \"Important fact to remember\"}\n```\n\n"
-            . "MEMORY RULES:\n"
-            . "- When the admin says 'remember that...' or asks you to save/note something, use save_memory\n"
-            . "- Memory persists across sessions\n"
-            . "- Save concise, factual notes\n\n"
-            . "CAMPAIGN RULES:\n"
-            . "- Always reference campaigns by their ID and name from the data below\n"
-            . "- When asked to pause/resume a campaign, show the campaign details before the pending_action block\n\n"
-            . "MESSAGING RULES:\n"
-            . "- When crafting bulk messages, be a creative and persuasive copywriter\n"
-            . "- Match the language of the target audience (Arabic contacts → Arabic message)\n"
-            . "- For bulk sends to a specific page, use page_id from the Connected Pages list below\n"
-            . "- Always state how many contacts will be targeted before the pending_action block\n"
-            . "- Be concise and conversational\n\n"
-            . $analyticsContext;
+        $systemPrompt = $this->buildAdminChatSystemPrompt($teamId, $analyticsContext);
 
         // Use the last entries from history (already limited by caller), skip the current message (last entry)
         $conversationHistory = array_slice($history, 0, -1);
         $conversationHistory[] = ['role' => 'user', 'content' => $message];
 
         // Admin path: we want a visible message when things break (unlike the
-        // customer path which stays silent). Catch quota specifically so the
-        // admin knows what happened; treat empty as a generic outage.
+        // customer path which stays silent). Catch quota + outage specifically
+        // so the operator knows what happened; treat empty as a generic error.
         try {
             $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 2000);
         } catch (AiQuotaExhausted) {
             return 'The AI service is temporarily unavailable — daily quota reached. Try again after the quota resets, or upgrade your plan.';
+        } catch (AiAllProvidersUnavailable) {
+            return 'The AI service is temporarily unavailable — every model is returning errors. Please try again in a few minutes; if this persists, contact support.';
         }
 
         if ($response === '') {
@@ -221,6 +239,16 @@ class NaraRouterProvider implements AiProviderInterface
      * OpenAI-compatible chat completions call. Prepends the system prompt as a
      * system-role message (in contrast to Gemini's separate system_instruction
      * field), and reads the reply from choices[0].message.content.
+     */
+    /**
+     * The passed $model parameter is treated as a HINT of the caller's
+     * preferred model; the actual model used is `currentModel()` at
+     * dispatch time, which walks the failover chain and honors the 6h
+     * reset window. On 5xx errors we cascade to the next chain entry;
+     * on 429 we throw quota-exhausted; on exhaustion of the whole chain
+     * we throw all-providers-unavailable. The initially-hinted model is
+     * only used to decide where in the chain to start, so a scoring call
+     * that prefers a cheaper model doesn't get bumped up to sonnet.
      */
     protected function callChat(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 1000): string
     {
@@ -241,35 +269,68 @@ class NaraRouterProvider implements AiProviderInterface
             $messages[] = ['role' => 'user', 'content' => 'Continue the conversation naturally.'];
         }
 
-        $response = Http::withToken($this->apiKey)
-            ->acceptJson()
-            ->asJson()
-            ->timeout(60)
-            ->post("{$this->baseUrl}/chat/completions", [
-                'model'       => $model,
-                'messages'    => $messages,
-                'temperature' => 0.7,
-                'max_tokens'  => $maxOutputTokens,
-            ]);
-
-        if ($response->failed()) {
-            Log::error('NaraRouter API call failed', [
-                'status' => $response->status(),
-                'body'   => $response->body(),
-                'model'  => $model,
-            ]);
-
-            // 429 typically means daily/per-minute quota exhausted or rate limited.
-            // Signal it specifically so callers can pause AI and notify the team;
-            // any other failure is a silent no-reply so the customer never sees
-            // an English apology from the bot.
-            if ($response->status() === 429) {
-                throw new AiQuotaExhausted('NaraRouter returned 429 (quota/rate limit).');
-            }
-
-            return '';
+        // Decide which model to try FIRST for this call. Prefer the cached
+        // active model unless the caller hinted a specific (non-chain) model,
+        // in which case honor that.
+        $startModel = $this->currentModel();
+        if (! in_array($startModel, $this->modelChain, true)) {
+            $startModel = $this->modelChain[0] ?? $model;
         }
 
-        return $response->json('choices.0.message.content', '');
+        // Build the try-order: start from $startModel and cascade down the
+        // chain. If startModel is deep in the chain, we don't loop back up
+        // (that's the point of the 6h reset — it will bring us back to top).
+        $startIndex = array_search($startModel, $this->modelChain, true);
+        $tryOrder = $startIndex === false
+            ? $this->modelChain
+            : array_slice($this->modelChain, $startIndex);
+
+        $lastError = null;
+
+        foreach ($tryOrder as $tryModel) {
+            $response = Http::withToken($this->apiKey)
+                ->acceptJson()
+                ->asJson()
+                ->timeout(60)
+                ->post("{$this->baseUrl}/chat/completions", [
+                    'model'       => $tryModel,
+                    'messages'    => $messages,
+                    'temperature' => 0.7,
+                    'max_tokens'  => $maxOutputTokens,
+                ]);
+
+            if ($response->successful()) {
+                // Successful reply — remember this model as active for the
+                // remainder of the 6h window so we go here directly next time.
+                $this->markActiveModel($tryModel);
+                return $response->json('choices.0.message.content', '');
+            }
+
+            $status = $response->status();
+            Log::warning('NaraRouter API call failed, cascading', [
+                'status' => $status,
+                'model'  => $tryModel,
+                'body'   => substr($response->body(), 0, 240),
+            ]);
+
+            // 429 = provider-wide quota / rate limit on our account. No point
+            // trying other models — the account itself is blocked.
+            if ($status === 429) {
+                throw new AiQuotaExhausted("NaraRouter 429 on {$tryModel} (quota/rate limit).");
+            }
+
+            // Non-5xx failures (400/401/etc.) are client-side and won't be
+            // fixed by trying another model. Bail without cascading further.
+            if ($status < 500) {
+                Log::error('NaraRouter API 4xx — not cascading', ['status' => $status, 'model' => $tryModel]);
+                return '';
+            }
+
+            // 5xx — cascade to next model.
+            $lastError = "5xx on {$tryModel}: HTTP {$status}";
+        }
+
+        // Every model in the chain returned 5xx.
+        throw new AiAllProvidersUnavailable('All NaraRouter models unavailable. Last error: ' . ($lastError ?? 'unknown'));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Contracts\AiProviderInterface;
 use App\Events\AiLimitReached;
 use App\Events\AiResponseSent;
+use App\Exceptions\AiAllProvidersUnavailable;
 use App\Exceptions\AiQuotaExhausted;
 use App\Http\Middleware\EnforcePlanLimits;
 use App\Services\Ai\CaptureExtractor;
@@ -175,7 +176,18 @@ class SendAiResponse implements ShouldQueue
             // Pause AI for this team so we stop hammering the provider, and
             // broadcast to the header banner. No message goes to the customer.
             Log::warning("AI upstream quota exhausted for team {$team->id}", ['error' => $e->getMessage()]);
-            $team->markAiUpstreamPaused();
+            $team->markAiUpstreamPaused(null, 'quota');
+            broadcast(new AiLimitReached($team->id));
+            return;
+        } catch (AiAllProvidersUnavailable $e) {
+            // Every model in the failover chain returned 5xx. This is a
+            // provider-side outage — the customer's message stays in the
+            // inbox unanswered, and the operator gets a banner saying
+            // "AI temporarily unavailable, please contact us". We pause on
+            // a SHORT window (15 min) because outages usually recover fast;
+            // when the window expires the AI resumes automatically.
+            Log::error("AI all providers unavailable for team {$team->id}", ['error' => $e->getMessage()]);
+            $team->markAiUpstreamPaused(new \DateInterval('PT15M'), 'outage');
             broadcast(new AiLimitReached($team->id));
             return;
         } catch (\Throwable $e) {
