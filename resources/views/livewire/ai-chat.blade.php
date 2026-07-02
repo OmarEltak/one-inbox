@@ -62,7 +62,7 @@
                 <p class="text-white/40 text-sm mb-1">{{ __('Powered by AI') }}</p>
                 <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#1e2536] text-xs text-white/40 mb-8">
                     <span class="size-1.5 rounded-full bg-green-400"></span>
-                    Gemini Pro
+                    {{ __('AI Assistant') }}
                 </span>
 
                 {{-- Welcome message box --}}

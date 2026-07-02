@@ -69,7 +69,7 @@
                 <div>
                     <label class="block text-xs font-medium text-white/40 mb-1.5">AI Model</label>
                     <div class="w-full rounded-xl text-sm text-white/40 px-3 py-2">
-                        Gemini Pro
+                        AI Assistant
                     </div>
                 </div>
                 <div>
