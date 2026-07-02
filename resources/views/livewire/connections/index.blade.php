@@ -41,8 +41,7 @@
         </div>
     @endif
 
-    @php $metaVerified = (bool) config('services.meta.app_verified'); @endphp
-
+    {{-- $metaVerified is passed in from Connections\Index::render() (view data) — see the note there. --}}
     @unless($metaVerified)
         <div class="mb-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
             <div class="flex items-start gap-3">

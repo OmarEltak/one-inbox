@@ -425,7 +425,12 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.connections.index')
-            ->layout('layouts.app', ['title' => 'Connections']);
+        // metaVerified is a config-driven flag (NOT a Livewire property — see CLAUDE.md §1).
+        // Passed here as view data so it stays in scope across every Livewire fragment,
+        // whereas an inline @php block in the Blade only reaches the initial full-page
+        // render — subsequent Livewire partial renders lose it and error.
+        return view('livewire.connections.index', [
+            'metaVerified' => (bool) config('services.meta.app_verified'),
+        ])->layout('layouts.app', ['title' => 'Connections']);
     }
 }
