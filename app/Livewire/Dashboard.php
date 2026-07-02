@@ -76,10 +76,19 @@ class Dashboard extends Component
             $aiMessages = (int) $msgStats->ai;
             $humanMessages = (int) $msgStats->human;
 
-            // Contact stats — scoped to contacts that have conversations on active pages.
-            // Avoids showing thousands of contacts from disconnected platforms (e.g. Instagram).
+            // Materialize the set of contact IDs that actually own conversations on active
+            // pages ONCE. Three downstream contact queries reuse it as a whereIn — replacing
+            // three N×M `whereHas` EXISTS subqueries (each a full scan without a proper index)
+            // with a single distinct pluck + three cheap whereIn lookups.
+            $activeContactIds = Conversation::where('team_id', $teamId)
+                ->whereIn('page_id', $activePageIds)
+                ->whereNotNull('contact_id')
+                ->distinct()
+                ->pluck('contact_id')
+                ->all();
+
             $contactStats = Contact::where('team_id', $teamId)
-                ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds))
+                ->whereIn('id', $activeContactIds)
                 ->selectRaw("
                     COUNT(*) as total,
                     SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as new_week
@@ -97,17 +106,15 @@ class Dashboard extends Component
                 ->pluck('total', 'platform')
                 ->all();
 
-            // Lead pipeline — only contacts on active pages
             $leadStats = Contact::where('team_id', $teamId)
-                ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds))
+                ->whereIn('id', $activeContactIds)
                 ->selectRaw('lead_status, count(*) as total')
                 ->groupBy('lead_status')
                 ->pluck('total', 'lead_status')
                 ->all();
 
-            // Hot leads — only contacts on active pages
             $hotLeads = Contact::where('team_id', $teamId)
-                ->whereHas('conversations', fn ($q) => $q->whereIn('page_id', $activePageIds))
+                ->whereIn('id', $activeContactIds)
                 ->where('lead_score', '>=', 70)
                 ->orderByDesc('lead_score')
                 ->limit(5)
