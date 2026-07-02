@@ -24,6 +24,16 @@
 
 If your task touches AI, messaging, connections, sales flow, or the sidebar — **grep the relevant ARCHITECTURE section** before writing code. Every pin above corresponds to a real bug shipped by a previous session that thought they were helping.
 
+## Debugging discipline (mandatory)
+
+Before proposing ANY fix for a reported bug on this project, invoke the [`evidence-first-diagnosis`](https://github.com/OmarEltak/evidence-first-diagnosis) skill via the Skill tool. It's installed locally at `~/.claude/skills/evidence-first-diagnosis/`.
+
+Rationale: this repo has burned **multiple hours of session time** on confident memory-based misdiagnoses that would have been caught by 30 seconds of raw-data reading (Meta error 2018278 misread as IG cross-platform, NaraRouter model aliases guessed instead of queried via `/v1/models`, etc.). The skill's four-step forcing function — fetch raw data, translate/decode, look at N=3+ cases, state the diagnosis as "data says X, therefore Y" — is designed to prevent that specific failure mode.
+
+**Invoke it when the user says "not working", "failing", "wrong data", or shows any error code.** Especially when you feel confident about the cause — that's the highest-risk moment.
+
+See `examples/` in the skill's repo for real case studies from this codebase.
+
 ---
 
 ## Workflow Orchestration
