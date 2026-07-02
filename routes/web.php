@@ -121,10 +121,10 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     Route::get('dashboard', \App\Livewire\Dashboard::class)->middleware('permission:dashboard')->name('dashboard');
 
     // Inbox
-    Route::get('inbox', \App\Livewire\Inbox\Index::class)->middleware('permission:inbox')->name('inbox');
+    Route::get('inbox', \App\Livewire\Inbox\Index::class)->middleware(['permission:inbox', 'require.connection'])->name('inbox');
 
     // Contacts
-    Route::get('contacts', \App\Livewire\Contacts\Index::class)->middleware('permission:contacts')->name('contacts.index');
+    Route::get('contacts', \App\Livewire\Contacts\Index::class)->middleware(['permission:contacts', 'require.connection'])->name('contacts.index');
 
     // Connections (connected accounts/pages)
     Route::middleware('permission:connections')->group(function () {
@@ -147,21 +147,21 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     });
 
     // Campaigns
-    Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware('permission:connections')->name('campaigns.index');
-    Route::get('campaigns/email/new', \App\Livewire\Campaigns\EmailWizard::class)->middleware('permission:connections')->name('campaigns.email.new');
-    Route::get('campaigns/{campaign}', \App\Livewire\Campaigns\Show::class)->middleware('permission:connections')->name('campaigns.show');
+    Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.index');
+    Route::get('campaigns/email/new', \App\Livewire\Campaigns\EmailWizard::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.email.new');
+    Route::get('campaigns/{campaign}', \App\Livewire\Campaigns\Show::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.show');
 
     // Content
-    Route::get('content', \App\Livewire\Content\Index::class)->middleware('permission:connections')->name('content.index');
+    Route::get('content', \App\Livewire\Content\Index::class)->middleware(['permission:connections', 'require.connection'])->name('content.index');
 
     // AI Chat
-    Route::get('ai-chat', \App\Livewire\AiChat::class)->middleware('permission:ai-chat')->name('ai-chat');
+    Route::get('ai-chat', \App\Livewire\AiChat::class)->middleware(['permission:ai-chat', 'require.connection'])->name('ai-chat');
 
     // Analytics
-    Route::get('analytics', \App\Livewire\Analytics::class)->middleware('permission:analytics')->name('analytics');
+    Route::get('analytics', \App\Livewire\Analytics::class)->middleware(['permission:analytics', 'require.connection'])->name('analytics');
 
     // AI Settings
-    Route::middleware('permission:ai-settings')->group(function () {
+    Route::middleware(['permission:ai-settings', 'require.connection'])->group(function () {
         Route::get('settings/ai', \App\Livewire\Settings\AiSettings::class)->name('settings.ai');
         Route::get('settings/ai/config', \App\Livewire\Settings\AiConfig::class)->name('settings.ai.config');
     });

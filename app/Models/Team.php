@@ -64,6 +64,16 @@ class Team extends Model
         return $this->hasMany(Page::class);
     }
 
+    private ?bool $hasAnyConnectionCache = null;
+
+    public function hasAnyConnection(): bool
+    {
+        return $this->hasAnyConnectionCache ??= Page::query()
+            ->where('team_id', $this->id)
+            ->where('is_active', true)
+            ->exists();
+    }
+
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);

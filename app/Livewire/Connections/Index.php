@@ -10,6 +10,7 @@ use App\Services\Platforms\FacebookPlatform;
 use App\Services\Platforms\TelegramPlatform;
 use App\Services\Platforms\WebChatPlatform;
 use App\Services\Platforms\WhatsAppPlatform;
+use Flux\Flux;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -297,7 +298,7 @@ class Index extends Component
     public function openRequestForm(string $platform): void
     {
         $this->requestPlatform = in_array($platform, ['facebook', 'instagram'], true) ? $platform : 'facebook';
-        $this->dispatch('open-modal', name: 'onboarding-request');
+        Flux::modal('onboarding-request')->show();
     }
 
     public function submitOnboardingRequest(): void
@@ -324,7 +325,7 @@ class Index extends Component
 
         if ($existing) {
             session()->flash('error', 'You already have an open request for this platform — wait for us to process it.');
-            $this->dispatch('close-modal', name: 'onboarding-request');
+            Flux::modal('onboarding-request')->close();
             return;
         }
 
@@ -343,7 +344,7 @@ class Index extends Component
         unset($this->openOnboardingByPlatform);
 
         session()->flash('success', 'Request submitted. We will set up your page within 24 hours and email you when it is ready.');
-        $this->dispatch('close-modal', name: 'onboarding-request');
+        Flux::modal('onboarding-request')->close();
     }
 
     public function render()

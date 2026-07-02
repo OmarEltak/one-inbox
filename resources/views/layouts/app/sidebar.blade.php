@@ -102,35 +102,40 @@
                     $navItems = [];
                     $showInbox = $user->isHeadAdmin() || $user->hasPermission('inbox');
 
+                    // Onboarding gate — super-admins bypass so they can navigate any team.
+                    $hasConnections = $user->isSuperAdmin() ? true : ($team?->hasAnyConnection() ?? false);
+                    $lockedRoutes = ['inbox', 'contacts.index', 'campaigns.index', 'content.index', 'analytics', 'ai-chat', 'settings.ai'];
+                    $lockIf = fn (string $route): bool => ! $hasConnections && in_array($route, $lockedRoutes, true);
+
                     if ($user->isHeadAdmin() || $user->hasPermission('dashboard')) {
-                        $navItems[] = ['route' => 'dashboard', 'label' => 'Home', 'icon' => 'home', 'match' => 'dashboard'];
+                        $navItems[] = ['route' => 'dashboard', 'label' => 'Home', 'icon' => 'home', 'match' => 'dashboard', 'locked' => false];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('contacts')) {
-                        $navItems[] = ['route' => 'contacts.index', 'label' => 'Contacts', 'icon' => 'users', 'match' => 'contacts*'];
+                        $navItems[] = ['route' => 'contacts.index', 'label' => 'Contacts', 'icon' => 'users', 'match' => 'contacts*', 'locked' => $lockIf('contacts.index')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('connections')) {
-                        $navItems[] = ['route' => 'campaigns.index', 'label' => 'Campaigns', 'icon' => 'paper-airplane', 'match' => 'campaigns*'];
-                        $navItems[] = ['route' => 'content.index', 'label' => 'Content', 'icon' => 'photo', 'match' => 'content*'];
+                        $navItems[] = ['route' => 'campaigns.index', 'label' => 'Campaigns', 'icon' => 'paper-airplane', 'match' => 'campaigns*', 'locked' => $lockIf('campaigns.index')];
+                        $navItems[] = ['route' => 'content.index', 'label' => 'Content', 'icon' => 'photo', 'match' => 'content*', 'locked' => $lockIf('content.index')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('analytics')) {
-                        $navItems[] = ['route' => 'analytics', 'label' => 'Analytics', 'icon' => 'chart-bar', 'match' => 'analytics'];
+                        $navItems[] = ['route' => 'analytics', 'label' => 'Analytics', 'icon' => 'chart-bar', 'match' => 'analytics', 'locked' => $lockIf('analytics')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('ai-chat')) {
-                        $navItems[] = ['route' => 'ai-chat', 'label' => 'AI Chat', 'icon' => 'sparkles', 'match' => 'ai-chat'];
+                        $navItems[] = ['route' => 'ai-chat', 'label' => 'AI Chat', 'icon' => 'sparkles', 'match' => 'ai-chat', 'locked' => $lockIf('ai-chat')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('ai-settings')) {
-                        $navItems[] = ['route' => 'settings.ai', 'label' => 'AI Settings', 'icon' => 'cog-6-tooth', 'match' => 'settings.ai*'];
+                        $navItems[] = ['route' => 'settings.ai', 'label' => 'AI Settings', 'icon' => 'cog-6-tooth', 'match' => 'settings.ai*', 'locked' => $lockIf('settings.ai')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('connections')) {
-                        $navItems[] = ['route' => 'connections.index', 'label' => 'Connections', 'icon' => 'link', 'match' => 'connections*'];
+                        $navItems[] = ['route' => 'connections.index', 'label' => 'Connections', 'icon' => 'link', 'match' => 'connections*', 'locked' => false];
                     }
                     if ($user->canManageAdmins()) {
-                        $navItems[] = ['route' => 'settings.admins', 'label' => 'Settings', 'icon' => 'adjustments-horizontal', 'match' => 'settings.admins*'];
+                        $navItems[] = ['route' => 'settings.admins', 'label' => 'Settings', 'icon' => 'adjustments-horizontal', 'match' => 'settings.admins*', 'locked' => false];
                     }
                     if ($user->isSuperAdmin()) {
-                        $navItems[] = ['route' => 'super-admin.customers', 'label' => 'Customers', 'icon' => 'building-office-2', 'match' => 'super-admin.customers'];
-                        $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments'];
-                        $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests'];
+                        $navItems[] = ['route' => 'super-admin.customers', 'label' => 'Customers', 'icon' => 'building-office-2', 'match' => 'super-admin.customers', 'locked' => false];
+                        $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments', 'locked' => false];
+                        $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests', 'locked' => false];
                     }
 
                     // Load pages for inbox dropdown
@@ -165,6 +170,15 @@
 
                 {{-- Inbox with collapsible dropdown --}}
                 @if($showInbox)
+                @php $inboxLocked = ! $hasConnections; @endphp
+                @if($inboxLocked)
+                <button type="button" @click="$dispatch('needs-connection')"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-white/40 hover:text-white/60 opacity-60 hover:opacity-80">
+                    <flux:icon name="inbox" class="size-4.5 flex-shrink-0 text-white/30" />
+                    <span class="flex-1 text-left">Inbox</span>
+                    <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-white/25" />
+                </button>
+                @else
                 <div x-data="{ open: {{ $isInboxActive ? 'true' : 'false' }} }">
                     <button @click="open = !open"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer
@@ -227,29 +241,39 @@
                     </div>
                 </div>
                 @endif
+                @endif
 
                 {{-- Remaining nav items --}}
                 @foreach($navItems as $item)
                     @php $isCurrent = request()->routeIs($item['match']); @endphp
-                    <a href="{{ route($item['route']) }}"
-                       wire:navigate
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-                              {{ $isCurrent
-                                 ? 'text-white shadow-lg'
-                                 : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]' }}"
-                       @if($isCurrent)
-                       style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);"
-                       @endif
-                    >
-                        <flux:icon name="{{ $item['icon'] }}"
-                            class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-white/40 group-hover:text-white/70' }}" />
-                        <span>{{ $item['label'] }}</span>
+                    @if(! empty($item['locked']))
+                        <button type="button" @click="$dispatch('needs-connection')"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-white/40 hover:text-white/60 opacity-60 hover:opacity-80">
+                            <flux:icon name="{{ $item['icon'] }}" class="size-4.5 flex-shrink-0 text-white/30" />
+                            <span class="flex-1 text-left">{{ $item['label'] }}</span>
+                            <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-white/25" />
+                        </button>
+                    @else
+                        <a href="{{ route($item['route']) }}"
+                           wire:navigate
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                                  {{ $isCurrent
+                                     ? 'text-white shadow-lg'
+                                     : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]' }}"
+                           @if($isCurrent)
+                           style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);"
+                           @endif
+                        >
+                            <flux:icon name="{{ $item['icon'] }}"
+                                class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-white/40 group-hover:text-white/70' }}" />
+                            <span>{{ $item['label'] }}</span>
 
-                        {{-- AI ON/OFF indicator --}}
-                        @if($item['route'] === 'settings.ai')
-                            <span class="ml-auto flex-shrink-0 size-1.5 rounded-full {{ $team?->ai_enabled ? 'bg-green-400' : 'bg-red-500' }}"></span>
-                        @endif
-                    </a>
+                            {{-- AI ON/OFF indicator --}}
+                            @if($item['route'] === 'settings.ai')
+                                <span class="ml-auto flex-shrink-0 size-1.5 rounded-full {{ $team?->ai_enabled ? 'bg-green-400' : 'bg-red-500' }}"></span>
+                            @endif
+                        </a>
+                    @endif
                 @endforeach
 
             </flux:sidebar.nav>
@@ -384,6 +408,33 @@
         </flux:header>
 
         @include('partials.ai-quota-banner')
+
+        {{-- Onboarding gate modal — fires when a locked sidebar item is clicked. --}}
+        <div x-data="{ open: false }"
+             @needs-connection.window="open = true"
+             x-show="open" x-cloak
+             x-transition.opacity
+             class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+             style="display: none;">
+            <div @click.outside="open = false"
+                 class="max-w-md w-[92vw] rounded-2xl border border-white/15 bg-[#0D0D1A] p-6 shadow-2xl">
+                <h3 class="text-lg font-semibold text-white">Connect your first page</h3>
+                <p class="mt-2 text-sm text-white/60">
+                    To see messages, contacts, and analytics, first connect at least one platform
+                    (Facebook, Instagram, WhatsApp, Telegram, or Email).
+                </p>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" @click="open = false"
+                            class="rounded-lg px-3 py-2 text-sm text-white/60 hover:text-white transition-colors">
+                        Cancel
+                    </button>
+                    <a href="{{ route('connections.index') }}" wire:navigate @click="open = false"
+                       class="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-500 transition-colors">
+                        Go to Connections →
+                    </a>
+                </div>
+            </div>
+        </div>
 
         {{ $slot }}
 

@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
             'permission'  => \App\Http\Middleware\RequirePermission::class,
             'super-admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+            'require.connection' => \App\Http\Middleware\RequireConnection::class,
         ]);
 
         $middleware->appendToGroup('web', [
