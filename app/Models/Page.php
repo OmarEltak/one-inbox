@@ -10,6 +10,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §2 ══
+ * READ docs/ARCHITECTURE.md §2 (Page Single-Active Invariant) before
+ * touching the booted() observer or Page->update() flows.
+ *
+ * Load-bearing: at most one active Page row per (platform, platform_page_id)
+ * may exist. The observer enforces this. Removing it silently breaks webhook
+ * delivery — multiple active rows → wrong team's inbox gets the message.
+ * The audit trail is in the page_transfers table; every ownership change
+ * writes one row there.
+ */
 class Page extends Model
 {
     protected $fillable = [

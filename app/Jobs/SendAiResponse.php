@@ -20,6 +20,22 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §5, §7, §9, §11, §12 ══
+ * READ docs/ARCHITECTURE.md before restructuring handle(). This job is the
+ * central AI dispatch site — it composes ~10 different intentional gates:
+ *
+ *   §5  Sales-flow state transitions (isSalesStageActive, escalate, complete)
+ *   §6  Per-contact daily reply cap (canReceiveAiReply, recordAiReply)
+ *   §7  Burst debounce (skip if newer inbound exists)
+ *   §9  Abuse detection ([SPAM_DETECTED] marker check)
+ *  §10  Captured-data extraction (runs BEFORE reply generation)
+ *  §11  canDispatchAi() single-gate composition
+ *  §12  Silent-skip vs fallback-string convention (empty response = no send)
+ *
+ * The ordering of gates in handle() matters. Do NOT reorder without
+ * reading the arch doc.
+ */
 class SendAiResponse implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;

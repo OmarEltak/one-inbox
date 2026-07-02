@@ -7,6 +7,20 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Team;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §8, §9, §10 ══
+ * READ docs/ARCHITECTURE.md §8 (AI Guardrails) BEFORE touching the system
+ * prompts here. Every guardrail block below was added in response to a real
+ * production bug — Claude leaking English refusals mid-Arabic reply,
+ * breaking character when asked "what model are you", etc.
+ *
+ * Load-bearing: guardrails must appear at BOTH the top AND the bottom of
+ * the system prompt. LLMs weight early-and-late instructions highest;
+ * putting them only in one position lets them drift under operator input.
+ *
+ * The [SPAM_DETECTED] marker in §9 abuse detection is checked verbatim by
+ * SendAiResponse — do not rename or translate the token.
+ */
 trait BuildsConversationPrompts
 {
     /**

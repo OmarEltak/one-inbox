@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §6 ══
+ * READ docs/ARCHITECTURE.md §6 (Per-Contact Daily AI-Reply Cap) before
+ * modifying ensureCapWindowIsCurrent(), canReceiveAiReply(), or
+ * recordAiReply(). The lazy 24h reset is deliberate — do not replace
+ * with a cron job. The counter is incremented ONLY after a successful
+ * AI send, so failed/skipped attempts don't consume budget.
+ */
 class Contact extends Model
 {
     protected $fillable = [

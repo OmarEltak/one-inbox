@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §5 ══
+ * READ docs/ARCHITECTURE.md §5 (Sales-Flow State Machine) before
+ * modifying the stage constants, escalate(), complete(), or
+ * isSalesStageActive(). Both automatic (SendAiResponse) and manual
+ * (Inbox\Index) transitions call these helpers — divergence between
+ * them will break the audit trail and downstream gates.
+ */
 class Conversation extends Model
 {
     // Sales-flow lifecycle. Terminal stages (escalated | completed | spam) gate

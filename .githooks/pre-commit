@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#
+# Pre-commit reminder: if any staged file lives under a load-bearing area,
+# print a big fat ARCHITECTURE.md reminder before letting the commit through.
+#
+# The hook does NOT block the commit — it just prints and exits 0. The point
+# is to catch the "Claude session about to break something intentional"
+# scenario, not to be another CI gate.
+#
+# To install: git config core.hooksPath .githooks
+# Auto-installed by composer install via composer.json's post-install-cmd.
+
+set -e
+
+# Staged files
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+# Load-bearing paths → ARCHITECTURE section number → one-line reason
+declare -a hits=()
+declare -a sections=()
+
+check_path() {
+    local pattern=$1
+    local section=$2
+    local reason=$3
+    if echo "$staged" | grep -qE "$pattern"; then
+        hits+=("$reason")
+        sections+=("$section")
+    fi
+}
+
+check_path 'app/Services/Ai/NaraRouterProvider\.php'          '§4'  'NaraRouter failover chain + 6h reset window'
+check_path 'app/Services/Ai/BuildsConversationPrompts\.php'   '§8'  'AI guardrails (customer + admin persona)'
+check_path 'app/Services/Ai/CaptureExtractor\.php'            '§10' 'Captured-data extraction (regex + LLM hybrid)'
+check_path 'app/Jobs/SendAiResponse\.php'                     '§5/§7/§9/§11' 'Sales-flow transitions, debounce, abuse marker, dispatch gate'
+check_path 'app/Jobs/ProcessIncomingMessage\.php'             '§2'  'Webhook routing + single-active Page invariant'
+check_path 'app/Models/Page\.php'                             '§2'  'Single-active Page observer — do not remove'
+check_path 'app/Models/Conversation\.php'                     '§5'  'Sales-flow state machine constants + helpers'
+check_path 'app/Models/AiConfig\.php'                         '§5/§6' 'Sales-goal presets, capture fields, contact cap ceiling'
+check_path 'app/Models/Contact\.php'                          '§6'  'Per-contact daily AI-reply cap with lazy reset'
+check_path 'app/Models/Team\.php'                             '§11/§13' 'canDispatchAi() single gate + upstream pause helpers'
+check_path 'app/Livewire/Connections/Index\.php'              '§1/§14' 'Meta verification gate + Flux 2.x modal API'
+check_path 'resources/views/livewire/connections/index\.blade\.php' '§1' 'Managed onboarding UI ($metaVerified is a Blade @php var, not a Livewire property)'
+check_path 'resources/views/partials/ai-quota-banner\.blade\.php' '§13' 'Reason-aware quota/outage banner'
+check_path 'app/Livewire/Settings/AiConfig\.php'              '§5/§6' 'Sales-goal preset picker + contact cap slider'
+check_path 'resources/views/livewire/settings/ai-config\.blade\.php' '§5/§6' '4-tab AI config view — do not restructure without reading arch doc'
+check_path 'config/services\.php'                             '§1/§4' 'Meta app_verified flag + NaraRouter fallback chain'
+
+[ ${#hits[@]} -eq 0 ] && exit 0
+
+# Print the reminder
+tput setaf 3 2>/dev/null || true
+cat <<'BANNER'
+
+═══════════════════════════════════════════════════════════════
+  ⚠  YOU ARE MODIFYING LOAD-BEARING FILES
+═══════════════════════════════════════════════════════════════
+
+Read the relevant sections of docs/ARCHITECTURE.md BEFORE the commit
+lands. Each section documents an intentional design that previous
+sessions have accidentally broken.
+
+Affected areas in this commit:
+BANNER
+
+for i in "${!hits[@]}"; do
+    printf "  • %-8s  %s\n" "${sections[$i]}" "${hits[$i]}"
+done
+
+cat <<'BANNER'
+
+Full doc: docs/ARCHITECTURE.md
+Quick reference: CLAUDE.md (top-of-file STOP AND READ block)
+
+This is a reminder, not a block. The commit will proceed.
+═══════════════════════════════════════════════════════════════
+BANNER
+tput sgr0 2>/dev/null || true
+
+exit 0

@@ -1,3 +1,17 @@
+{{--
+    ══ ARCHITECTURE REFERENCE §1 ══
+    READ docs/ARCHITECTURE.md §1 (Meta App Verification & Managed Onboarding)
+    before modifying $metaVerified or the FB/IG connect buttons.
+
+    $metaVerified is defined below as a Blade @php variable reading
+    config('services.meta.app_verified'). It is NOT a Livewire component
+    property. Do NOT rewrite it as one. Do NOT default it to true "to restore
+    the OAuth button" — Meta rejects unverified apps at the OAuth callback,
+    so direct OAuth is silently broken for real customers.
+
+    When Meta approves us: set META_APP_VERIFIED=true in prod .env and
+    php artisan config:cache. OAuth buttons return automatically.
+--}}
 <div class="p-6 space-y-6">
     <div class="flex items-center justify-between">
         <div>

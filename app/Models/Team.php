@@ -9,6 +9,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 use Laravel\Cashier\Billable;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §11, §13, §15 ══
+ * READ docs/ARCHITECTURE.md before modifying:
+ *   §11 canDispatchAi() — the single AI dispatch gate composed of toggle +
+ *        plan quota + upstream pause. Every dispatch site consults this.
+ *        Add new conditions HERE, do not scatter checks across the codebase.
+ *   §13 markAiUpstreamPaused / aiUpstreamPauseReason — reason-aware pause
+ *        that drives the banner's amber (quota) vs red (outage) rendering.
+ *   §15 hasAnyConnection — checks active Page rows, NOT ConnectedAccount
+ *        (WhatsApp QR, Telegram, Email have Pages but no ConnectedAccount).
+ */
 class Team extends Model
 {
     use Billable;

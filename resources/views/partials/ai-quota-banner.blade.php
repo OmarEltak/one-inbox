@@ -1,3 +1,10 @@
+{{--
+    ══ ARCHITECTURE REFERENCE §13 ══
+    READ docs/ARCHITECTURE.md §13 (Team Upstream Pause + Banner) before
+    modifying the state resolution or the amber-vs-red rendering.
+    The red variant is deliberately different so operators can tell a
+    provider outage apart from a quota-exhausted state at a glance.
+--}}
 @php
     $bannerTeam = auth()->user()?->currentTeam;
     $planExhausted = $bannerTeam

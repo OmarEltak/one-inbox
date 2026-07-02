@@ -17,6 +17,15 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
+ * ══ ARCHITECTURE REFERENCE §3, §4 ══
+ * READ docs/ARCHITECTURE.md §4 (NaraRouter Failover Chain + 6h Reset)
+ * BEFORE modifying callChat(), currentModel(), or markActiveModel().
+ *
+ * Load-bearing: successful calls do NOT extend the 6h reset window. If you
+ * change markActiveModel() to refresh reset_at on every success, we'll
+ * never return to sonnet after a fallback. That's a real regression, not
+ * an optimization.
+ *
  * NaraRouter provider — OpenAI-compatible chat completions router that fronts
  * multiple upstream models (Claude, GPT, Gemini, etc.). Selected via env:
  *

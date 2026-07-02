@@ -11,6 +11,13 @@ use App\Models\Message;
 use Illuminate\Support\Facades\Log;
 
 /**
+ * ══ ARCHITECTURE REFERENCE §10 ══
+ * READ docs/ARCHITECTURE.md §10 (Captured-Data Extraction) before changing
+ * the hybrid regex+LLM strategy. Load-bearing: extraction MUST run BEFORE
+ * the reply generation call so the reply prompt can push for what's still
+ * missing. Extracting after reply generation makes the AI repeatedly ask
+ * for fields the customer already provided in this turn.
+ *
  * Extracts captured-data fields from customer messages based on the AI Config's
  * required_capture_fields list. Hybrid strategy:
  *

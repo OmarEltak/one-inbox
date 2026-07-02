@@ -17,6 +17,17 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §1, §14 ══
+ * READ docs/ARCHITECTURE.md before modifying:
+ *   §1  Managed onboarding is INTENTIONAL until META_APP_VERIFIED=true.
+ *       Do NOT remove the "Request connection" flow to "restore" OAuth —
+ *       Meta rejects unverified apps at the OAuth callback so direct
+ *       OAuth is silently broken for real customers.
+ *   §14 Flux 2.x modals use Flux::modal('name')->show()/close(), NOT
+ *       $this->dispatch('open-modal', name: 'X') — the dispatch is a
+ *       Filament/generic-Livewire pattern that silently no-ops here.
+ */
 class Index extends Component
 {
     /** Live Evolution API instance names, keyed for O(1) lookup. Populated in mount(). */

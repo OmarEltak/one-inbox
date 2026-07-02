@@ -6,6 +6,18 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * ══ ARCHITECTURE REFERENCE §5, §6 ══
+ * READ docs/ARCHITECTURE.md §5 (Sales-Flow) + §6 (Contact Cap) before
+ * modifying the goal presets, CONTACT_CAP_MIN/MAX, or
+ * defaultCaptureFieldsFor/defaultEscalationKeywordsFor.
+ *
+ * Load-bearing: CONTACT_CAP_MAX = 50 is a platform-hard ceiling that
+ * customers cannot exceed. Raising it silently is an anti-abuse regression.
+ * The bilingual (AR + EN) defaults for escalation keywords are the "zero-
+ * config sane behavior" that makes the goal presets work out of the box —
+ * do not strip either language.
+ */
 class AiConfig extends Model
 {
     // Sales goal presets — expand SALES_GOAL_PRESETS with new options in one place.
