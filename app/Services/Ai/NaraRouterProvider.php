@@ -319,15 +319,18 @@ class NaraRouterProvider implements AiProviderInterface
                 throw new AiQuotaExhausted("NaraRouter 429 on {$tryModel} (quota/rate limit).");
             }
 
-            // Non-5xx failures (400/401/etc.) are client-side and won't be
-            // fixed by trying another model. Bail without cascading further.
-            if ($status < 500) {
+            // Client errors on the request payload/key/permission won't be
+            // fixed by trying a different model — bail immediately.
+            //   400 Bad Request, 401 Unauthorized, 403 Forbidden
+            // But 404 (model doesn't exist) SHOULD cascade — the next model
+            // in the chain might exist.
+            if (in_array($status, [400, 401, 403], true)) {
                 Log::error('NaraRouter API 4xx — not cascading', ['status' => $status, 'model' => $tryModel]);
                 return '';
             }
 
-            // 5xx — cascade to next model.
-            $lastError = "5xx on {$tryModel}: HTTP {$status}";
+            // Cascade: 404, 5xx, timeouts.
+            $lastError = "HTTP {$status} on {$tryModel}";
         }
 
         // Every model in the chain returned 5xx.

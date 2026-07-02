@@ -99,10 +99,12 @@ return [
         'base_url'      => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
         'model'         => env('NARAROUTER_MODEL', 'claude-sonnet-4.5'),
         'scoring_model' => env('NARAROUTER_SCORING_MODEL', env('NARAROUTER_MODEL', 'claude-sonnet-4.5')),
-        // Ordered failover chain. If sonnet 502s, cascade to mistral-medium,
+        // Ordered failover chain. If sonnet 502s, cascade to mistral-medium-3-5,
         // then mistral-large, then haiku. Reset to head-of-chain every 6h.
-        // Override via env with a comma-separated string of model aliases.
-        'fallback_models' => env('NARAROUTER_FALLBACK_MODELS', 'claude-sonnet-4.5,mistral-medium-latest,mistral-large-latest,claude-haiku-4.5'),
+        // Names must match NaraRouter's model aliases exactly — verify via
+        // GET /v1/models when adjusting. Override via env with a comma-
+        // separated string.
+        'fallback_models' => env('NARAROUTER_FALLBACK_MODELS', 'claude-sonnet-4.5,mistral-medium-3-5,mistral-large,claude-haiku-4.5'),
     ],
 
     /*
