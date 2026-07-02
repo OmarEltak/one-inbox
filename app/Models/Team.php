@@ -79,10 +79,22 @@ class Team extends Model
 
     public function hasAnyConnection(): bool
     {
-        return $this->hasAnyConnectionCache ??= Page::query()
-            ->where('team_id', $this->id)
-            ->where('is_active', true)
-            ->exists();
+        // Two-layer cache: request-scoped (this instance) then app cache. Both the
+        // RequireConnection middleware and the sidebar call this on every request —
+        // without cache that's 2 EXISTS queries per pageload. Invalidated by
+        // clearActivePagesCache() which fires when a page is created/deactivated.
+        if ($this->hasAnyConnectionCache !== null) {
+            return $this->hasAnyConnectionCache;
+        }
+
+        return $this->hasAnyConnectionCache = Cache::remember(
+            "team.{$this->id}.has_any_connection",
+            300,
+            fn () => Page::query()
+                ->where('team_id', $this->id)
+                ->where('is_active', true)
+                ->exists()
+        );
     }
 
     public function contacts(): HasMany
@@ -196,6 +208,9 @@ class Team extends Model
     public function clearActivePagesCache(): void
     {
         Cache::forget("team.{$this->id}.active_pages");
+        Cache::forget("team.{$this->id}.has_any_connection");
+        Cache::forget("team.{$this->id}.inbox_sidebar_pages");
         Cache::forget("dashboard.{$this->id}");
+        $this->hasAnyConnectionCache = null;
     }
 }

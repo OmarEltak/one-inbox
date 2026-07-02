@@ -24,7 +24,7 @@
                 $canSwitch = $userTeams->count() > 1 || $user->isSuperAdmin();
             @endphp
             <flux:sidebar.header class="px-4 py-5">
-                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-2.5 group min-w-0 flex-1">
+                <a href="{{ route('dashboard') }}" wire:navigate.hover class="flex items-center gap-2.5 group min-w-0 flex-1">
                     <img src="/logo.png" alt="OT1-Pro" class="size-8 rounded-lg flex-shrink-0 object-cover" />
                     <p class="text-sm font-bold text-white leading-tight truncate">{{ __('OT1-Pro') }}</p>
                 </a>
@@ -74,7 +74,7 @@
                                     </form>
                                 @endforeach
                                 <flux:menu.separator />
-                                <flux:menu.item :href="route('teams.create')" icon="plus" wire:navigate>{{ __('New workspace') }}</flux:menu.item>
+                                <flux:menu.item :href="route('teams.create')" icon="plus" wire:navigate.hover>{{ __('New workspace') }}</flux:menu.item>
                             </flux:menu>
                         </flux:dropdown>
                     @else
@@ -138,9 +138,15 @@
                         $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests', 'locked' => false];
                     }
 
-                    // Load pages for inbox dropdown
+                    // Load pages for inbox dropdown. Cached for 5 min — the sidebar
+                    // renders on EVERY navigate, and page list rarely changes intra-session.
+                    // Team::clearActivePagesCache() invalidates on connect/disconnect.
                     $inboxPages = $showInbox && $team
-                        ? $team->pages()->where('is_active', true)->orderBy('platform')->orderBy('name')->get()
+                        ? \Illuminate\Support\Facades\Cache::remember(
+                            "team.{$team->id}.inbox_sidebar_pages",
+                            300,
+                            fn () => $team->pages()->where('is_active', true)->orderBy('platform')->orderBy('name')->get()
+                        )
                         : collect();
 
                     $platformColors = [
@@ -159,7 +165,7 @@
                 @php $firstItem = array_shift($navItems); @endphp
                 @if($firstItem)
                     @php $isCurrent = request()->routeIs($firstItem['match']); @endphp
-                    <a href="{{ route($firstItem['route']) }}" wire:navigate
+                    <a href="{{ route($firstItem['route']) }}" wire:navigate.hover
                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
                               {{ $isCurrent ? 'text-white shadow-lg' : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]' }}"
                        @if($isCurrent) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
@@ -208,7 +214,7 @@
 
                         {{-- All Inbox --}}
                         @php $allActive = $isInboxActive && !request()->query('pageId'); @endphp
-                        <a href="{{ route('inbox') }}" wire:navigate
+                        <a href="{{ route('inbox') }}" wire:navigate.hover
                            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 group
                                   {{ $allActive ? 'text-white bg-white/[0.07]' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]' }}">
                             <svg class="size-3.5 flex-shrink-0 {{ $allActive ? 'text-[#C27AFF]' : 'text-white/25 group-hover:text-white/50' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,7 +230,7 @@
                                 $color = $platformColors[$page->platform] ?? '#6B7280';
                                 $initials = strtoupper(substr($page->platform, 0, 2));
                             @endphp
-                            <a href="{{ route('inbox') }}?pageId={{ $page->id }}" wire:navigate
+                            <a href="{{ route('inbox') }}?pageId={{ $page->id }}" wire:navigate.hover
                                class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 group
                                       {{ $pageActive ? 'text-white bg-white/[0.07]' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]' }}">
                                 <span class="inline-flex items-center justify-center size-4 rounded-md text-[9px] font-bold flex-shrink-0"
@@ -255,7 +261,7 @@
                         </button>
                     @else
                         <a href="{{ route($item['route']) }}"
-                           wire:navigate
+                           wire:navigate.hover
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
                                   {{ $isCurrent
                                      ? 'text-white shadow-lg'
@@ -311,7 +317,7 @@
                                 </div>
                             </flux:menu.radio.group>
                             <flux:menu.separator />
-                            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>Settings</flux:menu.item>
+                            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>Settings</flux:menu.item>
                             <flux:menu.separator />
                             <form method="POST" action="{{ route('logout') }}" class="w-full">
                                 @csrf
@@ -395,7 +401,7 @@
                         </div>
                     </flux:menu.radio.group>
                     <flux:menu.separator />
-                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>Settings</flux:menu.item>
+                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>Settings</flux:menu.item>
                     <flux:menu.separator />
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
@@ -428,7 +434,7 @@
                             class="rounded-lg px-3 py-2 text-sm text-white/60 hover:text-white transition-colors">
                         Cancel
                     </button>
-                    <a href="{{ route('connections.index') }}" wire:navigate @click="open = false"
+                    <a href="{{ route('connections.index') }}" wire:navigate.hover @click="open = false"
                        class="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-500 transition-colors">
                         Go to Connections →
                     </a>
