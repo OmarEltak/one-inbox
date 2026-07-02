@@ -73,6 +73,101 @@
                             </div>
                         </div>
 
+                        {{-- Tab strip. Splits the config into 4 focused areas so the form
+                             doesn't feel like a wall of settings. --}}
+                        @php
+                            $tabs = [
+                                'sales_goal' => ['label' => 'Sales Goal',  'icon' => 'flag'],
+                                'knowledge'  => ['label' => 'Knowledge',   'icon' => 'book-open'],
+                                'behavior'   => ['label' => 'Behavior',    'icon' => 'sparkles'],
+                                'handoff'    => ['label' => 'Handoff',     'icon' => 'user-group'],
+                            ];
+                        @endphp
+                        <div class="flex flex-wrap gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 p-1.5 bg-zinc-50 dark:bg-zinc-900/40">
+                            @foreach($tabs as $tabKey => $tabMeta)
+                                <button
+                                    type="button"
+                                    wire:click="setTab('{{ $tabKey }}')"
+                                    class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors
+                                        {{ $activeTab === $tabKey
+                                            ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white'
+                                            : 'text-zinc-600 hover:text-zinc-900 hover:bg-white/50 dark:text-zinc-400 dark:hover:text-zinc-100' }}"
+                                >
+                                    <flux:icon :name="$tabMeta['icon']" class="w-4 h-4" />
+                                    {{ $tabMeta['label'] }}
+                                </button>
+                            @endforeach
+                        </div>
+
+                        {{-- Tab: Sales Goal --}}
+                        @if($activeTab === 'sales_goal')
+                            @php
+                                $presets = [
+                                    ['key' => 'info_only',    'title' => 'Info only',           'desc' => 'AI answers questions but never asks for data. Escalate only when a customer explicitly asks for a human.'],
+                                    ['key' => 'capture_data', 'title' => 'Capture specific data','desc' => 'AI naturally collects the fields you select (email, phone, address, etc.), then hands off.'],
+                                    ['key' => 'booking',      'title' => 'Booking',              'desc' => 'AI qualifies the customer and captures name, phone, and preferred slot.'],
+                                    ['key' => 'ecommerce',    'title' => 'E-commerce order',    'desc' => 'AI takes orders end-to-end: product, quantity, shipping address, phone.'],
+                                    ['key' => 'custom',       'title' => 'Custom',              'desc' => 'Define your own fields and escalation triggers. Full control.'],
+                                ];
+                            @endphp
+                            <section>
+                                <flux:heading size="lg" class="mb-1">What is the goal of this conversation?</flux:heading>
+                                <flux:text size="sm" class="mb-4">Pick the preset that matches your business. The AI is told about the goal in every reply and pushes toward it naturally.</flux:text>
+
+                                <div class="grid gap-3 md:grid-cols-2">
+                                    @foreach($presets as $preset)
+                                        <button
+                                            type="button"
+                                            wire:click="applySalesGoalPreset('{{ $preset['key'] }}')"
+                                            class="text-left p-4 rounded-xl border-2 transition-colors
+                                                {{ $sales_goal_preset === $preset['key']
+                                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                                                    : 'border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600' }}"
+                                        >
+                                            <div class="flex items-start justify-between gap-2 mb-1">
+                                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $preset['title'] }}</span>
+                                                @if($sales_goal_preset === $preset['key'])
+                                                    <flux:icon name="check-circle" class="w-5 h-5 text-blue-500 shrink-0" />
+                                                @endif
+                                            </div>
+                                            <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{{ $preset['desc'] }}</p>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </section>
+
+                            @if($sales_goal_preset !== 'info_only')
+                                <section>
+                                    <flux:heading size="lg" class="mb-1">Data to capture</flux:heading>
+                                    <flux:text size="sm" class="mb-4">These fields will be extracted from the customer's messages. When all are captured, the AI stops and the conversation is marked completed.</flux:text>
+
+                                    <div class="space-y-2">
+                                        @forelse($required_capture_fields as $index => $field)
+                                            <div class="flex items-center gap-2">
+                                                <flux:input wire:model="required_capture_fields.{{ $index }}.label" placeholder="Label (e.g. Email address)" class="flex-1" />
+                                                <flux:input wire:model="required_capture_fields.{{ $index }}.key" placeholder="key (e.g. email)" class="w-40" />
+                                                <flux:select wire:model="required_capture_fields.{{ $index }}.type" class="w-32">
+                                                    <flux:select.option value="text">Text</flux:select.option>
+                                                    <flux:select.option value="email">Email</flux:select.option>
+                                                    <flux:select.option value="phone">Phone</flux:select.option>
+                                                    <flux:select.option value="address">Address</flux:select.option>
+                                                </flux:select>
+                                                <flux:button wire:click="removeCaptureField({{ $index }})" type="button" variant="ghost" size="sm" icon="x-mark" square />
+                                            </div>
+                                        @empty
+                                            <flux:text size="sm" class="text-zinc-500 italic">No fields configured yet.</flux:text>
+                                        @endforelse
+                                    </div>
+
+                                    <flux:button wire:click="addCaptureField" type="button" variant="outline" size="sm" icon="plus" class="mt-3">
+                                        Add field
+                                    </flux:button>
+                                </section>
+                            @endif
+                        @endif
+
+                        {{-- Tab: Knowledge --}}
+                        @if($activeTab === 'knowledge')
                         {{-- Section: Business Info --}}
                         <section>
                             <flux:heading size="lg" class="mb-1">Business Info</flux:heading>
@@ -178,7 +273,10 @@
                                 <div class="text-sm text-zinc-400 dark:text-zinc-500 py-2">No FAQ entries yet.</div>
                             @endforelse
                         </section>
+                        @endif {{-- /Knowledge tab --}}
 
+                        {{-- Tab: Behavior --}}
+                        @if($activeTab === 'behavior')
                         {{-- Section: Tone & Language --}}
                         <section>
                             <flux:heading size="lg" class="mb-1">Tone & Language</flux:heading>
@@ -280,6 +378,52 @@
                                 </div>
                             </div>
                         </section>
+                        @endif {{-- /Behavior tab --}}
+
+                        {{-- Tab: Handoff --}}
+                        @if($activeTab === 'handoff')
+                            {{-- Section: Escalation Keywords --}}
+                            <section>
+                                <flux:heading size="lg" class="mb-1">Escalation keywords</flux:heading>
+                                <flux:text size="sm" class="mb-4">If the customer's message contains any of these words, AI stops and the conversation is marked <em>escalated</em> so a human can take over. Includes bilingual defaults (Arabic + English) from your Sales Goal preset.</flux:text>
+
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    @foreach($escalation_keywords as $index => $kw)
+                                        <div wire:key="kw-{{ $index }}" class="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 pl-3 pr-1 py-1">
+                                            <flux:input
+                                                wire:model.blur="escalation_keywords.{{ $index }}"
+                                                size="xs"
+                                                class="!w-32 !border-none !bg-transparent !p-0 !text-sm"
+                                            />
+                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700">
+                                                <flux:icon name="x-mark" class="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <flux:button wire:click="addEscalationKeyword" type="button" variant="outline" size="sm" icon="plus">
+                                    Add keyword
+                                </flux:button>
+                            </section>
+
+                            {{-- Section: Per-contact AI reply cap --}}
+                            <section>
+                                <flux:heading size="lg" class="mb-1">Per-contact daily AI reply cap</flux:heading>
+                                <flux:text size="sm" class="mb-4">Maximum AI replies a single contact can receive in 24 hours. Prevents one chatty (or abusive) customer from burning your AI budget. Once a contact hits this, further inbounds still land in your inbox but the AI stops replying to them until the window rolls over.</flux:text>
+
+                                <div class="max-w-xs">
+                                    <flux:input
+                                        wire:model="contact_ai_reply_cap"
+                                        type="number"
+                                        label="Cap (5-50 replies/contact/day)"
+                                        min="{{ \App\Models\AiConfig::CONTACT_CAP_MIN }}"
+                                        max="{{ \App\Models\AiConfig::CONTACT_CAP_MAX }}"
+                                    />
+                                    @error('contact_ai_reply_cap') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                                </div>
+                            </section>
+                        @endif {{-- /Handoff tab --}}
 
                         {{-- Save --}}
                         <div class="flex items-center gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">

@@ -7,6 +7,7 @@ use App\Events\AiLimitReached;
 use App\Events\AiResponseSent;
 use App\Exceptions\AiQuotaExhausted;
 use App\Http\Middleware\EnforcePlanLimits;
+use App\Services\Ai\CaptureExtractor;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Page;
@@ -62,8 +63,21 @@ class SendAiResponse implements ShouldQueue
             return;
         }
 
-        // Human agent has taken over this conversation
-        if ($conversation->ai_paused) {
+        // Conversation is not in the active sales stage (paused, escalated,
+        // completed, or spam). Every dispatch site checks this too but a
+        // stage transition may have happened while this job was in the queue.
+        if (! $conversation->isSalesStageActive()) {
+            return;
+        }
+
+        // Per-contact daily AI reply cap. Prevents a single troll or overly
+        // chatty customer from burning all of your provider tokens. Rolls the
+        // 24h window lazily so no cron job is required.
+        $contact = $conversation->contact;
+        $cap     = (int) ($aiConfig->contact_ai_reply_cap ?? 20);
+        if ($contact && ! $contact->canReceiveAiReply($cap)) {
+            $conversation->escalate('contact_ai_reply_cap_reached');
+            broadcast(new AiLimitReached($team->id));
             return;
         }
 
@@ -97,13 +111,24 @@ class SendAiResponse implements ShouldQueue
             return;
         }
 
-        if ($this->shouldEscalate($triggerMessage->content ?? '')) {
-            $labels = $conversation->labels ?? [];
-            if (! in_array('escalated', $labels)) {
-                $labels[] = 'escalated';
-                $conversation->update(['labels' => $labels]);
-            }
+        if ($this->shouldEscalate($triggerMessage->content ?? '', $aiConfig)) {
+            $conversation->escalate('escalation_keyword_matched');
             return;
+        }
+
+        // Capture pass: try to extract any required fields from this inbound
+        // BEFORE generating the reply, so the reply prompt knows what's still
+        // missing and pushes for it. If everything is captured after this
+        // extraction, complete the conversation and stop — the goal is met,
+        // no more AI replies needed.
+        if (! empty($aiConfig->required_capture_fields)) {
+            $extractor = new CaptureExtractor($ai);
+            $capture   = $extractor->extract($conversation->refresh(), $triggerMessage, $aiConfig);
+
+            if ($capture['complete']) {
+                $conversation->complete('all_required_fields_captured');
+                return;
+            }
         }
 
         try {
@@ -129,6 +154,10 @@ class SendAiResponse implements ShouldQueue
                 'last_message_at' => now(),
                 'last_message_preview' => \Illuminate\Support\Str::limit($responseText, 100),
             ]);
+
+            // Bump the per-contact daily counter — pre-check already ensured
+            // we're under the cap; this is the record-keeping side.
+            $contact?->recordAiReply();
 
             // Increment AI credits used. If this push crossed the plan limit, fire
             // AiLimitReached exactly once — subsequent dispatches are gated by
@@ -158,9 +187,13 @@ class SendAiResponse implements ShouldQueue
         }
     }
 
-    protected function shouldEscalate(string $messageContent): bool
+    protected function shouldEscalate(string $messageContent, ?\App\Models\AiConfig $config = null): bool
     {
-        $keywords = [
+        // Prefer the operator-configured keyword list (populated from a preset,
+        // customer can add more). Fall back to the built-in English list only
+        // when no custom keywords have been set, so historical configs keep
+        // working without a migration seed.
+        $keywords = $config?->escalation_keywords ?: [
             'talk to a human',
             'talk to human',
             'real person',
@@ -180,7 +213,11 @@ class SendAiResponse implements ShouldQueue
         $lower = mb_strtolower($messageContent);
 
         foreach ($keywords as $keyword) {
-            if (str_contains($lower, $keyword)) {
+            $needle = mb_strtolower(trim((string) $keyword));
+            if ($needle === '') {
+                continue;
+            }
+            if (str_contains($lower, $needle)) {
                 return true;
             }
         }

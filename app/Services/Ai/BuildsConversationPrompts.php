@@ -54,6 +54,36 @@ trait BuildsConversationPrompts
             $parts[] = "Sales approach: " . json_encode($config->sales_methodology);
         }
 
+        // Sales-goal grounding. When the operator picked a preset with required
+        // fields, tell the AI what the conversation's target is and which
+        // fields are already captured so it can push naturally toward the rest.
+        $required = $config->required_capture_fields ?? [];
+        if (! empty($required)) {
+            $captured = $conversation->captured_data ?? [];
+
+            $remaining = array_values(array_filter($required, function ($f) use ($captured) {
+                return ! isset($captured[$f['key']]) || $captured[$f['key']] === '';
+            }));
+
+            $capturedLines = [];
+            foreach ($captured as $k => $v) {
+                if ($v !== '' && $v !== null) {
+                    $capturedLines[] = "- {$k}: {$v}";
+                }
+            }
+            $remainingLines = array_map(fn ($f) => "- {$f['label']} ({$f['key']})", $remaining);
+
+            $parts[] = "SALES GOAL FOR THIS CONVERSATION:\n"
+                . "You are working toward a specific outcome. Your job is to collect the following information naturally through conversation — never as a form or a survey. Weave the asks into the sales flow.\n\n"
+                . "Already captured:\n" . (empty($capturedLines) ? "(nothing yet)" : implode("\n", $capturedLines)) . "\n\n"
+                . "Still needed:\n" . (empty($remainingLines) ? "(all captured — celebrate the sale, confirm next steps, do not ask for more)" : implode("\n", $remainingLines)) . "\n\n"
+                . "Rules for capturing:\n"
+                . "- Ask for AT MOST ONE missing field per reply. One question at a time.\n"
+                . "- If the customer just answered a question, acknowledge it warmly before moving to the next.\n"
+                . "- Never repeat a question the customer has already answered — check 'Already captured' above.\n"
+                . "- If all fields are captured, close the deal warmly and stop asking questions. Do NOT invent extra fields.";
+        }
+
         $parts[] = "Tone: {$config->tone}";
 
         // Language mirroring — CRITICAL

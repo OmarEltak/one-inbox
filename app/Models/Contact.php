@@ -20,6 +20,8 @@ class Contact extends Model
         'tags',
         'first_seen_at',
         'last_interaction_at',
+        'ai_replies_today',
+        'ai_replies_reset_at',
         'metadata',
     ];
 
@@ -31,8 +33,49 @@ class Contact extends Model
             'tags' => 'array',
             'first_seen_at' => 'datetime',
             'last_interaction_at' => 'datetime',
+            'ai_replies_today' => 'integer',
+            'ai_replies_reset_at' => 'datetime',
             'metadata' => 'array',
         ];
+    }
+
+    /**
+     * Lazy-reset the daily counter if the 24h window has expired.
+     * Called before every increment so we don't need a cron job for windowing.
+     * Returns true if the window was rolled (counter reset to 0), false otherwise.
+     */
+    public function ensureCapWindowIsCurrent(): bool
+    {
+        if ($this->ai_replies_reset_at !== null && $this->ai_replies_reset_at->isFuture()) {
+            return false;
+        }
+
+        $this->forceFill([
+            'ai_replies_today'    => 0,
+            'ai_replies_reset_at' => now()->addHours(24),
+        ])->save();
+
+        return true;
+    }
+
+    /**
+     * Check whether this contact can still receive an AI reply within their
+     * daily cap. Rolls the window first if it has expired.
+     */
+    public function canReceiveAiReply(int $cap): bool
+    {
+        $this->ensureCapWindowIsCurrent();
+
+        return $this->ai_replies_today < $cap;
+    }
+
+    /**
+     * Bump the counter after a successful AI reply. Assumes canReceiveAiReply()
+     * was checked immediately before — so the window is already fresh.
+     */
+    public function recordAiReply(): void
+    {
+        $this->increment('ai_replies_today');
     }
 
     public function team(): BelongsTo

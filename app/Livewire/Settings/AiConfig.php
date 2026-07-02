@@ -31,11 +31,18 @@ class AiConfig extends Component
     public bool $is_24_7 = false;
     public string $timezone = 'Africa/Cairo';
 
+    // Sales Goal + Handoff
+    public string $sales_goal_preset       = AiConfigModel::GOAL_INFO_ONLY;
+    public array  $required_capture_fields = [];
+    public array  $escalation_keywords     = [];
+    public int    $contact_ai_reply_cap    = 20;
+
     // Toggle
     public bool $is_active = true;
 
     // UI state
-    public bool $hasConfig = false;
+    public bool   $hasConfig = false;
+    public string $activeTab = 'sales_goal'; // sales_goal | knowledge | behavior | handoff | advanced
 
     public function mount(): void
     {
@@ -80,6 +87,10 @@ class AiConfig extends Component
             $this->working_hours = $config->working_hours ?? $this->defaultWorkingHours();
             $this->is_24_7 = (bool) ($config->is_24_7 ?? false);
             $this->timezone = $config->timezone ?? 'UTC';
+            $this->sales_goal_preset       = $config->sales_goal_preset ?: AiConfigModel::GOAL_INFO_ONLY;
+            $this->required_capture_fields = $config->required_capture_fields ?? [];
+            $this->escalation_keywords     = $config->escalation_keywords ?? AiConfigModel::defaultEscalationKeywordsFor($this->sales_goal_preset);
+            $this->contact_ai_reply_cap    = (int) ($config->contact_ai_reply_cap ?? 20);
             $this->is_active = $config->is_active ?? true;
         } else {
             $this->hasConfig = false;
@@ -107,7 +118,26 @@ class AiConfig extends Component
             'response_delay_min_seconds' => 'required|integer|min:10|max:300',
             'response_delay_max_seconds' => 'required|integer|min:10|max:600',
             'timezone' => 'required|string',
+            'sales_goal_preset' => 'required|in:info_only,capture_data,booking,ecommerce,custom',
+            'contact_ai_reply_cap' => 'required|integer|min:' . AiConfigModel::CONTACT_CAP_MIN . '|max:' . AiConfigModel::CONTACT_CAP_MAX,
         ]);
+
+        // Defence-in-depth: clamp the cap server-side even if a client sends
+        // a value outside the input's declared range.
+        $this->contact_ai_reply_cap = max(
+            AiConfigModel::CONTACT_CAP_MIN,
+            min(AiConfigModel::CONTACT_CAP_MAX, $this->contact_ai_reply_cap),
+        );
+
+        // Info-only preset never captures data, regardless of what's in the array.
+        $captureFields = $this->sales_goal_preset === AiConfigModel::GOAL_INFO_ONLY
+            ? []
+            : array_values(array_filter($this->required_capture_fields, fn ($f) => ! empty(trim($f['key'] ?? ''))));
+
+        $escalationKeywords = array_values(array_filter(
+            array_map(fn ($k) => trim((string) $k), $this->escalation_keywords),
+            fn ($k) => $k !== '',
+        ));
 
         if ($this->response_delay_min_seconds > $this->response_delay_max_seconds) {
             $this->response_delay_max_seconds = $this->response_delay_min_seconds;
@@ -128,6 +158,10 @@ class AiConfig extends Component
             'working_hours' => $this->working_hours,
             'is_24_7' => $this->is_24_7,
             'timezone' => $this->timezone,
+            'sales_goal_preset'        => $this->sales_goal_preset,
+            'required_capture_fields'  => $captureFields,
+            'escalation_keywords'      => $escalationKeywords,
+            'contact_ai_reply_cap'     => $this->contact_ai_reply_cap,
             'is_active' => $this->is_active,
         ];
 
@@ -175,6 +209,64 @@ class AiConfig extends Component
         $this->faq = array_values($this->faq);
     }
 
+    // --- Sales Goal preset switching + capture-field mgmt ---
+
+    /**
+     * Apply a sales-goal preset: pre-populate required fields + escalation
+     * keywords with the preset's defaults. Non-destructive for the operator's
+     * existing settings — only fills fields they haven't customized yet.
+     */
+    public function applySalesGoalPreset(string $preset): void
+    {
+        $allowed = [
+            AiConfigModel::GOAL_INFO_ONLY,
+            AiConfigModel::GOAL_CAPTURE_DATA,
+            AiConfigModel::GOAL_BOOKING,
+            AiConfigModel::GOAL_ECOMMERCE,
+            AiConfigModel::GOAL_CUSTOM,
+        ];
+        if (! in_array($preset, $allowed, true)) {
+            return;
+        }
+
+        $this->sales_goal_preset = $preset;
+
+        // Custom preset: leave whatever the operator has, they're driving.
+        if ($preset === AiConfigModel::GOAL_CUSTOM) {
+            return;
+        }
+
+        $this->required_capture_fields = AiConfigModel::defaultCaptureFieldsFor($preset);
+        $this->escalation_keywords     = AiConfigModel::defaultEscalationKeywordsFor($preset);
+    }
+
+    public function addCaptureField(): void
+    {
+        $this->required_capture_fields[] = ['key' => '', 'label' => '', 'type' => 'text'];
+    }
+
+    public function removeCaptureField(int $index): void
+    {
+        unset($this->required_capture_fields[$index]);
+        $this->required_capture_fields = array_values($this->required_capture_fields);
+    }
+
+    public function addEscalationKeyword(): void
+    {
+        $this->escalation_keywords[] = '';
+    }
+
+    public function removeEscalationKeyword(int $index): void
+    {
+        unset($this->escalation_keywords[$index]);
+        $this->escalation_keywords = array_values($this->escalation_keywords);
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
     // --- Helpers ---
 
     protected function resetForm(): void
@@ -191,6 +283,10 @@ class AiConfig extends Component
         $this->working_hours = $this->defaultWorkingHours();
         $this->is_24_7 = false;
         $this->timezone = 'UTC';
+        $this->sales_goal_preset       = AiConfigModel::GOAL_INFO_ONLY;
+        $this->required_capture_fields = [];
+        $this->escalation_keywords     = AiConfigModel::defaultEscalationKeywordsFor(AiConfigModel::GOAL_INFO_ONLY);
+        $this->contact_ai_reply_cap    = 20;
         $this->is_active = true;
     }
 
