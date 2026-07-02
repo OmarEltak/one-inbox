@@ -110,10 +110,14 @@ class Index extends Component
             return collect();
         }
 
+        // Materialize active page IDs once (Team::getActivePages() is Cache::remember'd 5 min)
+        // to avoid the whereHas EXISTS subquery running against 23k conversations per filter click.
+        $activePageIds = $team->getActivePages()->pluck('id')->all();
+
         $query = Conversation::with(['contact', 'page', 'assignedUser'])
             ->where('team_id', $team->id)
             ->where('status', '!=', 'archived')
-            ->whereHas('page', fn ($q) => $q->where('is_active', true));
+            ->whereIn('page_id', $activePageIds);
 
         // Spam is opt-in — hidden from every filter view except the dedicated
         // "spam" one so operators don't have to look at it by default.
@@ -198,9 +202,11 @@ class Index extends Component
             return 0;
         }
 
+        $activePageIds = $team->getActivePages()->pluck('id')->all();
+
         return Conversation::where('team_id', $team->id)
             ->where('sales_stage', Conversation::STAGE_SPAM)
-            ->whereHas('page', fn ($q) => $q->where('is_active', true))
+            ->whereIn('page_id', $activePageIds)
             ->count();
     }
 

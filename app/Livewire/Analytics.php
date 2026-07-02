@@ -186,12 +186,15 @@ class Analytics extends Component
 
     protected function getTopObjections(int $teamId, $since): array
     {
-        // Get score events with negative scores (objections)
-        $events = LeadScoreEvent::whereHas('contact', fn ($q) => $q->where('team_id', $teamId))
-            ->where('created_at', '>=', $since)
-            ->where('score_change', '<', 0)
-            ->selectRaw('reason, count(*) as occurrences, avg(score_change) as avg_impact')
-            ->groupBy('reason')
+        // JOIN instead of whereHas so we scan the (contact_id, created_at) index once
+        // rather than running EXISTS(contacts) per lead_score_events row.
+        $events = DB::table('lead_score_events')
+            ->join('contacts', 'lead_score_events.contact_id', '=', 'contacts.id')
+            ->where('contacts.team_id', $teamId)
+            ->where('lead_score_events.created_at', '>=', $since)
+            ->where('lead_score_events.score_change', '<', 0)
+            ->selectRaw('lead_score_events.reason, count(*) as occurrences, avg(lead_score_events.score_change) as avg_impact')
+            ->groupBy('lead_score_events.reason')
             ->orderByDesc('occurrences')
             ->limit(5)
             ->get();
@@ -229,10 +232,15 @@ class Analytics extends Component
 
     protected function getDailyMessages(int $teamId, $since): array
     {
-        $days = Message::whereHas('conversation', fn ($q) => $q->where('team_id', $teamId))
+        // Drives the "Reach Across Platforms" chart (Inbound/AI/Human) — user reported
+        // 7d/14d/30d/90d clicks hang. whereHas('conversation') was EXISTS-scanning every
+        // messages row against conversations; JOIN by index is dramatically cheaper.
+        $days = DB::table('messages')
+            ->join('conversations', 'messages.conversation_id', '=', 'conversations.id')
+            ->where('conversations.team_id', $teamId)
             ->where('messages.created_at', '>=', $since)
-            ->selectRaw('DATE(messages.created_at) as date, sender_type, count(*) as total')
-            ->groupBy('date', 'sender_type')
+            ->selectRaw('DATE(messages.created_at) as date, messages.sender_type, count(*) as total')
+            ->groupBy('date', 'messages.sender_type')
             ->orderBy('date')
             ->get();
 
