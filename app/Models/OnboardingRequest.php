@@ -21,18 +21,21 @@ class OnboardingRequest extends Model
         'business_name',
         'page_url',
         'contact_phone',
+        'contact_email',
         'notes',
         'status',
         'assigned_admin_user_id',
         'resulting_page_id',
         'admin_notes',
         'completed_at',
+        'customer_dismissed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'completed_at' => 'datetime',
+            'customer_dismissed_at' => 'datetime',
         ];
     }
 

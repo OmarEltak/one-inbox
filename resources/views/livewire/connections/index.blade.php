@@ -73,19 +73,22 @@
                 </div>
             </div>
 
-            @php $facebookAccounts = $this->connectedAccounts->where('platform', 'facebook'); @endphp
-            @foreach($facebookAccounts as $account)
+            @php
+                $facebookAccounts = $this->connectedAccounts->where('platform', 'facebook');
+                $facebookPages    = $this->pages->where('platform', 'facebook');
+                $fbRejected       = $this->rejectedByPlatform['facebook'] ?? null;
+            @endphp
+
+            {{-- Connected pages (works for both direct-OAuth + admin-handoff pages) --}}
+            @foreach($facebookPages as $fbPage)
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
-                        @if($account->avatar)
-                            <img src="{{ $account->avatar }}" class="w-5 h-5 rounded-full flex-shrink-0" />
-                        @endif
-                        <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
+                        <span class="text-xs text-white/80 truncate">{{ $fbPage->name }}</span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
                     </div>
                     <flux:button
-                        wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect '{{ addslashes($account->name) }}'? This will deactivate all pages linked to this account."
+                        wire:click="disconnectPage({{ $fbPage->id }})"
+                        wire:confirm="Disconnect '{{ addslashes($fbPage->name) }}'? Messenger messages will stop coming in for this page."
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
@@ -96,7 +99,27 @@
                 </div>
             @endforeach
 
-            <div class="{{ $facebookAccounts->isNotEmpty() ? 'mt-3' : '' }}">
+            {{-- Persistent rejection banner (only dismissible by explicit click) --}}
+            @if($fbRejected)
+                <div class="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="text-red-300 font-medium">Your Facebook connection request was rejected</p>
+                            <p class="text-red-100/80 mt-1 whitespace-pre-wrap break-words">{{ $fbRejected->admin_notes }}</p>
+                            <p class="text-red-200/50 mt-1 text-[10px]">Rejected {{ optional($fbRejected->completed_at)->diffForHumans() }}</p>
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="dismissRejection({{ $fbRejected->id }})"
+                            class="flex-shrink-0 text-[10px] uppercase tracking-wide text-red-300/70 hover:text-red-100 border border-red-500/40 rounded px-2 py-1 cursor-pointer"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            <div class="{{ $facebookPages->isNotEmpty() || $fbRejected ? 'mt-3' : '' }}">
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
                 @elseif($metaVerified)
@@ -113,7 +136,7 @@
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" class="w-full">
-                        Request connection
+                        {{ $facebookPages->isNotEmpty() ? 'Add another page' : 'Request connection' }}
                     </flux:button>
                 @endif
             </div>
@@ -129,19 +152,23 @@
                 </div>
             </div>
 
-            @php $instagramAccounts = $this->connectedAccounts->where('platform', 'instagram'); @endphp
-            @foreach($instagramAccounts as $account)
+            @php
+                $instagramAccounts = $this->connectedAccounts->where('platform', 'instagram');
+                $instagramPages    = $this->pages->where('platform', 'instagram');
+                $igRejected        = $this->rejectedByPlatform['instagram'] ?? null;
+            @endphp
+
+            @foreach($instagramPages as $igPage)
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
-                        @if($account->avatar)
-                            <img src="{{ $account->avatar }}" class="w-5 h-5 rounded-full flex-shrink-0" />
-                        @endif
-                        <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
+                        <span class="text-xs text-white/80 truncate">
+                            {{ $igPage->name }}{{ isset($igPage->metadata['username']) ? ' (@' . $igPage->metadata['username'] . ')' : '' }}
+                        </span>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
                     </div>
                     <flux:button
-                        wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect '{{ addslashes($account->name) }}'? Instagram DMs will stop coming in."
+                        wire:click="disconnectPage({{ $igPage->id }})"
+                        wire:confirm="Disconnect '{{ addslashes($igPage->name) }}'? Instagram DMs will stop coming in for this page."
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
@@ -150,16 +177,28 @@
                         Disconnect
                     </flux:button>
                 </div>
-                @foreach($this->pages->where('platform', 'instagram')->where('connected_account_id', $account->id) as $igPage)
-                    <div class="pl-2 py-1 border-t border-white/15">
-                        <p class="text-xs text-white/40">
-                            {{ $igPage->name }}{{ isset($igPage->metadata['username']) ? ' (@' . $igPage->metadata['username'] . ')' : '' }}
-                        </p>
-                    </div>
-                @endforeach
             @endforeach
 
-            <div class="{{ $instagramAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
+            @if($igRejected)
+                <div class="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="text-red-300 font-medium">Your Instagram connection request was rejected</p>
+                            <p class="text-red-100/80 mt-1 whitespace-pre-wrap break-words">{{ $igRejected->admin_notes }}</p>
+                            <p class="text-red-200/50 mt-1 text-[10px]">Rejected {{ optional($igRejected->completed_at)->diffForHumans() }}</p>
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="dismissRejection({{ $igRejected->id }})"
+                            class="flex-shrink-0 text-[10px] uppercase tracking-wide text-red-300/70 hover:text-red-100 border border-red-500/40 rounded px-2 py-1 cursor-pointer"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            <div class="{{ $instagramPages->isNotEmpty() || $igRejected ? 'mt-3' : '' }} space-y-2">
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
                 @elseif($metaVerified)
@@ -179,7 +218,7 @@
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
-                        Request connection
+                        {{ $instagramPages->isNotEmpty() ? 'Add another page' : 'Request connection' }}
                     </flux:button>
                 @endif
             </div>
@@ -1133,10 +1172,19 @@
             />
 
             <flux:input
+                wire:model="requestContactEmail"
+                type="email"
+                label="Contact email"
+                placeholder="you@company.com"
+                description="We won't send marketing — we only email you if we need something to complete your setup."
+                required
+            />
+
+            <flux:input
                 wire:model="requestContactPhone"
-                label="Best phone or WhatsApp (optional)"
+                label="WhatsApp number (optional)"
                 placeholder="+201234567890"
-                description="So we can ping you if we need clarification."
+                description="Optional. We only message you if we need clarification — never marketing."
             />
 
             <flux:textarea

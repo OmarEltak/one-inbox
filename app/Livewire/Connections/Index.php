@@ -37,6 +37,7 @@ class Index extends Component
     public string $requestPlatform      = 'facebook';
     public string $requestBusinessName  = '';
     public string $requestPageUrl       = '';
+    public string $requestContactEmail  = '';
     public string $requestContactPhone  = '';
     public string $requestNotes         = '';
 
@@ -306,6 +307,66 @@ class Index extends Component
             ->all();
     }
 
+    /**
+     * Latest non-dismissed rejection per platform. Drives the persistent red banner
+     * on the FB/IG cards so the customer sees why we couldn't complete their request.
+     */
+    #[Computed]
+    public function rejectedByPlatform(): array
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return [];
+        }
+
+        return OnboardingRequest::where('team_id', $team->id)
+            ->where('status', OnboardingRequest::STATUS_REJECTED)
+            ->whereNull('customer_dismissed_at')
+            ->orderByDesc('completed_at')
+            ->get()
+            ->groupBy('platform')
+            ->map(fn ($group) => $group->first())
+            ->all();
+    }
+
+    public function dismissRejection(int $requestId): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        OnboardingRequest::where('team_id', $team->id)
+            ->where('id', $requestId)
+            ->where('status', OnboardingRequest::STATUS_REJECTED)
+            ->update(['customer_dismissed_at' => now()]);
+
+        unset($this->rejectedByPlatform);
+    }
+
+    /**
+     * Deactivate a single Page owned by this team. Used from the FB/IG card so the
+     * customer can drop a page without touching the underlying ConnectedAccount
+     * (which, for admin-handed-off pages, isn't even owned by their team).
+     */
+    public function disconnectPage(int $pageId): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $page = Page::where('team_id', $team->id)
+            ->where('id', $pageId)
+            ->firstOrFail();
+
+        $page->update(['is_active' => false]);
+        $team->clearActivePagesCache();
+
+        unset($this->pages, $this->connectedAccounts);
+        session()->flash('success', "Disconnected \"{$page->name}\". You can request reconnection any time.");
+    }
+
     public function openRequestForm(string $platform): void
     {
         $this->requestPlatform = in_array($platform, ['facebook', 'instagram'], true) ? $platform : 'facebook';
@@ -324,8 +385,11 @@ class Index extends Component
             'requestPlatform'     => 'required|in:facebook,instagram',
             'requestBusinessName' => 'required|string|max:120',
             'requestPageUrl'      => 'nullable|url|max:255',
+            'requestContactEmail' => 'required|email|max:190',
             'requestContactPhone' => 'nullable|string|max:40',
             'requestNotes'        => 'nullable|string|max:1500',
+        ], attributes: [
+            'requestContactEmail' => 'contact email',
         ]);
 
         // Prevent stacking — one open request per platform per team.
@@ -346,12 +410,13 @@ class Index extends Component
             'platform'             => $this->requestPlatform,
             'business_name'        => $this->requestBusinessName,
             'page_url'             => $this->requestPageUrl ?: null,
+            'contact_email'        => $this->requestContactEmail,
             'contact_phone'        => $this->requestContactPhone ?: null,
             'notes'                => $this->requestNotes ?: null,
             'status'               => OnboardingRequest::STATUS_PENDING,
         ]);
 
-        $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactPhone', 'requestNotes']);
+        $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactEmail', 'requestContactPhone', 'requestNotes']);
         unset($this->openOnboardingByPlatform);
 
         session()->flash('success', 'Request submitted. We will set up your page within 24 hours and email you when it is ready.');
