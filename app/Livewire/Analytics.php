@@ -28,7 +28,7 @@ class Analytics extends Component
         $period = (int) $this->period;
         $since = now()->subDays($period)->startOfDay();
 
-        $data = Cache::remember("analytics.{$teamId}.{$period}", 300, function () use ($teamId, $since) {
+        $data = Cache::remember("analytics.{$teamId}.{$period}", 1800, function () use ($teamId, $since) {
             return [
                 'aiVsHuman' => $this->getAiVsHumanBreakdown($teamId, $since),
                 'responseTime' => $this->getResponseTimes($teamId, $since),

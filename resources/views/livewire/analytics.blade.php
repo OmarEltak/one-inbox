@@ -18,9 +18,17 @@
                     @foreach(['7' => '7d', '14' => '14d', '30' => '30d', '90' => '90d'] as $value => $label)
                         <button
                             wire:click="$set('period', '{{ $value }}')"
-                            class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all {{ $period === $value ? 'text-white shadow-sm' : 'text-white/35 hover:text-white/60' }}"
+                            wire:loading.attr="disabled"
+                            wire:target="$set('period', '{{ $value }}')"
+                            class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all {{ $period === $value ? 'text-white shadow-sm' : 'text-white/35 hover:text-white/60' }} disabled:opacity-60 disabled:cursor-wait"
                             @if($period === $value) style="background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 2px 8px rgba(124,58,237,0.3);" @endif
-                        >{{ $label }}</button>
+                        >
+                            <span wire:loading.remove wire:target="$set('period', '{{ $value }}')">{{ $label }}</span>
+                            <span wire:loading wire:target="$set('period', '{{ $value }}')" class="inline-flex items-center gap-1">
+                                <svg class="size-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                {{ $label }}
+                            </span>
+                        </button>
                     @endforeach
                 </div>
             </div>
@@ -69,7 +77,10 @@
             </div>
 
             {{-- Reach Across Platforms — Chart.js line chart --}}
+            {{-- wire:key forces Livewire to recreate this element (and re-run Alpine init) on period switch,
+                 avoiding stale chart data. The destroy() call prevents Chart.js instance leaks on rebuild. --}}
             <div class="aio-card rounded-2xl p-5"
+                 wire:key="reach-chart-{{ $period }}"
                  x-data="{
                      chart: null,
                      init() {
@@ -79,6 +90,8 @@
                          const human = @js(array_column($data['dailyMessages'] ?? [], 'human'));
 
                          const ctx = this.$refs.reachChart.getContext('2d');
+                         const existing = Chart.getChart(ctx.canvas);
+                         if (existing) existing.destroy();
                          this.chart = new Chart(ctx, {
                              type: 'line',
                              data: {
