@@ -115,6 +115,12 @@ class Index extends Component
             ->where('status', '!=', 'archived')
             ->whereHas('page', fn ($q) => $q->where('is_active', true));
 
+        // Spam is opt-in — hidden from every filter view except the dedicated
+        // "spam" one so operators don't have to look at it by default.
+        if ($this->filter !== 'spam') {
+            $query->where('sales_stage', '!=', Conversation::STAGE_SPAM);
+        }
+
         if ($this->pageId) {
             $query->where('page_id', $this->pageId);
         }
@@ -123,6 +129,12 @@ class Index extends Component
             $query->where('unread_count', '>', 0);
         } elseif ($this->filter === 'mine') {
             $query->where('assigned_to', Auth::id());
+        } elseif ($this->filter === 'escalated') {
+            $query->where('sales_stage', Conversation::STAGE_ESCALATED);
+        } elseif ($this->filter === 'completed') {
+            $query->where('sales_stage', Conversation::STAGE_COMPLETED);
+        } elseif ($this->filter === 'spam') {
+            $query->where('sales_stage', Conversation::STAGE_SPAM);
         } elseif (in_array($this->filter, ['facebook', 'instagram', 'whatsapp', 'telegram'])) {
             $query->where('platform', $this->filter);
         } elseif (array_key_exists($this->filter, self::LABELS)) {
@@ -227,6 +239,48 @@ class Index extends Component
         $contact = \App\Models\Contact::where('team_id', $team->id)->findOrFail($contactId);
         $contact->update(['lead_status' => $status]);
         unset($this->selectedConversation);
+    }
+
+    /**
+     * Manual sales-stage transitions on a single conversation. Delegates to
+     * the Conversation model's helpers so automatic (SendAiResponse) and
+     * manual (operator) transitions produce identical state + audit metadata.
+     */
+    public function transitionConversationStage(int $conversationId, string $stage): void
+    {
+        $team = Auth::user()->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $conversation = Conversation::where('team_id', $team->id)->find($conversationId);
+        if (! $conversation) {
+            return;
+        }
+
+        match ($stage) {
+            Conversation::STAGE_ESCALATED => $conversation->escalate('manual_by_user_' . Auth::id()),
+            Conversation::STAGE_COMPLETED => $conversation->complete('manual_by_user_' . Auth::id()),
+            Conversation::STAGE_SPAM      => $conversation->update([
+                'sales_stage' => Conversation::STAGE_SPAM,
+                'ai_paused'   => true,
+                'metadata'    => array_merge($conversation->metadata ?? [], [
+                    'marked_spam_by' => Auth::id(),
+                    'marked_spam_at' => now()->toIso8601String(),
+                ]),
+            ]),
+            Conversation::STAGE_ACTIVE => $conversation->update([
+                'sales_stage' => Conversation::STAGE_ACTIVE,
+                'ai_paused'   => false,
+                'metadata'    => array_merge($conversation->metadata ?? [], [
+                    'reactivated_by' => Auth::id(),
+                    'reactivated_at' => now()->toIso8601String(),
+                ]),
+            ]),
+            default => null,
+        };
+
+        unset($this->selectedConversation, $this->conversations);
     }
 
     public function loadScoreHistory(int $contactId): void

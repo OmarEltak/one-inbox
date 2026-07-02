@@ -47,6 +47,16 @@
                 <flux:badge as="button" wire:click="setFilter('telegram')" :variant="$filter === 'telegram' ? 'solid' : 'outline'" color="cyan" size="sm">TG</flux:badge>
                 @endif
 
+                {{-- Sales-stage filters. Escalated and Completed are common
+                     enough to warrant their own chip. Spam is deliberately
+                     under a dropdown alongside labels — it's not something
+                     you want the operator glancing at all day. --}}
+                <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm">Escalated</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm">Done</flux:badge>
+                @if($filter === 'spam')
+                    <flux:badge as="button" wire:click="setFilter('all')" variant="solid" color="zinc" size="sm">Spam (click to clear)</flux:badge>
+                @endif
+
                 {{-- Label filters — collapsed into a dropdown --}}
                 @php $activeLabel = collect(\App\Livewire\Inbox\Index::LABELS)->keys()->contains($filter) ? $filter : null; @endphp
                 <div x-data="{ open: false }" class="relative">
@@ -66,6 +76,11 @@
                                     {{ ucfirst($slug) }}
                                 </button>
                             @endforeach
+                            <div class="border-t border-zinc-100 dark:border-zinc-700 my-1"></div>
+                            <button wire:click="setFilter('spam')" @click="open = false" class="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 {{ $filter === 'spam' ? 'font-semibold' : '' }} text-zinc-500">
+                                <flux:icon name="no-symbol" class="w-3 h-3" />
+                                Review spam
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -117,7 +132,13 @@
                                             default => 'text-gray-400',
                                         } }}">{{ $conversation->contact->lead_score }}</span>
                                     @endif
-                                    @if($conversation->ai_paused)
+                                    @if($conversation->sales_stage === 'escalated')
+                                        <flux:icon name="exclamation-triangle" class="w-4 h-4 text-amber-500" title="Escalated" />
+                                    @elseif($conversation->sales_stage === 'completed')
+                                        <flux:icon name="check-badge" class="w-4 h-4 text-blue-500" title="Completed" />
+                                    @elseif($conversation->sales_stage === 'spam')
+                                        <flux:icon name="no-symbol" class="w-4 h-4 text-zinc-400" title="Spam" />
+                                    @elseif($conversation->ai_paused)
                                         <flux:icon name="pause-circle" class="w-4 h-4 text-orange-500" title="AI Paused" />
                                     @else
                                         <flux:icon name="sparkles" class="w-3.5 h-3.5 text-green-500" title="AI Active" />
@@ -271,7 +292,7 @@
                     </div>
                 @endif
 
-                {{-- Converted / Lost quick actions --}}
+                {{-- Converted / Lost quick actions (contact-level) --}}
                 @if($conv->contact)
                     @if($conv->contact->lead_status !== 'converted')
                         <button
@@ -294,6 +315,81 @@
                         </button>
                     @endif
                 @endif
+
+                {{-- Sales stage (conversation-level). Shows current stage as a
+                     badge, opens a dropdown for manual transitions. --}}
+                @php
+                    $stage = $conv->sales_stage ?? 'active';
+                    $stageBadge = match($stage) {
+                        'escalated' => ['icon' => 'exclamation-triangle', 'label' => 'Escalated', 'cls' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-200'],
+                        'completed' => ['icon' => 'check-badge',          'label' => 'Completed', 'cls' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200'],
+                        'spam'      => ['icon' => 'no-symbol',            'label' => 'Spam',      'cls' => 'bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-300'],
+                        default     => ['icon' => 'chat-bubble-left-right','label' => 'Active',   'cls' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200'],
+                    };
+                @endphp
+                <div x-data="{ open: false }" class="relative flex-shrink-0">
+                    <button
+                        @click="open = !open"
+                        wire:loading.attr="disabled"
+                        class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium transition-colors disabled:opacity-50 {{ $stageBadge['cls'] }}"
+                        title="Change sales stage"
+                    >
+                        <flux:icon :name="$stageBadge['icon']" class="w-3.5 h-3.5" />
+                        {{ $stageBadge['label'] }}
+                        <flux:icon name="chevron-down" class="w-3 h-3 opacity-70" />
+                    </button>
+                    <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-50 min-w-48 overflow-hidden">
+                        <div class="p-1">
+                            @if($stage !== 'active')
+                                <button
+                                    wire:click="transitionConversationStage({{ $conv->id }}, 'active')"
+                                    wire:loading.attr="disabled"
+                                    @click="open = false"
+                                    class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-emerald-700 dark:text-emerald-400"
+                                >
+                                    <flux:icon name="arrow-path" class="w-4 h-4" />
+                                    Reactivate (resume AI)
+                                </button>
+                            @endif
+                            @if($stage !== 'escalated')
+                                <button
+                                    wire:click="transitionConversationStage({{ $conv->id }}, 'escalated')"
+                                    wire:loading.attr="disabled"
+                                    @click="open = false"
+                                    class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-amber-700 dark:text-amber-400"
+                                >
+                                    <flux:icon name="exclamation-triangle" class="w-4 h-4" />
+                                    Mark as Escalated
+                                </button>
+                            @endif
+                            @if($stage !== 'completed')
+                                <button
+                                    wire:click="transitionConversationStage({{ $conv->id }}, 'completed')"
+                                    wire:loading.attr="disabled"
+                                    @click="open = false"
+                                    class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-blue-700 dark:text-blue-400"
+                                >
+                                    <flux:icon name="check-badge" class="w-4 h-4" />
+                                    Mark as Completed
+                                </button>
+                            @endif
+                            @if($stage !== 'spam')
+                                <div class="border-t border-zinc-100 dark:border-zinc-700 mt-1 pt-1">
+                                    <button
+                                        wire:click="transitionConversationStage({{ $conv->id }}, 'spam')"
+                                        wire:confirm="Mark this conversation as spam? AI will stop and it will be hidden from the default inbox view."
+                                        wire:loading.attr="disabled"
+                                        @click="open = false"
+                                        class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-zinc-600 dark:text-zinc-400"
+                                    >
+                                        <flux:icon name="no-symbol" class="w-4 h-4" />
+                                        Mark as Spam
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Assign to --}}
                 <div x-data="{ open: false }" class="relative flex-shrink-0">
