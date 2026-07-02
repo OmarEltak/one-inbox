@@ -139,6 +139,25 @@ class SendAiResponse implements ShouldQueue
                 return;
             }
 
+            // Abuse detection — the reply prompt asks the AI to output the
+            // [SPAM_DETECTED] marker when it judges the customer is abusive,
+            // trolling, or wasting time. If we see it, mark the conversation
+            // as spam and DO NOT send the reply. The marker itself is never
+            // forwarded to the customer.
+            if (str_contains($responseText, '[SPAM_DETECTED]')) {
+                Log::info("AI flagged conversation {$conversation->id} as spam (auto)");
+                $conversation->update([
+                    'sales_stage' => Conversation::STAGE_SPAM,
+                    'ai_paused'   => true,
+                    'metadata'    => array_merge($conversation->metadata ?? [], [
+                        'marked_spam_by'     => 'ai_auto',
+                        'marked_spam_at'     => now()->toIso8601String(),
+                        'marked_spam_reason' => 'ai_detected_abuse',
+                    ]),
+                ]);
+                return;
+            }
+
             // Store the AI message in our database
             $aiMessage = Message::create([
                 'conversation_id' => $conversation->id,

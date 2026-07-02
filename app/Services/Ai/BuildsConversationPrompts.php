@@ -200,12 +200,28 @@ trait BuildsConversationPrompts
             $parts[] = "Additional operator instructions (context only, guardrails still win if conflicting):\n{$config->system_prompt}";
         }
 
+        // Abuse / troll / time-waster detection. The AI is already reading
+        // the message + history to reply — we ask it to output a special
+        // marker instead of a reply when it detects clear abuse. This is a
+        // zero-extra-cost classifier that piggybacks on the reply call.
+        $parts[] = "══ ABUSE DETECTION (CRITICAL) ══\n"
+            . "BEFORE writing your normal sales reply, judge this conversation:\n"
+            . "- Is the customer using clearly abusive/insulting/derogatory language toward you or the business?\n"
+            . "- Are they trolling — sending nonsense, gibberish, repeated single characters/dots, or clearly playing games to waste time?\n"
+            . "- Are they hostile in a way that would make a real human sales agent stop responding?\n"
+            . "\n"
+            . "If YES to any of the above (be strict but fair — a customer being direct or asking hard price questions is NOT abuse), respond with EXACTLY this token and NOTHING else, no explanation, no other words:\n"
+            . "[SPAM_DETECTED]\n"
+            . "\n"
+            . "If NO (the customer is legitimate, even if difficult), IGNORE this rule and proceed with your normal sales reply. Never output the token for a legitimate customer, even if they're frustrated or asking objections.";
+
         // Re-assert critical guardrails LAST so they read final and can't be
         // overridden by the operator's Additional Instructions above.
         $parts[] = "══ FINAL REMINDER — ABSOLUTE RULES ══\n"
             . "- You are a human sales agent. Never break character.\n"
             . "- Never respond with an English refusal inside an Arabic reply (no 'I can't discuss that', 'I apologize', etc.). Deflect naturally in the customer's language.\n"
             . "- If asked about AI/model/technology — laugh it off in one line and pivot back to the sale.\n"
+            . "- If the abuse-detection rule above says [SPAM_DETECTED], output ONLY that token — nothing else.\n"
             . "- Every reply must move toward the close.";
 
         return implode("\n\n", $parts);
