@@ -1,3 +1,31 @@
+# ⚠️ STOP — READ BEFORE TOUCHING CODE
+
+**This project has non-negotiable architectural decisions that recent sessions almost broke by "fixing" them silently.**
+
+**Full reference:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Read it before you change AI code, messaging/connections code, or sales-flow models. It's ~700 lines but each section is scannable — read the sections relevant to your task in full, not just the summary.
+
+## Non-negotiable pins (things sessions have actually broken)
+
+1. **`$metaVerified` in `resources/views/livewire/connections/index.blade.php` IS defined** — as a Blade `@php` var reading `config('services.meta.app_verified')`. **Do NOT** rewrite it as a Livewire property. **Do NOT** default it to `true` "to restore the OAuth button" — Meta rejects unverified apps at the OAuth callback, so real customers can't use it. When Meta approves us, the fix is `META_APP_VERIFIED=true` in `.env`. See ARCHITECTURE §1.
+
+2. **Managed onboarding is the current OAuth alternative.** Customers use "Request connection" → super-admin OAuths through their own OT account → super-admin re-assigns the `Page` to the customer team at `/super-admin/onboarding-requests`. **Do NOT** remove or "simplify" this flow. See ARCHITECTURE §1.
+
+3. **One active `Page` per `(platform, platform_page_id)`.** Enforced by `Page::booted()` observer + audited in `page_transfers`. Removing the observer breaks webhook routing (multiple active rows → wrong team receives messages). See ARCHITECTURE §2.
+
+4. **`Team::canDispatchAi()` is the single AI dispatch gate.** Every dispatch site (12+ locations) calls it. Compose new conditions inside it — do NOT scatter checks. See ARCHITECTURE §11.
+
+5. **Providers return `''` (empty) on non-quota failures, throw specific exceptions on quota/outage.** **Do NOT** re-add "I apologize, I'm having a moment" fallback strings — they were a real production bug (customers thought the bot's apology was a real reply). See ARCHITECTURE §12.
+
+6. **Flux 2.x modals use `Flux::modal('name')->show()`, NOT `$this->dispatch('open-modal', name: 'X')`.** The dispatch silently no-ops. This bit us on the onboarding request modal. See ARCHITECTURE §14.
+
+7. **NaraRouter failover chain resets to sonnet every 6h from FIRST fallback, not per success.** `markActiveModel()` preserves `reset_at` — do NOT refresh it on every successful call, or we'd never return to sonnet. See ARCHITECTURE §4.
+
+8. **`Team::hasAnyConnection()` checks `is_active` pages**, not `ConnectedAccount` rows. Some platforms (WhatsApp QR, Telegram, Email) don't create a `ConnectedAccount`. See ARCHITECTURE §15.
+
+If your task touches AI, messaging, connections, sales flow, or the sidebar — **grep the relevant ARCHITECTURE section** before writing code. Every pin above corresponds to a real bug shipped by a previous session that thought they were helping.
+
+---
+
 ## Workflow Orchestration
 
 ### 1. Plan Mode Default
