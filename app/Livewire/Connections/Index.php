@@ -429,22 +429,8 @@ class Index extends Component
         // Passed here as view data so it stays in scope across every Livewire fragment,
         // whereas an inline @php block in the Blade only reaches the initial full-page
         // render — subsequent Livewire partial renders lose it and error.
-        //
-        // The FB/IG per-page @foreach loops are also compiled as Livewire fragments
-        // (SupportCompiledWireKeys — the wire:click inside triggers it), so their
-        // derived collections must be view-data too, not blade @php vars.
-        $pages   = $this->pages;
-        $accts   = $this->connectedAccounts;
-        $rejects = $this->rejectedByPlatform;
-
         return view('livewire.connections.index', [
-            'metaVerified'      => (bool) config('services.meta.app_verified'),
-            'facebookPages'     => $pages->where('platform', 'facebook'),
-            'facebookAccounts'  => $accts->where('platform', 'facebook'),
-            'fbRejected'        => $rejects['facebook'] ?? null,
-            'instagramPages'    => $pages->where('platform', 'instagram'),
-            'instagramAccounts' => $accts->where('platform', 'instagram'),
-            'igRejected'        => $rejects['instagram'] ?? null,
+            'metaVerified' => (bool) config('services.meta.app_verified'),
         ])->layout('layouts.app', ['title' => 'Connections']);
     }
 }
