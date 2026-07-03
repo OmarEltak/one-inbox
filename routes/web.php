@@ -17,6 +17,7 @@ Route::view('about', 'pages.about')->name('about');
 Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('terms', 'pages.terms')->name('terms');
+Route::view('refund', 'pages.refund')->name('refund');
 Route::view('pricing', 'pages.pricing')->name('pricing');
 Route::view('features', 'pages.features')->name('features');
 
@@ -71,6 +72,7 @@ Route::get('sitemap.xml', function () {
         ['loc' => url('/contact'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
         ['loc' => url('/terms'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
+        ['loc' => url('/refund'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2026-07-04'],
         ['loc' => url('/whatsapp-inbox'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/instagram-dm'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/facebook-messenger'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],

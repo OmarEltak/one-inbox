@@ -66,6 +66,7 @@
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
                         <li><strong>{{ __('Platform APIs:') }}</strong> {{ __('Data is exchanged with Meta (Facebook, Instagram, WhatsApp), Telegram, TikTok, and email servers solely to provide the inbox functionality.') }}</li>
                         <li><strong>{{ __('AI Providers:') }}</strong> {{ __('Message content may be sent to Google Gemini for AI reply generation. This is opt-in and can be disabled.') }}</li>
+                        <li><strong>{{ __('Payment Processor:') }}</strong> {{ __('Billing and payment data is handled by Paddle (paddle.com), our authorised reseller and Merchant of Record. When you subscribe, Paddle collects your payment information directly. We do not store your card details. Paddle\'s privacy policy applies to payment data: paddle.com/legal/privacy.') }}</li>
                         <li><strong>{{ __('Infrastructure Providers:') }}</strong> {{ __('We use cloud infrastructure providers (servers, databases) that process data on our behalf under data processing agreements.') }}</li>
                         <li><strong>{{ __('Legal Requirements:') }}</strong> {{ __('We may disclose information if required by law, court order, or to protect the rights and safety of our users.') }}</li>
                     </ul>

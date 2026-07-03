@@ -75,14 +75,14 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7. Subscription and Billing') }}</h2>
-                    <p class="mt-3">{{ __('OT1-Pro offers free and paid subscription plans. By subscribing to a paid plan, you agree to:') }}</p>
+                    <p class="mt-3">{{ __('OT1-Pro offers free and paid subscription plans. All payments are processed by Paddle (paddle.com), our authorised reseller and Merchant of Record. By subscribing to a paid plan, you agree to:') }}</p>
                     <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
                         <li>{{ __('Pay all fees associated with your chosen plan') }}</li>
                         <li>{{ __('Subscriptions automatically renew unless cancelled before the renewal date') }}</li>
-                        <li>{{ __('Fees are non-refundable except where required by law') }}</li>
                         <li>{{ __('We reserve the right to change pricing with 30 days notice') }}</li>
                     </ul>
                     <p class="mt-3">{{ __('You can cancel your subscription at any time from your account settings. Access continues until the end of the current billing period.') }}</p>
+                    <p class="mt-3">{{ __('Refund eligibility is governed by our') }} <a href="{{ route('refund') }}" class="text-indigo-600 hover:underline">{{ __('Refund Policy') }}</a>{{ __(', which includes a 14-day money-back guarantee on new subscriptions.') }}</p>
                 </div>
 
                 <div>
