@@ -161,6 +161,21 @@ class SendAiResponse implements ShouldQueue
             // as spam and DO NOT send the reply. The marker itself is never
             // forwarded to the customer.
             if (str_contains($responseText, '[SPAM_DETECTED]')) {
+                // Loop protection: if a human operator already clicked
+                // "Reactivate" (which sets metadata.reactivated_at), the AI
+                // MUST NOT overturn that judgment by re-flagging the same
+                // conversation on the next inbound message. The history that
+                // originally triggered the classifier is still present after
+                // reactivation, so without this guard we'd auto-re-flag
+                // forever — see ARCHITECTURE §9 "Reactivation loop".
+                $reactivatedAt = data_get($conversation->metadata, 'reactivated_at');
+                if ($reactivatedAt !== null) {
+                    Log::info("AI wanted to re-flag conversation {$conversation->id} as spam, but a human operator reactivated it — suppressing", [
+                        'reactivated_at' => $reactivatedAt,
+                    ]);
+                    return;
+                }
+
                 Log::info("AI flagged conversation {$conversation->id} as spam (auto)");
                 $conversation->update([
                     'sales_stage' => Conversation::STAGE_SPAM,

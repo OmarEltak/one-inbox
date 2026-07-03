@@ -218,6 +218,18 @@ trait BuildsConversationPrompts
         // the message + history to reply — we ask it to output a special
         // marker instead of a reply when it detects clear abuse. This is a
         // zero-extra-cost classifier that piggybacks on the reply call.
+        //
+        // If a human operator has previously reactivated this conversation
+        // (metadata.reactivated_at), inject a leniency note so the AI does
+        // not immediately re-classify the same history as spam. The defensive
+        // suppress in SendAiResponse is the real safety net (see §9), but
+        // this prevents the wasted call.
+        $reactivationNote = '';
+        if (! empty(data_get($conversation->metadata, 'reactivated_at'))) {
+            $reactivationNote = "\n\nCONTEXT — HUMAN OVERRIDE ACTIVE:\n"
+                . "A human operator on our team has REVIEWED this conversation and manually reactivated it. That means the operator judged this customer legitimate despite whatever earlier history looks like. You MUST NOT output [SPAM_DETECTED] on this call unless the customer's LATEST message contains explicit slurs, threats, or clearly abusive content. Ignore the earlier noisy history — the operator already decided.";
+        }
+
         $parts[] = "══ ABUSE DETECTION (CRITICAL) ══\n"
             . "BEFORE writing your normal sales reply, judge this conversation:\n"
             . "- Is the customer using clearly abusive/insulting/derogatory language toward you or the business?\n"
@@ -227,7 +239,8 @@ trait BuildsConversationPrompts
             . "If YES to any of the above (be strict but fair — a customer being direct or asking hard price questions is NOT abuse), respond with EXACTLY this token and NOTHING else, no explanation, no other words:\n"
             . "[SPAM_DETECTED]\n"
             . "\n"
-            . "If NO (the customer is legitimate, even if difficult), IGNORE this rule and proceed with your normal sales reply. Never output the token for a legitimate customer, even if they're frustrated or asking objections.";
+            . "If NO (the customer is legitimate, even if difficult), IGNORE this rule and proceed with your normal sales reply. Never output the token for a legitimate customer, even if they're frustrated or asking objections."
+            . $reactivationNote;
 
         // Re-assert critical guardrails LAST so they read final and can't be
         // overridden by the operator's Additional Instructions above.

@@ -1465,3 +1465,45 @@ Committed on `main` and pushed. Prod: `git pull`, `composer install --no-dev -o`
 **Not fixed here (deferred)**
 - `AiChat::confirmAction` still visually pushes a separate "Done:" bubble. UI polish, not a bug — separate PR later.
 - Underlying `NaraRouterProvider::$apiKey` type nullability weirdness (surfaced in test bootstrapping). Cosmetic, not shipping.
+
+## 2026-07-03 (later) — Fix: AI-vs-human reactivation loop (auto-re-flag as spam)
+
+**Symptom**
+On `/inbox?pageId=15`, contact "H h a h" conv 699:
+1. Customer sends noise messages ("hi", ".", "?", "..") → AI auto-flags as spam
+2. Operator clicks "Reactivate (resume AI)" — clears flag, sets `metadata.reactivated_at`
+3. Customer sends next message → AI re-classifies from unchanged history → auto-re-flags
+4. Infinite loop; operator's decision is undone every ~30 seconds
+
+**Root cause**
+`SendAiResponse::handle` at line 163-175 unconditionally acts on `[SPAM_DETECTED]`. Reactivation cleared `sales_stage`/`ai_paused` but left the conversation history intact — the exact messages that triggered the classifier are still there on the next call. `metadata.reactivated_at` was written by `Inbox\Index::changeStage` but never consulted by the AI pipeline.
+
+**Fix (two layers, defensive + preventive)**
+
+Layer 1 — defensive, in `SendAiResponse::handle`:
+- Before the spam-flag `update()`, check `data_get($conversation->metadata, 'reactivated_at')`.
+- If set: log "AI wanted to re-flag conversation X as spam, but a human operator reactivated it — suppressing" and `return` early.
+- No re-flag, no re-pause, no marker sent to customer. Silent skip breaks the loop.
+
+Layer 2 — preventive, in `BuildsConversationPrompts::buildSystemPrompt`:
+- When `metadata.reactivated_at` exists, append a "CONTEXT — HUMAN OVERRIDE ACTIVE" clause to the ABUSE DETECTION block.
+- Tells the AI: operator judged this customer legitimate; do NOT emit `[SPAM_DETECTED]` unless the LATEST message contains explicit slurs/threats; ignore the earlier noisy history.
+- Reduces false positives; the defensive guard in layer 1 is what actually enforces the invariant.
+
+**Tests**
+`tests/Feature/SendAiResponseSpamGuardTest.php` — 3 cases:
+1. Without reactivation → spam marker → conversation auto-flagged (regression guard for baseline behavior).
+2. With reactivation → spam marker → conversation stays active, no outbound message, no metadata change (the pin).
+3. With reactivation → normal reply → outbound message still sent (rules out over-suppression).
+
+All 3 green. Also re-ran the 8 coalesce unit tests — still green.
+
+**Docs**
+- `docs/ARCHITECTURE.md` §9 — new "Reactivation loop (load-bearing)" subsection + new Do-NOT bullet.
+- `CLAUDE.md` — new pin #10.
+
+**Deploy**
+Committed on `main`, pushed. Prod: `git pull`, `php artisan config:clear && route:clear && view:clear`, `php artisan queue:restart` (code-only, no NSSM restart needed).
+
+**Deferred / open**
+- If AI keeps emitting `[SPAM_DETECTED]` on a reactivated conversation across many messages, we currently silently skip every reply — customer sees nothing until the AI decides otherwise. Not a bug per se (operator can manually re-mark or unassign), but worth watching. If it becomes a real UX issue, we can escalate the conversation to a human after N consecutive suppressions.

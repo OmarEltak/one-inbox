@@ -319,12 +319,21 @@ if (str_contains($responseText, '[SPAM_DETECTED]')) {
 
 The marker is never sent to the customer — we return before the `Message::create` + platform send.
 
+### Reactivation loop (load-bearing)
+When an operator clicks "Reactivate" in `Inbox\Index::changeStage`, we clear `sales_stage` back to active, set `ai_paused=false`, and stamp `metadata.reactivated_at`. **But the conversation history that originally triggered the classifier is still there.** Without a guard, the very next inbound message goes through the same pipeline, the AI sees the same noise, emits `[SPAM_DETECTED]` again, and we auto-re-flag — the human's decision undone within seconds.
+
+Two guards, layered:
+
+1. **Defensive (source of truth) — `SendAiResponse::handle`:** if `metadata.reactivated_at` exists, we log-and-skip when `[SPAM_DETECTED]` appears. We do NOT re-flag, do NOT re-pause, do NOT send the marker to the customer. Subsequent inbound messages keep going through the pipeline; if the customer sends something substantive the AI will reply normally, if they keep sending noise the customer gets silence but no state change.
+2. **Preventive (reduces false positives) — `BuildsConversationPrompts::buildSystemPrompt`:** when `metadata.reactivated_at` is set, we inject a "HUMAN OVERRIDE ACTIVE" clause into the abuse-detection block, instructing the AI to only re-classify on explicit slurs/threats in the LATEST message, and to ignore the earlier noisy history. This is a hint, not a guarantee — the defensive guard above is what actually makes the invariant hold.
+
 ### Why no regex profanity list
 Deliberately not implemented. Arabic dialect variation + the Scunthorpe problem make false positives too risky. The LLM understands context — e.g., "way too expensive, are you kidding?" is a legitimate price objection, not abuse.
 
 ### Do NOT
 - Add a hardcoded regex profanity list "as a first line of defense" — false positives (real customer marked as spam) are worse than false negatives (mild abuse gets one polite reply before AI catches on).
 - Remove the marker check without providing an alternative. The check is what makes the whole feature work.
+- Remove the `metadata.reactivated_at` reactivation guard in `SendAiResponse` — that's what breaks the AI-vs-human loop. If you must change classification behavior post-reactivation, add a manual admin re-flag path instead of removing the auto-suppress.
 
 ---
 
