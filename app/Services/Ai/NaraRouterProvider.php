@@ -261,15 +261,23 @@ class NaraRouterProvider implements AiProviderInterface
      */
     protected function callChat(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens = 1000): string
     {
+        // Coalesce consecutive same-role turns. Anthropic's Messages API
+        // (which NaraRouter proxies) requires user/assistant to strictly
+        // alternate — violating it returns a generic 400 "parameter is invalid"
+        // that per ARCHITECTURE §4 we intentionally do NOT cascade on. The
+        // customer path can violate this whenever two outbound (AI + human)
+        // or two inbound messages land in a row; the admin path violates it
+        // when AiChat::confirmAction appends a "Done: …" turn after the AI
+        // response. Guard here at the choke point so all four call sites
+        // (generateResponse, scoreMessage, generateText, chatWithAdmin) are
+        // covered and no future caller can re-introduce the bug.
+        $tail = $this->coalesceRoles($conversationHistory);
+
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
         ];
-
-        foreach ($conversationHistory as $msg) {
-            $messages[] = [
-                'role'    => $msg['role'] === 'user' ? 'user' : 'assistant',
-                'content' => $msg['content'],
-            ];
+        foreach ($tail as $m) {
+            $messages[] = $m;
         }
 
         // Ensure the last user turn exists so the model has something to reply to.
@@ -344,5 +352,41 @@ class NaraRouterProvider implements AiProviderInterface
 
         // Every model in the chain returned 5xx.
         throw new AiAllProvidersUnavailable('All NaraRouter models unavailable. Last error: ' . ($lastError ?? 'unknown'));
+    }
+
+    /**
+     * Collapse consecutive same-role turns into a single turn, dropping empty
+     * content. The Anthropic Messages API (and NaraRouter's OpenAI-compat
+     * proxy over it) rejects requests where user/assistant do not strictly
+     * alternate. See ARCHITECTURE §4.
+     *
+     * Public to enable unit tests to pin the invariant without touching the
+     * network.
+     *
+     * @param  array<int, array{role: string, content?: string|null}>  $history
+     * @return array<int, array{role: string, content: string}>
+     */
+    public function coalesceRoles(array $history): array
+    {
+        $out = [];
+        $coalesced = 0;
+        foreach ($history as $msg) {
+            $role = ($msg['role'] ?? '') === 'user' ? 'user' : 'assistant';
+            $content = (string) ($msg['content'] ?? '');
+            if ($content === '') {
+                continue;
+            }
+            $lastIdx = array_key_last($out);
+            if ($lastIdx !== null && $out[$lastIdx]['role'] === $role) {
+                $out[$lastIdx]['content'] .= "\n\n" . $content;
+                $coalesced++;
+            } else {
+                $out[] = ['role' => $role, 'content' => $content];
+            }
+        }
+        if ($coalesced > 0) {
+            Log::info('NaraRouter coalesced consecutive same-role turns', ['count' => $coalesced]);
+        }
+        return $out;
     }
 }

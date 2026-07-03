@@ -1430,3 +1430,38 @@ Additionally, `clearActivePagesCache()` only forgot `team.{id}.active_pages` —
 - `clearActivePagesCache()` now also calls `Cache::forget("dashboard.{$this->id}")`.
 
 **Prod cache busted immediately** via tinker — cleared `dashboard.3`, `dashboard.6`, `dashboard.8`.
+
+## 2026-07-03 — Fix: AI Chat + Inbox 400 "parameter is invalid" from NaraRouter/Anthropic
+
+**Symptom**
+- `/ai-chat`: after user confirmed a `pending_action`, every subsequent message returned "The AI service is temporarily unavailable (API error)."
+- `/inbox`: same 400 body on some conversations (e.g. `?pageId=54`).
+- NaraRouter dashboard: `POST /v1/chat/completions` → `400 · Invalid`, `reason=invalid: model call rejected request`, `input_tokens=0`.
+
+**Root cause**
+Anthropic's Messages API (which NaraRouter proxies via OpenAI-compat) requires `user`/`assistant` to strictly alternate. Two consecutive turns of the same role → 400 with body `"The model rejected this request. It may not support the input you sent (e.g. images on a text-only model) or a parameter is invalid."` Per ARCHITECTURE §4 rule (4) we intentionally do NOT cascade on 400 (`callChat` bails to `''`), so the entire chain skips and the user sees "temporarily unavailable."
+
+Two independent code paths triggered the violation:
+1. `AiChat::confirmAction()` appended a second `assistant` "Done: …" turn right after the AI response turn → next admin message always failed.
+2. `buildConversationHistory()` maps by direction only — any customer conversation with two outbound (AI + human agent, or campaign + AI) or two inbound messages in a row produced the same shape.
+
+**Fix**
+Single choke-point guard in `NaraRouterProvider::callChat()`:
+
+- New public helper `NaraRouterProvider::coalesceRoles(array)` — merges consecutive same-role turns with `\n\n`, drops empty/null content, normalizes legacy `model` → `assistant`. Emits `Log::info('NaraRouter coalesced consecutive same-role turns', ['count' => N])` when it fires so we can observe it in prod logs.
+- `callChat()` runs `coalesceRoles($conversationHistory)` before assembling the payload. Covers all four call sites: `generateResponse`, `scoreMessage`, `generateText`, `chatWithAdmin`.
+- Kept ARCHITECTURE §4 rule (4) intact: still no cascade on 400/401/403.
+
+**Tests**
+`tests/Unit/Services/Ai/NaraRouterCoalesceTest.php` — 8 cases pinning the invariant (alternating unchanged, `[u,a,a]` merged, `[u,u]` merged, `model` normalized, empty/null dropped, empty input, all-assistant collapse). All green.
+
+**Docs**
+- `docs/ARCHITECTURE.md` §4 — new "Role-alternation invariant (load-bearing)" subsection + new "Do NOT" bullet forbidding removal of `coalesceRoles`.
+- `CLAUDE.md` — new pin #9 in the non-negotiable list.
+
+**Deploy**
+Committed on `main` and pushed. Prod: `git pull`, `composer install --no-dev -o` (no-op), `php artisan config:clear && route:clear && view:clear`, `php artisan queue:restart` (no NSSM restart needed — code-only change).
+
+**Not fixed here (deferred)**
+- `AiChat::confirmAction` still visually pushes a separate "Done:" bubble. UI polish, not a bug — separate PR later.
+- Underlying `NaraRouterProvider::$apiKey` type nullability weirdness (surfaced in test bootstrapping). Cosmetic, not shipping.

@@ -150,10 +150,20 @@ The cache key stores `['model' => ..., 'reset_at' => timestamp]`. Successful cal
 
 `markActiveModel()` preserves the existing `reset_at` if present, only opening a fresh 6h window if none exists.
 
+### Role-alternation invariant (load-bearing)
+Anthropic's Messages API — which NaraRouter proxies via OpenAI-compat — requires `user` and `assistant` turns to **strictly alternate** in the message list. Two consecutive `assistant` turns (or two consecutive `user` turns) return an HTTP 400 with body `"The model rejected this request … a parameter is invalid."` Per rule (4) above we do NOT cascade on 400, so this violation cascades to a hard failure across the whole chain and the user sees "temporarily unavailable (API error)."
+
+Two real code paths violate this without a guard:
+1. `AiChat::confirmAction()` appends a second `assistant` "Done: …" turn immediately after the AI's response turn — breaking alternation on the very next admin message.
+2. On the customer path, any conversation where two outbound messages (AI + human agent, or two AI in a row) or two inbound messages land back-to-back produces the same violation.
+
+**`NaraRouterProvider::coalesceRoles()` is the single choke-point guard.** `callChat` calls it before assembling the outgoing payload, so all four call sites (`generateResponse`, `scoreMessage`, `generateText`, `chatWithAdmin`) are covered. It merges consecutive same-role turns with `\n\n`, drops empty content, and normalizes the legacy `model` role (Gemini heritage) to `assistant`.
+
 ### Do NOT
 - Change `markActiveModel()` to extend `reset_at` on every success — this would break the reset-to-sonnet-every-6h behavior.
 - Add "retry sonnet first every N minutes" logic. Cascade is one-shot per request; probing wastes latency.
 - Cascade on 400/401/403 — those are client-side issues that will fail identically on every model.
+- Remove or bypass `coalesceRoles()` in `callChat`, or "simplify" it back to a direct role-mapping loop. That reintroduces the strict-alternation 400 (see the section above). Unit tests in `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php` pin the invariant.
 
 ### Files
 - `app/Services/Ai/NaraRouterProvider.php`

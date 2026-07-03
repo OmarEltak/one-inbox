@@ -22,6 +22,8 @@
 
 8. **`Team::hasAnyConnection()` checks `is_active` pages**, not `ConnectedAccount` rows. Some platforms (WhatsApp QR, Telegram, Email) don't create a `ConnectedAccount`. See ARCHITECTURE §15.
 
+9. **`NaraRouterProvider::coalesceRoles()` MUST run before every `callChat` payload.** Anthropic (via NaraRouter) rejects requests where `user`/`assistant` don't strictly alternate, returning a 400 that we intentionally don't cascade on. `AiChat::confirmAction` and any customer conversation with two same-direction messages in a row will trip it without the guard. Do NOT remove the coalesce step or "simplify" it back to a direct role-mapping loop. See ARCHITECTURE §4 "Role-alternation invariant". Unit test: `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php`.
+
 If your task touches AI, messaging, connections, sales flow, or the sidebar — **grep the relevant ARCHITECTURE section** before writing code. Every pin above corresponds to a real bug shipped by a previous session that thought they were helping.
 
 ## Debugging discipline (mandatory)
