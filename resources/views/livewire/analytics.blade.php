@@ -4,9 +4,30 @@
             <svg class="mb-4 size-16 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <h2 class="text-lg font-semibold text-white/80">{{ __('No team selected') }}</h2>
+            <h2 class="text-lg font-semibold text-white/80">
+                {{ ($noConnections ?? false) ? __('No connected pages') : __('No team selected') }}
+            </h2>
+            @if($noConnections ?? false)
+                <p class="mt-2 text-sm text-white/40">{{ __('Connect a page to see analytics.') }}</p>
+                <a href="{{ route('connections.index') }}" class="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500">
+                    {{ __('Go to Connections') }}
+                </a>
+            @endif
         </div>
     @else
+        @php
+            // Platform colour dots for the page chips — matches the palette used in
+            // the Platform Performance table below.
+            $chipPlatformColors = [
+                'facebook' => 'bg-blue-500',
+                'instagram' => 'bg-pink-500',
+                'whatsapp' => 'bg-green-500',
+                'telegram' => 'bg-cyan-500',
+                'tiktok' => 'bg-red-500',
+                'email' => 'bg-orange-500',
+            ];
+            $selectionKey = md5(implode(',', $selectedPageIds));
+        @endphp
         <div class="p-6 space-y-6">
             {{-- Header with period selector --}}
             <div class="flex items-center justify-between">
@@ -32,6 +53,36 @@
                     @endforeach
                 </div>
             </div>
+
+            {{-- Page selector: only currently-connected pages appear. Default is all-selected. --}}
+            @if($activePages->count() > 0)
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-white/40 uppercase tracking-widest mr-1">{{ __('Pages') }}</span>
+                    @if($activePages->count() > 1)
+                        @php $allSelected = count($selectedPageIds) === $activePages->count(); @endphp
+                        <button
+                            wire:click="selectAllPages"
+                            wire:loading.attr="disabled"
+                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-purple-500/60 bg-purple-500/15 text-white' : 'border-white/15 text-white/50 hover:text-white/80 hover:border-white/30' }}"
+                        >
+                            {{ __('All') }}
+                        </button>
+                    @endif
+                    @foreach($activePages as $page)
+                        @php $isSelected = in_array($page->id, $selectedPageIds, true); @endphp
+                        <button
+                            wire:click="togglePage({{ $page->id }})"
+                            wire:loading.attr="disabled"
+                            wire:target="togglePage({{ $page->id }})"
+                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-purple-500/60 bg-purple-500/15 text-white' : 'border-white/15 text-white/50 hover:text-white/80 hover:border-white/30' }}"
+                            title="{{ ucfirst($page->platform) }} — {{ $page->name }}"
+                        >
+                            <span class="size-2 rounded-full {{ $chipPlatformColors[$page->platform] ?? 'bg-gray-400' }}"></span>
+                            <span class="max-w-[16ch] truncate">{{ $page->name ?: ucfirst($page->platform) }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            @endif
 
             {{-- Top Row: Key Metrics --}}
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -80,7 +131,7 @@
             {{-- wire:key forces Livewire to recreate this element (and re-run Alpine init) on period switch,
                  avoiding stale chart data. The destroy() call prevents Chart.js instance leaks on rebuild. --}}
             <div class="aio-card rounded-2xl p-5"
-                 wire:key="reach-chart-{{ $period }}"
+                 wire:key="reach-chart-{{ $period }}-{{ $selectionKey }}"
                  x-data="{
                      chart: null,
                      init() {
