@@ -72,11 +72,9 @@
                 </div>
             </div>
 
-            @php
-                $facebookAccounts = $this->connectedAccounts->where('platform', 'facebook');
-                $facebookPages    = $this->pages->where('platform', 'facebook');
-                $fbRejected       = $this->rejectedByPlatform['facebook'] ?? null;
-            @endphp
+            {{-- $facebookAccounts / $facebookPages / $fbRejected are passed in from
+                 Connections\Index::render() — an @php block here would be dropped by
+                 Livewire's fragment compiler (same reason $metaVerified is view-data). --}}
 
             {{-- Connected pages (works for both direct-OAuth + admin-handoff pages) --}}
             @foreach($facebookPages as $fbPage)
@@ -151,11 +149,7 @@
                 </div>
             </div>
 
-            @php
-                $instagramAccounts = $this->connectedAccounts->where('platform', 'instagram');
-                $instagramPages    = $this->pages->where('platform', 'instagram');
-                $igRejected        = $this->rejectedByPlatform['instagram'] ?? null;
-            @endphp
+            {{-- $instagramAccounts / $instagramPages / $igRejected come from render() view-data. --}}
 
             @foreach($instagramPages as $igPage)
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
