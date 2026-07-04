@@ -1,22 +1,24 @@
 <x-layouts::auth>
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Create an account')" :description="__('Enter your details below to create your account')" />
+        {{-- Header --}}
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900">Create your account</h1>
+            <p class="mt-1 text-sm text-zinc-500">{{ __('Start managing all your conversations in one place') }}</p>
+        </div>
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
-
-        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-5">
             @csrf
+
             <!-- Name -->
             <flux:input
                 name="name"
-                :label="__('Name')"
+                :label="__('Full name')"
                 :value="old('name')"
                 type="text"
                 required
                 autofocus
                 autocomplete="name"
-                :placeholder="__('Full name')"
+                :placeholder="__('Your name')"
             />
 
             <!-- Email Address -->
@@ -27,7 +29,7 @@
                 type="email"
                 required
                 autocomplete="email"
-                placeholder="email@example.com"
+                placeholder="you@company.com"
             />
 
             <!-- Password -->
@@ -38,11 +40,11 @@
                     type="password"
                     required
                     autocomplete="new-password"
-                    :placeholder="__('Password')"
+                    :placeholder="__('Min. 8 characters')"
                     viewable
                 />
-                <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                    {{ __('Password must contain at least one uppercase letter, one lowercase letter, and one number.') }}
+                <p class="text-xs text-zinc-400">
+                    {{ __('Must include uppercase, lowercase, and a number.') }}
                 </p>
             </div>
 
@@ -53,20 +55,18 @@
                 type="password"
                 required
                 autocomplete="new-password"
-                :placeholder="__('Confirm password')"
+                :placeholder="__('Re-enter password')"
                 viewable
             />
 
-            <div class="flex items-center justify-end">
-                <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
-                    {{ __('Create account') }}
-                </flux:button>
-            </div>
+            <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
+                {{ __('Create account') }}
+            </flux:button>
         </form>
 
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Already have an account?') }}</span>
-            <flux:link :href="route('login')" wire:navigate>{{ __('Log in') }}</flux:link>
-        </div>
+        <p class="text-sm text-center text-zinc-500">
+            {{ __('Already have an account?') }}
+            <flux:link :href="route('login')" wire:navigate class="font-medium">{{ __('Sign in') }}</flux:link>
+        </p>
     </div>
 </x-layouts::auth>

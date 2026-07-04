@@ -226,6 +226,30 @@ textarea.\!resize-none {
 .hover\:bg-white\/10:hover   { background-color: #f4f4f5; }
 .hover\:border-white\/30:hover { border-color: #d4d4d4; }
 
+/* ── Flux component light-mode overrides ──
+   Flux stubs use [:where(&)]:text-zinc-* which has zero specificity.
+   Attribute selectors (specificity 0,1,0) win cleanly.
+   These are scoped to html:not(.dark) so they only apply in light mode. */
+html:not(.dark) [data-flux-heading] { color: #171717; }
+html:not(.dark) [data-flux-text]    { color: #52525b; }
+
+/* Flux badge outline — zinc default is text-zinc-700 which can look light;
+   bump to zinc-900 only for the zinc/uncolored variant */
+html:not(.dark) [data-flux-badge]:not([color]):not([data-color]),
+html:not(.dark) [data-flux-badge][data-color="zinc"] {
+    color: #171717;
+}
+
+/* Flux badge outline — boost contrast for colored outline badges */
+html:not(.dark) [data-flux-badge][data-color="blue"]   { color: #1e40af; }
+html:not(.dark) [data-flux-badge][data-color="red"]    { color: #991b1b; }
+html:not(.dark) [data-flux-badge][data-color="green"]  { color: #166534; }
+html:not(.dark) [data-flux-badge][data-color="amber"]  { color: #92400e; }
+html:not(.dark) [data-flux-badge][data-color="purple"] { color: #6b21a8; }
+html:not(.dark) [data-flux-badge][data-color="cyan"]   { color: #155e75; }
+html:not(.dark) [data-flux-badge][data-color="pink"]   { color: #9d174d; }
+html:not(.dark) [data-flux-badge][data-color="yellow"] { color: #78350f; }
+
 /* ── Body ── */
 body {
     background: #FAFAFA;
