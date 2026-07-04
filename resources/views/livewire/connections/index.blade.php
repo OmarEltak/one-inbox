@@ -16,7 +16,7 @@
 <div class="p-6 space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ __('Connections') }}</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Connections') }}</h1>
             <p class="mt-1 text-sm text-white/40">{{ __('Connect your social media accounts to start receiving messages.') }}</p>
         </div>
     </div>
@@ -282,12 +282,12 @@
             @endforeach
 
             <div class="{{ $whatsappAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
-                <div class="rounded-lg bg-zinc-500/10 border border-zinc-500/30 p-3 text-xs text-center">
-                    <span class="inline-flex items-center gap-1.5 text-zinc-300 font-medium">
+                <div class="rounded-lg bg-zinc-100 border border-zinc-200 p-3 text-xs text-center">
+                    <span class="inline-flex items-center gap-1.5 text-zinc-600 font-medium">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Currently unavailable
                     </span>
-                    <p class="text-zinc-400/80 mt-1">WhatsApp connections are temporarily disabled while we rebuild the gateway. Coming back soon.</p>
+                    <p class="text-zinc-500 mt-1">WhatsApp connections are temporarily disabled while we rebuild the gateway. Coming back soon.</p>
                 </div>
             </div>
         </div>
@@ -491,12 +491,12 @@
             @endforeach
 
             <div class="{{ $tiktokAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
-                <div class="rounded-lg bg-zinc-500/10 border border-zinc-500/30 p-3 text-xs text-center">
-                    <span class="inline-flex items-center gap-1.5 text-zinc-300 font-medium">
+                <div class="rounded-lg bg-zinc-100 border border-zinc-200 p-3 text-xs text-center">
+                    <span class="inline-flex items-center gap-1.5 text-zinc-600 font-medium">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Currently unavailable
                     </span>
-                    <p class="text-zinc-400/80 mt-1">TikTok connections are temporarily unavailable. Coming back soon.</p>
+                    <p class="text-zinc-500 mt-1">TikTok connections are temporarily unavailable. Coming back soon.</p>
                 </div>
             </div>
         </div>

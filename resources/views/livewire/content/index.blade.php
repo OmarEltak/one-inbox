@@ -1,7 +1,7 @@
 <div class="p-6 space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ __('Content') }}</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Content') }}</h1>
             <p class="mt-1 text-sm text-white/40">{{ __('Manage and track your content across all platforms.') }}</p>
         </div>
         <button class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white aio-btn-primary cursor-pointer">

@@ -23,16 +23,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: #7C3AED;
+    --color-accent-content: #7C3AED;
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: #7C3AED;
+        --color-accent-content: #7C3AED;
+        --color-accent-foreground: var(--color-white);
     }
 }
 
@@ -60,10 +60,6 @@ textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
-
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
 
 /* RTL Support */
 [dir="rtl"] {
@@ -96,11 +92,6 @@ textarea.\!resize-none {
 }
 
 /* ─── Marketing Page Animations ─── */
-/* Keyframes are inert without a referencing animation property.
-   The .animate-* classes that USE them are wrapped in
-   @media (prefers-reduced-motion: no-preference) below, so users
-   who request reduced motion get the static end-state instead. */
-
 @keyframes fade-in-up {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -136,7 +127,6 @@ textarea.\!resize-none {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Reduced-motion safe defaults: show the end-state immediately. */
 .animate-fade-in-up,
 .animate-fade-in,
 .animate-slide-in-left,
@@ -200,66 +190,87 @@ textarea.\!resize-none {
 .anim-delay-6 { animation-delay: 600ms; }
 
 /* ══════════════════════════════════════════
-   ALL IN ONE — Figma Design System v2
+   OT1-Pro App Design System — Light
 ══════════════════════════════════════════ */
 
-/* ── Body: deep dark gradient from Figma ── */
-.dark body {
-    background: linear-gradient(135deg, #0A0A0F 0%, #0D0D1A 30%, #111127 60%, #0A0A0F 100%);
+/* ── Global: white-opacity text remap ──
+   Unlayered rules outrank @layer utilities in the CSS cascade.
+   Remaps white-opacity Tailwind utilities to readable zinc equivalents
+   for the light-mode app surface. Full .text-white is left untouched
+   so white text on colored backgrounds (avatars, active pills) stays white. */
+.text-white\/85 { color: #3f3f46; }
+.text-white\/80 { color: #3f3f46; }
+.text-white\/70 { color: #52525b; }
+.text-white\/60 { color: #71717a; }
+.text-white\/50 { color: #71717a; }
+.text-white\/40 { color: #a1a1aa; }
+.text-white\/35 { color: #a1a1aa; }
+.text-white\/30 { color: #a1a1aa; }
+.text-white\/25 { color: #d4d4d8; }
+.text-white\/20 { color: #d4d4d8; }
+.text-white\/10 { color: #e4e4e7; }
+
+/* Border remap */
+.border-white\/15 { border-color: #e5e5e5; }
+.border-white\/10 { border-color: #f5f5f5; }
+
+/* ── Body ── */
+body {
+    background: #FAFAFA;
     min-height: 100vh;
 }
 
 /* ── Sidebar ── */
-.dark [data-flux-sidebar] {
-    background: rgba(10, 10, 20, 0.95) !important;
-    border-right: 1px solid rgba(255,255,255,0.06) !important;
-    box-shadow: 4px 0 30px rgba(0,0,0,0.6);
-    backdrop-filter: blur(12px);
+[data-flux-sidebar] {
+    background: #ffffff !important;
+    border-inline-end: 1px solid #e5e5e5 !important;
+    box-shadow: 1px 0 0 rgba(0,0,0,0.03) !important;
+    backdrop-filter: none !important;
 }
 
-/* Sidebar active nav item — purple gradient pill */
-.dark [data-flux-sidebar] [data-current="true"],
-.dark [data-flux-sidebar] [aria-current="page"] {
-    background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%) !important;
+/* Sidebar active nav item — Pro Violet gradient pill */
+[data-flux-sidebar] [data-current="true"],
+[data-flux-sidebar] [aria-current="page"] {
+    background: linear-gradient(135deg, rgba(124,58,237,0.92) 0%, rgba(109,40,217,0.92) 100%) !important;
     color: #fff !important;
     border-radius: 10px !important;
-    box-shadow: 0 2px 12px rgba(124,58,237,0.35) !important;
+    box-shadow: 0 2px 10px rgba(124,58,237,0.22) !important;
+}
+
+/* ── Header ── */
+[data-flux-header] {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+    backdrop-filter: none !important;
 }
 
 /* ── Cards ── */
 .aio-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
     border-radius: 14px;
-    box-shadow:
-        0 1px 0 rgba(255,255,255,0.05) inset,
-        0 4px 24px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 0 rgba(0,0,0,0.02);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 .aio-card:hover {
-    border-color: rgba(124,58,237,0.25);
-    box-shadow:
-        0 1px 0 rgba(255,255,255,0.07) inset,
-        0 8px 32px rgba(0,0,0,0.4);
+    border-color: rgba(124,58,237,0.22);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
-/* Stat cards — gradient top border accent */
-/* Stat card category accents intentionally carried only by the leading
-   icon-tile (aio-icon-X). Earlier border-top stripes were dropped to
-   avoid the side-stripe pattern call-out in DESIGN.md. */
+/* Stat card categories — no-op, kept for blade compatibility */
 .aio-stat-blue,
 .aio-stat-green,
 .aio-stat-purple,
 .aio-stat-orange,
 .aio-stat-cyan,
-.aio-stat-red { /* no-op kept for backwards-compatible blade classnames */ }
+.aio-stat-red { }
 
-/* Icon glow pills */
-.aio-icon-blue   { background: rgba(59,130,246,0.12) !important;  box-shadow: 0 0 16px rgba(59,130,246,0.18); }
-.aio-icon-green  { background: rgba(0,212,146,0.12) !important;   box-shadow: 0 0 16px rgba(0,212,146,0.18); }
-.aio-icon-purple { background: rgba(124,58,237,0.12) !important;  box-shadow: 0 0 16px rgba(124,58,237,0.18); }
-.aio-icon-orange { background: rgba(245,158,11,0.12) !important;  box-shadow: 0 0 16px rgba(245,158,11,0.18); }
-.aio-icon-cyan   { background: rgba(6,182,212,0.12) !important;   box-shadow: 0 0 16px rgba(6,182,212,0.18); }
+/* Icon tint tiles (no glow box-shadow on light bg) */
+.aio-icon-blue   { background: rgba(59,130,246,0.10) !important; }
+.aio-icon-green  { background: rgba(0,212,146,0.12) !important; }
+.aio-icon-purple { background: rgba(124,58,237,0.10) !important; }
+.aio-icon-orange { background: rgba(245,158,11,0.12) !important; }
+.aio-icon-cyan   { background: rgba(6,182,212,0.10) !important; }
 
 /* ── Status badges ── */
 .aio-badge {
@@ -279,20 +290,20 @@ textarea.\!resize-none {
     height: 5px;
     border-radius: 50%;
 }
-.aio-badge-hot       { background: rgba(244,63,94,0.15);   color: #FB7185; border: 1px solid rgba(244,63,94,0.3); }
+.aio-badge-hot       { background: rgba(244,63,94,0.10);  color: #be123c; border: 1px solid rgba(244,63,94,0.18); }
 .aio-badge-hot::before { background: #FB2C36; }
-.aio-badge-warm      { background: rgba(245,158,11,0.15);  color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+.aio-badge-warm      { background: rgba(245,158,11,0.10); color: #92400e; border: 1px solid rgba(245,158,11,0.18); }
 .aio-badge-warm::before { background: #F59E0B; }
-.aio-badge-cold      { background: rgba(99,102,241,0.15);  color: #818CF8; border: 1px solid rgba(99,102,241,0.3); }
+.aio-badge-cold      { background: rgba(99,102,241,0.10); color: #4338ca; border: 1px solid rgba(99,102,241,0.18); }
 .aio-badge-cold::before { background: #6366F1; }
-.aio-badge-converted { background: rgba(0,212,146,0.15);   color: #34D399; border: 1px solid rgba(0,212,146,0.3); }
+.aio-badge-converted { background: rgba(0,212,146,0.10);  color: #065f46; border: 1px solid rgba(0,212,146,0.18); }
 .aio-badge-converted::before { background: #00D492; }
-.aio-badge-new       { background: rgba(148,163,184,0.1);  color: #99A1AF; border: 1px solid rgba(148,163,184,0.2); }
-.aio-badge-new::before { background: #99A1AF; }
-.aio-badge-lost      { background: rgba(100,116,139,0.1);  color: #6A7282; border: 1px solid rgba(100,116,139,0.2); }
+.aio-badge-new       { background: rgba(148,163,184,0.08); color: #475569; border: 1px solid rgba(148,163,184,0.15); }
+.aio-badge-new::before { background: #94a3b8; }
+.aio-badge-lost      { background: rgba(100,116,139,0.08); color: #475569; border: 1px solid rgba(100,116,139,0.15); }
 .aio-badge-lost::before { background: #6A7282; }
 
-/* ── Platform page name chip ── */
+/* ── Platform page chip ── */
 .aio-page-chip {
     display: inline-flex;
     align-items: center;
@@ -301,9 +312,9 @@ textarea.\!resize-none {
     border-radius: 8px;
     font-size: 11px;
     font-weight: 500;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #99A1AF;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    color: #71717a;
     max-width: 140px;
     transition: border-color 0.15s;
 }
@@ -315,41 +326,41 @@ textarea.\!resize-none {
 }
 
 /* ── Table polish ── */
-.aio-table thead tr { background: rgba(0,0,0,0.2); }
+.aio-table thead tr { background: #f9f9f9; }
 .aio-table thead th {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.07em;
     text-transform: uppercase;
-    color: #4A5565;
+    color: #71717a;
 }
 .aio-table tbody tr {
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid #f4f4f5;
     transition: background 0.12s;
 }
-.aio-table tbody tr:hover { background: rgba(124,58,237,0.05); }
+.aio-table tbody tr:hover { background: rgba(124,58,237,0.04); }
 
 /* ── Tab nav underline ── */
 .aio-tab-active {
     border-bottom: 2px solid #7C3AED !important;
-    color: #C27AFF !important;
+    color: #7C3AED !important;
 }
 
-/* ── Primary buttons — purple gradient ── */
+/* ── Primary buttons ── */
 .aio-btn-primary {
     background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
     color: #fff;
     border: none;
-    box-shadow: 0 2px 12px rgba(124,58,237,0.35);
+    box-shadow: 0 2px 10px rgba(124,58,237,0.25);
     transition: box-shadow 0.2s, opacity 0.2s;
 }
-.aio-btn-primary:hover { box-shadow: 0 4px 20px rgba(124,58,237,0.5); opacity: 0.95; }
+.aio-btn-primary:hover { box-shadow: 0 4px 18px rgba(124,58,237,0.38); opacity: 0.95; }
 
-/* ── Details/summary — always closed on load, content hidden until open ── */
+/* ── Details/summary ── */
 details > :not(summary) { display: none; }
 details[open] > :not(summary) { display: revert; }
 
-/* ── Score bar gradient ── */
+/* ── Score bar ── */
 .aio-score-bar {
     height: 5px;
     border-radius: 100px;
@@ -357,21 +368,14 @@ details[open] > :not(summary) { display: revert; }
 }
 
 /* ── Custom scrollbar ── */
-.dark ::-webkit-scrollbar        { width: 4px; height: 4px; }
-.dark ::-webkit-scrollbar-track  { background: transparent; }
-.dark ::-webkit-scrollbar-thumb  { background: rgba(124,58,237,0.3); border-radius: 2px; }
-.dark ::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.5); }
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: rgba(124,58,237,0.18); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.32); }
 
-/* ── Header glass effect ── */
-.dark [data-flux-header] {
-    background: rgba(10,10,20,0.85) !important;
-    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-    backdrop-filter: blur(16px) !important;
-}
-
-/* ── Glowing logo icon ── */
+/* ── Logo glow ── */
 .aio-logo-glow {
-    box-shadow: 0 0 16px rgba(250,204,21,0.5);
+    box-shadow: 0 0 16px rgba(250,204,21,0.4);
 }
 
 /* ── Notification badge ── */
@@ -383,5 +387,5 @@ details[open] > :not(summary) { display: revert; }
     height: 8px;
     border-radius: 50%;
     background: #FB2C36;
-    border: 2px solid #0A0A0F;
+    border: 2px solid #FAFAFA;
 }

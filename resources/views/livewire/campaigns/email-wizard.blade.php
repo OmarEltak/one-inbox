@@ -3,7 +3,7 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ __('New Email Campaign') }}</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('New Email Campaign') }}</h1>
             <p class="mt-1 text-sm text-white/40">{{ __('Upload a CSV/Excel sheet of contacts and send a bulk email blast.') }}</p>
         </div>
         <a href="{{ route('campaigns.index') }}" wire:navigate
@@ -238,15 +238,15 @@
             <h2 class="text-lg font-semibold text-white">Review &amp; launch</h2>
             <div class="grid grid-cols-3 gap-3">
                 <div class="aio-card rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-white">{{ number_format($stats['total']) }}</p>
+                    <p class="text-2xl font-bold text-zinc-900">{{ number_format($stats['total']) }}</p>
                     <p class="text-xs text-white/40 mt-1">Recipients</p>
                 </div>
                 <div class="aio-card rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-white">{{ number_format($dailyCap) }}</p>
+                    <p class="text-2xl font-bold text-zinc-900">{{ number_format($dailyCap) }}</p>
                     <p class="text-xs text-white/40 mt-1">Per day cap</p>
                 </div>
                 <div class="aio-card rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-white">~{{ $stats['days'] }}</p>
+                    <p class="text-2xl font-bold text-zinc-900">~{{ $stats['days'] }}</p>
                     <p class="text-xs text-white/40 mt-1">Day{{ $stats['days'] === 1 ? '' : 's' }} to send all</p>
                 </div>
             </div>

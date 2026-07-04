@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen" style="background: linear-gradient(135deg, #0A0A0F 0%, #0D0D1A 30%, #111127 60%, #0A0A0F 100%);">
+    <body class="min-h-screen">
 
         @php
             $user = auth()->user();
@@ -12,8 +12,7 @@
 
         {{-- ══ SIDEBAR ══ --}}
         <flux:sidebar sticky collapsible="mobile"
-            class="border-e border-white/15"
-            style="background: rgba(10,10,20,0.95); backdrop-filter: blur(12px); box-shadow: 4px 0 30px rgba(0,0,0,0.6);">
+            class="border-e border-zinc-200">
 
             {{-- Logo + Team chip --}}
             @php
@@ -26,9 +25,9 @@
             <flux:sidebar.header class="px-4 py-5">
                 <a href="{{ route('dashboard') }}" wire:navigate.hover class="flex items-center gap-2.5 group min-w-0 flex-1">
                     <img src="/logo.png" alt="OT1-Pro" class="size-8 rounded-lg flex-shrink-0 object-cover" />
-                    <p class="text-sm font-bold text-white leading-tight truncate">{{ __('OT1-Pro') }}</p>
+                    <p class="text-sm font-bold text-zinc-900 leading-tight truncate">{{ __('OT1-Pro') }}</p>
                 </a>
-                <flux:sidebar.collapse class="lg:hidden ml-1 text-white/40 hover:text-white/70" />
+                <flux:sidebar.collapse class="lg:hidden ml-1 text-zinc-400 hover:text-zinc-600" />
             </flux:sidebar.header>
 
             {{-- Team identity chip (loud) --}}
@@ -37,8 +36,8 @@
                     @if($canSwitch)
                         <flux:dropdown position="bottom" align="start" class="w-full">
                             <button
-                                class="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border border-white/15 hover:border-white/25 hover:bg-white/[0.04] transition-colors group cursor-pointer"
-                                style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.10), hsla({{ $teamHue }}, 65%, 45%, 0.06));"
+                                class="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 transition-colors group cursor-pointer"
+                                style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.08), hsla({{ $teamHue }}, 65%, 45%, 0.04));"
                                 title="{{ __('Switch workspace') }}"
                             >
                                 <span class="size-7 rounded-lg flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0 shadow-sm"
@@ -46,10 +45,10 @@
                                     {{ $teamInitial }}
                                 </span>
                                 <span class="min-w-0 flex-1 text-left">
-                                    <span class="block text-[10px] uppercase tracking-widest text-white/40 font-semibold leading-tight">{{ __('Workspace') }}</span>
-                                    <span class="block text-sm font-semibold text-white truncate leading-tight">{{ $team->name }}</span>
+                                    <span class="block text-[10px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight">{{ __('Workspace') }}</span>
+                                    <span class="block text-sm font-semibold text-zinc-800 truncate leading-tight">{{ $team->name }}</span>
                                 </span>
-                                <svg class="size-3.5 text-white/40 group-hover:text-white/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <svg class="size-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l3-3 3 3M7 17l3 3 3-3" />
                                 </svg>
                             </button>
@@ -79,16 +78,16 @@
                         </flux:dropdown>
                     @else
                         <div
-                            class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl border border-white/15"
-                            style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.10), hsla({{ $teamHue }}, 65%, 45%, 0.06));"
+                            class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl border border-zinc-200"
+                            style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.08), hsla({{ $teamHue }}, 65%, 45%, 0.04));"
                         >
                             <span class="size-7 rounded-lg flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0 shadow-sm"
                                   style="background: hsl({{ $teamHue }}, 65%, 50%);">
                                 {{ $teamInitial }}
                             </span>
                             <span class="min-w-0 flex-1">
-                                <span class="block text-[10px] uppercase tracking-widest text-white/40 font-semibold leading-tight">{{ __('Workspace') }}</span>
-                                <span class="block text-sm font-semibold text-white truncate leading-tight">{{ $team->name }}</span>
+                                <span class="block text-[10px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight">{{ __('Workspace') }}</span>
+                                <span class="block text-sm font-semibold text-zinc-800 truncate leading-tight">{{ $team->name }}</span>
                             </span>
                         </div>
                     @endif
@@ -167,9 +166,9 @@
                     @php $isCurrent = request()->routeIs($firstItem['match']); @endphp
                     <a href="{{ route($firstItem['route']) }}" wire:navigate.hover
                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-                              {{ $isCurrent ? 'text-white shadow-lg' : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]' }}"
+                              {{ $isCurrent ? 'text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
                        @if($isCurrent) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
-                        <flux:icon name="{{ $firstItem['icon'] }}" class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-white/40 group-hover:text-white/70' }}" />
+                        <flux:icon name="{{ $firstItem['icon'] }}" class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
                         <span>{{ $firstItem['label'] }}</span>
                     </a>
                 @endif
@@ -179,18 +178,18 @@
                 @php $inboxLocked = ! $hasConnections; @endphp
                 @if($inboxLocked)
                 <button type="button" @click="$dispatch('needs-connection')"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-white/40 hover:text-white/60 opacity-60 hover:opacity-80">
-                    <flux:icon name="inbox" class="size-4.5 flex-shrink-0 text-white/30" />
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-zinc-400 hover:text-zinc-500 opacity-60 hover:opacity-80">
+                    <flux:icon name="inbox" class="size-4.5 flex-shrink-0 text-zinc-300" />
                     <span class="flex-1 text-left">Inbox</span>
-                    <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-white/25" />
+                    <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-zinc-300" />
                 </button>
                 @else
                 <div x-data="{ open: {{ $isInboxActive ? 'true' : 'false' }} }">
                     <button @click="open = !open"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer
-                               {{ $isInboxActive ? 'text-white shadow-lg' : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]' }}"
+                               {{ $isInboxActive ? 'text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
                         @if($isInboxActive) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
-                        <flux:icon name="inbox" class="size-4.5 flex-shrink-0 {{ $isInboxActive ? 'text-white' : 'text-white/40 group-hover:text-white/70' }}" />
+                        <flux:icon name="inbox" class="size-4.5 flex-shrink-0 {{ $isInboxActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
                         <span class="flex-1 text-left">Inbox</span>
                         @if(isset($unreadCount) && $unreadCount > 0)
                             <span class="flex-shrink-0 rounded-full bg-[#FB2C36] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
@@ -198,7 +197,7 @@
                             </span>
                         @endif
                         <svg x-bind:class="open ? 'rotate-180' : ''"
-                             class="size-3.5 flex-shrink-0 ml-1 transition-transform duration-200 {{ $isInboxActive ? 'text-white/70' : 'text-white/25' }}"
+                             class="size-3.5 flex-shrink-0 ml-1 transition-transform duration-200 {{ $isInboxActive ? 'text-white/70' : 'text-zinc-400' }}"
                              fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -210,14 +209,14 @@
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-1"
-                         class="mt-0.5 ml-3 pl-4 space-y-0.5 border-l border-white/15">
+                         class="mt-0.5 ml-3 pl-4 space-y-0.5 border-l border-zinc-200">
 
                         {{-- All Inbox --}}
                         @php $allActive = $isInboxActive && !request()->query('pageId'); @endphp
                         <a href="{{ route('inbox') }}" wire:navigate.hover
                            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 group
-                                  {{ $allActive ? 'text-white bg-white/[0.07]' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]' }}">
-                            <svg class="size-3.5 flex-shrink-0 {{ $allActive ? 'text-[#C27AFF]' : 'text-white/25 group-hover:text-white/50' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  {{ $allActive ? 'text-zinc-800 bg-zinc-100' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50' }}">
+                            <svg class="size-3.5 flex-shrink-0 {{ $allActive ? 'text-violet-600' : 'text-zinc-400 group-hover:text-zinc-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
                             <span>All Messages</span>
@@ -232,7 +231,7 @@
                             @endphp
                             <a href="{{ route('inbox') }}?pageId={{ $page->id }}" wire:navigate.hover
                                class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 group
-                                      {{ $pageActive ? 'text-white bg-white/[0.07]' : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]' }}">
+                                      {{ $pageActive ? 'text-zinc-800 bg-zinc-100' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50' }}">
                                 <span class="inline-flex items-center justify-center size-4 rounded-md text-[9px] font-bold flex-shrink-0"
                                       style="background: {{ $color }}22; color: {{ $color }};">
                                     {{ $initials }}
@@ -242,7 +241,7 @@
                         @endforeach
 
                         @if($inboxPages->isEmpty())
-                            <p class="px-3 py-2 text-[11px] text-white/20 italic">No pages connected</p>
+                            <p class="px-3 py-2 text-[11px] text-zinc-400 italic">No pages connected</p>
                         @endif
                     </div>
                 </div>
@@ -254,10 +253,10 @@
                     @php $isCurrent = request()->routeIs($item['match']); @endphp
                     @if(! empty($item['locked']))
                         <button type="button" @click="$dispatch('needs-connection')"
-                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-white/40 hover:text-white/60 opacity-60 hover:opacity-80">
-                            <flux:icon name="{{ $item['icon'] }}" class="size-4.5 flex-shrink-0 text-white/30" />
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-zinc-400 hover:text-zinc-500 opacity-60 hover:opacity-80">
+                            <flux:icon name="{{ $item['icon'] }}" class="size-4.5 flex-shrink-0 text-zinc-300" />
                             <span class="flex-1 text-left">{{ $item['label'] }}</span>
-                            <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-white/25" />
+                            <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-zinc-300" />
                         </button>
                     @else
                         <a href="{{ route($item['route']) }}"
@@ -265,13 +264,13 @@
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
                                   {{ $isCurrent
                                      ? 'text-white shadow-lg'
-                                     : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]' }}"
+                                     : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
                            @if($isCurrent)
                            style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);"
                            @endif
                         >
                             <flux:icon name="{{ $item['icon'] }}"
-                                class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-white/40 group-hover:text-white/70' }}" />
+                                class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
                             <span>{{ $item['label'] }}</span>
 
                             {{-- AI ON/OFF indicator --}}
@@ -288,18 +287,18 @@
 
             {{-- Bottom: User info --}}
             <div class="px-3 pb-4">
-                <div class="border-t border-white/15 pt-4">
+                <div class="border-t border-zinc-200 pt-4">
                     <flux:dropdown position="top" align="start" class="w-full">
-                        <button class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/[0.05] transition-colors group cursor-pointer">
+                        <button class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-zinc-100 transition-colors group cursor-pointer">
                             <div class="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
                                  style="background: linear-gradient(135deg, #7C3AED, #06B6D4);">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                             <div class="min-w-0 flex-1 text-left">
-                                <p class="text-xs font-semibold text-white/80 truncate">{{ auth()->user()->name }}</p>
-                                <p class="text-[10px] text-white/35 truncate">{{ auth()->user()->email }}</p>
+                                <p class="text-xs font-semibold text-zinc-700 truncate">{{ auth()->user()->name }}</p>
+                                <p class="text-[10px] text-zinc-400 truncate">{{ auth()->user()->email }}</p>
                             </div>
-                            <svg class="size-3.5 text-white/30 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="size-3.5 text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
@@ -333,8 +332,7 @@
 
         {{-- ══ HEADER ══ --}}
         <flux:header sticky
-            class="border-b border-white/15"
-            style="background: rgba(10,10,20,0.85); backdrop-filter: blur(16px);">
+            class="border-b border-zinc-200">
 
             {{-- Mobile toggle --}}
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
@@ -342,20 +340,20 @@
             {{-- Breadcrumb: team identity is the load-bearing anchor --}}
             <div class="hidden lg:flex items-center gap-2.5 text-sm min-w-0">
                 @if($team)
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-white/15"
-                          style="background: hsla({{ $teamHue }}, 65%, 50%, 0.10);"
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-zinc-200"
+                          style="background: hsla({{ $teamHue }}, 65%, 50%, 0.08);"
                           title="{{ __('Current workspace') }}">
                         <span class="size-4 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
                               style="background: hsl({{ $teamHue }}, 65%, 50%);">
                             {{ $teamInitial }}
                         </span>
-                        <span class="font-semibold text-white/85 truncate max-w-[180px]">{{ $team->name }}</span>
+                        <span class="font-semibold text-zinc-800 truncate max-w-[180px]">{{ $team->name }}</span>
                     </span>
                 @else
-                    <span class="font-semibold text-white/70">{{ __('OT1-Pro') }}</span>
+                    <span class="font-semibold text-zinc-600">{{ __('OT1-Pro') }}</span>
                 @endif
-                <span class="text-white/20">/</span>
-                <span class="text-white/60 font-medium truncate">{{ $title ?? __('Dashboard') }}</span>
+                <span class="text-zinc-300">/</span>
+                <span class="text-zinc-500 font-medium truncate">{{ $title ?? __('Dashboard') }}</span>
             </div>
 
             {{-- ⌘K command palette intentionally deferred. Removed the
@@ -365,8 +363,7 @@
 
             {{-- Notification bell --}}
             <div class="relative">
-                <button class="relative p-2 rounded-xl text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-                        style="background: rgba(255,255,255,0.04);">
+                <button class="relative p-2 rounded-xl text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer bg-zinc-100">
                     <svg class="size-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
@@ -375,15 +372,15 @@
 
             {{-- Avatar dropdown --}}
             <flux:dropdown position="top" align="end">
-                <button class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/[0.05] transition-colors cursor-pointer">
+                <button class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-zinc-100 transition-colors cursor-pointer">
                     <div class="size-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
                          style="background: linear-gradient(135deg, #7C3AED, #06B6D4);">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
-                    <span class="hidden lg:block text-sm font-medium text-white/70 max-w-[100px] truncate">
+                    <span class="hidden lg:block text-sm font-medium text-zinc-600 max-w-[100px] truncate">
                         {{ auth()->user()->name }}
                     </span>
-                    <svg class="size-3.5 text-white/30 hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="size-3.5 text-zinc-400 hidden lg:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
@@ -423,15 +420,15 @@
              class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
              style="display: none;">
             <div @click.outside="open = false"
-                 class="max-w-md w-[92vw] rounded-2xl border border-white/15 bg-[#0D0D1A] p-6 shadow-2xl">
-                <h3 class="text-lg font-semibold text-white">Connect your first page</h3>
-                <p class="mt-2 text-sm text-white/60">
+                 class="max-w-md w-[92vw] rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl">
+                <h3 class="text-lg font-semibold text-zinc-900">Connect your first page</h3>
+                <p class="mt-2 text-sm text-zinc-500">
                     To see messages, contacts, and analytics, first connect at least one platform
                     (Facebook, Instagram, WhatsApp, Telegram, or Email).
                 </p>
                 <div class="mt-5 flex justify-end gap-2">
                     <button type="button" @click="open = false"
-                            class="rounded-lg px-3 py-2 text-sm text-white/60 hover:text-white transition-colors">
+                            class="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 transition-colors">
                         Cancel
                     </button>
                     <a href="{{ route('connections.index') }}" wire:navigate.hover @click="open = false"

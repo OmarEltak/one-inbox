@@ -2,7 +2,7 @@
     {{-- Page Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ __('Contacts') }}</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Contacts') }}</h1>
             <p class="mt-1 text-sm text-white/40">{{ __('Manage your leads across all connected pages.') }}</p>
         </div>
         <div class="flex items-center gap-3">

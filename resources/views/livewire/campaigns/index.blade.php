@@ -1,7 +1,7 @@
 <div class="p-6 space-y-6" x-data="{ tab: 'all' }">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ __('Campaigns') }}</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Campaigns') }}</h1>
             <p class="mt-1 text-sm text-white/40">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
         </div>
         <div class="flex items-center gap-2">

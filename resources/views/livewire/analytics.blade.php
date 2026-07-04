@@ -32,7 +32,7 @@
             {{-- Header with period selector --}}
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-white">{{ __('Analytics') }}</h1>
+                    <h1 class="text-2xl font-bold text-zinc-900">{{ __('Analytics') }}</h1>
                     <p class="mt-1 text-sm text-white/40">{{ __('AI performance and sales insights') }}</p>
                 </div>
                 <div class="flex gap-0.5 rounded-xl p-1" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
