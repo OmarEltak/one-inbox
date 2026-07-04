@@ -22,15 +22,15 @@
     @endif
 
     {{-- Head Admin Info --}}
-    <div class="mb-6 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 bg-zinc-50 dark:bg-zinc-800/50">
+    <div class="mb-6 rounded-xl border border-zinc-200 p-4 bg-zinc-50">
         <div class="flex items-center gap-3">
             <flux:avatar :name="auth()->user()->currentTeam->owner->name" />
             <div>
                 <div class="flex items-center gap-2">
-                    <flux:heading size="sm">{{ auth()->user()->currentTeam->owner->name }}</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-900">{{ auth()->user()->currentTeam->owner->name }}</flux:heading>
                     <flux:badge color="yellow" size="sm">Head Admin</flux:badge>
                 </div>
-                <flux:text size="xs">{{ auth()->user()->currentTeam->owner->email }} &middot; Full access to everything</flux:text>
+                <flux:text size="xs" class="text-zinc-600">{{ auth()->user()->currentTeam->owner->email }} &middot; Full access to everything</flux:text>
             </div>
         </div>
     </div>
@@ -49,8 +49,8 @@
                         <div class="flex items-center gap-3 min-w-0">
                             <flux:avatar :name="$admin->name" />
                             <div class="min-w-0">
-                                <flux:heading size="sm">{{ $admin->name }}</flux:heading>
-                                <flux:text size="xs">{{ $admin->email }}</flux:text>
+                                <flux:heading size="sm" class="text-zinc-900">{{ $admin->name }}</flux:heading>
+                                <flux:text size="xs" class="text-zinc-600">{{ $admin->email }}</flux:text>
                                 <div class="flex flex-wrap gap-1 mt-2">
                                     @forelse($admin->pivot->permissions as $perm)
                                         <flux:badge color="blue" size="sm">{{ \App\Livewire\Settings\AdminManagement::PERMISSIONS[$perm] ?? $perm }}</flux:badge>
