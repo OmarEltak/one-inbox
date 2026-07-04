@@ -31,15 +31,20 @@
             />
 
             <!-- Password -->
-            <flux:input
-                name="password"
-                :label="__('Password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                :placeholder="__('Password')"
-                viewable
-            />
+            <div class="flex flex-col gap-1">
+                <flux:input
+                    name="password"
+                    :label="__('Password')"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    :placeholder="__('Password')"
+                    viewable
+                />
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                    {{ __('Password must contain at least one uppercase letter, one lowercase letter, and one number.') }}
+                </p>
+            </div>
 
             <!-- Confirm Password -->
             <flux:input
