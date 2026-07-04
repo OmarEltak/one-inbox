@@ -23,6 +23,7 @@
         "webklex/laravel-imap": "*"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "*",
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^2.1",
         "laravel/pail": "^1.2.2",

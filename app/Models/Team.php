@@ -34,6 +34,8 @@ class Team extends Model
         'owner_id',
         'subscription_plan',
         'subscription_status',
+        'lemon_squeezy_id',
+        'lemon_squeezy_customer_id',
         'ai_enabled',
         'ai_disabled_at',
         'ai_credits_used',

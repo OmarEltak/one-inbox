@@ -178,6 +178,17 @@ return [
     | EvolutionApiService now routes here behind the scenes; the class will
     | be renamed to WhatsAppGatewayService in a follow-up.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Lemon Squeezy (Billing / MoR)
+    |--------------------------------------------------------------------------
+    */
+    'lemonsqueezy' => [
+        'webhook_secret'     => env('LEMONSQUEEZY_WEBHOOK_SECRET', ''),
+        'starter_checkout'   => env('LEMONSQUEEZY_STARTER_CHECKOUT', 'https://ot1pro.lemonsqueezy.com/checkout/buy/0b9fdfb5-56d1-4f07-b159-505b00dd3d42'),
+        'pro_checkout'       => env('LEMONSQUEEZY_PRO_CHECKOUT', 'https://ot1pro.lemonsqueezy.com/checkout/buy/6646edff-0eea-414c-9e3f-0f9b37a3a0f1'),
+    ],
+
     'wuzapi' => [
         'url'         => env('WUZAPI_URL', 'http://localhost:8082'),
         'admin_token' => env('WUZAPI_ADMIN_TOKEN', ''),

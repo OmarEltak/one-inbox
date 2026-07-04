@@ -18,6 +18,11 @@ Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('terms', 'pages.terms')->name('terms');
 Route::view('refund', 'pages.refund')->name('refund');
+
+// Billing checkout — redirects authenticated users to Lemon Squeezy with team_id pre-filled
+Route::middleware('auth')->get('/billing/checkout/{plan}', [\App\Http\Controllers\Billing\CheckoutController::class, 'redirect'])
+    ->name('billing.checkout')
+    ->where('plan', 'starter|pro');
 Route::view('pricing', 'pages.pricing')->name('pricing');
 Route::view('features', 'pages.features')->name('features');
 

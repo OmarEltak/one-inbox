@@ -11,6 +11,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +48,35 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureDefaults();
         $this->configureRateLimiting();
+        $this->registerSlowQueryLogger();
+    }
+
+    /**
+     * Log any single query slower than SLOW_QUERY_MS (default 200ms) to
+     * storage/logs/slow-queries.log. Opt-in via env so prod stays quiet
+     * unless we're actively hunting a bottleneck.
+     */
+    protected function registerSlowQueryLogger(): void
+    {
+        if (! env('SLOW_QUERY_LOG', false)) {
+            return;
+        }
+
+        $threshold = (int) env('SLOW_QUERY_MS', 200);
+
+        DB::listen(function ($query) use ($threshold) {
+            if ($query->time < $threshold) {
+                return;
+            }
+
+            $path = request()?->path() ?? 'cli';
+            $sql  = $query->sql;
+
+            Log::channel('slow_queries')->info(
+                sprintf('[%s ms] %s  ::  %s', number_format($query->time, 1), $path, $sql),
+                ['bindings' => $query->bindings]
+            );
+        });
     }
 
     protected function configureRateLimiting(): void

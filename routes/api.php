@@ -45,6 +45,9 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
     // Spec: https://developers.facebook.com/docs/development/create-an-app/app-dashboard/data-deletion-callback
     Route::post('/meta/data-deletion', [\App\Http\Controllers\Webhooks\MetaDataDeletionController::class, 'callback'])
         ->name('webhooks.meta.data-deletion');
+
+    Route::post('/lemonsqueezy', [\App\Http\Controllers\Webhooks\LemonSqueezyWebhookController::class, 'handle'])
+        ->name('webhooks.lemonsqueezy');
 });
 
 // WebChat widget — public endpoints called by widget.js on customers' sites.
