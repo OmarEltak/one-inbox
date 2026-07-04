@@ -20,7 +20,7 @@
    x-on:livewire:morph.window="onNewContent()">
 
     {{-- Header --}}
-    <div class="px-6 py-4" style="border-bottom: 1px solid rgba(255,255,255,0.07);">
+    <div class="px-6 py-4 border-b border-zinc-200">
         <div class="flex items-center gap-3">
             <div class="size-9 rounded-xl flex items-center justify-center"
                  style="background: linear-gradient(135deg, #7C3AED, #06B6D4); box-shadow: 0 0 16px rgba(124,58,237,0.35);">
@@ -29,10 +29,10 @@
                 </svg>
             </div>
             <div>
-                <h2 class="text-base font-bold text-white">{{ __('Marketing & Analytics Assistant') }}</h2>
+                <h2 class="text-base font-bold text-zinc-900">{{ __('Marketing & Analytics Assistant') }}</h2>
                 <div class="flex items-center gap-1.5 mt-0.5">
                     <span class="size-1.5 rounded-full bg-green-400"></span>
-                    <span class="text-xs text-white/35">{{ __('Manages campaigns, outreach & analytics') }}</span>
+                    <span class="text-xs text-zinc-500">{{ __('Manages campaigns, outreach & analytics') }}</span>
                 </div>
             </div>
         </div>
@@ -58,17 +58,17 @@
                     </svg>
                 </div>
 
-                <h2 class="text-2xl font-bold text-white/80 mb-2">{{ __('Marketing & Analytics Assistant') }}</h2>
-                <p class="text-white/40 text-sm mb-1">{{ __('Powered by AI') }}</p>
-                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#1e2536] text-xs text-white/40 mb-8">
+                <h2 class="text-2xl font-bold text-zinc-800 mb-2">{{ __('Marketing & Analytics Assistant') }}</h2>
+                <p class="text-zinc-500 text-sm mb-1">{{ __('Powered by AI') }}</p>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-zinc-100 text-xs text-zinc-500 mb-8">
                     <span class="size-1.5 rounded-full bg-green-400"></span>
                     {{ __('AI Assistant') }}
                 </span>
 
                 {{-- Welcome message box --}}
                 <div class="w-full rounded-xl aio-card p-5 mb-8 text-left">
-                    <p class="text-sm text-white/80 font-medium mb-3">{{ __('I can help you with:') }}</p>
-                    <ul class="space-y-2 text-sm text-white/40">
+                    <p class="text-sm text-zinc-700 font-medium mb-3">{{ __('I can help you with:') }}</p>
+                    <ul class="space-y-2 text-sm text-zinc-500">
                         <li class="flex items-center gap-2">
                             <span class="size-1.5 rounded-full bg-[#3b82f6]"></span>
                             {{ __('Analyzing campaign performance and reply rates') }}
@@ -106,8 +106,8 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-white/80">Campaign overview</p>
-                            <p class="text-xs text-white/40">Performance & stats</p>
+                            <p class="text-xs font-medium text-zinc-700">Campaign overview</p>
+                            <p class="text-xs text-zinc-500">Performance & stats</p>
                         </div>
                     </button>
 
@@ -121,8 +121,8 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-white/80">Blast hot leads</p>
-                            <p class="text-xs text-white/40">Targeted outreach</p>
+                            <p class="text-xs font-medium text-zinc-700">Blast hot leads</p>
+                            <p class="text-xs text-zinc-500">Targeted outreach</p>
                         </div>
                     </button>
 
@@ -136,8 +136,8 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-white/80">Weekly analysis</p>
-                            <p class="text-xs text-white/40">Insights & tips</p>
+                            <p class="text-xs font-medium text-zinc-700">Weekly analysis</p>
+                            <p class="text-xs text-zinc-500">Insights & tips</p>
                         </div>
                     </button>
 
@@ -151,8 +151,8 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-xs font-medium text-white/80">Hot leads</p>
-                            <p class="text-xs text-white/40">Top opportunities</p>
+                            <p class="text-xs font-medium text-zinc-700">Hot leads</p>
+                            <p class="text-xs text-zinc-500">Top opportunities</p>
                         </div>
                     </button>
                 </div>
@@ -185,7 +185,7 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-[#161b27] border border-white/15 px-4 py-2.5 text-sm text-white/80">
+                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-2.5 text-sm text-zinc-800">
                                 {!! nl2br(e($msg['content'])) !!}
                             </div>
                         </div>
@@ -201,7 +201,7 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="rounded-2xl rounded-bl-md bg-[#161b27] border border-white/15 px-4 py-3">
+                    <div class="rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-3">
                         <div class="flex items-center gap-1">
                             <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.3s]"></div>
                             <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.15s]"></div>
@@ -225,13 +225,13 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-semibold text-amber-400 mb-0.5">{{ __('Confirm action') }}</p>
-                        <p class="text-xs text-white/60 truncate">{{ $pendingActionSummary }}</p>
+                        <p class="text-xs text-zinc-600 truncate">{{ $pendingActionSummary }}</p>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <button
                             wire:click="cancelAction"
                             wire:loading.attr="disabled"
-                            class="px-3 py-1.5 rounded-lg text-xs font-medium text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors cursor-pointer"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer"
                         >
                             {{ __('Cancel') }}
                         </button>
@@ -251,17 +251,17 @@
     @endif
 
     {{-- Input Bar --}}
-    <div class="border-t border-white/15 px-6 py-4">
+    <div class="border-t border-zinc-200 px-6 py-4">
         <div class="mx-auto max-w-3xl">
             @if($attachment)
-                <div class="mb-2 flex items-center gap-2 rounded-lg bg-[#161b27] border border-white/15 px-3 py-2">
+                <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
                     @if(str_starts_with($attachment->getMimeType(), 'image/'))
                         <img src="{{ $attachment->temporaryUrl() }}" class="h-12 w-12 rounded object-cover" alt="Preview" />
                     @else
-                        <flux:icon name="document" class="h-8 w-8 text-white/40" />
+                        <flux:icon name="document" class="h-8 w-8 text-zinc-400" />
                     @endif
-                    <span class="flex-1 truncate text-sm text-white/80">{{ $attachment->getClientOriginalName() }}</span>
-                    <button type="button" wire:click="removeAttachment" class="text-white/40 hover:text-red-400 cursor-pointer">
+                    <span class="flex-1 truncate text-sm text-zinc-700">{{ $attachment->getClientOriginalName() }}</span>
+                    <button type="button" wire:click="removeAttachment" class="text-zinc-400 hover:text-red-400 cursor-pointer">
                         <flux:icon name="x-mark" class="h-4 w-4" />
                     </button>
                 </div>
@@ -269,10 +269,10 @@
             <form wire:submit="sendMessage" class="flex items-end gap-2" x-data="emojiPicker('message')">
                 <input type="file" wire:model="attachment" class="hidden" x-ref="fileInput"
                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
-                <button type="button" @click="$refs.fileInput.click()" class="flex-shrink-0 text-white/40 hover:text-white/80 cursor-pointer p-1 mb-1.5 transition-colors">
+                <button type="button" @click="$refs.fileInput.click()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-700 cursor-pointer p-1 mb-1.5 transition-colors">
                     <flux:icon name="paper-clip" class="h-5 w-5" />
                 </button>
-                <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 text-white/40 hover:text-white/80 cursor-pointer p-1 mb-1.5 transition-colors">
+                <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-700 cursor-pointer p-1 mb-1.5 transition-colors">
                     <flux:icon name="face-smile" class="h-5 w-5" />
                 </button>
                 <div class="flex-1" x-ref="textInput">

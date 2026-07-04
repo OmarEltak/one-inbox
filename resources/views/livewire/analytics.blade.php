@@ -35,13 +35,13 @@
                     <h1 class="text-2xl font-bold text-zinc-900">{{ __('Analytics') }}</h1>
                     <p class="mt-1 text-sm text-white/40">{{ __('AI performance and sales insights') }}</p>
                 </div>
-                <div class="flex gap-0.5 rounded-xl p-1" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
+                <div class="flex gap-0.5 rounded-xl p-1 bg-zinc-100 border border-zinc-200">
                     @foreach(['7' => '7d', '14' => '14d', '30' => '30d', '90' => '90d'] as $value => $label)
                         <button
                             wire:click="$set('period', '{{ $value }}')"
                             wire:loading.attr="disabled"
                             wire:target="$set('period', '{{ $value }}')"
-                            class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all {{ $period === $value ? 'text-white shadow-sm' : 'text-white/35 hover:text-white/60' }} disabled:opacity-60 disabled:cursor-wait"
+                            class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all {{ $period === $value ? 'text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800' }} disabled:opacity-60 disabled:cursor-wait"
                             @if($period === $value) style="background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 2px 8px rgba(124,58,237,0.3);" @endif
                         >
                             <span wire:loading.remove wire:target="$set('period', '{{ $value }}')">{{ $label }}</span>
@@ -57,13 +57,13 @@
             {{-- Page selector: only currently-connected pages appear. Default is all-selected. --}}
             @if($activePages->count() > 0)
                 <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-semibold text-white/40 uppercase tracking-widest mr-1">{{ __('Pages') }}</span>
+                    <span class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mr-1">{{ __('Pages') }}</span>
                     @if($activePages->count() > 1)
                         @php $allSelected = count($selectedPageIds) === $activePages->count(); @endphp
                         <button
                             wire:click="selectAllPages"
                             wire:loading.attr="disabled"
-                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-purple-500/60 bg-purple-500/15 text-white' : 'border-white/15 text-white/50 hover:text-white/80 hover:border-white/30' }}"
+                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
                         >
                             {{ __('All') }}
                         </button>
@@ -74,7 +74,7 @@
                             wire:click="togglePage({{ $page->id }})"
                             wire:loading.attr="disabled"
                             wire:target="togglePage({{ $page->id }})"
-                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-purple-500/60 bg-purple-500/15 text-white' : 'border-white/15 text-white/50 hover:text-white/80 hover:border-white/30' }}"
+                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
                             title="{{ ucfirst($page->platform) }} — {{ $page->name }}"
                         >
                             <span class="size-2 rounded-full {{ $chipPlatformColors[$page->platform] ?? 'bg-gray-400' }}"></span>

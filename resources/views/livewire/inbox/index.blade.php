@@ -64,7 +64,7 @@
                 {{-- Label filters — collapsed into a dropdown --}}
                 @php $activeLabel = collect(\App\Livewire\Inbox\Index::LABELS)->keys()->contains($filter) ? $filter : null; @endphp
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-zinc-700 border-zinc-500 text-white' : 'border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800' }}">
+                    <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-violet-600 border-violet-600 text-white' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100' }}">
                         {{ $activeLabel ? ucfirst($activeLabel) : 'Labels' }}
                         <svg class="w-3 h-3 transition-transform" x-bind:class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>

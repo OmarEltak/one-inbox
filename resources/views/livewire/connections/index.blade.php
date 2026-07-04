@@ -46,12 +46,12 @@
     @unless($metaVerified)
         <div class="mb-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
             <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM9.401 19.5h5.198a2.25 2.25 0 002.026-3.247L13.426 4.252a2.25 2.25 0 00-3.852 0L4.974 16.253A2.25 2.25 0 007 19.5h2.401z" /></svg>
+                <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM9.401 19.5h5.198a2.25 2.25 0 002.026-3.247L13.426 4.252a2.25 2.25 0 00-3.852 0L4.974 16.253A2.25 2.25 0 007 19.5h2.401z" /></svg>
                 <div class="text-sm">
-                    <p class="font-medium text-amber-200">Facebook &amp; Instagram are on managed onboarding</p>
-                    <p class="text-amber-200/70 mt-1">
+                    <p class="font-medium text-amber-800">Facebook &amp; Instagram are on managed onboarding</p>
+                    <p class="text-amber-700 mt-1">
                         While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add
-                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-100">our account</a>
+                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-900">our account</a>
                         as an admin to your page, then click "Request connection" below. We'll set it up within 24 hours.
                         Telegram, Email, Slack and Discord are self-serve as usual.
                     </p>
@@ -548,8 +548,7 @@
 
             <details class="{{ $emailAccounts->isNotEmpty() ? 'mt-3' : '' }} group">
                 <summary class="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-semibold cursor-pointer select-none list-none
-                                text-white border border-white/[0.12] hover:border-orange-500/50 hover:bg-orange-500/5 transition-all"
-                         style="background: rgba(255,255,255,0.04);">
+                                text-zinc-700 border border-zinc-200 hover:border-orange-500/50 hover:bg-orange-50 transition-all bg-zinc-50">
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -559,18 +558,18 @@
                 <div class="mt-3 space-y-4">
 
                     {{-- Gmail steps --}}
-                    <div class="rounded-xl border border-white/15 overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/15" style="background: rgba(234,67,53,0.08);">
+                    <div class="rounded-xl border border-zinc-200 overflow-hidden bg-white">
+                        <div class="flex items-center gap-2 px-4 py-3 border-b border-zinc-200" style="background: rgba(234,67,53,0.06);">
                             <svg class="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style="color:#EA4335;">
                                 <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 010 19.366V5.457c0-.886.716-1.542 1.601-1.542.49 0 .918.206 1.226.54L12 11.73l9.173-7.274c.308-.335.737-.541 1.226-.541.885 0 1.601.656 1.601 1.542z"/>
                             </svg>
-                            <span class="text-xs font-semibold text-white/70">Gmail setup — 2 steps</span>
+                            <span class="text-xs font-semibold text-zinc-600">Gmail setup — 2 steps</span>
                         </div>
                         <div class="px-4 py-3 space-y-2.5">
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#EA4335;">1</span>
                                 <div>
-                                    <p class="text-xs text-white/70 font-medium">Enable 2-Step Verification</p>
+                                    <p class="text-xs text-zinc-700 font-medium">Enable 2-Step Verification</p>
                                     <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] text-[#4285F4] hover:underline mt-0.5">
                                         myaccount.google.com → Security → 2-Step Verification
@@ -581,31 +580,31 @@
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#EA4335;">2</span>
                                 <div>
-                                    <p class="text-xs text-white/70 font-medium">Create an App Password</p>
+                                    <p class="text-xs text-zinc-700 font-medium">Create an App Password</p>
                                     <a href="https://myaccount.google.com/apppasswords" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] text-[#4285F4] hover:underline mt-0.5">
                                         myaccount.google.com → App Passwords
                                         <svg class="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     </a>
-                                    <p class="text-[11px] text-white/30 mt-0.5">Select app: "Mail" → generate → copy the 16-char password</p>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Select app: "Mail" → generate → copy the 16-char password</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Outlook steps --}}
-                    <div class="rounded-xl border border-white/15 overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/15" style="background: rgba(0,120,212,0.08);">
+                    <div class="rounded-xl border border-zinc-200 overflow-hidden bg-white">
+                        <div class="flex items-center gap-2 px-4 py-3 border-b border-zinc-200" style="background: rgba(0,120,212,0.06);">
                             <svg class="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style="color:#0078D4;">
                                 <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.86t.1-.87q.1-.43.34-.76.22-.34.59-.54.36-.2.87-.2t.86.2q.35.21.57.55.22.34.32.77.1.43.1.88zM24 12v9.38q0 .46-.33.8-.33.32-.8.32H7.13q-.46 0-.8-.33-.32-.33-.32-.8V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h6.1V2.55q0-.44.3-.75.3-.3.75-.3h12.9q.44 0 .75.3.3.3.3.75V10.85l1.24.72q.07.04.07.13z"/>
                             </svg>
-                            <span class="text-xs font-semibold text-white/70">Outlook / Hotmail setup</span>
+                            <span class="text-xs font-semibold text-zinc-600">Outlook / Hotmail setup</span>
                         </div>
                         <div class="px-4 py-3 space-y-2.5">
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#0078D4;">1</span>
                                 <div>
-                                    <p class="text-xs text-white/70 font-medium">Enable IMAP access</p>
+                                    <p class="text-xs text-zinc-700 font-medium">Enable IMAP access</p>
                                     <a href="https://outlook.live.com/mail/0/options/mail/accounts/popImap" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] text-[#4285F4] hover:underline mt-0.5">
                                         Outlook Settings → Mail → Sync → POP and IMAP
@@ -615,26 +614,24 @@
                             </div>
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#0078D4;">2</span>
-                                <p class="text-xs text-white/60 pt-0.5">Use your regular Outlook password below. No app password needed.</p>
+                                <p class="text-xs text-zinc-500 pt-0.5">Use your regular Outlook password below. No app password needed.</p>
                             </div>
                         </div>
                     </div>
 
                     {{-- The form --}}
-                    <form method="POST" action="{{ route('connections.email.connect') }}" class="space-y-3 rounded-xl border border-white/15 p-4" style="background: rgba(255,255,255,0.02);">
+                    <form method="POST" action="{{ route('connections.email.connect') }}" class="space-y-3 rounded-xl border border-zinc-200 p-4 bg-zinc-50">
                         @csrf
-                        <p class="text-xs font-semibold text-white/60">Enter your credentials</p>
+                        <p class="text-xs font-semibold text-zinc-600">Enter your credentials</p>
                         <div>
-                            <label class="block text-xs font-medium text-white/40 mb-1">Email Address</label>
+                            <label class="block text-xs font-medium text-zinc-500 mb-1">Email Address</label>
                             <input type="email" name="email" placeholder="you@gmail.com" required
-                                   class="w-full rounded-lg px-3 py-2 text-sm text-white/80 placeholder-white/20 focus:outline-none"
-                                   style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" />
+                                   class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-violet-400" />
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-white/40 mb-1">Password / App Password</label>
+                            <label class="block text-xs font-medium text-zinc-500 mb-1">Password / App Password</label>
                             <input type="password" name="password" placeholder="Paste the 16-char app password here" required
-                                   class="w-full rounded-lg px-3 py-2 text-sm text-white/80 placeholder-white/20 focus:outline-none"
-                                   style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" />
+                                   class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-violet-400" />
                         </div>
                         <button type="submit"
                                 class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary">
@@ -651,11 +648,11 @@
     {{-- Connected Pages & Accounts Table --}}
     @if($this->pages->isNotEmpty())
         <div class="aio-card rounded-2xl overflow-hidden">
-            <div class="px-5 py-4 border-b border-white/15">
-                <h3 class="font-semibold text-white/80">Connected Pages & Accounts</h3>
-                <p class="text-xs text-white/40 mt-0.5">All active pages receiving messages</p>
+            <div class="px-5 py-4 border-b border-zinc-100">
+                <h3 class="font-semibold text-zinc-800">Connected Pages & Accounts</h3>
+                <p class="text-xs text-zinc-500 mt-0.5">All active pages receiving messages</p>
             </div>
-            <div class="divide-y divide-[#1e2536]">
+            <div class="divide-y divide-zinc-100">
                 @foreach($this->pages as $page)
                     <div class="flex items-center gap-4 px-5 py-3">
                         <div class="size-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 {{ match($page->platform) {
@@ -671,8 +668,8 @@
                             {{ strtoupper(substr($page->platform, 0, 1)) }}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white/80 truncate">{{ $page->name }}</p>
-                            <p class="text-xs text-white/40">{{ ucfirst($page->platform) }} {{ isset($page->metadata['category']) ? '· ' . $page->metadata['category'] : '' }}</p>
+                            <p class="text-sm font-medium text-zinc-800 truncate">{{ $page->name }}</p>
+                            <p class="text-xs text-zinc-500">{{ ucfirst($page->platform) }} {{ isset($page->metadata['category']) ? '· ' . $page->metadata['category'] : '' }}</p>
                             @if(($page->metadata['subscription_error'] ?? null) === 'twofa_required')
                                 <p class="text-xs text-yellow-400 mt-0.5">
                                     ⚠ Not receiving messages — Two-Factor Authentication required on Facebook.

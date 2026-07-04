@@ -3,11 +3,10 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">{{ __('Contacts') }}</h1>
-            <p class="mt-1 text-sm text-white/40">{{ __('Manage your leads across all connected pages.') }}</p>
+            <p class="mt-1 text-sm text-zinc-500">{{ __('Manage your leads across all connected pages.') }}</p>
         </div>
         <div class="flex items-center gap-3">
-            <button class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white/60 hover:text-white/80 transition-colors"
-                    style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
+            <button class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 hover:text-zinc-800 transition-colors border border-zinc-300 bg-white hover:bg-zinc-50">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -18,13 +17,12 @@
 
     {{-- Filters --}}
     <div class="flex flex-wrap gap-3">
-        <div class="flex items-center gap-2 rounded-xl px-3 py-2 flex-1 max-w-xs"
-             style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);">
-            <svg class="size-4 text-white/25 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="flex items-center gap-2 rounded-xl px-3 py-2 flex-1 max-w-xs bg-white border border-zinc-300">
+            <svg class="size-4 text-zinc-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input wire:model.live.debounce.300ms="search" type="text" placeholder="{{ __('Search contacts...') }}"
-                   class="bg-transparent text-sm text-white/70 placeholder-white/25 outline-none w-full" />
+                   class="bg-transparent text-sm text-zinc-700 placeholder-zinc-400 outline-none w-full" />
         </div>
         <flux:select wire:model.live="statusFilter" size="sm" class="w-36">
             <option value="all">{{ __('All Statuses') }}</option>
@@ -77,7 +75,7 @@
                                     </div>
                                 @endif
                                 <div>
-                                    <p class="font-medium text-[#f1f5f9]">{{ $contact->name ?? 'Unknown' }}</p>
+                                    <p class="font-medium text-zinc-900">{{ $contact->name ?? 'Unknown' }}</p>
                                     @if($contact->email)
                                         <p class="text-xs text-[#64748b]">{{ $contact->email }}</p>
                                     @elseif($contact->phone)
@@ -133,7 +131,7 @@
                         {{-- Lead Score: progress bar + number --}}
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3 min-w-[120px]">
-                                <div class="flex-1 bg-[#1e2d44] rounded-full h-1.5">
+                                <div class="flex-1 bg-zinc-200 rounded-full h-1.5">
                                     <div class="h-1.5 rounded-full transition-all {{ match(true) {
                                         $contact->lead_score >= 86 => 'bg-red-400',
                                         $contact->lead_score >= 71 => 'bg-orange-400',
@@ -142,7 +140,7 @@
                                         default => 'bg-slate-500',
                                     } }}" style="width: {{ min($contact->lead_score, 100) }}%"></div>
                                 </div>
-                                <span class="text-sm font-semibold text-[#f1f5f9] w-7 text-right tabular-nums">{{ $contact->lead_score }}</span>
+                                <span class="text-sm font-semibold text-zinc-800 w-7 text-right tabular-nums">{{ $contact->lead_score }}</span>
                             </div>
                         </td>
 
@@ -161,7 +159,7 @@
                 @empty
                     <tr>
                         <td colspan="5" class="px-4 py-14 text-center text-[#64748b]">
-                            <svg class="mx-auto mb-3 size-8 text-[#1e2d44]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="mx-auto mb-3 size-8 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             No contacts found. They appear here when people message your connected pages.
@@ -196,7 +194,7 @@
                         </div>
                     @endif
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-lg font-bold text-[#f1f5f9] truncate">{{ $sc->name ?? 'Unknown' }}</h3>
+                        <h3 class="text-lg font-bold text-zinc-900 truncate">{{ $sc->name ?? 'Unknown' }}</h3>
                         <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                             @if($sc->email)
                                 <span class="text-sm text-[#64748b] flex items-center gap-1">
@@ -268,7 +266,7 @@
 
                 {{-- Score Event History --}}
                 <div>
-                    <p class="text-sm font-semibold text-[#f1f5f9] mb-2">Score History</p>
+                    <p class="text-sm font-semibold text-zinc-800 mb-2">Score History</p>
                     @if($sc->scoreEvents->isEmpty())
                         <p class="text-sm text-[#64748b]">No score events yet.</p>
                     @else
@@ -279,7 +277,7 @@
                                         {{ $event->score_change >= 0 ? '+' : '' }}{{ $event->score_change }}
                                     </span>
                                     <div class="min-w-0">
-                                        <p class="text-[#f1f5f9]">{{ $event->reason }}</p>
+                                        <p class="text-zinc-800">{{ $event->reason }}</p>
                                         <p class="text-[#64748b]">{{ $event->created_at->diffForHumans() }}</p>
                                     </div>
                                 </div>
