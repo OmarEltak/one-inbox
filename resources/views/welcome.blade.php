@@ -251,7 +251,7 @@
     <section class="border-t border-zinc-200 bg-zinc-50 py-24 lg:py-32">
         <div class="mx-auto max-w-7xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">{{ __('Pricing') }}</div>
+                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-violet-600">{{ __('Pricing') }}</div>
                 <h2 class="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
                     {{ __('Flat per workspace. Never per seat.') }}
                 </h2>
@@ -259,67 +259,144 @@
                     {{ __('Start free. Upgrade only when the AI is closing more than your time saves you.') }}
                 </p>
             </div>
-            <div class="mt-16 grid gap-6 lg:grid-cols-3">
 
-                {{-- Free --}}
-                <div class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8">
-                    <div class="text-sm font-semibold uppercase tracking-widest text-zinc-500">{{ __('Free') }}</div>
-                    <div class="mt-5 flex items-baseline gap-2">
-                        <span class="text-5xl font-bold text-zinc-900">$0</span>
-                        <span class="text-sm text-zinc-500">{{ __('forever') }}</span>
-                    </div>
-                    <p class="mt-4 text-sm text-zinc-600">{{ __('For solo operators kicking the tires.') }}</p>
-                    <ul class="mt-8 space-y-3 text-sm">
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('1 workspace · 2 channels') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('500 AI replies / month') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Basic lead scoring') }}</span></li>
-                    </ul>
-                    <a href="{{ route('register') }}" class="mt-10 block rounded-xl border border-zinc-300 px-5 py-3 text-center text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900">
-                        {{ __('Start free') }}
-                    </a>
-                </div>
+            {{-- Scrollable plan cards --}}
+            <div class="mt-16 -mx-6 px-6 overflow-x-auto scrollbar-hide">
+                <div class="flex gap-5 pb-4" style="width: max-content;">
 
-                {{-- Pro (recommended) --}}
-                <div class="relative flex flex-col rounded-2xl border-2 border-indigo-600 bg-white p-8 shadow-md shadow-indigo-100">
-                    <span class="absolute -top-3 left-8 inline-flex items-center rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">{{ __('Most popular') }}</span>
-                    <div class="text-sm font-semibold uppercase tracking-widest text-indigo-600">{{ __('Pro') }}</div>
-                    <div class="mt-5 flex items-baseline gap-2">
-                        <span class="text-5xl font-bold text-zinc-900">$79</span>
-                        <span class="text-sm text-zinc-500">/ {{ __('workspace / month') }}</span>
-                    </div>
-                    <p class="mt-4 text-sm text-zinc-600">{{ __('For operators running real volume.') }}</p>
-                    <ul class="mt-8 space-y-3 text-sm">
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('All 5 channels · unlimited contacts') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Unlimited AI replies') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Advanced AI persona + handoff rules') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Team seats included') }}</span></li>
-                    </ul>
-                    <a href="{{ route('register') }}" class="mt-10 block rounded-xl bg-indigo-600 px-5 py-3 text-center text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
-                        {{ __('Start 14-day trial') }}
-                    </a>
-                </div>
+                    @php
+                    $plans = [
+                        [
+                            'key'     => 'free',
+                            'name'    => 'Free',
+                            'price'   => '$0',
+                            'period'  => 'forever',
+                            'desc'    => 'Try it with no commitment.',
+                            'popular' => false,
+                            'features' => [
+                                '1 connected page',
+                                '50 AI replies / month',
+                                'Unified inbox',
+                                '1 team member',
+                            ],
+                            'cta'     => 'Start for free',
+                            'href'    => route('register'),
+                            'outline' => true,
+                        ],
+                        [
+                            'key'     => 'starter',
+                            'name'    => 'Starter',
+                            'price'   => '$29',
+                            'period'  => '/ mo',
+                            'desc'    => 'Your AI sales rep, 24/7.',
+                            'popular' => false,
+                            'features' => [
+                                '3 connected pages',
+                                '500 AI replies / month',
+                                'All 4 platforms',
+                                'Lead scoring',
+                                '3 team members',
+                            ],
+                            'cta'     => 'Get Starter',
+                            'href'    => route('pay-wire') . '?plan=starter',
+                            'outline' => true,
+                        ],
+                        [
+                            'key'     => 'pro',
+                            'name'    => 'Pro',
+                            'price'   => '$79',
+                            'period'  => '/ mo',
+                            'desc'    => 'Built for teams that close deals.',
+                            'popular' => true,
+                            'features' => [
+                                '5 connected pages',
+                                '2,000 AI replies / month',
+                                'All platforms + TikTok (soon)',
+                                'Advanced analytics',
+                                'AI bulk campaigns',
+                                '10 team members',
+                                'Priority support',
+                            ],
+                            'cta'     => 'Get Pro',
+                            'href'    => route('pay-wire') . '?plan=pro',
+                            'outline' => false,
+                        ],
+                        [
+                            'key'     => 'enterprise',
+                            'name'    => 'Enterprise',
+                            'price'   => 'Custom',
+                            'period'  => '',
+                            'desc'    => 'For agencies & large teams.',
+                            'popular' => false,
+                            'features' => [
+                                'Unlimited pages',
+                                'Unlimited AI replies',
+                                'All platforms',
+                                'Custom AI voice & training',
+                                'White-label option',
+                                'Unlimited team members',
+                                'Dedicated onboarding & SLA',
+                            ],
+                            'cta'     => 'Talk to sales',
+                            'href'    => 'https://wa.me/201026361218?text=' . urlencode('Hi, I\'m interested in an Enterprise plan'),
+                            'outline' => true,
+                        ],
+                    ];
+                    @endphp
 
-                {{-- Agency --}}
-                <div class="flex flex-col rounded-2xl border border-zinc-200 bg-white p-8">
-                    <div class="text-sm font-semibold uppercase tracking-widest text-zinc-500">{{ __('Agency') }}</div>
-                    <div class="mt-5 flex items-baseline gap-2">
-                        <span class="text-5xl font-bold text-zinc-900">{{ __('Custom') }}</span>
-                    </div>
-                    <p class="mt-4 text-sm text-zinc-600">{{ __('For multi-client operations.') }}</p>
-                    <ul class="mt-8 space-y-3 text-sm">
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Unlimited workspaces') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Per-client AI personas + reports') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('White-label exports') }}</span></li>
-                        <li class="flex items-start gap-2"><span class="mt-0.5 text-indigo-600">✓</span> <span class="text-zinc-700">{{ __('Dedicated onboarding') }}</span></li>
-                    </ul>
-                    <a href="{{ route('contact') }}" class="mt-10 block rounded-xl border border-zinc-300 px-5 py-3 text-center text-sm font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900">
-                        {{ __('Talk to us') }}
-                    </a>
+                    @foreach($plans as $plan)
+                        <div class="relative flex flex-col rounded-2xl bg-white p-7 w-72 flex-shrink-0 snap-start
+                            {{ $plan['popular']
+                                ? 'border-2 border-violet-600 shadow-lg shadow-violet-100'
+                                : 'border border-zinc-200 shadow-sm' }}">
+
+                            @if($plan['popular'])
+                                <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-violet-600 px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
+                                    Most popular
+                                </span>
+                            @endif
+
+                            <div class="text-xs font-bold uppercase tracking-widest {{ $plan['popular'] ? 'text-violet-600' : 'text-zinc-400' }}">
+                                {{ $plan['name'] }}
+                            </div>
+
+                            <div class="mt-4 flex items-baseline gap-1.5">
+                                <span class="text-4xl font-bold text-zinc-900">{{ $plan['price'] }}</span>
+                                @if($plan['period'])
+                                    <span class="text-sm text-zinc-500">{{ $plan['period'] }}</span>
+                                @endif
+                            </div>
+
+                            <p class="mt-2 text-sm text-zinc-500">{{ $plan['desc'] }}</p>
+
+                            <ul class="mt-6 space-y-2.5 flex-1">
+                                @foreach($plan['features'] as $feature)
+                                    <li class="flex items-start gap-2 text-sm text-zinc-700">
+                                        <svg class="mt-0.5 size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                        {{ $feature }}
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            <a href="{{ $plan['href'] }}"
+                               @if(str_starts_with($plan['href'], 'https://wa.me')) target="_blank" @endif
+                               class="mt-8 block rounded-xl px-5 py-2.5 text-center text-sm font-semibold transition-all
+                               {{ $plan['popular']
+                                   ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-sm'
+                                   : 'border border-zinc-300 text-zinc-700 hover:border-violet-400 hover:text-violet-700 hover:bg-violet-50' }}">
+                                {{ $plan['cta'] }}
+                            </a>
+                        </div>
+                    @endforeach
+
                 </div>
             </div>
+
             <p class="mx-auto mt-10 max-w-xl text-center text-sm text-zinc-500">
                 {{ __('Full plan details, channel limits, and add-ons') }}
-                <a href="{{ route('pricing') }}" class="font-semibold text-indigo-600 hover:text-indigo-700">{{ __('on the pricing page') }} →</a>
+                <a href="{{ route('pricing') }}" class="font-semibold text-violet-600 hover:text-violet-700">{{ __('on the pricing page') }} →</a>
             </p>
         </div>
     </section>

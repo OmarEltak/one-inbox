@@ -200,15 +200,9 @@
                         </ul>
                     </div>
                     <div class="mt-auto pt-8">
-                        @auth
-                            <a href="{{ route('billing.checkout', 'starter') }}" class="block w-full rounded-lg border border-indigo-300 py-2.5 text-center text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-700 dark:hover:bg-indigo-900/20">
-                                {{ __('Get Started') }}
-                            </a>
-                        @else
-                            <a href="{{ config('services.lemonsqueezy.starter_checkout') }}" target="_blank" class="block w-full rounded-lg border border-indigo-300 py-2.5 text-center text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-700 dark:hover:bg-indigo-900/20">
-                                {{ __('Get Started') }}
-                            </a>
-                        @endauth
+                        <a href="{{ route('pay-wire') }}?plan=starter" class="block w-full rounded-lg border border-violet-400 py-2.5 text-center text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50">
+                            {{ __('Get Started') }}
+                        </a>
                     </div>
                 </div>
 
@@ -252,15 +246,9 @@
                         </ul>
                     </div>
                     <div class="mt-auto pt-8">
-                        @auth
-                            <a href="{{ route('billing.checkout', 'pro') }}" class="block w-full rounded-lg bg-indigo-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
-                                {{ __('Get Started') }}
-                            </a>
-                        @else
-                            <a href="{{ config('services.lemonsqueezy.pro_checkout') }}" target="_blank" class="block w-full rounded-lg bg-indigo-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
-                                {{ __('Get Started') }}
-                            </a>
-                        @endauth
+                        <a href="{{ route('pay-wire') }}?plan=pro" class="block w-full rounded-lg bg-violet-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-violet-700">
+                            {{ __('Get Started') }}
+                        </a>
                     </div>
                 </div>
 

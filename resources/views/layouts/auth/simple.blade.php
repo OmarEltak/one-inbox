@@ -69,7 +69,7 @@
                     <span class="text-lg font-bold text-zinc-900">{{ config('app.name') }}</span>
                 </a>
 
-                <div class="w-full max-w-sm">
+                <div class="w-full max-w-sm auth-form-panel">
                     {{ $slot }}
                 </div>
             </div>

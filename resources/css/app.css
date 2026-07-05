@@ -237,12 +237,17 @@ html:not(.dark) [data-flux-text]    { color: #404040; }
    Target only outline badges (:not(.text-white)) and force high-contrast text. */
 html:not(.dark) [data-flux-badge]:not(.text-white) { color: #1c1c1c; }
 
-/* ── Flux inputs: always-visible border on light backgrounds ──
-   Default border-zinc-200 (#e5e5e5) is near-invisible on white.
-   Bump to zinc-400 (#a3a3a3) so the field is always clearly outlined. */
+/* ── Flux inputs: always-visible border globally ──
+   Default border-zinc-200 (#e5e5e5) is near-invisible on white. */
 html:not(.dark) [data-flux-input] input:not([type="file"]),
 html:not(.dark) [data-flux-input] textarea {
-    border-color: #a3a3a3;
+    border-color: #d4d4d4;
+}
+
+/* ── Auth pages: violet brand border, always on ── */
+.auth-form-panel [data-flux-input] input:not([type="file"]),
+.auth-form-panel [data-flux-input] textarea {
+    border-color: #7c3aed !important;
 }
 
 /* ── Body ── */
@@ -397,6 +402,10 @@ details[open] > :not(summary) { display: revert; }
     border-radius: 100px;
     background: linear-gradient(90deg, #6366F1 0%, #7C3AED 50%, #FB2C36 100%);
 }
+
+/* ── Hide scrollbar (keep scroll) — used in pricing card strip ── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ── Custom scrollbar ── */
 ::-webkit-scrollbar        { width: 4px; height: 4px; }
