@@ -230,12 +230,12 @@
             @endphp
 
             {{-- Arrow nav --}}
-            <div class="mt-16 flex items-center justify-end gap-2">
-                <button onclick="document.getElementById('pricing-track').scrollBy({left:-304,behavior:'smooth'})"
+            <div class="mt-10 sm:mt-16 flex items-center justify-end gap-2">
+                <button onclick="document.getElementById('pricing-track').scrollBy({left:-256,behavior:'smooth'})"
                     class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
                     <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button onclick="document.getElementById('pricing-track').scrollBy({left:304,behavior:'smooth'})"
+                <button onclick="document.getElementById('pricing-track').scrollBy({left:256,behavior:'smooth'})"
                     class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
                     <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
@@ -243,9 +243,9 @@
 
             {{-- Scrollable card strip --}}
             <div id="pricing-track" class="mt-4 -mx-6 px-6 overflow-x-auto scrollbar-hide">
-                <div class="flex gap-5 pb-4 pt-6" style="width: max-content;">
+                <div class="flex gap-4 sm:gap-5 pb-4 pt-6" style="width: max-content;">
                     @foreach($pricingPlans as $plan)
-                        <div class="relative w-72 flex-shrink-0 snap-start rounded-2xl border bg-white p-8 flex flex-col
+                        <div class="relative w-56 sm:w-64 md:w-72 flex-shrink-0 snap-start rounded-2xl border bg-white p-5 sm:p-7 flex flex-col
                             {{ $plan['popular'] ? 'border-2 border-violet-600' : 'border-zinc-200' }}">
 
                             @if($plan['popular'])
@@ -257,15 +257,15 @@
                             <div class="flex-1">
                                 <h3 class="text-lg font-semibold text-zinc-900">{{ __($plan['name']) }}</h3>
                                 <p class="mt-1 text-sm text-zinc-500">{{ __($plan['tagline']) }}</p>
-                                <p class="mt-6">
-                                    <span class="text-4xl font-bold text-zinc-900">{{ $plan['price'] }}</span>
+                                <p class="mt-4 sm:mt-6">
+                                    <span class="text-3xl sm:text-4xl font-bold text-zinc-900">{{ $plan['price'] }}</span>
                                     @if($plan['price'] !== 'Custom')
                                         <span class="text-zinc-500">/{{ __('mo') }}</span>
                                     @endif
                                 </p>
                                 <p class="mt-1 text-xs text-zinc-500">{{ __($plan['note']) }}</p>
 
-                                <ul class="mt-8 space-y-3 text-sm text-zinc-600">
+                                <ul class="mt-5 sm:mt-8 space-y-2 sm:space-y-3 text-sm text-zinc-600">
                                     @foreach($plan['features'] as $feature)
                                         <li class="flex items-center gap-2">
                                             <svg class="size-4 shrink-0 text-{{ $plan['check'] }}-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -277,7 +277,7 @@
                                 </ul>
                             </div>
 
-                            <div class="mt-auto pt-8">
+                            <div class="mt-auto pt-5 sm:pt-8">
                                 @if($plan['cta_style'] === 'primary')
                                     <a href="{{ $plan['cta_href'] }}" class="block w-full rounded-lg bg-violet-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-violet-700">
                                         {{ __($plan['cta_label']) }}
