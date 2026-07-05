@@ -17,28 +17,28 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">{{ __('Connections') }}</h1>
-            <p class="mt-1 text-sm text-white/40">{{ __('Connect your social media accounts to start receiving messages.') }}</p>
+            <p class="mt-1 text-sm text-zinc-500">{{ __('Connect your social media accounts to start receiving messages.') }}</p>
         </div>
     </div>
 
     {{-- Flash Messages --}}
     @if(session('success'))
-        <div class="mb-4 rounded-xl border border-green-500/30 bg-green-500/10 p-4">
-            <p class="text-sm text-green-400">{{ session('success') }}</p>
+        <div class="mb-4 rounded-xl border border-green-300 bg-green-50 p-4">
+            <p class="text-sm font-medium text-green-700">{{ session('success') }}</p>
         </div>
     @endif
     @if(session('syncing'))
-        <div class="mb-6 rounded-xl border border-[#3b82f6]/30 bg-[#3b82f6]/10 p-4 flex items-center gap-3">
-            <svg class="w-4 h-4 text-[#3b82f6] animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+        <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-center gap-3">
+            <svg class="w-4 h-4 text-blue-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
-            <p class="text-sm text-[#3b82f6]">Syncing conversations in the background — this may take a minute. Check your inbox shortly.</p>
+            <p class="text-sm text-blue-700">Syncing conversations in the background — this may take a minute. Check your inbox shortly.</p>
         </div>
     @endif
     @if(session('error'))
-        <div class="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-            <p class="text-sm text-red-400">{{ session('error') }}</p>
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+            <p class="text-sm font-medium text-red-700">{{ session('error') }}</p>
         </div>
     @endif
 
@@ -128,11 +128,11 @@
                     </flux:button>
                 @elseif(isset($this->openOnboardingByPlatform['facebook']))
                     @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
-                    <div class="rounded-lg bg-blue-500/10 border border-blue-500/30 p-3 text-xs">
-                        <p class="text-blue-300 font-medium capitalize">
+                    <div class="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs">
+                        <p class="text-blue-700 font-semibold capitalize">
                             {{ str_replace('_', ' ', $fbReq->status) }}
                         </p>
-                        <p class="text-blue-300/70 mt-0.5">Requested {{ $fbReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
+                        <p class="text-blue-600 mt-0.5">Requested {{ $fbReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" class="w-full">
@@ -210,11 +210,11 @@
                     </flux:button>
                 @elseif(isset($this->openOnboardingByPlatform['instagram']))
                     @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
-                    <div class="rounded-lg bg-purple-500/10 border border-purple-500/30 p-3 text-xs">
-                        <p class="text-purple-300 font-medium capitalize">
+                    <div class="rounded-lg bg-purple-50 border border-purple-200 p-3 text-xs">
+                        <p class="text-purple-700 font-semibold capitalize">
                             {{ str_replace('_', ' ', $igReq->status) }}
                         </p>
-                        <p class="text-purple-300/70 mt-0.5">Requested {{ $igReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
+                        <p class="text-purple-600 mt-0.5">Requested {{ $igReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
