@@ -27,8 +27,8 @@ class PayWire extends Component
 
     public function mount(): void
     {
-        $plan = request()->query('plan', 'starter');
-        $this->plan = in_array($plan, ['starter', 'pro'], true) ? $plan : 'starter';
+        $plan = request()->query('plan', 'basic');
+        $this->plan = in_array($plan, ['basic', 'starter', 'pro'], true) ? $plan : 'basic';
 
         if (auth()->check()) {
             $this->email     = auth()->user()->email;
@@ -41,7 +41,7 @@ class PayWire extends Component
         $this->validate([
             'full_name'    => ['required', 'string', 'max:255'],
             'email'        => ['required', 'email', 'max:255'],
-            'plan'         => ['required', 'in:starter,pro'],
+            'plan'         => ['required', 'in:basic,starter,pro'],
             'bank_name'    => ['required', 'string', 'max:255'],
             'bank_country' => ['required', 'string', 'max:255'],
             'txid'         => ['nullable', 'string', 'max:255'],
@@ -61,7 +61,11 @@ class PayWire extends Component
             'receipt_path' => $path,
         ]);
 
-        $planLabel = $this->plan === 'pro' ? 'Pro ($79/mo)' : 'Starter ($29/mo)';
+        $planLabel = match ($this->plan) {
+            'pro'     => 'Pro ($79/mo)',
+            'starter' => 'Starter ($29/mo)',
+            default   => 'Basic ($8/mo)',
+        };
 
         try {
             Mail::raw(

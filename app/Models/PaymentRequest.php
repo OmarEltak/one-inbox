@@ -30,6 +30,7 @@ class PaymentRequest extends Model
     public function planLabel(): string
     {
         return match ($this->plan) {
+            'basic'   => 'Basic — $8/mo',
             'starter' => 'Starter — $29/mo',
             'pro'     => 'Pro — $79/mo',
             default   => ucfirst($this->plan),

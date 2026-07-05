@@ -96,6 +96,7 @@
                         </div>
 
                         <flux:select label="Plan you're subscribing to" wire:model="plan">
+                            <option value="basic">Basic — $8/month</option>
                             <option value="starter">Starter — $29/month</option>
                             <option value="pro">Pro — $79/month</option>
                         </flux:select>

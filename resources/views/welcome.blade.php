@@ -262,7 +262,7 @@
 
             {{-- Scrollable plan cards --}}
             <div class="mt-16 -mx-6 px-6 overflow-x-auto scrollbar-hide">
-                <div class="flex gap-5 pb-4" style="width: max-content;">
+                <div class="flex gap-5 pb-4 pt-6" style="width: max-content;">
 
                     @php
                     $plans = [
@@ -275,12 +275,29 @@
                             'popular' => false,
                             'features' => [
                                 '1 connected page',
-                                '50 AI replies / month',
+                                '20 AI replies / month',
                                 'Unified inbox',
                                 '1 team member',
                             ],
                             'cta'     => 'Start for free',
                             'href'    => route('register'),
+                            'outline' => true,
+                        ],
+                        [
+                            'key'     => 'basic',
+                            'name'    => 'Basic',
+                            'price'   => '$8',
+                            'period'  => '/ mo',
+                            'desc'    => 'Just enough AI to get started.',
+                            'popular' => false,
+                            'features' => [
+                                '1 connected page',
+                                '100 AI replies / month',
+                                'Unified inbox',
+                                '1 team member',
+                            ],
+                            'cta'     => 'Get Basic',
+                            'href'    => route('pay-wire') . '?plan=basic',
                             'outline' => true,
                         ],
                         [
@@ -351,7 +368,7 @@
                                 : 'border border-zinc-200 shadow-sm' }}">
 
                             @if($plan['popular'])
-                                <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-violet-600 px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
+                                <span class="absolute -top-4 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-violet-600 px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
                                     Most popular
                                 </span>
                             @endif

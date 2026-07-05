@@ -132,40 +132,71 @@
             </div>
 
             {{-- Pricing cards --}}
-            <div class="mt-16 grid gap-6 lg:grid-cols-4">
+            <div class="mt-16 grid gap-6 lg:grid-cols-5">
 
                 {{-- Free --}}
-                <div class="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-200 dark:bg-white flex flex-col">
+                <div class="rounded-2xl border border-zinc-200 bg-white p-8 flex flex-col">
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Free') }}</h3>
                         <p class="mt-2 text-sm text-zinc-500">{{ __('Try before you commit') }}</p>
                         <p class="mt-6"><span class="text-4xl font-bold">$0</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
                         <p class="mt-2 text-xs text-zinc-600">{{ __('No credit card needed') }}</p>
-                        <ul class="mt-8 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
+                        <ul class="mt-8 space-y-3 text-sm text-zinc-600">
                             <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                                 {{ __('1 connected page') }}
                             </li>
                             <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('50 AI responses/mo') }}
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('20 AI responses/mo') }}
                             </li>
                             <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                                 {{ __('Unified inbox') }}
                             </li>
                             <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                                 {{ __('1 team member') }}
                             </li>
                         </ul>
                     </div>
                     <div class="mt-auto pt-8">
-                        @if(Route::has('register'))
-                            <a href="{{ route('register') }}" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold transition-colors hover:bg-zinc-50 dark:border-zinc-200 dark:hover:bg-zinc-100">
-                                {{ __('Get Started Free') }}
-                            </a>
-                        @endif
+                        <a href="{{ route('register') }}" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold transition-colors hover:bg-zinc-50">
+                            {{ __('Get Started Free') }}
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Basic --}}
+                <div class="rounded-2xl border border-zinc-200 bg-white p-8 flex flex-col">
+                    <div>
+                        <h3 class="text-lg font-semibold">{{ __('Basic') }}</h3>
+                        <p class="mt-2 text-sm text-zinc-500">{{ __('Just enough AI to get started') }}</p>
+                        <p class="mt-6"><span class="text-4xl font-bold">$8</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
+                        <p class="mt-2 text-xs text-zinc-600">{{ __('Less than a coffee a week') }}</p>
+                        <ul class="mt-8 space-y-3 text-sm text-zinc-600">
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('1 connected page') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('100 AI responses/mo') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('Unified inbox') }}
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                {{ __('1 team member') }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-auto pt-8">
+                        <a href="{{ route('pay-wire') }}?plan=basic" class="block w-full rounded-lg border border-violet-400 py-2.5 text-center text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50">
+                            {{ __('Get Basic') }}
+                        </a>
                     </div>
                 </div>
 

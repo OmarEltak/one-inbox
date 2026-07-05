@@ -244,10 +244,16 @@ html:not(.dark) [data-flux-input] textarea {
     border-color: #d4d4d4;
 }
 
-/* ── Auth pages: violet brand border, always on ── */
+/* ── Auth pages: violet brand border, black text, black labels — always on ── */
 .auth-form-panel [data-flux-input] input:not([type="file"]),
 .auth-form-panel [data-flux-input] textarea {
     border-color: #7c3aed !important;
+    color: #171717 !important;
+}
+.auth-form-panel [data-flux-label],
+.auth-form-panel label,
+.auth-form-panel .text-sm.font-medium {
+    color: #171717 !important;
 }
 
 /* ── Body ── */
