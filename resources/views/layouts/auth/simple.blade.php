@@ -31,7 +31,7 @@
                         One inbox.<br>All your conversations.
                     </h1>
                     <p class="text-lg text-violet-200 leading-relaxed max-w-xs">
-                        Connect Facebook, Instagram, WhatsApp, Telegram and more — with an AI that closes deals while you sleep.
+                        Connect Facebook, Instagram, Telegram and more — with an AI that closes deals while you sleep.
                     </p>
                 </div>
 

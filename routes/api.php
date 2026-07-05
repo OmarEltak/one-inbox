@@ -46,8 +46,9 @@ Route::prefix('webhooks')->middleware('throttle:webhooks')->group(function () {
     Route::post('/meta/data-deletion', [\App\Http\Controllers\Webhooks\MetaDataDeletionController::class, 'callback'])
         ->name('webhooks.meta.data-deletion');
 
-    Route::post('/lemonsqueezy', [\App\Http\Controllers\Webhooks\LemonSqueezyWebhookController::class, 'handle'])
-        ->name('webhooks.lemonsqueezy');
+    // Lemon Squeezy webhook — commented out; billing is now handled via manual wire transfer
+    // Route::post('/lemonsqueezy', [\App\Http\Controllers\Webhooks\LemonSqueezyWebhookController::class, 'handle'])
+    //     ->name('webhooks.lemonsqueezy');
 });
 
 // WebChat widget — public endpoints called by widget.js on customers' sites.

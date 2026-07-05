@@ -30,11 +30,7 @@
                                 <span class="ml-2 text-sm text-zinc-500">${{ $this->plans[$this->currentPlan]['price'] ?? 0 }}/mo</span>
                             @endif
                         </div>
-                        @if($this->currentPlan !== 'free' && $this->team?->hasStripeId())
-                            <flux:button wire:click="manageSubscription" variant="outline" size="sm">
-                                {{ __('Manage Subscription') }}
-                            </flux:button>
-                        @endif
+                        {{-- Stripe portal hidden — billing is now manual wire transfer --}}
                     </div>
                 </div>
             </div>
@@ -117,17 +113,11 @@
                             @if($this->currentPlan === $key)
                                 <flux:badge variant="solid" color="purple" size="sm">{{ __('Current Plan') }}</flux:badge>
                             @elseif($key === 'free')
-                                {{-- Can't downgrade to free from here, use Stripe portal --}}
-                            @elseif($plan['price_id'])
-                                @if($this->currentPlan === 'free')
-                                    <flux:button wire:click="subscribe('{{ $key }}')" variant="primary" size="sm" class="w-full">
-                                        {{ __('Upgrade') }}
-                                    </flux:button>
-                                @else
-                                    <flux:button wire:click="manageSubscription" variant="outline" size="sm" class="w-full">
-                                        {{ __('Change Plan') }}
-                                    </flux:button>
-                                @endif
+                                {{-- Can't downgrade to free --}}
+                            @else
+                                <a href="{{ route('pay-wire') }}?plan={{ $key }}" class="block w-full text-center py-1.5 px-4 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors">
+                                    {{ __('Upgrade via Wire Transfer') }}
+                                </a>
                             @endif
                         </div>
                     @endforeach

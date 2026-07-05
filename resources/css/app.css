@@ -237,6 +237,14 @@ html:not(.dark) [data-flux-text]    { color: #404040; }
    Target only outline badges (:not(.text-white)) and force high-contrast text. */
 html:not(.dark) [data-flux-badge]:not(.text-white) { color: #1c1c1c; }
 
+/* ── Flux inputs: always-visible border on light backgrounds ──
+   Default border-zinc-200 (#e5e5e5) is near-invisible on white.
+   Bump to zinc-400 (#a3a3a3) so the field is always clearly outlined. */
+html:not(.dark) [data-flux-input] input:not([type="file"]),
+html:not(.dark) [data-flux-input] textarea {
+    border-color: #a3a3a3;
+}
+
 /* ── Body ── */
 body {
     background: #FAFAFA;
