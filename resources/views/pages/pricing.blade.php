@@ -131,203 +131,157 @@
                 </span>
             </div>
 
-            {{-- Pricing cards --}}
-            <div class="mt-16 grid gap-6 lg:grid-cols-5">
+            {{-- Pricing cards — horizontally scrollable snap strip --}}
+            @php
+                $pricingPlans = [
+                    [
+                        'name'    => 'Free',
+                        'tagline' => 'Try before you commit',
+                        'price'   => '$0',
+                        'note'    => 'No credit card needed',
+                        'popular' => false,
+                        'check'   => 'violet',
+                        'features' => [
+                            '1 connected page',
+                            '20 AI responses/mo',
+                            'Unified inbox',
+                            '1 team member',
+                        ],
+                        'cta_label' => 'Get Started Free',
+                        'cta_href'  => route('register'),
+                        'cta_style' => 'border',
+                    ],
+                    [
+                        'name'    => 'Basic',
+                        'tagline' => 'Just enough AI to get started',
+                        'price'   => '$8',
+                        'note'    => 'Less than a coffee a week',
+                        'popular' => false,
+                        'check'   => 'violet',
+                        'features' => [
+                            '1 connected page',
+                            '100 AI responses/mo',
+                            'Unified inbox',
+                            '1 team member',
+                        ],
+                        'cta_label' => 'Get Basic',
+                        'cta_href'  => route('pay-wire') . '?plan=basic',
+                        'cta_style' => 'outline',
+                    ],
+                    [
+                        'name'    => 'Starter',
+                        'tagline' => 'Your AI sales rep, 24/7',
+                        'price'   => '$29',
+                        'note'    => 'Pays for itself with 1 closed lead',
+                        'popular' => false,
+                        'check'   => 'green',
+                        'features' => [
+                            '3 connected pages',
+                            '500 AI responses/mo',
+                            'All 4 platforms',
+                            'Lead scoring',
+                            '3 team members',
+                        ],
+                        'cta_label' => 'Get Started',
+                        'cta_href'  => route('pay-wire') . '?plan=starter',
+                        'cta_style' => 'outline',
+                    ],
+                    [
+                        'name'    => 'Pro',
+                        'tagline' => 'Built for teams that close deals',
+                        'price'   => '$79',
+                        'note'    => 'Replaces a part-time sales hire',
+                        'popular' => true,
+                        'check'   => 'green',
+                        'features' => [
+                            '5 connected pages',
+                            '2,000 AI responses/mo',
+                            'All platforms + TikTok (soon)',
+                            'Advanced analytics',
+                            'AI bulk campaigns',
+                            '10 team members',
+                            'Priority support',
+                        ],
+                        'cta_label' => 'Get Pro',
+                        'cta_href'  => route('pay-wire') . '?plan=pro',
+                        'cta_style' => 'primary',
+                    ],
+                    [
+                        'name'    => 'Enterprise',
+                        'tagline' => 'For agencies & large teams',
+                        'price'   => 'Custom',
+                        'note'    => 'Tailored to your scale',
+                        'popular' => false,
+                        'check'   => 'green',
+                        'features' => [
+                            'Unlimited pages',
+                            'Unlimited AI responses',
+                            'All platforms',
+                            'Custom AI voice & training',
+                            'White-label option',
+                            'Unlimited team members',
+                            'Dedicated onboarding & SLA',
+                        ],
+                        'cta_label' => 'Talk to Sales',
+                        'cta_href'  => 'https://wa.me/201026361218?text=' . urlencode("Hi, I'm interested in an Enterprise plan"),
+                        'cta_style' => 'border',
+                    ],
+                ];
+            @endphp
 
-                {{-- Free --}}
-                <div class="rounded-2xl border border-zinc-200 bg-white p-8 flex flex-col">
-                    <div>
-                        <h3 class="text-lg font-semibold">{{ __('Free') }}</h3>
-                        <p class="mt-2 text-sm text-zinc-500">{{ __('Try before you commit') }}</p>
-                        <p class="mt-6"><span class="text-4xl font-bold">$0</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
-                        <p class="mt-2 text-xs text-zinc-600">{{ __('No credit card needed') }}</p>
-                        <ul class="mt-8 space-y-3 text-sm text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('1 connected page') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('20 AI responses/mo') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Unified inbox') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('1 team member') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-auto pt-8">
-                        <a href="{{ route('register') }}" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold transition-colors hover:bg-zinc-50">
-                            {{ __('Get Started Free') }}
-                        </a>
-                    </div>
+            <div class="mt-16 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-6 px-6">
+                <div class="flex gap-5 pb-6 pt-6" style="width: max-content;">
+                    @foreach($pricingPlans as $plan)
+                        <div class="relative w-72 flex-shrink-0 snap-start rounded-2xl border bg-white p-8 flex flex-col
+                            {{ $plan['popular'] ? 'border-2 border-violet-600' : 'border-zinc-200' }}">
+
+                            @if($plan['popular'])
+                                <span class="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-violet-600 px-4 py-1 text-xs font-semibold text-white whitespace-nowrap">
+                                    {{ __('Most Popular') }}
+                                </span>
+                            @endif
+
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-zinc-900">{{ __($plan['name']) }}</h3>
+                                <p class="mt-1 text-sm text-zinc-500">{{ __($plan['tagline']) }}</p>
+                                <p class="mt-6">
+                                    <span class="text-4xl font-bold text-zinc-900">{{ $plan['price'] }}</span>
+                                    @if($plan['price'] !== 'Custom')
+                                        <span class="text-zinc-500">/{{ __('mo') }}</span>
+                                    @endif
+                                </p>
+                                <p class="mt-1 text-xs text-zinc-500">{{ __($plan['note']) }}</p>
+
+                                <ul class="mt-8 space-y-3 text-sm text-zinc-600">
+                                    @foreach($plan['features'] as $feature)
+                                        <li class="flex items-center gap-2">
+                                            <svg class="size-4 shrink-0 text-{{ $plan['check'] }}-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                            </svg>
+                                            {{ __($feature) }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+                            <div class="mt-auto pt-8">
+                                @if($plan['cta_style'] === 'primary')
+                                    <a href="{{ $plan['cta_href'] }}" class="block w-full rounded-lg bg-violet-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-violet-700">
+                                        {{ __($plan['cta_label']) }}
+                                    </a>
+                                @elseif($plan['cta_style'] === 'outline')
+                                    <a href="{{ $plan['cta_href'] }}" class="block w-full rounded-lg border border-violet-400 py-2.5 text-center text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50">
+                                        {{ __($plan['cta_label']) }}
+                                    </a>
+                                @else
+                                    <a href="{{ $plan['cta_href'] }}" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50">
+                                        {{ __($plan['cta_label']) }}
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-
-                {{-- Basic --}}
-                <div class="rounded-2xl border border-zinc-200 bg-white p-8 flex flex-col">
-                    <div>
-                        <h3 class="text-lg font-semibold">{{ __('Basic') }}</h3>
-                        <p class="mt-2 text-sm text-zinc-500">{{ __('Just enough AI to get started') }}</p>
-                        <p class="mt-6"><span class="text-4xl font-bold">$8</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
-                        <p class="mt-2 text-xs text-zinc-600">{{ __('Less than a coffee a week') }}</p>
-                        <ul class="mt-8 space-y-3 text-sm text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('1 connected page') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('100 AI responses/mo') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Unified inbox') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('1 team member') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-auto pt-8">
-                        <a href="{{ route('pay-wire') }}?plan=basic" class="block w-full rounded-lg border border-violet-400 py-2.5 text-center text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50">
-                            {{ __('Get Basic') }}
-                        </a>
-                    </div>
-                </div>
-
-                {{-- Starter --}}
-                <div class="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-200 dark:bg-white flex flex-col">
-                    <div>
-                        <h3 class="text-lg font-semibold">{{ __('Starter') }}</h3>
-                        <p class="mt-2 text-sm text-zinc-500">{{ __('Your AI sales rep, 24/7') }}</p>
-                        <p class="mt-6"><span class="text-4xl font-bold">$29</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
-                        <p class="mt-2 text-xs text-zinc-600">{{ __('Pays for itself with 1 closed lead') }}</p>
-                        <ul class="mt-8 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('3 connected pages') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('500 AI responses/mo') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('All 4 platforms') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Lead scoring') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('3 team members') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-auto pt-8">
-                        <a href="{{ route('pay-wire') }}?plan=starter" class="block w-full rounded-lg border border-violet-400 py-2.5 text-center text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50">
-                            {{ __('Get Started') }}
-                        </a>
-                    </div>
-                </div>
-
-                {{-- Pro --}}
-                <div class="relative rounded-2xl border-2 border-indigo-600 bg-white p-8 dark:bg-white flex flex-col">
-                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white whitespace-nowrap">{{ __('Most Popular') }}</span>
-                    <div>
-                        <h3 class="text-lg font-semibold">{{ __('Pro') }}</h3>
-                        <p class="mt-2 text-sm text-zinc-500">{{ __('Built for teams that close deals') }}</p>
-                        <p class="mt-6"><span class="text-4xl font-bold">$79</span><span class="text-zinc-500">/{{ __('mo') }}</span></p>
-                        <p class="mt-2 text-xs text-zinc-600">{{ __('Replaces a part-time sales hire') }}</p>
-                        <ul class="mt-8 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('5 connected pages') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('2,000 AI responses/mo') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('All platforms + TikTok (soon)') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Advanced analytics') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('AI bulk campaigns') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('10 team members') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Priority support') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-auto pt-8">
-                        <a href="{{ route('pay-wire') }}?plan=pro" class="block w-full rounded-lg bg-violet-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-violet-700">
-                            {{ __('Get Started') }}
-                        </a>
-                    </div>
-                </div>
-
-                {{-- Enterprise --}}
-                <div class="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-200 dark:bg-white flex flex-col">
-                    <div>
-                        <h3 class="text-lg font-semibold">{{ __('Enterprise') }}</h3>
-                        <p class="mt-2 text-sm text-zinc-500">{{ __('For agencies & large teams') }}</p>
-                        <p class="mt-6"><span class="text-4xl font-bold">{{ __('Custom') }}</span></p>
-                        <p class="mt-2 text-xs text-zinc-600">{{ __('Tailored to your scale') }}</p>
-                        <ul class="mt-8 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Unlimited pages') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Unlimited AI responses') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('All platforms') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Custom AI voice & training') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('White-label option') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Unlimited team members') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Dedicated onboarding & SLA') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-auto pt-8">
-                        <a href="https://wa.me/201026361218?text={{ urlencode('Hi, I\'m interested in an Enterprise plan') }}" target="_blank" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold transition-colors hover:bg-zinc-50 dark:border-zinc-200 dark:hover:bg-zinc-100">
-                            {{ __('Talk to Sales') }}
-                        </a>
-                    </div>
-                </div>
-
             </div>
 
             {{-- Trust line --}}
