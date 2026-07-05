@@ -229,30 +229,23 @@
                 ];
             @endphp
 
-            {{-- Arrow nav — mobile/tablet only --}}
-            <div class="mt-16 flex items-center justify-between lg:hidden">
-                <p class="text-sm text-zinc-400">Swipe to compare plans</p>
-                <div class="flex gap-2">
-                    <button id="pricing-prev"
-                        onclick="document.getElementById('pricing-track').scrollBy({left:-304,behavior:'smooth'})"
-                        class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
-                        <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
-                    <button id="pricing-next"
-                        onclick="document.getElementById('pricing-track').scrollBy({left:304,behavior:'smooth'})"
-                        class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
-                        <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
+            {{-- Arrow nav --}}
+            <div class="mt-16 flex items-center justify-end gap-2">
+                <button onclick="document.getElementById('pricing-track').scrollBy({left:-304,behavior:'smooth'})"
+                    class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
+                    <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button onclick="document.getElementById('pricing-track').scrollBy({left:304,behavior:'smooth'})"
+                    class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
+                    <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
             </div>
 
-            {{-- Card grid: scrollable on mobile, 5-col grid on desktop --}}
-            <div id="pricing-track"
-                 class="overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-6 px-6 lg:mt-16 lg:overflow-x-visible lg:mx-0 lg:px-0 lg:snap-none">
-                <div class="flex gap-5 pb-6 pt-6 min-w-max lg:grid lg:grid-cols-5 lg:min-w-0 lg:pt-8 lg:pb-0">
+            {{-- Scrollable card strip --}}
+            <div id="pricing-track" class="mt-4 -mx-6 px-6 overflow-x-auto scrollbar-hide">
+                <div class="flex gap-5 pb-4 pt-6" style="width: max-content;">
                     @foreach($pricingPlans as $plan)
-                        <div class="relative w-72 flex-none snap-start rounded-2xl border bg-white p-8 flex flex-col
-                            lg:w-auto
+                        <div class="relative w-72 flex-shrink-0 snap-start rounded-2xl border bg-white p-8 flex flex-col
                             {{ $plan['popular'] ? 'border-2 border-violet-600' : 'border-zinc-200' }}">
 
                             @if($plan['popular'])
@@ -302,7 +295,7 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
+            </div>{{-- /pricing-track --}}
 
             {{-- Trust line --}}
             <p class="mt-10 text-center text-sm text-zinc-500">
