@@ -92,3 +92,22 @@ See `examples/` in the skill's repo for real case studies from this codebase.
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+
+---
+
+## Production Topology (updated 2026-07-08)
+
+| | Local Dev | Production |
+|---|---|---|
+| **Path** | `C:\Users\NanoChip\Herd\one-inbox\` | `/var/www/ot1-pro.com` on VPS `187.77.67.94` |
+| **Domain** | `https://one-inbox.test` | `https://ot1-pro.com` |
+| **Server** | Laravel Herd (Windows) | nginx + PHP 8.4-FPM (Ubuntu 24.04) |
+| **DB** | SQLite | MySQL 8.0 (`one_inbox`) |
+| **Deploy** | n/a | `git push origin main` → GitHub Actions auto-deploys in ~24s |
+| **Queue** | `php artisan queue:work` / NSSM | systemd `one-inbox-queue` |
+| **Reverb** | NSSM `OneInboxReverb` | systemd `one-inbox-reverb` (port 8080) |
+| **Scheduler** | NSSM `OneInboxScheduler` | crontab `* * * * *` |
+
+**Development flow**: work in `C:\Users\NanoChip\Herd\one-inbox\` → push to `main` → auto-deploys to prod. Never edit files directly on the VPS.
+
+**Prod .env**: lives only on the VPS at `/var/www/ot1-pro.com/.env` (mode 600, not in git). If you need to change a prod env var, SSH in and edit it directly, then `php artisan config:cache`.

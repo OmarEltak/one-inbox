@@ -147,3 +147,37 @@
 - For Herd apps: create a custom Nginx block (e.g., port 8088) that accepts any Host header and overrides `HTTP_HOST` to `one-inbox.test`. Cloudflare sends requests to this port; Herd routes them correctly.
 - Add `trustProxies(at: '*')` in `bootstrap/app.php` so Laravel trusts `X-Forwarded-Proto: https` from Cloudflare.
 - Verify webhook is live: `curl -X POST https://tunnel-url/api/webhooks/evolution` → expect 400 (not 404) = alive.
+
+## 2026-07-07 — Team-wide AI silence: NaraRouter dropped Claude from free tier
+
+**Symptom:** No AI reply on any conversation, all teams, all pages. `canDispatchAi()` returned true; no failed jobs; queue idle.
+
+**Root cause:** Prod `.env` left `NARAROUTER_MODEL` unset, so it defaulted to `claude-sonnet-4.5`. NaraRouter's free tier no longer includes Claude models — the call returned HTTP 400 `"The requested model is not available."`. Per ARCHITECTURE §4 rule (4), 400 does NOT cascade → provider returns `''` → per §12, `SendAiResponse` silently skips. No error surfaced to the user because that IS the designed behavior for bad requests.
+
+**Fix (env-only, no code change):**
+```
+NARAROUTER_MODEL=mistral-medium-3-5
+NARAROUTER_SCORING_MODEL=deepseek-v4-flash-bynara
+NARAROUTER_FALLBACK_MODELS=mistral-medium-3-5,mistral-large,deepseek-v4-flash-bynara
+```
+Then `config:clear && config:cache && queue:restart`. Also `Cache::forget('nararouter:failover_state')` because it may still point at the dead alias.
+
+**Design tension noted for later:** The "don't cascade on 400" rule is right in general — but "model alias not available" is a 400 where cascading *would* have saved us. Possible future improvement: parse the body of a 400 and cascade specifically on `"not available"` / `"unknown model"` strings while still blocking cascade on real client errors (auth, malformed payload). Or: add a startup check that hits `/v1/models` and warns loudly if `NARAROUTER_MODEL` is missing from the list. Do NOT ship a blanket "cascade on all 400" — that reintroduces the strict-alternation loop from pin #9.
+
+**Preventive rule for future sessions:**
+- When any AI provider bug is reported team-wide, check the vendor's available-models endpoint before hypothesizing about code paths. Model-name drift is more common than code bugs on a stable provider.
+- When defaults live in `config/services.php`, remember they can silently rot: a default written correctly six months ago can be wrong today. Prefer setting the value explicitly in `.env` in prod, so it's visible in one place.
+
+## 2026-07-08 — VPS deployment: 500s from storage permission mismatch
+
+**Symptom:** All pages returned 500 immediately after first cloud deployment. No Laravel log written (storage not writable at all).
+
+**Root cause:** PHP-FPM runs as `www-data`. Storage directory was owned `deploy:deploy` with `755`. `www-data` had no write access → couldn't write compiled Blade views.
+
+**Fix:**
+```bash
+chown -R deploy:www-data /var/www/ot1-pro.com/storage /var/www/ot1-pro.com/bootstrap/cache
+chmod -R 775 /var/www/ot1-pro.com/storage /var/www/ot1-pro.com/bootstrap/cache
+```
+
+**Preventive rule:** On any new VPS Laravel deployment, always set storage + bootstrap/cache to `owner:www-data` group with `775`. Add `chmod -R 775 storage bootstrap/cache` to the deploy script so it's enforced on every deploy. Also set `.env` to `600` immediately after upload.
