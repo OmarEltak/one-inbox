@@ -1,7 +1,7 @@
 <div class="p-6">
     <div class="mb-6">
-        <flux:heading size="xl">Onboarding Requests</flux:heading>
-        <flux:text class="mt-1">Customers waiting on managed Facebook / Instagram setup. Connect their page through your own Meta account first, then complete the request below to hand it off.</flux:text>
+        <flux:heading size="xl" class="text-zinc-900">Onboarding Requests</flux:heading>
+        <flux:text class="mt-1 text-zinc-900">Customers waiting on managed Facebook / Instagram setup. Connect their page through your own Meta account first, then complete the request below to hand it off.</flux:text>
     </div>
 
     @if(session('success'))
@@ -18,7 +18,7 @@
 
     <div class="mb-4 flex flex-wrap items-end gap-3">
         <div class="w-48">
-            <flux:select wire:model.live="statusFilter">
+            <flux:select wire:model.live="statusFilter" class="text-zinc-900">
                 <option value="open">Open (pending + in progress)</option>
                 <option value="pending">Pending</option>
                 <option value="in_progress">In progress</option>

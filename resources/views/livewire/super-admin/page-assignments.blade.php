@@ -1,7 +1,7 @@
 <div class="p-6">
     <div class="mb-6">
-        <flux:heading size="xl">Page Assignments</flux:heading>
-        <flux:text class="mt-1">Move pages connected through the OT AI account into the right customer workspace.</flux:text>
+        <flux:heading size="xl" class="text-zinc-900">Page Assignments</flux:heading>
+        <flux:text class="mt-1 text-zinc-900">Move pages connected through the OT AI account into the right customer workspace.</flux:text>
     </div>
 
     @if(session('success'))
@@ -12,10 +12,10 @@
 
     <div class="mb-4 flex flex-wrap items-end gap-3">
         <div class="flex-1 min-w-[220px]">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search pages..." icon="magnifying-glass" />
+            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search pages..." icon="magnifying-glass" class="text-zinc-900" />
         </div>
         <div class="w-40">
-            <flux:select wire:model.live="platformFilter">
+            <flux:select wire:model.live="platformFilter" class="text-zinc-900">
                 <option value="">All platforms</option>
                 <option value="facebook">Facebook</option>
                 <option value="instagram">Instagram</option>

@@ -1,8 +1,8 @@
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <flux:heading size="xl">Customers</flux:heading>
-            <flux:text class="mt-1">Provision a company workspace and the login the customer will use.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">Customers</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">Provision a company workspace and the login the customer will use.</flux:text>
         </div>
         <flux:button wire:click="openCreateModal" variant="primary" icon="plus">
             New Customer
@@ -27,12 +27,12 @@
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                                <flux:heading size="sm">{{ $team->name }}</flux:heading>
+                                <flux:heading size="sm" class="text-zinc-900">{{ $team->name }}</flux:heading>
                                 <flux:badge color="zinc" size="sm">{{ $team->pages_count }} pages</flux:badge>
                                 <flux:badge color="zinc" size="sm">{{ $team->members_count }} users</flux:badge>
                             </div>
                             @if($team->owner)
-                                <flux:text size="xs" class="mt-1">
+                                <flux:text size="xs" class="mt-1 text-zinc-900">
                                     Owner: {{ $team->owner->name }} &middot; {{ $team->owner->email }}
                                 </flux:text>
                             @endif

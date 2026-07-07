@@ -1,8 +1,8 @@
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <flux:heading size="xl">Admin Management</flux:heading>
-            <flux:text class="mt-1">Create and manage admin accounts and their page permissions.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">Admin Management</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">Create and manage admin accounts and their page permissions.</flux:text>
         </div>
         <flux:button wire:click="openCreateModal" variant="primary" icon="plus">
             Add New Admin
@@ -27,10 +27,10 @@
             <flux:avatar :name="auth()->user()->currentTeam->owner->name" />
             <div>
                 <div class="flex items-center gap-2">
-                    <flux:heading size="sm" class="text-zinc-900">{{ auth()->user()->currentTeam->owner->name }}</flux:heading>
+                    <flux:heading size="sm" class="!text-zinc-900">{{ auth()->user()->currentTeam->owner->name }}</flux:heading>
                     <flux:badge color="yellow" size="sm">Head Admin</flux:badge>
                 </div>
-                <flux:text size="xs" class="text-zinc-600">{{ auth()->user()->currentTeam->owner->email }} &middot; Full access to everything</flux:text>
+                <flux:text size="xs" class="text-zinc-900">{{ auth()->user()->currentTeam->owner->email }} &middot; Full access to everything</flux:text>
             </div>
         </div>
     </div>
@@ -49,8 +49,8 @@
                         <div class="flex items-center gap-3 min-w-0">
                             <flux:avatar :name="$admin->name" />
                             <div class="min-w-0">
-                                <flux:heading size="sm" class="text-zinc-900">{{ $admin->name }}</flux:heading>
-                                <flux:text size="xs" class="text-zinc-600">{{ $admin->email }}</flux:text>
+                                <flux:heading size="sm" class="!text-zinc-900">{{ $admin->name }}</flux:heading>
+                                <flux:text size="xs" class="text-zinc-900">{{ $admin->email }}</flux:text>
                                 <div class="flex flex-wrap gap-1 mt-2">
                                     @forelse($admin->pivot->permissions as $perm)
                                         <flux:badge color="blue" size="sm">{{ \App\Livewire\Settings\AdminManagement::PERMISSIONS[$perm] ?? $perm }}</flux:badge>

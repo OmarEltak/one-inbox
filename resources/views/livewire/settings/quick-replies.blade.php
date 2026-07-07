@@ -1,14 +1,14 @@
 <div class="max-w-4xl mx-auto p-6 space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <flux:heading size="xl">Quick Replies</flux:heading>
-            <flux:text class="mt-1">Canned responses your team can use in conversations.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">Quick Replies</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">Canned responses your team can use in conversations.</flux:text>
         </div>
         <flux:button icon="plus" wire:click="openCreateModal">New Quick Reply</flux:button>
     </div>
 
     @if(session('success'))
-        <flux:callout variant="success" icon="check-circle">{{ session('success') }}</flux:callout>
+        <flux:callout variant="success" icon="check-circle" class="text-zinc-900">{{ session('success') }}</flux:callout>
     @endif
 
     <div class="space-y-2">
@@ -36,8 +36,8 @@
         @empty
             <div class="rounded-lg border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-600">
                 <flux:icon.bolt class="mx-auto size-10 text-zinc-300 dark:text-zinc-600" />
-                <flux:heading class="mt-3">No quick replies yet</flux:heading>
-                <flux:text class="mt-1">Create canned responses to speed up your team's replies.</flux:text>
+                <flux:heading class="mt-3 text-zinc-900">No quick replies yet</flux:heading>
+                <flux:text class="mt-1 text-zinc-900">Create canned responses to speed up your team's replies.</flux:text>
                 <div class="mt-4">
                     <flux:button icon="plus" wire:click="openCreateModal">New Quick Reply</flux:button>
                 </div>

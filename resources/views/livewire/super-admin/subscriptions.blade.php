@@ -1,8 +1,8 @@
 <div class="p-6">
     <div class="mb-6 flex items-start justify-between gap-4">
         <div>
-            <flux:heading size="xl">Subscriptions</flux:heading>
-            <flux:text class="mt-1">Grant, extend, or revoke customer plans. Each row is a team — its owner is the paying customer.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">Subscriptions</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">Grant, extend, or revoke customer plans. Each row is a team — its owner is the paying customer.</flux:text>
         </div>
     </div>
 
@@ -25,10 +25,11 @@
                 wire:model.live.debounce.300ms="search"
                 icon="magnifying-glass"
                 placeholder="Search by team name, owner name, or email..."
+                class="text-zinc-900"
             />
         </div>
         <div class="w-44">
-            <flux:select wire:model.live="statusFilter">
+            <flux:select wire:model.live="statusFilter" class="text-zinc-900">
                 <option value="all">All statuses</option>
                 <option value="free">Free tier</option>
                 <option value="active">Active paid</option>
@@ -37,7 +38,7 @@
             </flux:select>
         </div>
         <div class="w-44">
-            <flux:select wire:model.live="planFilter">
+            <flux:select wire:model.live="planFilter" class="text-zinc-900">
                 <option value="all">All plans</option>
                 <option value="free">Free</option>
                 <option value="basic">Basic</option>
@@ -146,7 +147,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-md bg-{{ $planColor }}-100 dark:bg-{{ $planColor }}-900/30 px-2 py-0.5 text-xs font-medium text-{{ $planColor }}-800 dark:text-{{ $planColor }}-300 capitalize">
+                                <span class="inline-flex items-center rounded-md bg-{{ $planColor }}-100 dark:bg-{{ $planColor }}-900/30 px-2 py-0.5 text-xs font-medium text-zinc-900 capitalize">
                                     {{ $plan }}
                                 </span>
                                 @if($team->billing_cycle)
