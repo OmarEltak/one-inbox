@@ -34,6 +34,8 @@ class Team extends Model
         'owner_id',
         'subscription_plan',
         'subscription_status',
+        'subscription_ends_at',
+        'billing_cycle',
         'lemon_squeezy_id',
         'lemon_squeezy_customer_id',
         'ai_enabled',
@@ -49,6 +51,7 @@ class Team extends Model
         return [
             'ai_enabled' => 'boolean',
             'ai_disabled_at' => 'datetime',
+            'subscription_ends_at' => 'datetime',
             'ai_credits_used' => 'integer',
             'ai_credits_limit' => 'integer',
             'settings' => 'array',
@@ -138,8 +141,21 @@ class Team extends Model
     public function canDispatchAi(): bool
     {
         return $this->isAiEnabled()
+            && ! $this->isSubscriptionExpired()
             && \App\Http\Middleware\EnforcePlanLimits::hasAiCredits($this)
             && ! $this->isAiUpstreamLimited();
+    }
+
+    /**
+     * True when a time-limited plan has lapsed. Null subscription_ends_at means
+     * "no expiry" (free tier or manually granted forever), so it never blocks.
+     * Super-admin grants a plan for N months by setting this timestamp; once
+     * it's in the past AI dispatch stops until the admin renews.
+     */
+    public function isSubscriptionExpired(): bool
+    {
+        return $this->subscription_ends_at !== null
+            && $this->subscription_ends_at->isPast();
     }
 
     /**

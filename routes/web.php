@@ -188,6 +188,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     // Super-admin (OT AI staff) only — manage customer workspaces and page assignments.
     Route::middleware('super-admin')->prefix('super-admin')->name('super-admin.')->group(function () {
         Route::get('customers', \App\Livewire\SuperAdmin\Customers::class)->name('customers');
+        Route::get('subscriptions', \App\Livewire\SuperAdmin\Subscriptions::class)->name('subscriptions');
         Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
         Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
         Route::get('payment-requests', \App\Livewire\SuperAdmin\PaymentRequests::class)->name('payment-requests');
