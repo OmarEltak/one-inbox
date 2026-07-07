@@ -27,3 +27,4 @@ jobs:
             php artisan view:cache
             php artisan queue:restart
             sudo systemctl reload php8.4-fpm
+            chmod -R 775 storage bootstrap/cache
