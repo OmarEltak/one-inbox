@@ -103,7 +103,7 @@
 
                     // Onboarding gate — super-admins bypass so they can navigate any team.
                     $hasConnections = $user->isSuperAdmin() ? true : ($team?->hasAnyConnection() ?? false);
-                    $lockedRoutes = ['inbox', 'contacts.index', 'campaigns.index', 'content.index', 'analytics', 'ai-chat', 'settings.ai'];
+                    $lockedRoutes = ['inbox', 'contacts.index', 'campaigns.index', 'analytics', 'ai-chat', 'settings.ai'];
                     $lockIf = fn (string $route): bool => ! $hasConnections && in_array($route, $lockedRoutes, true);
 
                     if ($user->isHeadAdmin() || $user->hasPermission('dashboard')) {
@@ -114,7 +114,6 @@
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('connections')) {
                         $navItems[] = ['route' => 'campaigns.index', 'label' => 'Campaigns', 'icon' => 'paper-airplane', 'match' => 'campaigns*', 'locked' => $lockIf('campaigns.index')];
-                        $navItems[] = ['route' => 'content.index', 'label' => 'Content', 'icon' => 'photo', 'match' => 'content*', 'locked' => $lockIf('content.index')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('analytics')) {
                         $navItems[] = ['route' => 'analytics', 'label' => 'Analytics', 'icon' => 'chart-bar', 'match' => 'analytics', 'locked' => $lockIf('analytics')];
@@ -136,7 +135,6 @@
                         $navItems[] = ['route' => 'super-admin.subscriptions', 'label' => 'Subscriptions', 'icon' => 'key', 'match' => 'super-admin.subscriptions', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests', 'locked' => false];
-                        $navItems[] = ['route' => 'super-admin.payment-requests', 'label' => 'Payment Requests', 'icon' => 'banknotes', 'match' => 'super-admin.payment-requests', 'locked' => false];
                     }
 
                     // Load pages for inbox dropdown. Cached for 5 min — the sidebar

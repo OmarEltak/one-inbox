@@ -75,7 +75,7 @@ class PayWire extends Component
                 "Plan: {$planLabel}\n" .
                 "Bank: {$this->bank_name} ({$this->bank_country})\n" .
                 "TXID: " . ($this->txid ?: 'Not provided') . "\n\n" .
-                'Review at: ' . route('super-admin.payment-requests'),
+                'Review at: ' . route('super-admin.subscriptions'),
                 fn ($m) => $m
                     ->to(config('mail.admin_address', 'it@mishkahu.com'))
                     ->subject("Wire Transfer Request — {$this->full_name} / {$planLabel}")

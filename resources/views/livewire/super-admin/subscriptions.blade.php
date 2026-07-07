@@ -139,10 +139,10 @@
                                     @endif
                                 </div>
                                 @if($pendingPaymentId)
-                                    <a href="{{ route('super-admin.payment-requests') }}" class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline">
+                                    <span class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                                         <flux:icon name="banknotes" class="w-3 h-3" />
                                         Pending payment request
-                                    </a>
+                                    </span>
                                 @endif
                             </td>
                             <td class="px-4 py-3">

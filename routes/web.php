@@ -191,13 +191,6 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('subscriptions', \App\Livewire\SuperAdmin\Subscriptions::class)->name('subscriptions');
         Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
         Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
-        Route::get('payment-requests', \App\Livewire\SuperAdmin\PaymentRequests::class)->name('payment-requests');
-        Route::get('payment-requests/{id}/receipt', function (int $id) {
-            $req  = \App\Models\PaymentRequest::findOrFail($id);
-            $disk = \Illuminate\Support\Facades\Storage::disk('local');
-            abort_unless($disk->exists($req->receipt_path), 404);
-            return response()->file($disk->path($req->receipt_path));
-        })->name('payment-requests.receipt');
     });
 });
 
