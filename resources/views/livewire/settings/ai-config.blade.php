@@ -1,6 +1,6 @@
 <div class="p-6 w-full">
-    <flux:heading size="xl" class="mb-2">AI Configuration</flux:heading>
-    <flux:text class="mb-6">Configure AI behavior per connected page. The AI uses this info to respond to customers.</flux:text>
+    <flux:heading size="xl" class="mb-2 !text-zinc-900 dark:!text-zinc-900">AI Configuration</flux:heading>
+    <flux:text class="mb-6 !text-zinc-900 dark:!text-zinc-900">Configure AI behavior per connected page. The AI uses this info to respond to customers.</flux:text>
 
     @if($pages->isEmpty())
         <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-8 text-center">
@@ -23,7 +23,7 @@
                             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors
                                 {{ $selectedPageId === $page->id
                                     ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
-                                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300' }}"
+                                    : 'bg-violet-600 text-white hover:bg-violet-700' }}"
                         >
                             <flux:icon
                                 :name="match($page->platform) {
@@ -50,7 +50,7 @@
                         <flux:text>Select a page from the left to configure its AI settings.</flux:text>
                     </div>
                 @else
-                    <form wire:submit="saveConfig" class="space-y-8">
+                    <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
                         {{-- Active Toggle --}}
                         <div class="rounded-xl border-2 {{ $is_active ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50' }} p-4">
                             <div class="flex items-center justify-between">
@@ -122,10 +122,10 @@
                                             class="text-left p-4 rounded-xl border-2 transition-colors
                                                 {{ $sales_goal_preset === $preset['key']
                                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                                                    : 'border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600' }}"
+                                                    : 'border-violet-300 hover:border-violet-400' }}"
                                         >
                                             <div class="flex items-start justify-between gap-2 mb-1">
-                                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $preset['title'] }}</span>
+                                                <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $preset['title'] }}</span>
                                                 @if($sales_goal_preset === $preset['key'])
                                                     <flux:icon name="check-circle" class="w-5 h-5 text-blue-500 shrink-0" />
                                                 @endif
@@ -205,7 +205,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">Products / Services</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">List what you sell so the AI can recommend and describe products.</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="ghost" wire:click="addProduct" type="button" icon="plus">
+                                <flux:button size="sm" variant="outline" wire:click="addProduct" type="button" icon="plus" class="!border-violet-400 !text-violet-600 hover:!bg-violet-50">
                                     Add
                                 </flux:button>
                             </div>
@@ -231,7 +231,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">Pricing</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">Add pricing details the AI should know about.</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="ghost" wire:click="addPricing" type="button" icon="plus">
+                                <flux:button size="sm" variant="outline" wire:click="addPricing" type="button" icon="plus" class="!border-violet-400 !text-violet-600 hover:!bg-violet-50">
                                     Add
                                 </flux:button>
                             </div>
@@ -257,7 +257,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">FAQ</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">Common questions & answers the AI should know.</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="ghost" wire:click="addFaq" type="button" icon="plus">
+                                <flux:button size="sm" variant="outline" wire:click="addFaq" type="button" icon="plus" class="!border-violet-400 !text-violet-600 hover:!bg-violet-50">
                                     Add
                                 </flux:button>
                             </div>
@@ -345,7 +345,7 @@
                             <flux:heading size="lg" class="mb-1 text-zinc-900">Working Hours</flux:heading>
                             <flux:text size="sm" class="mb-4 text-zinc-900">AI will only respond during these hours. Outside of them, messages wait for humans.</flux:text>
 
-                            <div class="mb-4 flex items-center justify-between rounded-lg border border-zinc-200 dark:border-zinc-700 p-3">
+                            <div class="mb-4 flex items-center justify-between rounded-lg border border-violet-300 p-3">
                                 <div>
                                     <div class="text-sm font-medium text-zinc-900">Always on (24/7)</div>
                                     <div class="text-xs text-zinc-900">When on, the AI replies any time of day — schedule below is ignored.</div>
