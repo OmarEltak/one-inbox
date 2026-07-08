@@ -54,6 +54,7 @@
                     <style>
                         [data-flux-label] { color: rgb(9,9,11) !important; }
                         [data-flux-control] { color: rgb(9,9,11) !important; }
+                        .kw-chip [data-flux-control] { color: white !important; border-color: white !important; }
                     </style>
                     <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
                         {{-- Active Toggle --}}
@@ -397,13 +398,13 @@
 
                                 <div class="flex flex-wrap gap-2 mb-3">
                                     @foreach($escalation_keywords as $index => $kw)
-                                        <div wire:key="kw-{{ $index }}" class="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 pl-3 pr-1 py-1">
+                                        <div wire:key="kw-{{ $index }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-white pl-3 pr-1 py-1">
                                             <flux:input
                                                 wire:model.blur="escalation_keywords.{{ $index }}"
                                                 size="xs"
-                                                class="!w-32 !border-none !bg-transparent !p-0 !text-sm !text-zinc-900"
+                                                class="!w-32 !bg-transparent !p-0 !text-sm"
                                             />
-                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700">
+                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
                                                 <flux:icon name="x-mark" class="w-3 h-3" />
                                             </button>
                                         </div>
