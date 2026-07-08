@@ -1,11 +1,11 @@
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <flux:heading size="xl" class="text-zinc-900">Admin Management</flux:heading>
-            <flux:text class="mt-1 text-zinc-900">Create and manage admin accounts and their page permissions.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">{{ __('Admin Management') }}</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">{{ __('Create and manage admin accounts and their page permissions.') }}</flux:text>
         </div>
         <flux:button wire:click="openCreateModal" variant="primary" icon="plus">
-            Add New Admin
+            {{ __('Add New Admin') }}
         </flux:button>
     </div>
 
@@ -28,9 +28,9 @@
             <div>
                 <div class="flex items-center gap-2">
                     <flux:heading size="sm" class="!text-zinc-900">{{ auth()->user()->currentTeam->owner->name }}</flux:heading>
-                    <flux:badge color="yellow" size="sm">Head Admin</flux:badge>
+                    <flux:badge color="yellow" size="sm">{{ __('Head Admin') }}</flux:badge>
                 </div>
-                <flux:text size="xs" class="text-zinc-900">{{ auth()->user()->currentTeam->owner->email }} &middot; Full access to everything</flux:text>
+                <flux:text size="xs" class="text-zinc-900">{{ auth()->user()->currentTeam->owner->email }} &middot; {{ __('Full access to everything') }}</flux:text>
             </div>
         </div>
     </div>
@@ -39,7 +39,7 @@
     @if($this->teamAdmins->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-12 text-center">
             <flux:icon name="users" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-            <flux:text class="text-zinc-500">No admins added yet. Click "Add New Admin" to create one.</flux:text>
+            <flux:text class="text-zinc-500">{{ __('No admins added yet. Click "Add New Admin" to create one.') }}</flux:text>
         </div>
     @else
         <div class="space-y-3">
@@ -55,17 +55,17 @@
                                     @forelse($admin->pivot->permissions as $perm)
                                         <flux:badge color="blue" size="sm">{{ \App\Livewire\Settings\AdminManagement::PERMISSIONS[$perm] ?? $perm }}</flux:badge>
                                     @empty
-                                        <flux:badge color="red" size="sm">No Permissions</flux:badge>
+                                        <flux:badge color="red" size="sm">{{ __('No Permissions') }}</flux:badge>
                                     @endforelse
                                 </div>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <flux:button wire:click="openEditModal({{ $admin->id }})" size="sm" variant="ghost" icon="pencil">
-                                Permissions
+                                {{ __('Permissions') }}
                             </flux:button>
                             <flux:button wire:click="openPasswordModal({{ $admin->id }})" size="sm" variant="ghost" icon="key">
-                                Password
+                                {{ __('Password') }}
                             </flux:button>
                             <flux:button
                                 wire:click="deleteAdmin({{ $admin->id }})"
@@ -85,16 +85,16 @@
     {{-- Create Admin Modal --}}
     <flux:modal wire:model="showCreateModal" class="md:w-[32rem]">
         <div class="space-y-5">
-            <flux:heading size="lg">Add New Admin</flux:heading>
+            <flux:heading size="lg">{{ __('Add New Admin') }}</flux:heading>
 
             <div class="space-y-4">
-                <flux:input wire:model="createName" label="Full Name" placeholder="John Doe" required />
-                <flux:input wire:model="createEmail" label="Email Address" type="email" placeholder="john@example.com" required />
-                <flux:input wire:model="createPassword" label="Password" type="password" placeholder="Minimum 8 characters" required />
+                <flux:input wire:model="createName" :label="__('Full Name')" placeholder="John Doe" required />
+                <flux:input wire:model="createEmail" :label="__('Email Address')" type="email" placeholder="john@example.com" required />
+                <flux:input wire:model="createPassword" :label="__('Password')" type="password" :placeholder="__('Minimum 8 characters')" required />
 
                 <div>
-                    <flux:label>Page Permissions</flux:label>
-                    <flux:text size="xs" class="text-zinc-500 mb-3">Select which pages this admin can access.</flux:text>
+                    <flux:label>{{ __('Page Permissions') }}</flux:label>
+                    <flux:text size="xs" class="text-zinc-500 mb-3">{{ __('Select which pages this admin can access.') }}</flux:text>
                     <div class="space-y-2">
                         @foreach(\App\Livewire\Settings\AdminManagement::PERMISSIONS as $slug => $label)
                             <label class="flex items-center gap-3 cursor-pointer">
@@ -115,8 +115,8 @@
             @error('createPassword') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">Cancel</flux:button>
-                <flux:button wire:click="createAdmin" variant="primary">Create Admin</flux:button>
+                <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="createAdmin" variant="primary">{{ __('Create Admin') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -125,7 +125,7 @@
     <flux:modal wire:model="showEditModal" class="md:w-[28rem]">
         <div class="space-y-5">
             <div>
-                <flux:heading size="lg">Edit Permissions</flux:heading>
+                <flux:heading size="lg">{{ __('Edit Permissions') }}</flux:heading>
                 <flux:text class="mt-1">{{ $editingAdminName }}</flux:text>
             </div>
 
@@ -144,8 +144,8 @@
             </div>
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showEditModal', false)" variant="ghost">Cancel</flux:button>
-                <flux:button wire:click="savePermissions" variant="primary">Save Permissions</flux:button>
+                <flux:button wire:click="$set('showEditModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="savePermissions" variant="primary">{{ __('Save Permissions') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -154,16 +154,16 @@
     <flux:modal wire:model="showPasswordModal" class="md:w-[24rem]">
         <div class="space-y-5">
             <div>
-                <flux:heading size="lg">Reset Password</flux:heading>
-                <flux:text class="mt-1">Set a new password for {{ $passwordAdminName }}.</flux:text>
+                <flux:heading size="lg">{{ __('Reset Password') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Set a new password for :name.', ['name' => $passwordAdminName]) }}</flux:text>
             </div>
 
-            <flux:input wire:model="newPassword" label="New Password" type="password" placeholder="Minimum 8 characters" required />
+            <flux:input wire:model="newPassword" :label="__('New Password')" type="password" :placeholder="__('Minimum 8 characters')" required />
             @error('newPassword') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showPasswordModal', false)" variant="ghost">Cancel</flux:button>
-                <flux:button wire:click="resetPassword" variant="primary">Reset Password</flux:button>
+                <flux:button wire:click="$set('showPasswordModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="resetPassword" variant="primary">{{ __('Reset Password') }}</flux:button>
             </div>
         </div>
     </flux:modal>

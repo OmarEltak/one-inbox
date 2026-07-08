@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unsubscribe</title>
+    <title>{{ __('Unsubscribe') }}</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                background: #0A0A0F; color: #fff; margin: 0; padding: 0;
@@ -23,16 +23,16 @@
 <body>
     <div class="card">
         @if($already)
-            <h1>You're already unsubscribed</h1>
-            <p>The address <span class="email">{{ $recipient->email }}</span> is on our suppression list and will not receive further emails.</p>
+            <h1>{{ __("You're already unsubscribed") }}</h1>
+            <p>{{ __('The address') }} <span class="email">{{ $recipient->email }}</span> {{ __('is on our suppression list and will not receive further emails.') }}</p>
         @else
-            <h1>Unsubscribe</h1>
-            <p>Click the button below to stop receiving emails at <span class="email">{{ $recipient->email }}</span>.</p>
+            <h1>{{ __('Unsubscribe') }}</h1>
+            <p>{{ __('Click the button below to stop receiving emails at') }} <span class="email">{{ $recipient->email }}</span>.</p>
             <form method="POST" action="{{ url()->current() }}">
                 @csrf
-                <button type="submit">Unsubscribe</button>
+                <button type="submit">{{ __('Unsubscribe') }}</button>
             </form>
-            <p class="note">This action cannot be undone via this page.</p>
+            <p class="note">{{ __('This action cannot be undone via this page.') }}</p>
         @endif
     </div>
 </body>

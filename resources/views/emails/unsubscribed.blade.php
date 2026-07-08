@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Unsubscribed</title>
+    <title>{{ __("You've been unsubscribed") }}</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                background: #0A0A0F; color: #fff; margin: 0; padding: 0;
@@ -16,8 +16,8 @@
 </head>
 <body>
     <div class="card">
-        <h1>You've been unsubscribed</h1>
-        <p><span class="email">{{ $recipient->email }}</span> will no longer receive emails from this sender.</p>
+        <h1>{{ __("You've been unsubscribed") }}</h1>
+        <p><span class="email">{{ $recipient->email }}</span> {{ __('will no longer receive emails from this sender.') }}</p>
     </div>
 </body>
 </html>
