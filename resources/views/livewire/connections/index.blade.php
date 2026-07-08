@@ -84,7 +84,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $fbPage->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnectPage({{ $fbPage->id }})"
@@ -92,7 +92,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -164,7 +164,7 @@
                         <span class="text-xs text-white/80 truncate">
                             {{ $igPage->name }}{{ isset($igPage->metadata['username']) ? ' (@' . $igPage->metadata['username'] . ')' : '' }}
                         </span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnectPage({{ $igPage->id }})"
@@ -172,7 +172,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -246,13 +246,13 @@
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         @if($isGateway)
                             @if($isOnline)
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                             @else
                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400">Disconnected</span>
                             @endif
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400">QR</span>
                         @else
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                         @endif
                     </div>
                     <div class="flex items-center gap-1 flex-shrink-0 ml-2">
@@ -273,7 +273,7 @@
                             wire:loading.attr="disabled"
                             size="xs"
                             variant="ghost"
-                            class="text-red-400 hover:text-red-300"
+                            class="!text-red-500 hover:!text-red-700 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                         >
                             Disconnect
                         </flux:button>
@@ -307,7 +307,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
@@ -315,7 +315,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -347,7 +347,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <div class="flex gap-1 flex-shrink-0 ml-2">
                         @if($page)
@@ -359,7 +359,7 @@
                             wire:loading.attr="disabled"
                             size="xs"
                             variant="ghost"
-                            class="text-red-400 hover:text-red-300"
+                            class="!text-red-500 hover:!text-red-700 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                         >
                             Disconnect
                         </flux:button>
@@ -397,7 +397,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
@@ -405,7 +405,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -436,7 +436,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
@@ -444,7 +444,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -475,7 +475,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
@@ -483,7 +483,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -531,7 +531,7 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
@@ -539,7 +539,7 @@
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
-                        class="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"
+                        class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
                         Disconnect
                     </flux:button>
@@ -678,7 +678,7 @@
                                 </p>
                             @endif
                         </div>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $page->is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $page->is_active ? 'bg-green-500/20 text-zinc-900 font-medium' : 'bg-red-500/20 text-red-400' }}">
                             {{ $page->is_active ? 'Active' : 'Inactive' }}
                         </span>
                     </div>
