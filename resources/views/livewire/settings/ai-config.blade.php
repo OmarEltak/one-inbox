@@ -22,7 +22,7 @@
                             wire:click="selectPage({{ $page->id }})"
                             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors
                                 {{ $selectedPageId === $page->id
-                                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                    ? 'bg-violet-700 text-white ring-2 ring-violet-300'
                                     : 'bg-violet-600 text-white hover:bg-violet-700' }}"
                         >
                             <flux:icon
@@ -193,7 +193,7 @@
                                 label="Additional Instructions"
                                 placeholder="e.g. Always greet in Arabic first. Never offer discounts above 10%. If someone asks about wholesale, ask for their business name and forward to the team."
                                 rows="3"
-                                class="mt-4 text-zinc-900"
+                                class="mt-4 !text-zinc-900 dark:!text-zinc-900 [&_label]:!text-zinc-900 dark:[&_label]:!text-zinc-900"
                             />
                             <flux:text size="sm" class="mt-1 text-zinc-900">Custom rules the AI must always follow when responding on this page.</flux:text>
                         </section>
@@ -205,7 +205,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">Products / Services</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">List what you sell so the AI can recommend and describe products.</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="outline" wire:click="addProduct" type="button" icon="plus" class="!border-violet-400 !text-violet-600 hover:!bg-violet-50">
+                                <flux:button size="sm" variant="ghost" wire:click="addProduct" type="button" icon="plus" class="!bg-violet-600 !text-white hover:!bg-violet-700">
                                     Add
                                 </flux:button>
                             </div>
@@ -231,7 +231,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">Pricing</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">Add pricing details the AI should know about.</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="outline" wire:click="addPricing" type="button" icon="plus" class="!border-violet-400 !text-violet-600 hover:!bg-violet-50">
+                                <flux:button size="sm" variant="ghost" wire:click="addPricing" type="button" icon="plus" class="!bg-violet-600 !text-white hover:!bg-violet-700">
                                     Add
                                 </flux:button>
                             </div>
@@ -257,7 +257,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">FAQ</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">Common questions & answers the AI should know.</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="outline" wire:click="addFaq" type="button" icon="plus" class="!border-violet-400 !text-violet-600 hover:!bg-violet-50">
+                                <flux:button size="sm" variant="ghost" wire:click="addFaq" type="button" icon="plus" class="!bg-violet-600 !text-white hover:!bg-violet-700">
                                     Add
                                 </flux:button>
                             </div>
@@ -325,7 +325,7 @@
                                     label="Minimum delay (seconds)"
                                     min="10"
                                     max="300"
-                                    class="text-zinc-900"
+                                    class="!text-zinc-900 dark:!text-zinc-900 [&_label]:!text-zinc-900 dark:[&_label]:!text-zinc-900 [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900"
                                 />
                                 <flux:input
                                     wire:model="response_delay_max_seconds"
@@ -333,7 +333,7 @@
                                     label="Maximum delay (seconds)"
                                     min="10"
                                     max="600"
-                                    class="text-zinc-900"
+                                    class="!text-zinc-900 dark:!text-zinc-900 [&_label]:!text-zinc-900 dark:[&_label]:!text-zinc-900 [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900"
                                 />
                             </div>
                             @error('response_delay_min_seconds') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
@@ -355,7 +355,7 @@
 
                             <div @class(['opacity-50 pointer-events-none' => $is_24_7])>
                                 <div class="mb-4">
-                                    <flux:select wire:model="timezone" label="Timezone" class="text-zinc-900">
+                                    <flux:select wire:model="timezone" label="Timezone" class="!text-zinc-900 dark:!text-zinc-900 [&_label]:!text-zinc-900 dark:[&_label]:!text-zinc-900 [&_select]:!text-zinc-900 dark:[&_select]:!text-zinc-900">
                                         @foreach(['UTC', 'Asia/Beirut', 'Asia/Dubai', 'Asia/Riyadh', 'Europe/London', 'Europe/Paris', 'America/New_York', 'America/Chicago', 'America/Los_Angeles'] as $tz)
                                             <flux:select.option value="{{ $tz }}">{{ $tz }}</flux:select.option>
                                         @endforeach
@@ -366,15 +366,15 @@
                                     @foreach(['monday' => 'Mon', 'tuesday' => 'Tue', 'wednesday' => 'Wed', 'thursday' => 'Thu', 'friday' => 'Fri', 'saturday' => 'Sat', 'sunday' => 'Sun'] as $day => $label)
                                         <div class="flex items-center gap-3">
                                             <div class="w-10">
-                                                <flux:switch wire:model.live="working_hours.{{ $day }}.enabled" />
+                                                <flux:switch wire:model.live="working_hours.{{ $day }}.enabled" class="[&:not([data-checked])]:!bg-zinc-500 dark:[&:not([data-checked])]:!bg-zinc-500" />
                                             </div>
-                                            <span class="w-10 text-sm font-medium text-zinc-900">{{ $label }}</span>
+                                            <span class="w-10 text-sm font-medium !text-zinc-900 dark:!text-zinc-900">{{ $label }}</span>
                                             @if($working_hours[$day]['enabled'] ?? false)
-                                                <flux:input wire:model="working_hours.{{ $day }}.start" type="time" size="sm" class="w-32" />
-                                                <span class="text-zinc-400">to</span>
-                                                <flux:input wire:model="working_hours.{{ $day }}.end" type="time" size="sm" class="w-32" />
+                                                <flux:input wire:model="working_hours.{{ $day }}.start" type="time" size="sm" class="w-32 [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
+                                                <span class="text-sm font-medium !text-zinc-900 dark:!text-zinc-900">to</span>
+                                                <flux:input wire:model="working_hours.{{ $day }}.end" type="time" size="sm" class="w-32 [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
                                             @else
-                                                <span class="text-sm text-zinc-400">Closed</span>
+                                                <span class="text-sm !text-zinc-900 dark:!text-zinc-900">Closed</span>
                                             @endif
                                         </div>
                                     @endforeach
