@@ -1,4 +1,4 @@
-<div class="flex h-full flex-col" x-data="{
+<div class="flex h-full flex-col" dir="ltr" x-data="{
     isNearBottom: true,
     showNewMessageBadge: false,
     scrollToBottom() {
