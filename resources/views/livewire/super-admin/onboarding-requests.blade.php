@@ -105,10 +105,10 @@
                     @elseif($req->isOpen())
                         <div class="pt-3 border-t border-zinc-200 dark:border-zinc-700 space-y-3">
                             <div>
-                                <flux:text size="sm" class="mb-2 text-zinc-700 dark:text-zinc-300">Assign a page from your holding workspace and complete this request:</flux:text>
+                                <flux:text size="sm" class="mb-2 text-zinc-700 dark:text-zinc-300">{{ __('Assign a page from your holding workspace and complete this request:') }}</flux:text>
                                 <div class="flex gap-2">
                                     <flux:select wire:model="selectedPageByRequest.{{ $req->id }}" class="flex-1">
-                                        <option value="">— pick a page —</option>
+                                        <option value="">{{ __('— pick a page —') }}</option>
                                         @foreach($this->assignablePages->where('platform', $req->platform) as $p)
                                             <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->platform }})</option>
                                         @endforeach

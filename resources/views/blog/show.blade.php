@@ -2,22 +2,26 @@
     :title="$post->meta_title"
     :description="$post->meta_description"
     :canonical="route('blog.show', $post->slug)"
+    :htmlLang="$post->language"
+    :htmlDir="$post->is_rtl ? 'rtl' : 'ltr'"
 >
 
 @push('schema')
 <script type="application/ld+json">
 {
     "@@context": "https://schema.org",
-    "@@type": "Article",
+    "@@type": "BlogPosting",
     "headline": {!! json_encode($post->title) !!},
     "description": {!! json_encode($post->meta_description) !!},
-    "image": [
-        {!! json_encode(config('app.url') . '/og-image.png') !!}
-    ],
+    "image": [{!! json_encode(config('app.url') . '/og-image.png') !!}],
+    "datePublished": "{{ $post->published_at->toIso8601String() }}",
+    "dateModified": "{{ $post->updated_at->toIso8601String() }}",
+    "inLanguage": {{ json_encode($post->language) }},
+    "wordCount": {{ $post->wordCount() }},
     "author": {
-        "@@type": "Organization",
-        "name": {!! json_encode($post->author) !!},
-        "url": "https://ot1-pro.com/about"
+        "@@type": "Person",
+        "name": "Omar Eltak",
+        "url": "{{ url('/about') }}"
     },
     "publisher": {
         "@@type": "Organization",
@@ -28,8 +32,6 @@
             "url": "https://ot1-pro.com/logo.png"
         }
     },
-    "datePublished": "{{ $post->published_at->toIso8601String() }}",
-    "dateModified": "{{ $post->updated_at->toIso8601String() }}",
     "mainEntityOfPage": {
         "@@type": "WebPage",
         "@@id": "{{ route('blog.show', $post->slug) }}"
@@ -62,6 +64,15 @@
     ]
 }
 </script>
+@endpush
+
+@push('meta')
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ route('blog.show', $post->slug) }}">
+<meta property="article:published_time" content="{{ $post->published_at->toIso8601String() }}">
+<meta property="article:modified_time" content="{{ $post->updated_at->toIso8601String() }}">
+<meta property="article:author" content="Omar Eltak">
+<meta name="twitter:image" content="{{ config('app.url') }}/og-image.png">
 @endpush
 
     {{-- Breadcrumb --}}
