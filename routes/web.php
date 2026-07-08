@@ -105,7 +105,7 @@ Route::get('sitemap.xml', function () {
             'loc'        => route('blog.show', $post->slug),
             'priority'   => '0.7',
             'changefreq' => 'monthly',
-            'lastmod'    => $post->published_at?->toDateString() ?? $today,
+            'lastmod'    => $post->updated_at?->toDateString() ?? $today,
         ];
     }
 
@@ -191,6 +191,11 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('subscriptions', \App\Livewire\SuperAdmin\Subscriptions::class)->name('subscriptions');
         Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
         Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
+
+        // Blog admin
+        Route::get('blog', \App\Livewire\SuperAdmin\Blog\Index::class)->name('blog.index');
+        Route::get('blog/create', \App\Livewire\SuperAdmin\Blog\Editor::class)->name('blog.create');
+        Route::get('blog/{post}/edit', \App\Livewire\SuperAdmin\Blog\Editor::class)->name('blog.edit');
     });
 });
 
