@@ -5,16 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}</title>
     <meta name="description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place. AI-powered sales responder closes deals 24/7.' }}">
-    <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
+    @php
+        // Canonical always points to the clean URL without ?lang= or other tracking params
+        $cleanUrl = $canonical ?? url()->current();
+        $cleanUrl = preg_replace('/([?&])lang=[^&]*(&|$)/', '$2', $cleanUrl);
+        $cleanUrl = rtrim($cleanUrl, '?&');
+        // Alternate hreflang URLs
+        $baseUrl = strtok($cleanUrl, '?') ?: $cleanUrl;
+        $enUrl   = $baseUrl;
+        $arUrl   = $baseUrl . '?lang=ar';
+    @endphp
+    <link rel="canonical" href="{{ $cleanUrl }}">
+    <link rel="alternate" hreflang="en" href="{{ $enUrl }}">
+    <link rel="alternate" hreflang="ar" href="{{ $arUrl }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $enUrl }}">
 
     {{-- Open Graph --}}
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}">
     <meta property="og:description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place.' }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $cleanUrl }}">
     <meta property="og:site_name" content="OT1-Pro">
     @if(isset($ogImage))
         <meta property="og:image" content="{{ $ogImage }}">
+    @else
+        <meta property="og:image" content="{{ asset('og-image.png') }}">
     @endif
 
     {{-- Twitter --}}

@@ -1,6 +1,6 @@
 <x-layouts.marketing
-    :title="__('OT1-Pro — The AI Sales Floor for DM-Driven Businesses')"
-    :description="__('Plug in Facebook, Instagram, WhatsApp, Telegram. OT1-Pro\'s AI qualifies leads, handles objections, and closes deals while you sleep. Built for agencies and operators.')"
+    :title="__('Unified WhatsApp & Social Inbox with AI Sales Responder | OT1-Pro')"
+    :description="__('Manage all WhatsApp, Instagram, Facebook, and Telegram conversations from one inbox. AI qualifies leads, handles objections, and closes deals 24/7. Free plan available.')"
 >
 
     {{-- ───── 1. Hero ───── --}}

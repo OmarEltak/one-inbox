@@ -72,36 +72,37 @@ Route::middleware('signed')->group(function () {
 // Sitemap
 Route::get('sitemap.xml', function () {
     $today = now()->toDateString();
-    $urls = [
-        ['loc' => url('/'), 'priority' => '1.0', 'changefreq' => 'weekly', 'lastmod' => $today],
-        ['loc' => url('/features'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/pricing'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/about'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/contact'), 'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/privacy'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
-        ['loc' => url('/terms'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2025-01-01'],
-        ['loc' => url('/refund'), 'priority' => '0.3', 'changefreq' => 'yearly', 'lastmod' => '2026-07-04'],
-        ['loc' => url('/whatsapp-inbox'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/instagram-dm'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/facebook-messenger'), 'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/telegram-inbox'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/trengo'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/manychat'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/freshchat'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/respond-io'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/tidio'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/real-estate'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/ecommerce'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/agencies'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/restaurants'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/education'), 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/blog'), 'priority' => '0.9', 'changefreq' => 'weekly', 'lastmod' => $today],
+
+    $pages = [
+        ['loc' => url('/'),                          'priority' => '1.0', 'changefreq' => 'weekly',  'lastmod' => $today],
+        ['loc' => url('/features'),                  'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/pricing'),                   'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/blog'),                      'priority' => '0.9', 'changefreq' => 'weekly',  'lastmod' => $today],
+        ['loc' => url('/whatsapp-inbox'),            'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/instagram-dm'),              'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/facebook-messenger'),        'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/telegram-inbox'),            'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/trengo'),                 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/manychat'),               'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/freshchat'),              'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/respond-io'),             'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/tidio'),                  'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/real-estate'),    'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/ecommerce'),      'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/agencies'),       'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/restaurants'),    'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/education'),      'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/about'),                     'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/contact'),                   'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/privacy'),                   'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2025-01-01'],
+        ['loc' => url('/terms'),                     'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2025-01-01'],
+        ['loc' => url('/refund'),                    'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2026-07-04'],
     ];
 
-    // Add published blog posts dynamically
+    // Add published blog posts
     $posts = \App\Models\Post::published()->orderByDesc('published_at')->get();
     foreach ($posts as $post) {
-        $urls[] = [
+        $pages[] = [
             'loc'        => route('blog.show', $post->slug),
             'priority'   => '0.7',
             'changefreq' => 'monthly',
@@ -109,21 +110,30 @@ Route::get('sitemap.xml', function () {
         ];
     }
 
-    $xml = '<?xml version="1.0" encoding="UTF-8"?>';
-    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-    foreach ($urls as $url) {
-        $xml .= '<url>';
-        $xml .= '<loc>' . $url['loc'] . '</loc>';
-        $xml .= '<lastmod>' . $url['lastmod'] . '</lastmod>';
-        $xml .= '<changefreq>' . $url['changefreq'] . '</changefreq>';
-        $xml .= '<priority>' . $url['priority'] . '</priority>';
-        $xml .= '</url>';
+    $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+    $xml .= '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+
+    foreach ($pages as $url) {
+        $loc  = htmlspecialchars($url['loc'], ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $arLoc = htmlspecialchars($url['loc'] . '?lang=ar', ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $xml .= "  <url>\n";
+        $xml .= "    <loc>{$loc}</loc>\n";
+        $xml .= "    <lastmod>{$url['lastmod']}</lastmod>\n";
+        $xml .= "    <changefreq>{$url['changefreq']}</changefreq>\n";
+        $xml .= "    <priority>{$url['priority']}</priority>\n";
+        $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"{$loc}\"/>\n";
+        $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"{$arLoc}\"/>\n";
+        $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"{$loc}\"/>\n";
+        $xml .= "  </url>\n";
     }
+
     $xml .= '</urlset>';
 
     return response($xml, 200, [
-        'Content-Type'  => 'application/xml',
+        'Content-Type'  => 'application/xml; charset=UTF-8',
         'Cache-Control' => 'public, max-age=3600, s-maxage=21600',
+        'X-Robots-Tag'  => 'noindex',
     ]);
 })->name('sitemap');
 
