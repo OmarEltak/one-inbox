@@ -886,35 +886,35 @@
     </flux:modal>
 
     {{-- Telegram Bot Modal --}}
-    <flux:modal name="telegram-connect" class="w-full max-w-lg">
+    <flux:modal name="telegram-connect" class="w-full max-w-lg !bg-[#f5f5f5] dark:!bg-[#f5f5f5]">
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">{{ __('Connect Telegram Bot') }}</h3>
-                <p class="text-sm text-white/40 mt-1">A Telegram bot is a free account that messages people in your name. Anyone who chats with the bot lands in your inbox.</p>
+                <h3 class="text-lg font-semibold text-zinc-800">{{ __('Connect Telegram Bot') }}</h3>
+                <p class="text-sm text-zinc-500 mt-1">A Telegram bot is a free account that messages people in your name. Anyone who chats with the bot lands in your inbox.</p>
             </div>
 
-            <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/70 space-y-1.5 leading-relaxed">
-                <p class="font-semibold text-white/85">How to get a bot token (3 minutes)</p>
-                <p>① Open Telegram on your phone or desktop. Search for <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="text-emerald-300 hover:underline"><strong>@BotFather</strong></a> and start a chat.</p>
-                <p>② Send the message <code class="text-emerald-300">/newbot</code></p>
-                <p>③ BotFather asks for a <strong class="text-white/85">name</strong> — type whatever you want (e.g. "Acme Support").</p>
-                <p>④ Then it asks for a <strong class="text-white/85">username</strong> — must end in <code class="text-emerald-300">bot</code> (e.g. <code class="text-emerald-300">acme_support_bot</code>).</p>
-                <p>⑤ BotFather replies with a <strong class="text-white/85">token</strong> that looks like <code class="text-emerald-300">123456789:ABCdefGHIjklMNOpqrSTUvwxyz</code>. <strong>Copy the entire token</strong> and paste it below.</p>
-                <p class="text-yellow-300/80 mt-2">⚠️ Keep this token private — it's the equivalent of a password for your bot.</p>
+            <div class="rounded-lg border border-zinc-200 bg-zinc-100 p-3 text-xs text-zinc-600 space-y-1.5 leading-relaxed">
+                <p class="font-semibold text-zinc-700">How to get a bot token (3 minutes)</p>
+                <p>① Open Telegram on your phone or desktop. Search for <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="text-emerald-600 hover:underline"><strong>@BotFather</strong></a> and start a chat.</p>
+                <p>② Send the message <code class="text-emerald-600">/newbot</code></p>
+                <p>③ BotFather asks for a <strong class="text-zinc-700">name</strong> — type whatever you want (e.g. "Acme Support").</p>
+                <p>④ Then it asks for a <strong class="text-zinc-700">username</strong> — must end in <code class="text-emerald-600">bot</code> (e.g. <code class="text-emerald-600">acme_support_bot</code>).</p>
+                <p>⑤ BotFather replies with a <strong class="text-zinc-700">token</strong> that looks like <code class="text-emerald-600">123456789:ABCdefGHIjklMNOpqrSTUvwxyz</code>. <strong>Copy the entire token</strong> and paste it below.</p>
+                <p class="text-yellow-600 mt-2">⚠️ Keep this token private — it's the equivalent of a password for your bot.</p>
             </div>
 
             <form method="POST" action="{{ route('connections.telegram.connect') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token (from BotFather)</label>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1.5">Bot Token (from BotFather)</label>
                     <input type="text" name="bot_token" placeholder="123456789:ABCdef..." required
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
 
-                <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/60 leading-relaxed">
-                    <p class="font-semibold text-white/80 mb-1">After you click Connect Bot:</p>
-                    <p>• Anyone who searches for <code class="text-emerald-300">@your_bot_username</code> on Telegram and starts a chat → lands in your inbox.</p>
-                    <p>• Share the bot link with your customers: <code class="text-emerald-300">https://t.me/your_bot_username</code></p>
+                <div class="rounded-lg border border-zinc-200 bg-zinc-100 p-3 text-xs text-zinc-600 leading-relaxed">
+                    <p class="font-semibold text-zinc-700 mb-1">After you click Connect Bot:</p>
+                    <p>• Anyone who searches for <code class="text-emerald-600">@your_bot_username</code> on Telegram and starts a chat → lands in your inbox.</p>
+                    <p>• Share the bot link with your customers: <code class="text-emerald-600">https://t.me/your_bot_username</code></p>
                     <p>• Replies you send from the inbox arrive in their Telegram.</p>
                 </div>
 
@@ -929,36 +929,36 @@
     </flux:modal>
 
     {{-- Slack connect modal --}}
-    <flux:modal name="slack-connect" class="w-full max-w-lg">
+    <flux:modal name="slack-connect" class="w-full max-w-lg !bg-[#f5f5f5] dark:!bg-[#f5f5f5]">
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">{{ __('Connect Slack Workspace') }}</h3>
-                <p class="text-sm text-white/40 mt-1">
-                    Create a Slack App at <a href="https://api.slack.com/apps" target="_blank" rel="noopener" class="text-emerald-300 hover:underline">api.slack.com/apps</a>, install it to your workspace, then paste the credentials below.
+                <h3 class="text-lg font-semibold text-zinc-800">{{ __('Connect Slack Workspace') }}</h3>
+                <p class="text-sm text-zinc-500 mt-1">
+                    Create a Slack App at <a href="https://api.slack.com/apps" target="_blank" rel="noopener" class="text-emerald-600 hover:underline">api.slack.com/apps</a>, install it to your workspace, then paste the credentials below.
                 </p>
             </div>
 
-            <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
-                <p class="font-semibold text-white/80">Setup checklist</p>
+            <div class="rounded-lg border border-zinc-200 bg-zinc-100 p-3 text-xs text-zinc-600 space-y-1.5">
+                <p class="font-semibold text-zinc-700">Setup checklist</p>
                 <p>① Create app → "From scratch" → pick a workspace</p>
-                <p>② OAuth &amp; Permissions → add Bot Token Scopes: <code class="text-emerald-300">chat:write</code>, <code class="text-emerald-300">channels:history</code>, <code class="text-emerald-300">groups:history</code>, <code class="text-emerald-300">im:history</code>, <code class="text-emerald-300">users:read</code></p>
-                <p>③ Install to workspace → copy the <strong class="text-white/80">Bot User OAuth Token</strong> (starts with <code class="text-emerald-300">xoxb-</code>)</p>
-                <p>④ Basic Information → copy the <strong class="text-white/80">Signing Secret</strong></p>
-                <p>⑤ Event Subscriptions → enable, set Request URL to <code class="text-emerald-300">{{ url('/api/webhooks/slack') }}</code>, subscribe to bot events: <code class="text-emerald-300">message.channels</code>, <code class="text-emerald-300">message.groups</code>, <code class="text-emerald-300">message.im</code></p>
+                <p>② OAuth &amp; Permissions → add Bot Token Scopes: <code class="text-emerald-600">chat:write</code>, <code class="text-emerald-600">channels:history</code>, <code class="text-emerald-600">groups:history</code>, <code class="text-emerald-600">im:history</code>, <code class="text-emerald-600">users:read</code></p>
+                <p>③ Install to workspace → copy the <strong class="text-zinc-700">Bot User OAuth Token</strong> (starts with <code class="text-emerald-600">xoxb-</code>)</p>
+                <p>④ Basic Information → copy the <strong class="text-zinc-700">Signing Secret</strong></p>
+                <p>⑤ Event Subscriptions → enable, set Request URL to <code class="text-emerald-600">{{ url('/api/webhooks/slack') }}</code>, subscribe to bot events: <code class="text-emerald-600">message.channels</code>, <code class="text-emerald-600">message.groups</code>, <code class="text-emerald-600">message.im</code></p>
                 <p>⑥ Invite the bot to any channels you want messages to flow from</p>
             </div>
 
             <form method="POST" action="{{ route('connections.slack.connect') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot User OAuth Token</label>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1.5">Bot User OAuth Token</label>
                     <input type="text" name="bot_token" placeholder="xoxb-..." required
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Signing Secret</label>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1.5">Signing Secret</label>
                     <input type="text" name="signing_secret" placeholder="32-character hex string" required
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
@@ -971,41 +971,41 @@
     </flux:modal>
 
     {{-- Discord connect modal --}}
-    <flux:modal name="discord-connect" class="w-full max-w-lg">
+    <flux:modal name="discord-connect" class="w-full max-w-lg !bg-[#f5f5f5] dark:!bg-[#f5f5f5]">
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">{{ __('Connect Discord Bot') }}</h3>
-                <p class="text-sm text-white/40 mt-1">
-                    Create an Application at <a href="https://discord.com/developers/applications" target="_blank" rel="noopener" class="text-emerald-300 hover:underline">discord.com/developers/applications</a>, add a Bot user, then paste the credentials below.
+                <h3 class="text-lg font-semibold text-zinc-800">{{ __('Connect Discord Bot') }}</h3>
+                <p class="text-sm text-zinc-500 mt-1">
+                    Create an Application at <a href="https://discord.com/developers/applications" target="_blank" rel="noopener" class="text-emerald-600 hover:underline">discord.com/developers/applications</a>, add a Bot user, then paste the credentials below.
                 </p>
             </div>
 
-            <div class="rounded-lg border border-white/15 bg-white/[0.03] p-3 text-xs text-white/60 space-y-1.5">
-                <p class="font-semibold text-white/80">Setup checklist</p>
-                <p>① New Application → name it → copy <strong class="text-white/80">Application ID</strong> from General Information</p>
-                <p>② Copy the <strong class="text-white/80">Public Key</strong> from the same page</p>
-                <p>③ Bot tab → Reset Token → copy the <strong class="text-white/80">Bot Token</strong> (shown only once)</p>
-                <p>④ General Information → set <strong class="text-white/80">Interactions Endpoint URL</strong> = <code class="text-emerald-300">{{ url('/api/webhooks/discord') }}</code></p>
-                <p>⑤ Installation tab → enable Guild Install with <code class="text-emerald-300">applications.commands</code> scope, then use the Install Link to add the bot to your server</p>
-                <p class="text-emerald-300/80">After connecting, your members type <code>/support &lt;message&gt;</code> in any channel; messages land in this inbox and your replies DM them back.</p>
+            <div class="rounded-lg border border-zinc-200 bg-zinc-100 p-3 text-xs text-zinc-600 space-y-1.5">
+                <p class="font-semibold text-zinc-700">Setup checklist</p>
+                <p>① New Application → name it → copy <strong class="text-zinc-700">Application ID</strong> from General Information</p>
+                <p>② Copy the <strong class="text-zinc-700">Public Key</strong> from the same page</p>
+                <p>③ Bot tab → Reset Token → copy the <strong class="text-zinc-700">Bot Token</strong> (shown only once)</p>
+                <p>④ General Information → set <strong class="text-zinc-700">Interactions Endpoint URL</strong> = <code class="text-emerald-600">{{ url('/api/webhooks/discord') }}</code></p>
+                <p>⑤ Installation tab → enable Guild Install with <code class="text-emerald-600">applications.commands</code> scope, then use the Install Link to add the bot to your server</p>
+                <p class="text-emerald-700">After connecting, your members type <code>/support &lt;message&gt;</code> in any channel; messages land in this inbox and your replies DM them back.</p>
             </div>
 
             <form method="POST" action="{{ route('connections.discord.connect') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Application ID</label>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1.5">Application ID</label>
                     <input type="text" name="application_id" placeholder="18-digit numeric snowflake" required
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Public Key</label>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1.5">Public Key</label>
                     <input type="text" name="public_key" placeholder="64-character hex" required
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-white/40 mb-1.5">Bot Token</label>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1.5">Bot Token</label>
                     <input type="text" name="bot_token" placeholder="MTI..." required
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
+                           class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-[#3b82f6] focus:outline-none font-mono" />
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
