@@ -440,7 +440,7 @@ class Index extends Component
         $rejects = $this->rejectedByPlatform;
 
         return view('livewire.connections.index', [
-            'metaVerified'      => (bool) config('services.meta.app_verified'),
+            'metaVerified'      => (bool) config('services.meta.app_verified') || auth()->user()?->is_super_admin,
             'facebookPages'     => $pages->where('platform', 'facebook'),
             'facebookAccounts'  => $accts->where('platform', 'facebook'),
             'fbRejected'        => $rejects['facebook'] ?? null,
