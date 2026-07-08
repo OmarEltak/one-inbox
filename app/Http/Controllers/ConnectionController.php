@@ -55,6 +55,8 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $facebook->handleCallback($request, $teamId);
 
+            auth()->user()->currentTeam?->clearActivePagesCache();
+
             return redirect()->route('connections.index')
                 ->with('success', "Connected {$account->name} with {$account->pages->count()} page(s).")
                 ->with('syncing', true);
@@ -109,6 +111,8 @@ class ConnectionController extends Controller
             $teamId  = auth()->user()->current_team_id;
             $account = $facebook->handleInstagramViaFacebookCallback($request, $teamId);
 
+            auth()->user()->currentTeam?->clearActivePagesCache();
+
             $igCount = $account->pages()->where('platform', 'instagram')->count();
 
             return redirect()->route('connections.index')
@@ -152,6 +156,8 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $facebook->handleInstagramCallback($request, $teamId);
 
+            auth()->user()->currentTeam?->clearActivePagesCache();
+
             $igCount = $account->pages()->where('platform', 'instagram')->count();
 
             return redirect()->route('connections.index')
@@ -188,6 +194,8 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $whatsapp->handleCallback($request, $teamId);
 
+            auth()->user()->currentTeam?->clearActivePagesCache();
+
             $phoneCount = $account->pages()->where('platform', 'whatsapp')->count();
 
             return redirect()->route('connections.index')
@@ -221,6 +229,8 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $telegram->handleCallback($request, $teamId);
+
+            auth()->user()->currentTeam?->clearActivePagesCache();
 
             $botName = $account->name;
 
@@ -256,6 +266,7 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $slack->handleCallback($request, $teamId);
+            auth()->user()->currentTeam?->clearActivePagesCache();
             return redirect()->route('connections.index')
                 ->with('success', "Connected Slack workspace: {$account->name}");
         } catch (\Throwable $e) {
@@ -285,6 +296,7 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $discord->handleCallback($request, $teamId);
+            auth()->user()->currentTeam?->clearActivePagesCache();
             return redirect()->route('connections.index')
                 ->with('success', "Connected Discord bot: {$account->name}");
         } catch (\Throwable $e) {
@@ -326,6 +338,8 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $tiktok->handleCallback($request, $teamId);
+
+            auth()->user()->currentTeam?->clearActivePagesCache();
 
             return redirect()->route('connections.index')
                 ->with('success', "Connected TikTok account: {$account->name}");
@@ -401,6 +415,8 @@ class ConnectionController extends Controller
             $teamId  = auth()->user()->current_team_id;
             $account = $email->handleCallback($request, $teamId);
 
+            auth()->user()->currentTeam?->clearActivePagesCache();
+
             // Immediately fetch existing emails in the background
             $page = $account->pages()->where('platform', 'email')->first();
             if ($page) {
@@ -432,6 +448,8 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $snapchat->handleCallback($request, $teamId);
+
+            auth()->user()->currentTeam?->clearActivePagesCache();
 
             return redirect()->route('connections.index')
                 ->with('success', "Connected Snapchat account: {$account->name}");
