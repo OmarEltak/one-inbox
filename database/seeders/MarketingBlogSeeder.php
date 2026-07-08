@@ -252,7 +252,7 @@ class MarketingBlogSeeder extends Seeder
 
 <p><a href="https://ot1-pro.com/register">Get started free</a> — and see what your business looks like with a 24/7 sales team that costs less than a single employee.</p>',
                 'meta_title'       => 'How AI Replaces the Sales Team You Can\'t Afford | OT1-Pro',
-                'meta_description' => 'A dedicated sales team is too expensive for most businesses. AI changes that — giving you 24/7 WhatsApp and Instagram sales coverage at a fraction of the cost.',
+                'meta_description' => 'A dedicated sales team is too expensive for most businesses. AI changes that — giving you 24/7 WhatsApp and Instagram sales coverage for a fraction of the cost.',
                 'category'         => 'AI Sales',
                 'reading_time'     => '5 min read',
                 'author'           => 'Omar Eltak',
@@ -425,7 +425,7 @@ class MarketingBlogSeeder extends Seeder
 
 <p><a href="https://ot1-pro.com/register">Get started with OT1-Pro free</a> and launch your first WhatsApp marketing campaign today.</p>',
                 'meta_title'       => 'WhatsApp Marketing 2026: Complete Guide for Small Businesses | OT1-Pro',
-                'meta_description' => 'WhatsApp has a 98% open rate — higher than any other marketing channel. This complete 2026 guide shows small businesses exactly how to leverage it for more sales.',
+                'meta_description' => 'WhatsApp has a 98% open rate — higher than any other channel. This complete 2026 guide shows small businesses how to leverage it for more sales.',
                 'category'         => 'WhatsApp Marketing',
                 'reading_time'     => '7 min read',
                 'author'           => 'Omar Eltak',
@@ -481,7 +481,7 @@ class MarketingBlogSeeder extends Seeder
 
 <p><a href="https://ot1-pro.com/register">Start your free trial</a> and see how many messages your team can handle when they have AI working alongside them.</p>',
                 'meta_title'       => 'How to Handle 500 Customer Messages a Day Without Hiring | OT1-Pro',
-                'meta_description' => 'As your business grows, so does your inbox. Learn how AI-assisted inbox management lets small teams handle massive message volume — without burning out or hiring more staff.',
+                'meta_description' => 'As your business grows, so does your inbox. Learn how AI-assisted inbox management lets small teams handle massive message volume — without burning out.',
                 'category'         => 'Customer Service',
                 'reading_time'     => '5 min read',
                 'author'           => 'Omar Eltak',
