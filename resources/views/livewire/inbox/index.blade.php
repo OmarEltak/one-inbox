@@ -28,18 +28,18 @@
         {{-- Filters --}}
         <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 space-y-3">
             <div class="flex items-center gap-2">
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" class="flex-1" />
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" class="flex-1 [&_input]:text-zinc-900" />
                 @if($pageId && optional(\App\Models\Page::find($pageId))->platform === 'email')
                     <flux:button wire:click="openCompose" size="sm" variant="ghost" icon="pencil-square" title="Compose new email" />
                 @endif
             </div>
 
             <div class="flex gap-1 flex-wrap items-center">
-                <flux:badge as="button" wire:click="setFilter('all')" :variant="$filter === 'all' ? 'solid' : 'outline'" color="zinc" size="sm">All</flux:badge>
-                <flux:badge as="button" wire:click="setFilter('unread')" :variant="$filter === 'unread' ? 'solid' : 'outline'" color="red" size="sm">
+                <flux:badge as="button" wire:click="setFilter('all')" :variant="$filter === 'all' ? 'solid' : 'outline'" color="zinc" size="sm" :class="$filter !== 'all' ? '!text-zinc-900' : ''">All</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('unread')" :variant="$filter === 'unread' ? 'solid' : 'outline'" color="red" size="sm" :class="$filter !== 'unread' ? '!text-zinc-900' : ''">
                     Unread {{ $this->unreadCount > 0 ? "({$this->unreadCount})" : '' }}
                 </flux:badge>
-                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm">Mine</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">Mine</flux:badge>
                 @if(!$pageId)
                 <flux:badge as="button" wire:click="setFilter('facebook')" :variant="$filter === 'facebook' ? 'solid' : 'outline'" color="blue" size="sm">FB</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('instagram')" :variant="$filter === 'instagram' ? 'solid' : 'outline'" color="pink" size="sm">IG</flux:badge>
@@ -52,8 +52,8 @@
                      bright accent) and only appears when the team has at
                      least one spam-marked conversation, so a fresh team
                      isn't cluttered with a chip pointing to an empty view. --}}
-                <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm">Escalated</flux:badge>
-                <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm">Done</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm" :class="$filter !== 'escalated' ? '!text-zinc-900' : ''">Escalated</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'completed' ? '!text-zinc-900' : ''">Done</flux:badge>
                 @if($this->spamCount > 0 || $filter === 'spam')
                     <flux:badge as="button" wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" :variant="$filter === 'spam' ? 'solid' : 'outline'" color="zinc" size="sm">
                         <flux:icon name="no-symbol" class="w-3 h-3" />
@@ -115,7 +115,7 @@
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
-                                <span class="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">
+                                <span class="font-medium text-sm text-zinc-900 truncate">
                                     {{ $conversation->contact?->name ?? 'Unknown' }}
                                 </span>
                                 <span class="text-xs text-zinc-500 flex-shrink-0 ml-2">
@@ -123,7 +123,7 @@
                                 </span>
                             </div>
                             <div class="flex items-center justify-between mt-0.5">
-                                <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                                <p class="text-xs text-zinc-900 truncate">
                                     {{ $conversation->last_message_preview ?? 'No messages yet' }}
                                 </p>
                                 <div class="flex items-center gap-1 flex-shrink-0 ml-2">
