@@ -185,7 +185,7 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-2.5 text-sm text-zinc-800">
+                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-2.5 text-sm text-zinc-900">
                                 {!! nl2br(e($msg['content'])) !!}
                             </div>
                         </div>
