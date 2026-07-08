@@ -50,6 +50,11 @@
                         <flux:text>Select a page from the left to configure its AI settings.</flux:text>
                     </div>
                 @else
+                    {{-- Force black text on all Flux labels and controls in dark mode --}}
+                    <style>
+                        [data-flux-label] { color: rgb(9,9,11) !important; }
+                        [data-flux-control] { color: rgb(9,9,11) !important; }
+                    </style>
                     <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
                         {{-- Active Toggle --}}
                         <div class="rounded-xl border-2 {{ $is_active ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50' }} p-4">
@@ -350,7 +355,7 @@
                                     <div class="text-sm font-medium text-zinc-900">Always on (24/7)</div>
                                     <div class="text-xs text-zinc-900">When on, the AI replies any time of day — schedule below is ignored.</div>
                                 </div>
-                                <flux:switch wire:model.live="is_24_7" />
+                                <flux:switch wire:model.live="is_24_7" class="[&:not([data-checked])]:!bg-zinc-500 dark:[&:not([data-checked])]:!bg-zinc-500" />
                             </div>
 
                             <div @class(['opacity-50 pointer-events-none' => $is_24_7])>

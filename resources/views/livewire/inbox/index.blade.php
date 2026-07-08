@@ -107,7 +107,7 @@
             @forelse($this->conversations as $conversation)
                 <button
                     wire:click="selectConversation({{ $conversation->id }})"
-                    class="w-full text-left p-3 border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer {{ $selectedConversationId === $conversation->id ? 'bg-zinc-100 dark:bg-zinc-800' : '' }}"
+                    class="group w-full text-left p-3 border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer {{ $selectedConversationId === $conversation->id ? 'bg-zinc-100 dark:bg-zinc-800 is-selected' : '' }}"
                 >
                     <div class="flex items-start gap-3">
                         <div class="relative flex-shrink-0">
@@ -117,7 +117,7 @@
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
-                                <span class="font-medium text-sm text-zinc-900 truncate">
+                                <span class="font-medium text-sm truncate !text-zinc-900 dark:!text-zinc-900 dark:group-hover:!text-white {{ $selectedConversationId === $conversation->id ? 'dark:!text-white' : '' }}">
                                     {{ $conversation->contact?->name ?? 'Unknown' }}
                                 </span>
                                 <span class="text-xs text-zinc-500 flex-shrink-0 ml-2">
