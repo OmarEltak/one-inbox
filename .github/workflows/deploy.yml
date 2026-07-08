@@ -19,6 +19,13 @@ jobs:
           script: |
             cd /var/www/ot1-pro.com
             git pull origin main
+
+            # ── Prod .env guards (idempotent — only writes if not already set) ──
+            sed -i 's/^APP_DEBUG=true/APP_DEBUG=false/' .env
+            grep -q '^FLARE_KEY=' .env    || echo 'FLARE_KEY=${{ secrets.FLARE_KEY }}'    >> .env
+            grep -q '^FLARE_LOG=' .env    || echo 'FLARE_LOG=true'                         >> .env
+            grep -q '^LOG_STACK=.*flare'  .env || sed -i 's/^LOG_STACK=.*/LOG_STACK=single,flare/' .env
+
             composer install --no-dev --optimize-autoloader
             npm ci && npm run build
             php artisan migrate --force
