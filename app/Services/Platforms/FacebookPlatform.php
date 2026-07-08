@@ -762,8 +762,8 @@ class FacebookPlatform extends AbstractPlatform
 
         do {
             $response = $nextUrl
-                ? Http::withToken($page->page_access_token)->get($nextUrl)
-                : Http::withToken($page->page_access_token)
+                ? Http::timeout(20)->withToken($page->page_access_token)->get($nextUrl)
+                : Http::timeout(20)->withToken($page->page_access_token)
                     ->get("{$baseUrl}/{$page->platform_page_id}/conversations", [
                         'fields' => 'id,participants,updated_time,snippet',
                         'platform' => $platform,
