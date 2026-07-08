@@ -56,6 +56,31 @@
         </div>
     </section>
 
+    {{-- Language filter (only shown when posts exist in more than one language) --}}
+    @if(count($languages) > 1)
+    <div class="border-b border-zinc-200 bg-white">
+        <div class="mx-auto max-w-6xl px-6 py-3 flex items-center gap-2 flex-wrap">
+            <a href="{{ route('blog.index') }}"
+               class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors {{ is_null($activeLang) ? 'bg-indigo-600 text-white' : 'text-zinc-600 hover:bg-zinc-100' }}">
+                All
+            </a>
+            @foreach($languages as $lang)
+            <a href="{{ route('blog.index', ['lang' => $lang]) }}"
+               class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors {{ $activeLang === $lang ? 'bg-indigo-600 text-white' : 'text-zinc-600 hover:bg-zinc-100' }}">
+                {{ match($lang) {
+                    'ar' => 'Arabic',
+                    'en' => 'English',
+                    'fr' => 'French',
+                    'es' => 'Spanish',
+                    'de' => 'German',
+                    default => strtoupper($lang),
+                } }}
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- Posts Grid --}}
     <section class="py-16 lg:py-24">
         <div class="mx-auto max-w-6xl px-6">

@@ -3,16 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::published()
-            ->orderByDesc('published_at')
-            ->paginate(12);
+        $lang = $request->query('lang');
 
-        return view('blog.index', compact('posts'));
+        $query = Post::published()->orderByDesc('published_at');
+
+        if ($lang) {
+            $query->forLanguage($lang);
+        }
+
+        $posts      = $query->paginate(12)->withQueryString();
+        $languages  = Post::publishedLanguages();
+        $activeLang = $lang;
+
+        return view('blog.index', compact('posts', 'languages', 'activeLang'));
     }
 
     public function show(string $slug)
