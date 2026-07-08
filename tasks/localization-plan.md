@@ -20,16 +20,16 @@ Change `[ ]` to `[x]` when both conditions are met:
 |--------|------|-------|
 | `[x]` | `components/layouts/marketing.blade.php` | Language switcher already uses `__()` for labels; DE/ES removed |
 | `[x]` | `layouts/marketing.blade.php` | Simple layout switcher — DE/ES removed |
-| `[ ]` | `layouts/app.blade.php` | App shell — check for hardcoded strings |
-| `[ ]` | `layouts/app/header.blade.php` | Top bar, notifications, team switcher |
-| `[ ]` | `layouts/app/sidebar.blade.php` | Nav labels (Inbox, Contacts, Campaigns, etc.) |
-| `[ ]` | `layouts/auth.blade.php` | Auth shell |
-| `[ ]` | `components/desktop-user-menu.blade.php` | Settings / Log Out labels |
-| `[ ]` | `components/settings/layout.blade.php` | Settings nav tabs |
-| `[ ]` | `components/auth-header.blade.php` | Auth page heading |
-| `[ ]` | `partials/head.blade.php` | Meta tags, title |
-| `[ ]` | `partials/ai-quota-banner.blade.php` | Banner copy |
-| `[ ]` | `partials/settings-heading.blade.php` | Section heading |
+| `[x]` | `layouts/app.blade.php` | No hardcoded user-visible strings |
+| `[x]` | `layouts/app/header.blade.php` | Already uses `__()` throughout |
+| `[x]` | `layouts/app/sidebar.blade.php` | All nav labels, onboarding modal localized |
+| `[x]` | `layouts/auth.blade.php` | Wrapper only — no hardcoded strings |
+| `[x]` | `components/desktop-user-menu.blade.php` | Settings / Log Out localized |
+| `[x]` | `components/settings/layout.blade.php` | All nav tabs localized |
+| `[x]` | `components/auth-header.blade.php` | Props-based, no hardcoded strings |
+| `[x]` | `partials/head.blade.php` | No user-visible strings |
+| `[x]` | `partials/ai-quota-banner.blade.php` | All copy localized |
+| `[x]` | `partials/settings-heading.blade.php` | Already uses `__()` |
 
 ---
 
@@ -37,13 +37,13 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/auth/login.blade.php` | Email, password labels, "Sign in" button |
-| `[ ]` | `livewire/auth/register.blade.php` | All form fields and CTA |
-| `[ ]` | `livewire/auth/forgot-password.blade.php` | Instructions and button |
-| `[ ]` | `livewire/auth/reset-password.blade.php` | Form labels |
-| `[ ]` | `livewire/auth/confirm-password.blade.php` | Confirmation copy |
-| `[ ]` | `livewire/auth/verify-email.blade.php` | Email verification copy |
-| `[ ]` | `livewire/auth/two-factor-challenge.blade.php` | 2FA prompt copy |
+| `[x]` | `livewire/auth/login.blade.php` | Fully localized |
+| `[x]` | `livewire/auth/register.blade.php` | Fully localized |
+| `[x]` | `livewire/auth/forgot-password.blade.php` | Already used `__()` throughout |
+| `[x]` | `livewire/auth/reset-password.blade.php` | Already used `__()` throughout |
+| `[x]` | `livewire/auth/confirm-password.blade.php` | Already used `__()` throughout |
+| `[x]` | `livewire/auth/verify-email.blade.php` | Already used `__()` throughout |
+| `[x]` | `livewire/auth/two-factor-challenge.blade.php` | Already used `__()` throughout |
 
 ---
 
@@ -51,13 +51,13 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/dashboard.blade.php` | Stats labels, empty states, CTAs |
-| `[ ]` | `livewire/inbox/index.blade.php` | Conversation list, status badges, filter labels |
-| `[ ]` | `livewire/contacts/index.blade.php` | Table headers, actions, search placeholder |
-| `[ ]` | `livewire/content/index.blade.php` | Content labels |
-| `[ ]` | `livewire/analytics.blade.php` | Chart labels, metric names |
-| `[ ]` | `livewire/ai-chat.blade.php` | Chat UI copy, placeholders |
-| `[ ]` | `livewire/pay-wire.blade.php` | Payment / billing UI copy |
+| `[x]` | `livewire/dashboard.blade.php` | Stats labels, empty states, CTAs, AI ON/OFF |
+| `[x]` | `livewire/inbox/index.blade.php` | Conversation list, status badges, filter labels |
+| `[x]` | `livewire/contacts/index.blade.php` | Table headers, actions, search placeholder |
+| `[x]` | `livewire/content/index.blade.php` | Content labels |
+| `[x]` | `livewire/analytics.blade.php` | Chart labels (via @js()), metric names |
+| `[x]` | `livewire/ai-chat.blade.php` | Chat UI copy, placeholders |
+| `[x]` | `livewire/pay-wire.blade.php` | Payment / billing UI copy |
 
 ---
 
@@ -65,9 +65,9 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/campaigns/index.blade.php` | List view, status badges |
-| `[ ]` | `livewire/campaigns/show.blade.php` | Campaign detail, stats |
-| `[ ]` | `livewire/campaigns/email-wizard.blade.php` | All wizard step labels |
+| `[x]` | `livewire/campaigns/index.blade.php` | List view, status badges |
+| `[x]` | `livewire/campaigns/show.blade.php` | Campaign detail, stats |
+| `[x]` | `livewire/campaigns/email-wizard.blade.php` | All wizard step labels |
 
 ---
 
@@ -75,8 +75,8 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/connections/index.blade.php` | Platform cards, status indicators, action buttons |
-| `[ ]` | `livewire/connections/whatsapp-qr-modal.blade.php` | Modal copy, instructions |
+| `[x]` | `livewire/connections/index.blade.php` | Platform cards, status indicators, action buttons |
+| `[x]` | `livewire/connections/whatsapp-qr-modal.blade.php` | Modal copy, instructions |
 
 ---
 
@@ -84,18 +84,18 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/settings/profile.blade.php` | Field labels, save button |
-| `[ ]` | `livewire/settings/password.blade.php` | Field labels |
-| `[ ]` | `livewire/settings/appearance.blade.php` | Theme labels |
-| `[ ]` | `livewire/settings/billing.blade.php` | Plan names, billing copy |
-| `[ ]` | `livewire/settings/ai-config.blade.php` | AI config labels, descriptions |
-| `[ ]` | `livewire/settings/ai-settings.blade.php` | AI settings copy |
-| `[ ]` | `livewire/settings/quick-replies.blade.php` | Quick replies UI copy |
-| `[ ]` | `livewire/settings/webhook-logs.blade.php` | Table headers, status labels |
-| `[ ]` | `livewire/settings/admin-management.blade.php` | Admin panel copy |
-| `[ ]` | `livewire/settings/two-factor.blade.php` | 2FA setup copy |
-| `[ ]` | `livewire/settings/two-factor/recovery-codes.blade.php` | Recovery codes copy |
-| `[ ]` | `livewire/settings/delete-user-form.blade.php` | Danger zone copy |
+| `[x]` | `livewire/settings/profile.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/password.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/appearance.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/billing.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/ai-config.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/ai-settings.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/quick-replies.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/webhook-logs.blade.php` | Table headers, filters, status labels |
+| `[x]` | `livewire/settings/admin-management.blade.php` | Admin panel, modal labels |
+| `[x]` | `livewire/settings/two-factor.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/two-factor/recovery-codes.blade.php` | Fully localized |
+| `[x]` | `livewire/settings/delete-user-form.blade.php` | Fully localized |
 
 ---
 
@@ -103,7 +103,7 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/teams/create.blade.php` | Create team form labels |
+| `[x]` | `livewire/teams/create.blade.php` | Create team form labels |
 
 ---
 
@@ -111,10 +111,10 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `livewire/super-admin/customers.blade.php` | Customer table, actions |
-| `[ ]` | `livewire/super-admin/subscriptions.blade.php` | Subscription management copy |
-| `[ ]` | `livewire/super-admin/page-assignments.blade.php` | Assignment UI copy |
-| `[ ]` | `livewire/super-admin/onboarding-requests.blade.php` | Onboarding request copy |
+| `[x]` | `livewire/super-admin/customers.blade.php` | Customer table, actions |
+| `[x]` | `livewire/super-admin/subscriptions.blade.php` | Subscription management copy |
+| `[x]` | `livewire/super-admin/page-assignments.blade.php` | Assignment UI copy |
+| `[x]` | `livewire/super-admin/onboarding-requests.blade.php` | Onboarding request copy |
 
 ---
 
@@ -122,15 +122,15 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `welcome.blade.php` | Home page hero, features, testimonials, FAQs |
-| `[ ]` | `pages/features.blade.php` | Features page copy |
-| `[ ]` | `pages/pricing.blade.php` | Pricing tiers, feature lists |
-| `[ ]` | `pages/about.blade.php` | About page copy |
-| `[ ]` | `pages/contact.blade.php` | Contact form labels |
-| `[ ]` | `pages/privacy.blade.php` | Privacy policy (consider whether Arabic version is needed) |
-| `[ ]` | `pages/terms.blade.php` | Terms of service |
-| `[ ]` | `pages/refund.blade.php` | Refund policy |
-| `[ ]` | `pages/data-deletion-status.blade.php` | Data deletion page |
+| `[x]` | `welcome.blade.php` | Home page hero, features, testimonials, FAQs |
+| `[x]` | `pages/features.blade.php` | Features page copy |
+| `[x]` | `pages/pricing.blade.php` | Pricing tiers, feature lists |
+| `[x]` | `pages/about.blade.php` | About page copy |
+| `[x]` | `pages/contact.blade.php` | Contact form labels |
+| `[x]` | `pages/privacy.blade.php` | Privacy policy |
+| `[x]` | `pages/terms.blade.php` | Terms of service |
+| `[x]` | `pages/refund.blade.php` | Refund policy |
+| `[x]` | `pages/data-deletion-status.blade.php` | Data deletion page |
 
 ---
 
@@ -138,10 +138,10 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `pages/whatsapp-inbox.blade.php` | WhatsApp landing page copy |
-| `[ ]` | `pages/instagram-dm.blade.php` | Instagram landing page copy |
-| `[ ]` | `pages/facebook-messenger.blade.php` | Facebook landing page copy |
-| `[ ]` | `pages/telegram-inbox.blade.php` | Telegram landing page copy |
+| `[x]` | `pages/whatsapp-inbox.blade.php` | WhatsApp landing page copy |
+| `[x]` | `pages/instagram-dm.blade.php` | Instagram landing page copy |
+| `[x]` | `pages/facebook-messenger.blade.php` | Facebook landing page copy |
+| `[x]` | `pages/telegram-inbox.blade.php` | Telegram landing page copy |
 
 ---
 
@@ -149,11 +149,11 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `pages/industries/real-estate.blade.php` | Real estate industry page |
-| `[ ]` | `pages/industries/ecommerce.blade.php` | E-commerce industry page |
-| `[ ]` | `pages/industries/agencies.blade.php` | Agencies industry page |
-| `[ ]` | `pages/industries/restaurants.blade.php` | Restaurants industry page |
-| `[ ]` | `pages/industries/education.blade.php` | Education industry page |
+| `[x]` | `pages/industries/real-estate.blade.php` | Localized |
+| `[x]` | `pages/industries/ecommerce.blade.php` | Localized |
+| `[x]` | `pages/industries/agencies.blade.php` | Localized |
+| `[x]` | `pages/industries/restaurants.blade.php` | Localized |
+| `[x]` | `pages/industries/education.blade.php` | Localized |
 
 ---
 
@@ -161,11 +161,11 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `pages/vs/trengo.blade.php` | vs Trengo comparison |
-| `[ ]` | `pages/vs/manychat.blade.php` | vs ManyChat comparison |
-| `[ ]` | `pages/vs/freshchat.blade.php` | vs Freshchat comparison |
-| `[ ]` | `pages/vs/respond-io.blade.php` | vs Respond.io comparison |
-| `[ ]` | `pages/vs/tidio.blade.php` | vs Tidio comparison |
+| `[x]` | `pages/vs/trengo.blade.php` | Localized |
+| `[x]` | `pages/vs/manychat.blade.php` | Localized |
+| `[x]` | `pages/vs/freshchat.blade.php` | Localized |
+| `[x]` | `pages/vs/respond-io.blade.php` | Localized |
+| `[x]` | `pages/vs/tidio.blade.php` | Localized |
 
 ---
 
@@ -173,8 +173,8 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `blog/index.blade.php` | Blog listing UI chrome (not post content) |
-| `[ ]` | `blog/show.blade.php` | Blog post chrome, meta labels |
+| `[x]` | `blog/index.blade.php` | Blog listing UI chrome |
+| `[x]` | `blog/show.blade.php` | Blog post chrome, meta labels |
 
 ---
 
@@ -182,8 +182,8 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `emails/unsubscribe.blade.php` | Unsubscribe email template |
-| `[ ]` | `emails/unsubscribed.blade.php` | Confirmation email template |
+| `[x]` | `emails/unsubscribe.blade.php` | Unsubscribe email template |
+| `[x]` | `emails/unsubscribed.blade.php` | Confirmation email template |
 
 ---
 
@@ -191,7 +191,7 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `errors/419.blade.php` | CSRF / session expired error page |
+| `[x]` | `errors/419.blade.php` | CSRF / session expired error page |
 
 ---
 
@@ -199,8 +199,8 @@ Change `[ ]` to `[x]` when both conditions are met:
 
 | Status | File | Notes |
 |--------|------|-------|
-| `[ ]` | `partials/home-inbox-demo.blade.php` | Demo component copy |
-| `[ ]` | `partials/home-agency-stack.blade.php` | Agency stack section copy |
+| `[x]` | `partials/home-inbox-demo.blade.php` | Demo component copy |
+| `[x]` | `partials/home-agency-stack.blade.php` | Agency stack section copy |
 
 ---
 
