@@ -28,7 +28,9 @@
         {{-- Filters --}}
         <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 space-y-3">
             <div class="flex items-center gap-2">
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" class="flex-1 [&_input]:text-zinc-900" />
+                <div class="flex-1 ring-2 ring-blue-500 rounded-lg">
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" class="w-full [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
+            </div>
                 @if($pageId && optional(\App\Models\Page::find($pageId))->platform === 'email')
                     <flux:button wire:click="openCompose" size="sm" variant="ghost" icon="pencil-square" title="Compose new email" />
                 @endif
@@ -41,10 +43,10 @@
                 </flux:badge>
                 <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">Mine</flux:badge>
                 @if(!$pageId)
-                <flux:badge as="button" wire:click="setFilter('facebook')" :variant="$filter === 'facebook' ? 'solid' : 'outline'" color="blue" size="sm">FB</flux:badge>
-                <flux:badge as="button" wire:click="setFilter('instagram')" :variant="$filter === 'instagram' ? 'solid' : 'outline'" color="pink" size="sm">IG</flux:badge>
-                <flux:badge as="button" wire:click="setFilter('whatsapp')" :variant="$filter === 'whatsapp' ? 'solid' : 'outline'" color="green" size="sm">WA</flux:badge>
-                <flux:badge as="button" wire:click="setFilter('telegram')" :variant="$filter === 'telegram' ? 'solid' : 'outline'" color="cyan" size="sm">TG</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('facebook')" :variant="$filter === 'facebook' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'facebook' ? '!text-zinc-900' : ''">FB</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('instagram')" :variant="$filter === 'instagram' ? 'solid' : 'outline'" color="pink" size="sm" :class="$filter !== 'instagram' ? '!text-zinc-900' : ''">IG</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('whatsapp')" :variant="$filter === 'whatsapp' ? 'solid' : 'outline'" color="green" size="sm" :class="$filter !== 'whatsapp' ? '!text-zinc-900' : ''">WA</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('telegram')" :variant="$filter === 'telegram' ? 'solid' : 'outline'" color="cyan" size="sm" :class="$filter !== 'telegram' ? '!text-zinc-900' : ''">TG</flux:badge>
                 @endif
 
                 {{-- Sales-stage filters. Escalated + Done get their own chip
@@ -123,7 +125,7 @@
                                 </span>
                             </div>
                             <div class="flex items-center justify-between mt-0.5">
-                                <p class="text-xs text-zinc-900 truncate">
+                                <p class="text-xs !text-zinc-900 dark:!text-zinc-900 truncate">
                                     {{ $conversation->last_message_preview ?? 'No messages yet' }}
                                 </p>
                                 <div class="flex items-center gap-1 flex-shrink-0 ml-2">

@@ -282,7 +282,7 @@
                         autocomplete="off"
                         wire:loading.attr="disabled"
                         rows="1"
-                        class="resize-none max-h-32 text-zinc-900"
+                        class="resize-none max-h-32 !text-zinc-900 dark:!text-zinc-900"
                         x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                         x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                     />
