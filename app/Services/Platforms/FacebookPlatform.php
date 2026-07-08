@@ -309,7 +309,7 @@ class FacebookPlatform extends AbstractPlatform
         $shortLivedToken = $tokenResponse['access_token'];
 
         // Exchange for long-lived token (~60 days). Reuse whichever secret was accepted.
-        $longLivedResponse = Http::get("{$this->graphUrl}/oauth/access_token", [
+        $longLivedResponse = Http::timeout(15)->get("{$this->graphUrl}/oauth/access_token", [
             'grant_type' => 'fb_exchange_token',
             'client_id' => $this->appId,
             'client_secret' => $secretUsed,
@@ -320,7 +320,7 @@ class FacebookPlatform extends AbstractPlatform
         $expiresIn = $longLivedResponse['expires_in'] ?? 5184000; // default 60 days
 
         // Fetch user profile
-        $profile = Http::withToken($longLivedToken)
+        $profile = Http::timeout(15)->withToken($longLivedToken)
             ->get("{$this->graphUrl}/me", ['fields' => 'id,name,email'])
             ->throw()->json();
 
@@ -354,7 +354,7 @@ class FacebookPlatform extends AbstractPlatform
      */
     public function fetchPages(ConnectedAccount $account): Collection
     {
-        $response = Http::withToken($account->access_token)
+        $response = Http::timeout(20)->withToken($account->access_token)
             ->get("{$this->graphUrl}/me/accounts", [
                 'fields' => 'id,name,access_token,category,picture',
                 'limit' => 100,
@@ -1008,7 +1008,7 @@ class FacebookPlatform extends AbstractPlatform
 
         $lastBody = null;
         foreach ($secrets as $label => $secret) {
-            $resp = Http::get("{$this->graphUrl}/oauth/access_token", [
+            $resp = Http::timeout(15)->get("{$this->graphUrl}/oauth/access_token", [
                 'client_id'     => $this->appId,
                 'client_secret' => $secret,
                 'redirect_uri'  => $redirectUri,
@@ -1048,7 +1048,7 @@ class FacebookPlatform extends AbstractPlatform
 
         $lastBody = null;
         foreach ($secrets as $label => $secret) {
-            $resp = Http::asForm()->post('https://api.instagram.com/oauth/access_token', [
+            $resp = Http::timeout(15)->asForm()->post('https://api.instagram.com/oauth/access_token', [
                 'client_id'     => $this->instagramAppId,
                 'client_secret' => $secret,
                 'grant_type'    => 'authorization_code',

@@ -40,6 +40,28 @@
             </div>
         </form>
 
+        @php
+            $team = auth()->user()?->currentTeam;
+            $plan = $team?->subscription_plan ?? 'free';
+            $planLabels = ['free' => 'Free', 'starter' => 'Starter — $29/mo', 'pro' => 'Pro — $79/mo', 'enterprise' => 'Enterprise'];
+            $planColors = [
+                'enterprise' => 'bg-purple-100 text-purple-700 border-purple-200',
+                'pro'        => 'bg-blue-100 text-blue-700 border-blue-200',
+                'starter'    => 'bg-green-100 text-green-700 border-green-200',
+                'free'       => 'bg-zinc-100 text-zinc-600 border-zinc-200',
+            ];
+        @endphp
+        <div class="mt-6 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold text-zinc-900">{{ __('Subscription') }}</p>
+                <p class="text-xs text-zinc-500 mt-0.5">{{ $planLabels[$plan] ?? ucfirst($plan) }}</p>
+            </div>
+            <a href="{{ route('settings.billing') }}" wire:navigate
+               class="text-xs font-medium text-zinc-600 hover:text-zinc-900 underline underline-offset-2 transition-colors">
+                {{ __('Manage') }}
+            </a>
+        </div>
+
         @if ($this->showDeleteUser)
             <livewire:settings.delete-user-form />
         @endif

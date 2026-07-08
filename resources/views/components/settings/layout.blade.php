@@ -14,8 +14,8 @@
     <flux:separator class="md:hidden" />
 
     <div class="flex-1 self-stretch max-md:pt-6">
-        <flux:heading>{{ $heading ?? '' }}</flux:heading>
-        <flux:subheading>{{ $subheading ?? '' }}</flux:subheading>
+        <flux:heading class="!text-zinc-900">{{ $heading ?? '' }}</flux:heading>
+        <flux:subheading class="!text-zinc-600">{{ $subheading ?? '' }}</flux:subheading>
 
         <div class="mt-5 w-full max-w-lg">
             {{ $slot }}

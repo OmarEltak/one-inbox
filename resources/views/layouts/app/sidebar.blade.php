@@ -47,6 +47,11 @@
                                 <span class="min-w-0 flex-1 text-left">
                                     <span class="block text-[10px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight">{{ __('Workspace') }}</span>
                                     <span class="block text-sm font-semibold text-zinc-800 truncate leading-tight">{{ $team->name }}</span>
+                                    @php $plan = $team->subscription_plan ?? 'free'; @endphp
+                                    <span class="inline-block mt-0.5 text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full leading-none
+                                        {{ $plan === 'enterprise' ? 'bg-purple-100 text-purple-700' : ($plan === 'pro' ? 'bg-blue-100 text-blue-700' : ($plan === 'starter' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500')) }}">
+                                        {{ ucfirst($plan) }}
+                                    </span>
                                 </span>
                                 <svg class="size-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l3-3 3 3M7 17l3 3 3-3" />
@@ -77,6 +82,7 @@
                             </flux:menu>
                         </flux:dropdown>
                     @else
+                        @php $plan = $team->subscription_plan ?? 'free'; @endphp
                         <div
                             class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl border border-zinc-200"
                             style="background: linear-gradient(135deg, hsla({{ $teamHue }}, 65%, 55%, 0.08), hsla({{ $teamHue }}, 65%, 45%, 0.04));"
@@ -88,6 +94,10 @@
                             <span class="min-w-0 flex-1">
                                 <span class="block text-[10px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight">{{ __('Workspace') }}</span>
                                 <span class="block text-sm font-semibold text-zinc-800 truncate leading-tight">{{ $team->name }}</span>
+                                <span class="inline-block mt-0.5 text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full leading-none
+                                    {{ $plan === 'enterprise' ? 'bg-purple-100 text-purple-700' : ($plan === 'pro' ? 'bg-blue-100 text-blue-700' : ($plan === 'starter' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500')) }}">
+                                    {{ ucfirst($plan) }}
+                                </span>
                             </span>
                         </div>
                     @endif
