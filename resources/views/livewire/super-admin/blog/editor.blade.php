@@ -39,7 +39,7 @@
             <div>
                 <div class="flex justify-between items-center">
                     <flux:label>Excerpt</flux:label>
-                    <span class="text-xs text-zinc-400">{{ strlen($excerpt) }}/300</span>
+                    <span class="text-xs text-zinc-900">{{ strlen($excerpt) }}/300</span>
                 </div>
                 <flux:textarea wire:model="excerpt" rows="2" placeholder="Short summary shown in post cards..." class="mt-1" />
                 @error('excerpt') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -88,11 +88,11 @@
                         <div class="h-4 w-px bg-zinc-300 mx-1"></div>
 
                         <div class="flex items-center gap-1">
-                            <span class="text-xs text-zinc-400">Color:</span>
+                            <span class="text-xs text-zinc-900">Color:</span>
                             <input type="color" @change="setColor($event.target.value)"
                                 class="w-6 h-6 rounded cursor-pointer border border-zinc-200" title="Text color" />
                             <button type="button" @click="editor.chain().focus().unsetColor().run()"
-                                class="px-1.5 py-1 text-xs rounded hover:bg-zinc-200 text-zinc-500" title="Remove color">✕</button>
+                                class="px-1.5 py-1 text-xs rounded hover:bg-zinc-200 text-zinc-900" title="Remove color">✕</button>
                         </div>
 
                         <div class="h-4 w-px bg-zinc-300 mx-1"></div>
@@ -130,7 +130,7 @@
                 <flux:button wire:click="publishNow" variant="primary" class="w-full">Publish Now</flux:button>
 
                 <div class="border-t border-zinc-100 pt-3 space-y-2">
-                    <flux:label class="text-xs text-zinc-500">Schedule for later</flux:label>
+                    <flux:label class="text-xs text-zinc-900">Schedule for later</flux:label>
                     <input type="datetime-local" wire:model="scheduledAt"
                         class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                     <flux:button wire:click="schedule" variant="ghost" class="w-full text-sm">Schedule</flux:button>
@@ -171,7 +171,7 @@
                 <div>
                     <div class="flex justify-between items-center">
                         <flux:label>Meta title</flux:label>
-                        <span class="text-xs text-zinc-400">{{ strlen($meta_title) }}/60</span>
+                        <span class="text-xs text-zinc-900">{{ strlen($meta_title) }}/60</span>
                     </div>
                     <flux:input wire:model="meta_title" class="mt-1 text-sm" placeholder="Leave blank to use title" />
                     @error('meta_title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -179,7 +179,7 @@
                 <div>
                     <div class="flex justify-between items-center">
                         <flux:label>Meta description</flux:label>
-                        <span class="text-xs text-zinc-400">{{ strlen($meta_description) }}/160</span>
+                        <span class="text-xs text-zinc-900">{{ strlen($meta_description) }}/160</span>
                     </div>
                     <flux:textarea wire:model="meta_description" rows="3" class="mt-1 text-sm"
                         placeholder="Leave blank to use excerpt" />
