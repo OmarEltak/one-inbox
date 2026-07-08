@@ -41,18 +41,11 @@
                 <div class="space-y-8">
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Email') }}</h3>
-                        <p class="mt-2 text-zinc-600 dark:text-zinc-600">support@oneinbox.app</p>
+                        <p class="mt-2 text-zinc-600 dark:text-zinc-600">omareltak7@gmail.com</p>
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold">{{ __('Response Time') }}</h3>
                         <p class="mt-2 text-zinc-600 dark:text-zinc-600">{{ __('We typically respond within 24 hours.') }}</p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold">{{ __('Social') }}</h3>
-                        <div class="mt-2 flex gap-4 text-zinc-500">
-                            <span>Twitter</span>
-                            <span>LinkedIn</span>
-                        </div>
                     </div>
                 </div>
             </div>
