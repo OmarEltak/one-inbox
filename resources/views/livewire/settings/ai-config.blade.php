@@ -54,6 +54,7 @@
                     <style>
                         [data-flux-label] { color: rgb(9,9,11) !important; }
                         [data-flux-control] { color: rgb(9,9,11) !important; }
+                        .kw-chips [data-flux-control] { color: white !important; border: none !important; background: transparent !important; }
                     </style>
                     <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
                         {{-- Active Toggle --}}
@@ -395,15 +396,15 @@
                                 <flux:heading size="lg" class="mb-1 text-zinc-900">Escalation keywords</flux:heading>
                                 <flux:text size="sm" class="mb-4 text-zinc-900">If the customer's message contains any of these words, AI stops and the conversation is marked <em>escalated</em> so a human can take over. Includes bilingual defaults (Arabic + English) from your Sales Goal preset.</flux:text>
 
-                                <div class="flex flex-wrap gap-2 mb-3">
+                                <div class="flex flex-wrap gap-2 mb-3 kw-chips">
                                     @foreach($escalation_keywords as $index => $kw)
-                                        <div wire:key="kw-{{ $index }}" class="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 pl-3 pr-1 py-1">
+                                        <div wire:key="kw-{{ $index }}" class="flex items-center gap-1 rounded-full bg-violet-600 pl-3 pr-1 py-1">
                                             <flux:input
                                                 wire:model.blur="escalation_keywords.{{ $index }}"
                                                 size="xs"
-                                                class="!w-32 !border-none !bg-transparent !p-0 !text-sm !text-zinc-900"
+                                                class="!w-32 !border-none !bg-transparent !p-0 !text-sm"
                                             />
-                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700">
+                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-violet-700">
                                                 <flux:icon name="x-mark" class="w-3 h-3" />
                                             </button>
                                         </div>
