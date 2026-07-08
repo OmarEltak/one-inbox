@@ -145,6 +145,7 @@
                         $navItems[] = ['route' => 'super-admin.subscriptions', 'label' => 'Subscriptions', 'icon' => 'key', 'match' => 'super-admin.subscriptions', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests', 'locked' => false];
+                        $navItems[] = ['route' => 'super-admin.blog.index', 'label' => 'Blog', 'icon' => 'pencil-square', 'match' => 'super-admin.blog.*', 'locked' => false];
                     }
 
                     // Load pages for inbox dropdown. Cached for 5 min — the sidebar
