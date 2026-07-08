@@ -42,6 +42,47 @@
         </div>
     @endif
 
+    {{-- AI Setup Prompt — shown once after first ever page is connected --}}
+    @if(session('show_ai_setup_prompt'))
+    <div x-data="{ show: true }" x-show="show" x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4"
+         class="mb-4 rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-5 shadow-sm">
+        <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 size-10 rounded-xl bg-violet-600 flex items-center justify-center shadow-sm">
+                <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-violet-900">{{ __("You're connected! Now activate your AI.") }}</p>
+                <p class="mt-1 text-sm text-violet-700 leading-relaxed">
+                    {{ __('Set up your AI Sales Assistant with your business info so it can start responding to customers automatically — 24/7, in your voice.') }}
+                </p>
+                <div class="mt-3 flex items-center gap-3">
+                    <a href="{{ route('settings.ai') }}" wire:navigate
+                       class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 px-4 py-2 text-sm font-semibold text-white transition-colors shadow-sm">
+                        <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                        </svg>
+                        {{ __('Set up AI') }}
+                    </a>
+                    <button type="button" @click="show = false"
+                            class="text-sm text-violet-500 hover:text-violet-700 font-medium transition-colors">
+                        {{ __('Do it later') }}
+                    </button>
+                </div>
+            </div>
+            <button type="button" @click="show = false" class="flex-shrink-0 text-violet-400 hover:text-violet-600 transition-colors">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    @endif
+
     {{-- $metaVerified is passed in from Connections\Index::render() (view data) — see the note there. --}}
     @unless($metaVerified)
         <div class="mb-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\EnforcePlanLimits;
 use App\Jobs\FetchEmailsForPageJob;
+use App\Models\Team;
 use App\Services\Platforms\DiscordPlatform;
 use App\Services\Platforms\EmailPlatform;
 use App\Services\Platforms\FacebookPlatform;
@@ -55,7 +56,9 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $facebook->handleCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             return redirect()->route('connections.index')
                 ->with('success', "Connected {$account->name} with {$account->pages->count()} page(s).")
@@ -111,7 +114,9 @@ class ConnectionController extends Controller
             $teamId  = auth()->user()->current_team_id;
             $account = $facebook->handleInstagramViaFacebookCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             $igCount = $account->pages()->where('platform', 'instagram')->count();
 
@@ -156,7 +161,9 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $facebook->handleInstagramCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             $igCount = $account->pages()->where('platform', 'instagram')->count();
 
@@ -194,7 +201,9 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $whatsapp->handleCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             $phoneCount = $account->pages()->where('platform', 'whatsapp')->count();
 
@@ -230,7 +239,9 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $telegram->handleCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             $botName = $account->name;
 
@@ -266,7 +277,9 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $slack->handleCallback($request, $teamId);
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
             return redirect()->route('connections.index')
                 ->with('success', "Connected Slack workspace: {$account->name}");
         } catch (\Throwable $e) {
@@ -296,7 +309,9 @@ class ConnectionController extends Controller
         try {
             $teamId = auth()->user()->current_team_id;
             $account = $discord->handleCallback($request, $teamId);
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
             return redirect()->route('connections.index')
                 ->with('success', "Connected Discord bot: {$account->name}");
         } catch (\Throwable $e) {
@@ -339,7 +354,9 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $tiktok->handleCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             return redirect()->route('connections.index')
                 ->with('success', "Connected TikTok account: {$account->name}");
@@ -415,7 +432,9 @@ class ConnectionController extends Controller
             $teamId  = auth()->user()->current_team_id;
             $account = $email->handleCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             // Immediately fetch existing emails in the background
             $page = $account->pages()->where('platform', 'email')->first();
@@ -449,7 +468,9 @@ class ConnectionController extends Controller
             $teamId = auth()->user()->current_team_id;
             $account = $snapchat->handleCallback($request, $teamId);
 
-            auth()->user()->currentTeam?->clearActivePagesCache();
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
 
             return redirect()->route('connections.index')
                 ->with('success', "Connected Snapchat account: {$account->name}");
@@ -462,5 +483,24 @@ class ConnectionController extends Controller
             return redirect()->route('connections.index')
                 ->with('error', 'Failed to connect Snapchat: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Flash the AI setup prompt the first time a team connects any page.
+     * Uses team.settings['ai_setup_prompted'] so it only ever shows once,
+     * even if the user disconnects and reconnects.
+     */
+    private function maybePromptAiSetup(Team $team): void
+    {
+        $settings = $team->settings ?? [];
+
+        if (! empty($settings['ai_setup_prompted'])) {
+            return;
+        }
+
+        $settings['ai_setup_prompted'] = true;
+        $team->update(['settings' => $settings]);
+
+        session()->flash('show_ai_setup_prompt', true);
     }
 }
