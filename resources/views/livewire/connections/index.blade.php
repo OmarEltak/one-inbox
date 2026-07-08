@@ -33,7 +33,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
-            <p class="text-sm text-blue-700">Syncing conversations in the background — this may take a minute. Check your inbox shortly.</p>
+            <p class="text-sm text-blue-700">{{ __('Syncing conversations in the background — this may take a minute. Check your inbox shortly.') }}</p>
         </div>
     @endif
     @if(session('error'))
@@ -89,12 +89,11 @@
             <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM9.401 19.5h5.198a2.25 2.25 0 002.026-3.247L13.426 4.252a2.25 2.25 0 00-3.852 0L4.974 16.253A2.25 2.25 0 007 19.5h2.401z" /></svg>
                 <div class="text-sm">
-                    <p class="font-medium text-amber-800">Facebook &amp; Instagram are on managed onboarding</p>
+                    <p class="font-medium text-amber-800">{{ __('Facebook & Instagram are on managed onboarding') }}</p>
                     <p class="text-amber-700 mt-1">
-                        While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add
-                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-900">our account</a>
-                        as an admin to your page, then click "Request connection" below. We'll set it up within 24 hours.
-                        Telegram, Email, Slack and Discord are self-serve as usual.
+                        {{ __('While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add') }}
+                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-900">{{ __('our account') }}</a>
+                        {{ __('as an admin to your page, then click "Request connection" below. We\'ll set it up within 24 hours. Telegram, Email, Slack and Discord are self-serve as usual.') }}
                     </p>
                 </div>
             </div>
@@ -110,7 +109,7 @@
                 <div class="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white font-bold text-lg">f</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Facebook</h3>
-                    <p class="text-xs text-white/40">Messenger</p>
+                    <p class="text-xs text-white/40">{{ __('Messenger') }}</p>
                 </div>
             </div>
 
@@ -125,17 +124,17 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $fbPage->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnectPage({{ $fbPage->id }})"
-                        wire:confirm="Disconnect '{{ addslashes($fbPage->name) }}'? Messenger messages will stop coming in for this page."
+                        wire:confirm="{{ __('Disconnect') }} '{{ addslashes($fbPage->name) }}'? {{ __('Messenger messages will stop coming in for this page.') }}"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -145,16 +144,16 @@
                 <div class="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="text-red-300 font-medium">Your Facebook connection request was rejected</p>
+                            <p class="text-red-300 font-medium">{{ __('Your Facebook connection request was rejected') }}</p>
                             <p class="text-red-100/80 mt-1 whitespace-pre-wrap break-words">{{ $fbRejected->admin_notes }}</p>
-                            <p class="text-red-200/50 mt-1 text-[10px]">Rejected {{ optional($fbRejected->completed_at)->diffForHumans() }}</p>
+                            <p class="text-red-200/50 mt-1 text-[10px]">{{ __('Rejected') }} {{ optional($fbRejected->completed_at)->diffForHumans() }}</p>
                         </div>
                         <button
                             type="button"
                             wire:click="dismissRejection({{ $fbRejected->id }})"
                             class="flex-shrink-0 text-[10px] uppercase tracking-wide text-red-300/70 hover:text-red-100 border border-red-500/40 rounded px-2 py-1 cursor-pointer"
                         >
-                            Dismiss
+                            {{ __('Dismiss') }}
                         </button>
                     </div>
                 </div>
@@ -162,10 +161,10 @@
 
             <div class="{{ $facebookPages->isNotEmpty() || $fbRejected ? 'mt-3' : '' }}">
                 @if(empty(config('services.meta.app_id')))
-                    <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
+                    <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
                     <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="primary" size="sm" class="w-full">
-                        {{ $facebookAccounts->isNotEmpty() ? 'Add Another Account' : 'Connect with Facebook' }}
+                        {{ $facebookAccounts->isNotEmpty() ? __('Add Another Account') : __('Connect with Facebook') }}
                     </flux:button>
                 @elseif(isset($this->openOnboardingByPlatform['facebook']))
                     @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
@@ -173,11 +172,11 @@
                         <p class="text-blue-700 font-semibold capitalize">
                             {{ str_replace('_', ' ', $fbReq->status) }}
                         </p>
-                        <p class="text-blue-600 mt-0.5">Requested {{ $fbReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
+                        <p class="text-blue-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $fbReq->created_at->diffForHumans()]) }}</p>
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" class="w-full">
-                        {{ $facebookPages->isNotEmpty() ? 'Add another page' : 'Request connection' }}
+                        {{ $facebookPages->isNotEmpty() ? __('Add another page') : __('Request connection') }}
                     </flux:button>
                 @endif
             </div>
@@ -189,7 +188,7 @@
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">IG</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Instagram</h3>
-                    <p class="text-xs text-white/40">Direct Messages</p>
+                    <p class="text-xs text-white/40">{{ __('Direct Messages') }}</p>
                 </div>
             </div>
 
@@ -205,17 +204,17 @@
                         <span class="text-xs text-white/80 truncate">
                             {{ $igPage->name }}{{ isset($igPage->metadata['username']) ? ' (@' . $igPage->metadata['username'] . ')' : '' }}
                         </span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnectPage({{ $igPage->id }})"
-                        wire:confirm="Disconnect '{{ addslashes($igPage->name) }}'? Instagram DMs will stop coming in for this page."
+                        wire:confirm="{{ __('Disconnect') }} '{{ addslashes($igPage->name) }}'? {{ __('Instagram DMs will stop coming in for this page.') }}"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -224,16 +223,16 @@
                 <div class="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="text-red-300 font-medium">Your Instagram connection request was rejected</p>
+                            <p class="text-red-300 font-medium">{{ __('Your Instagram connection request was rejected') }}</p>
                             <p class="text-red-100/80 mt-1 whitespace-pre-wrap break-words">{{ $igRejected->admin_notes }}</p>
-                            <p class="text-red-200/50 mt-1 text-[10px]">Rejected {{ optional($igRejected->completed_at)->diffForHumans() }}</p>
+                            <p class="text-red-200/50 mt-1 text-[10px]">{{ __('Rejected') }} {{ optional($igRejected->completed_at)->diffForHumans() }}</p>
                         </div>
                         <button
                             type="button"
                             wire:click="dismissRejection({{ $igRejected->id }})"
                             class="flex-shrink-0 text-[10px] uppercase tracking-wide text-red-300/70 hover:text-red-100 border border-red-500/40 rounded px-2 py-1 cursor-pointer"
                         >
-                            Dismiss
+                            {{ __('Dismiss') }}
                         </button>
                     </div>
                 </div>
@@ -241,13 +240,13 @@
 
             <div class="{{ $instagramPages->isNotEmpty() || $igRejected ? 'mt-3' : '' }} space-y-2">
                 @if(empty(config('services.meta.app_id')))
-                    <p class="text-xs text-white/40">Requires META_APP_ID and META_APP_SECRET in .env</p>
+                    <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
                     <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
-                        {{ $instagramAccounts->isNotEmpty() ? 'Add via Meta' : 'Connect via Meta' }}
+                        {{ $instagramAccounts->isNotEmpty() ? __('Add via Meta') : __('Connect via Meta') }}
                     </flux:button>
                     <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
-                        {{ $instagramAccounts->isNotEmpty() ? 'Add Direct (IG Login)' : 'Connect Direct (IG Login)' }}
+                        {{ $instagramAccounts->isNotEmpty() ? __('Add Direct (IG Login)') : __('Connect Direct (IG Login)') }}
                     </flux:button>
                 @elseif(isset($this->openOnboardingByPlatform['instagram']))
                     @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
@@ -255,11 +254,11 @@
                         <p class="text-purple-700 font-semibold capitalize">
                             {{ str_replace('_', ' ', $igReq->status) }}
                         </p>
-                        <p class="text-purple-600 mt-0.5">Requested {{ $igReq->created_at->diffForHumans() }} · we'll email you when ready.</p>
+                        <p class="text-purple-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $igReq->created_at->diffForHumans()]) }}</p>
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
-                        {{ $instagramPages->isNotEmpty() ? 'Add another page' : 'Request connection' }}
+                        {{ $instagramPages->isNotEmpty() ? __('Add another page') : __('Request connection') }}
                     </flux:button>
                 @endif
             </div>
@@ -271,7 +270,7 @@
                 <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center text-white font-bold text-sm">WA</div>
                 <div>
                     <h3 class="font-semibold text-white/80">WhatsApp</h3>
-                    <p class="text-xs text-white/40">Business API &amp; QR Connect</p>
+                    <p class="text-xs text-white/40">{{ __('Business API & QR Connect') }}</p>
                 </div>
             </div>
 
@@ -287,13 +286,13 @@
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
                         @if($isGateway)
                             @if($isOnline)
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                             @else
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400">Disconnected</span>
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400">{{ __('Disconnected') }}</span>
                             @endif
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400">QR</span>
                         @else
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                         @endif
                     </div>
                     <div class="flex items-center gap-1 flex-shrink-0 ml-2">
@@ -305,18 +304,18 @@
                                 variant="ghost"
                                 class="text-yellow-400 hover:text-yellow-300"
                             >
-                                Reconnect
+                                {{ __('Reconnect') }}
                             </flux:button>
                         @endif
                         <flux:button
                             wire:click="disconnect({{ $account->id }})"
-                            wire:confirm="Disconnect '{{ addslashes($account->name) }}'? Messages from this number will stop coming in."
+                            wire:confirm="{{ __('Disconnect') }} '{{ addslashes($account->name) }}'? {{ __('Messages from this number will stop coming in.') }}"
                             wire:loading.attr="disabled"
                             size="xs"
                             variant="ghost"
                             class="!text-red-500 hover:!text-red-700 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                         >
-                            Disconnect
+                            {{ __('Disconnect') }}
                         </flux:button>
                     </div>
                 </div>
@@ -326,9 +325,9 @@
                 <div class="rounded-lg bg-zinc-100 border border-zinc-200 p-3 text-xs text-center">
                     <span class="inline-flex items-center gap-1.5 text-zinc-600 font-medium">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Currently unavailable
+                        {{ __('Currently unavailable') }}
                     </span>
-                    <p class="text-zinc-500 mt-1">WhatsApp connections are temporarily disabled while we rebuild the gateway. Coming back soon.</p>
+                    <p class="text-zinc-500 mt-1">{{ __('WhatsApp connections are temporarily disabled while we rebuild the gateway. Coming back soon.') }}</p>
                 </div>
             </div>
         </div>
@@ -339,7 +338,7 @@
                 <div class="w-10 h-10 rounded-xl bg-cyan-500 flex items-center justify-center text-white font-bold text-sm">TG</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Telegram</h3>
-                    <p class="text-xs text-white/40">Bot API</p>
+                    <p class="text-xs text-white/40">{{ __('Bot API') }}</p>
                 </div>
             </div>
 
@@ -348,17 +347,17 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect Telegram bot '{{ addslashes($account->name) }}'?"
+                        wire:confirm="{{ __('Disconnect') }} {{ __('Telegram bot') }} '{{ addslashes($account->name) }}'?"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -366,7 +365,7 @@
             <div class="{{ $telegramAccounts->isNotEmpty() ? 'mt-3' : '' }}">
                 <flux:modal.trigger name="telegram-connect">
                     <flux:button variant="primary" size="sm" class="w-full">
-                        {{ $telegramAccounts->isNotEmpty() ? 'Add Another Bot' : 'Connect Telegram Bot' }}
+                        {{ $telegramAccounts->isNotEmpty() ? __('Add Another Bot') : __('Connect Telegram Bot') }}
                     </flux:button>
                 </flux:modal.trigger>
             </div>
@@ -378,7 +377,7 @@
                 <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">WC</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Web Chat</h3>
-                    <p class="text-xs text-white/40">Embed on your site</p>
+                    <p class="text-xs text-white/40">{{ __('Embed on your site') }}</p>
                 </div>
             </div>
 
@@ -388,21 +387,21 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <div class="flex gap-1 flex-shrink-0 ml-2">
                         @if($page)
-                            <flux:button wire:click="showWebChatSnippetFor({{ $page->id }})" size="xs" variant="ghost">Snippet</flux:button>
+                            <flux:button wire:click="showWebChatSnippetFor({{ $page->id }})" size="xs" variant="ghost">{{ __('Snippet') }}</flux:button>
                         @endif
                         <flux:button
                             wire:click="disconnect({{ $account->id }})"
-                            wire:confirm="Remove Web Chat widget '{{ addslashes($account->name) }}'? Your visitors will see the bubble disappear."
+                            wire:confirm="{{ __('Remove Web Chat widget') }} '{{ addslashes($account->name) }}'? {{ __('Your visitors will see the bubble disappear.') }}"
                             wire:loading.attr="disabled"
                             size="xs"
                             variant="ghost"
                             class="!text-red-500 hover:!text-red-700 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                         >
-                            Disconnect
+                            {{ __('Disconnect') }}
                         </flux:button>
                     </div>
                 </div>
@@ -412,13 +411,13 @@
                 <flux:input
                     wire:model="webChatSiteName"
                     size="sm"
-                    placeholder="Site name (e.g. Acme Store)"
+                    placeholder="{{ __('Site name (e.g. Acme Store)') }}"
                 />
                 <flux:button wire:click="connectWebChat" variant="primary" size="sm" class="w-full">
-                    {{ $webchatAccounts->isNotEmpty() ? 'Add Another Widget' : 'Create Web Chat Widget' }}
+                    {{ $webchatAccounts->isNotEmpty() ? __('Add Another Widget') : __('Create Web Chat Widget') }}
                 </flux:button>
                 <p class="text-[10px] text-white/40 leading-relaxed text-center px-2">
-                    Free, never breaks. Visitors chat from a bubble on your site; messages land here in real time.
+                    {{ __('Free, never breaks. Visitors chat from a bubble on your site; messages land here in real time.') }}
                 </p>
             </div>
         </div>
@@ -429,7 +428,7 @@
                 <div class="w-10 h-10 rounded-xl bg-[#4A154B] flex items-center justify-center text-white font-bold text-sm">SL</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Slack</h3>
-                    <p class="text-xs text-white/40">Workspace bot</p>
+                    <p class="text-xs text-white/40">{{ __('Workspace bot') }}</p>
                 </div>
             </div>
 
@@ -438,17 +437,17 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect Slack workspace '{{ addslashes($account->name) }}'?"
+                        wire:confirm="{{ __('Disconnect') }} {{ __('Slack workspace') }} '{{ addslashes($account->name) }}'?"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -456,7 +455,7 @@
             <div class="{{ $slackAccounts->isNotEmpty() ? 'mt-3' : '' }}">
                 <flux:modal.trigger name="slack-connect">
                     <flux:button variant="primary" size="sm" class="w-full">
-                        {{ $slackAccounts->isNotEmpty() ? 'Add Another Workspace' : 'Connect Slack' }}
+                        {{ $slackAccounts->isNotEmpty() ? __('Add Another Workspace') : __('Connect Slack') }}
                     </flux:button>
                 </flux:modal.trigger>
             </div>
@@ -468,7 +467,7 @@
                 <div class="w-10 h-10 rounded-xl bg-[#5865F2] flex items-center justify-center text-white font-bold text-sm">DC</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Discord</h3>
-                    <p class="text-xs text-white/40">Bot via /support</p>
+                    <p class="text-xs text-white/40">{{ __('Bot via /support') }}</p>
                 </div>
             </div>
 
@@ -477,17 +476,17 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect Discord bot '{{ addslashes($account->name) }}'?"
+                        wire:confirm="{{ __('Disconnect') }} {{ __('Discord bot') }} '{{ addslashes($account->name) }}'?"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -495,7 +494,7 @@
             <div class="{{ $discordAccounts->isNotEmpty() ? 'mt-3' : '' }}">
                 <flux:modal.trigger name="discord-connect">
                     <flux:button variant="primary" size="sm" class="w-full">
-                        {{ $discordAccounts->isNotEmpty() ? 'Add Another Bot' : 'Connect Discord' }}
+                        {{ $discordAccounts->isNotEmpty() ? __('Add Another Bot') : __('Connect Discord') }}
                     </flux:button>
                 </flux:modal.trigger>
             </div>
@@ -507,7 +506,7 @@
                 <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white font-bold text-sm border border-white/15">TT</div>
                 <div>
                     <h3 class="font-semibold text-white/80">TikTok</h3>
-                    <p class="text-xs text-white/40">Direct Messages</p>
+                    <p class="text-xs text-white/40">{{ __('Direct Messages') }}</p>
                 </div>
             </div>
 
@@ -516,17 +515,17 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect TikTok account '{{ addslashes($account->name) }}'?"
+                        wire:confirm="{{ __('Disconnect') }} {{ __('TikTok account') }} '{{ addslashes($account->name) }}'?"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -535,9 +534,9 @@
                 <div class="rounded-lg bg-zinc-100 border border-zinc-200 p-3 text-xs text-center">
                     <span class="inline-flex items-center gap-1.5 text-zinc-600 font-medium">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Currently unavailable
+                        {{ __('Currently unavailable') }}
                     </span>
-                    <p class="text-zinc-500 mt-1">TikTok connections are temporarily unavailable. Coming back soon.</p>
+                    <p class="text-zinc-500 mt-1">{{ __('TikTok connections are temporarily unavailable. Coming back soon.') }}</p>
                 </div>
             </div>
         </div>
@@ -549,12 +548,12 @@
                 <div class="flex-1">
                     <div class="flex items-center gap-2">
                         <h3 class="font-semibold text-white/50">Snapchat</h3>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-400/10 text-yellow-400/70 border border-yellow-400/20">Coming Soon</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-400/10 text-yellow-400/70 border border-yellow-400/20">{{ __('Coming Soon') }}</span>
                     </div>
-                    <p class="text-xs text-white/25">Business Messaging</p>
+                    <p class="text-xs text-white/25">{{ __('Business Messaging') }}</p>
                 </div>
             </div>
-            <p class="text-xs text-white/30 leading-relaxed">Snapchat's messaging API requires partner approval. We're working on it — stay tuned.</p>
+            <p class="text-xs text-white/30 leading-relaxed">{{ __('Snapchat\'s messaging API requires partner approval. We\'re working on it — stay tuned.') }}</p>
         </div>
 
         {{-- Email --}}
@@ -563,7 +562,7 @@
                 <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-bold text-sm">@</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Email</h3>
-                    <p class="text-xs text-white/40">Gmail, Outlook, IMAP</p>
+                    <p class="text-xs text-white/40">{{ __('Gmail, Outlook, IMAP') }}</p>
                 </div>
             </div>
 
@@ -572,17 +571,17 @@
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $account->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">Active</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
                     </div>
                     <flux:button
                         wire:click="disconnect({{ $account->id }})"
-                        wire:confirm="Disconnect email account '{{ addslashes($account->name) }}'?"
+                        wire:confirm="{{ __('Disconnect') }} {{ __('email account') }} '{{ addslashes($account->name) }}'?"
                         wire:loading.attr="disabled"
                         size="xs"
                         variant="ghost"
                         class="!text-red-500 hover:!text-red-700 flex-shrink-0 ml-2 !border !border-red-400 !bg-red-50 hover:!bg-red-100 cursor-pointer"
                     >
-                        Disconnect
+                        {{ __('Disconnect') }}
                     </flux:button>
                 </div>
             @endforeach
@@ -593,7 +592,7 @@
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    {{ $emailAccounts->isNotEmpty() ? 'Add Another Email' : 'Connect Email' }}
+                    {{ $emailAccounts->isNotEmpty() ? __('Add Another Email') : __('Connect Email') }}
                 </summary>
 
                 <div class="mt-3 space-y-4">
@@ -604,13 +603,13 @@
                             <svg class="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style="color:#EA4335;">
                                 <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 010 19.366V5.457c0-.886.716-1.542 1.601-1.542.49 0 .918.206 1.226.54L12 11.73l9.173-7.274c.308-.335.737-.541 1.226-.541.885 0 1.601.656 1.601 1.542z"/>
                             </svg>
-                            <span class="text-xs font-semibold text-zinc-600">Gmail setup — 2 steps</span>
+                            <span class="text-xs font-semibold text-zinc-600">{{ __('Gmail setup — 2 steps') }}</span>
                         </div>
                         <div class="px-4 py-3 space-y-2.5">
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#EA4335;">1</span>
                                 <div>
-                                    <p class="text-xs text-zinc-700 font-medium">Enable 2-Step Verification</p>
+                                    <p class="text-xs text-zinc-700 font-medium">{{ __('Enable 2-Step Verification') }}</p>
                                     <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] text-[#4285F4] hover:underline mt-0.5">
                                         myaccount.google.com → Security → 2-Step Verification
@@ -621,13 +620,13 @@
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#EA4335;">2</span>
                                 <div>
-                                    <p class="text-xs text-zinc-700 font-medium">Create an App Password</p>
+                                    <p class="text-xs text-zinc-700 font-medium">{{ __('Create an App Password') }}</p>
                                     <a href="https://myaccount.google.com/apppasswords" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] text-[#4285F4] hover:underline mt-0.5">
                                         myaccount.google.com → App Passwords
                                         <svg class="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     </a>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Select app: "Mail" → generate → copy the 16-char password</p>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">{{ __('Select app: "Mail" → generate → copy the 16-char password') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -639,13 +638,13 @@
                             <svg class="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" style="color:#0078D4;">
                                 <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.86t.1-.87q.1-.43.34-.76.22-.34.59-.54.36-.2.87-.2t.86.2q.35.21.57.55.22.34.32.77.1.43.1.88zM24 12v9.38q0 .46-.33.8-.33.32-.8.32H7.13q-.46 0-.8-.33-.32-.33-.32-.8V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h6.1V2.55q0-.44.3-.75.3-.3.75-.3h12.9q.44 0 .75.3.3.3.3.75V10.85l1.24.72q.07.04.07.13z"/>
                             </svg>
-                            <span class="text-xs font-semibold text-zinc-600">Outlook / Hotmail setup</span>
+                            <span class="text-xs font-semibold text-zinc-600">{{ __('Outlook / Hotmail setup') }}</span>
                         </div>
                         <div class="px-4 py-3 space-y-2.5">
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#0078D4;">1</span>
                                 <div>
-                                    <p class="text-xs text-zinc-700 font-medium">Enable IMAP access</p>
+                                    <p class="text-xs text-zinc-700 font-medium">{{ __('Enable IMAP access') }}</p>
                                     <a href="https://outlook.live.com/mail/0/options/mail/accounts/popImap" target="_blank"
                                        class="inline-flex items-center gap-1 text-[11px] text-[#4285F4] hover:underline mt-0.5">
                                         Outlook Settings → Mail → Sync → POP and IMAP
@@ -655,7 +654,7 @@
                             </div>
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:#0078D4;">2</span>
-                                <p class="text-xs text-zinc-500 pt-0.5">Use your regular Outlook password below. No app password needed.</p>
+                                <p class="text-xs text-zinc-500 pt-0.5">{{ __('Use your regular Outlook password below. No app password needed.') }}</p>
                             </div>
                         </div>
                     </div>
@@ -663,20 +662,20 @@
                     {{-- The form --}}
                     <form method="POST" action="{{ route('connections.email.connect') }}" class="space-y-3 rounded-xl border border-zinc-200 p-4 bg-zinc-50">
                         @csrf
-                        <p class="text-xs font-semibold text-zinc-600">Enter your credentials</p>
+                        <p class="text-xs font-semibold text-zinc-600">{{ __('Enter your credentials') }}</p>
                         <div>
-                            <label class="block text-xs font-medium text-zinc-500 mb-1">Email Address</label>
+                            <label class="block text-xs font-medium text-zinc-500 mb-1">{{ __('Email Address') }}</label>
                             <input type="email" name="email" placeholder="you@gmail.com" required
                                    class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-violet-400" />
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-zinc-500 mb-1">Password / App Password</label>
-                            <input type="password" name="password" placeholder="Paste the 16-char app password here" required
+                            <label class="block text-xs font-medium text-zinc-500 mb-1">{{ __('Password / App Password') }}</label>
+                            <input type="password" name="password" placeholder="{{ __('Paste the 16-char app password here') }}" required
                                    class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-violet-400" />
                         </div>
                         <button type="submit"
                                 class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary">
-                            Connect Email
+                            {{ __('Connect Email') }}
                         </button>
                     </form>
 
@@ -690,8 +689,8 @@
     @if($this->pages->isNotEmpty())
         <div class="aio-card rounded-2xl overflow-hidden">
             <div class="px-5 py-4 border-b border-zinc-100">
-                <h3 class="font-semibold text-zinc-800">Connected Pages & Accounts</h3>
-                <p class="text-xs text-zinc-500 mt-0.5">All active pages receiving messages</p>
+                <h3 class="font-semibold text-zinc-800">{{ __('Connected Pages & Accounts') }}</h3>
+                <p class="text-xs text-zinc-500 mt-0.5">{{ __('All active pages receiving messages') }}</p>
             </div>
             <div class="divide-y divide-zinc-100">
                 @foreach($this->pages as $page)
@@ -713,14 +712,14 @@
                             <p class="text-xs text-zinc-500">{{ ucfirst($page->platform) }} {{ isset($page->metadata['category']) ? '· ' . $page->metadata['category'] : '' }}</p>
                             @if(($page->metadata['subscription_error'] ?? null) === 'twofa_required')
                                 <p class="text-xs text-yellow-400 mt-0.5">
-                                    ⚠ Not receiving messages — Two-Factor Authentication required on Facebook.
-                                    <a href="https://www.facebook.com/settings?tab=security" target="_blank" class="underline hover:text-yellow-300">Enable 2FA on Facebook</a>,
-                                    then <button wire:click="retryPageSubscription({{ $page->id }})" class="underline hover:text-yellow-300 cursor-pointer">retry here</button>.
+                                            ⚠ {{ __('Not receiving messages — Two-Factor Authentication required on Facebook.') }}
+                                    <a href="https://www.facebook.com/settings?tab=security" target="_blank" class="underline hover:text-yellow-300">{{ __('Enable 2FA on Facebook') }}</a>,
+                                    {{ __('then') }} <button wire:click="retryPageSubscription({{ $page->id }})" class="underline hover:text-yellow-300 cursor-pointer">{{ __('retry here') }}</button>.
                                 </p>
                             @endif
                         </div>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $page->is_active ? 'bg-green-500/20 text-zinc-900 font-medium' : 'bg-red-500/20 text-red-400' }}">
-                            {{ $page->is_active ? 'Active' : 'Inactive' }}
+                            {{ $page->is_active ? __('Active') : __('Inactive') }}
                         </span>
                     </div>
                 @endforeach
@@ -733,7 +732,7 @@
         <div class="space-y-5" x-data="{ help: null }">
             <div>
                 <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-white/90">Connect WhatsApp via Cloud API</h3>
+                    <h3 class="text-lg font-semibold text-white/90">{{ __('Connect WhatsApp via Cloud API') }}</h3>
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-300 border border-green-400/20">Official Meta API</span>
                 </div>
                 <p class="text-sm text-white/50 mt-1">
@@ -878,9 +877,9 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
-                        <flux:button variant="ghost" type="button">Cancel</flux:button>
+                        <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary" icon="shield-check">Connect WhatsApp</flux:button>
+                    <flux:button type="submit" variant="primary" icon="shield-check">{{ __('Connect WhatsApp') }}</flux:button>
                 </div>
             </form>
         </div>
@@ -890,7 +889,7 @@
     <flux:modal name="telegram-connect" class="w-full max-w-lg">
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">Connect Telegram Bot</h3>
+                <h3 class="text-lg font-semibold text-white/80">{{ __('Connect Telegram Bot') }}</h3>
                 <p class="text-sm text-white/40 mt-1">A Telegram bot is a free account that messages people in your name. Anyone who chats with the bot lands in your inbox.</p>
             </div>
 
@@ -921,9 +920,9 @@
 
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
-                        <flux:button variant="ghost" type="button">Cancel</flux:button>
+                        <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary">Connect Bot</flux:button>
+                    <flux:button type="submit" variant="primary">{{ __('Connect Bot') }}</flux:button>
                 </div>
             </form>
         </div>
@@ -933,7 +932,7 @@
     <flux:modal name="slack-connect" class="w-full max-w-lg">
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">Connect Slack Workspace</h3>
+                <h3 class="text-lg font-semibold text-white/80">{{ __('Connect Slack Workspace') }}</h3>
                 <p class="text-sm text-white/40 mt-1">
                     Create a Slack App at <a href="https://api.slack.com/apps" target="_blank" rel="noopener" class="text-emerald-300 hover:underline">api.slack.com/apps</a>, install it to your workspace, then paste the credentials below.
                 </p>
@@ -963,9 +962,9 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
-                        <flux:button variant="ghost" type="button">Cancel</flux:button>
+                        <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary">Connect Slack</flux:button>
+                    <flux:button type="submit" variant="primary">{{ __('Connect Slack') }}</flux:button>
                 </div>
             </form>
         </div>
@@ -975,7 +974,7 @@
     <flux:modal name="discord-connect" class="w-full max-w-lg">
         <div class="space-y-4">
             <div>
-                <h3 class="text-lg font-semibold text-white/80">Connect Discord Bot</h3>
+                <h3 class="text-lg font-semibold text-white/80">{{ __('Connect Discord Bot') }}</h3>
                 <p class="text-sm text-white/40 mt-1">
                     Create an Application at <a href="https://discord.com/developers/applications" target="_blank" rel="noopener" class="text-emerald-300 hover:underline">discord.com/developers/applications</a>, add a Bot user, then paste the credentials below.
                 </p>
@@ -1010,9 +1009,9 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <flux:modal.close>
-                        <flux:button variant="ghost" type="button">Cancel</flux:button>
+                        <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
                     </flux:modal.close>
-                    <flux:button type="submit" variant="primary">Connect Discord</flux:button>
+                    <flux:button type="submit" variant="primary">{{ __('Connect Discord') }}</flux:button>
                 </div>
             </form>
         </div>
@@ -1032,8 +1031,8 @@
             <div class="space-y-5" x-data="{ tab: 'wordpress' }">
                 {{-- Header --}}
                 <div>
-                    <flux:heading size="lg">Your Web Chat widget is ready</flux:heading>
-                    <flux:text class="mt-1">Add the snippet below to your website and a green chat bubble appears in the bottom-right corner. Visitors who click it can chat with you — their messages land in this inbox.</flux:text>
+                    <flux:heading size="lg">{{ __('Your Web Chat widget is ready') }}</flux:heading>
+                    <flux:text class="mt-1">{{ __('Add the snippet below to your website and a green chat bubble appears in the bottom-right corner. Visitors who click it can chat with you — their messages land in this inbox.') }}</flux:text>
                 </div>
 
                 {{-- Snippet with copy button --}}
@@ -1165,7 +1164,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <flux:button variant="ghost" wire:click="closeWebChatModal">Close</flux:button>
+                    <flux:button variant="ghost" wire:click="closeWebChatModal">{{ __('Close') }}</flux:button>
                 </div>
             </div>
         @endif
@@ -1175,68 +1174,68 @@
     <flux:modal name="onboarding-request" class="md:w-[560px]">
         <form wire:submit.prevent="submitOnboardingRequest" class="space-y-5">
             <div>
-                <flux:heading size="lg">Request {{ ucfirst($requestPlatform) }} connection</flux:heading>
+                <flux:heading size="lg">{{ __('Request') }} {{ ucfirst($requestPlatform) }} {{ __('connection') }}</flux:heading>
                 <flux:text class="mt-2">
-                    To connect your {{ ucfirst($requestPlatform) }} page, we need temporary admin access via our account.
+                    {{ __('To connect your :platform page, we need temporary admin access via our account.', ['platform' => ucfirst($requestPlatform)]) }}
                 </flux:text>
             </div>
 
             <div class="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm space-y-2">
-                <p class="font-medium text-blue-200">Before submitting:</p>
+                <p class="font-medium text-blue-200">{{ __('Before submitting:') }}</p>
                 <ol class="list-decimal list-inside text-blue-100/80 space-y-1 leading-relaxed">
-                    <li>Open your Facebook Business Page → <em>Settings</em> → <em>Page roles</em></li>
-                    <li>Add
+                    <li>{{ __('Open your Facebook Business Page → Settings → Page roles') }}</li>
+                    <li>{{ __('Add') }}
                         <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-white">
-                            our admin account
+                            {{ __('our admin account') }}
                         </a>
-                        as a Page admin</li>
-                    <li>Submit this form so we know which page is yours</li>
+                        {{ __('as a Page admin') }}</li>
+                    <li>{{ __('Submit this form so we know which page is yours') }}</li>
                 </ol>
-                <p class="text-blue-100/60 text-xs pt-1">We'll set up the connection within 24 hours and notify you by email.</p>
+                <p class="text-blue-100/60 text-xs pt-1">{{ __("We'll set up the connection within 24 hours and notify you by email.") }}</p>
             </div>
 
             <flux:input
                 wire:model="requestBusinessName"
-                label="Business / Page name"
-                placeholder="e.g. Brandk"
+                label="{{ __('Business / Page name') }}"
+                placeholder="{{ __('e.g. Brandk') }}"
                 required
             />
 
             <flux:input
                 wire:model="requestPageUrl"
-                label="Page URL"
+                label="{{ __('Page URL') }}"
                 placeholder="https://www.facebook.com/yourpage"
-                description="Helps us find the right page if multiple are admin-shared."
+                description="{{ __('Helps us find the right page if multiple are admin-shared.') }}"
             />
 
             <flux:input
                 wire:model="requestContactEmail"
                 type="email"
-                label="Contact email"
+                label="{{ __('Contact email') }}"
                 placeholder="you@company.com"
-                description="We won't send marketing — we only email you if we need something to complete your setup."
+                description="{{ __("We won't send marketing — we only email you if we need something to complete your setup.") }}"
                 required
             />
 
             <flux:input
                 wire:model="requestContactPhone"
-                label="WhatsApp number (optional)"
+                label="{{ __('WhatsApp number (optional)') }}"
                 placeholder="+201234567890"
-                description="Optional. We only message you if we need clarification — never marketing."
+                description="{{ __('Optional. We only message you if we need clarification — never marketing.') }}"
             />
 
             <flux:textarea
                 wire:model="requestNotes"
-                label="Anything we should know? (optional)"
+                label="{{ __('Anything we should know? (optional)') }}"
                 rows="3"
-                placeholder="e.g. multiple admins, business verification status..."
+                placeholder="{{ __('e.g. multiple admins, business verification status...') }}"
             />
 
             <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200/10">
                 <flux:modal.close>
-                    <flux:button variant="ghost" type="button">Cancel</flux:button>
+                    <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
                 </flux:modal.close>
-                <flux:button variant="primary" type="submit">Submit request</flux:button>
+                <flux:button variant="primary" type="submit">{{ __('Submit request') }}</flux:button>
             </div>
         </form>
     </flux:modal>
