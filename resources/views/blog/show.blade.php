@@ -113,7 +113,8 @@
                 prose-headings:font-bold prose-headings:tracking-tight
                 prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline
                 prose-code:text-indigo-600 prose-code:bg-indigo-50 prose-code:px-1 prose-code:rounded
-                dark:prose-a:text-indigo-400 dark:prose-code:bg-indigo-50/50 dark:prose-code:text-indigo-700">
+                dark:prose-a:text-indigo-400 dark:prose-code:bg-indigo-50/50 dark:prose-code:text-indigo-700"
+                @if($post->is_rtl) dir="rtl" @endif>
                 {!! $post->content !!}
             </div>
 
