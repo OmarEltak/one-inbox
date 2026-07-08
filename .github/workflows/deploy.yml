@@ -27,4 +27,7 @@ jobs:
             php artisan view:cache
             php artisan queue:restart
             sudo systemctl reload php8.4-fpm
+            sudo chown -R deploy:www-data storage bootstrap/cache
             chmod -R 775 storage bootstrap/cache
+            touch storage/logs/laravel.log
+            chmod 664 storage/logs/laravel.log
