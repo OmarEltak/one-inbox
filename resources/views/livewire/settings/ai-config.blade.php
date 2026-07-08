@@ -54,7 +54,7 @@
                     <style>
                         [data-flux-label] { color: rgb(9,9,11) !important; }
                         [data-flux-control] { color: rgb(9,9,11) !important; }
-                        .kw-chip [data-flux-control] { color: white !important; border-color: white !important; }
+                        .kw-chip input[data-flux-control] { color: white !important; border-color: white !important; }
                     </style>
                     <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
                         {{-- Active Toggle --}}
