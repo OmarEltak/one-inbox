@@ -49,7 +49,7 @@
                 <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/70"></span>
                 <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
             </span>
-            Live
+            {{ __('Live') }}
         </span>
     </div>
 
@@ -63,7 +63,7 @@
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-start">
             <div class="max-w-[78%] rounded-2xl bg-zinc-100 px-4 py-2.5 text-sm leading-snug text-zinc-800">
-                Hi! Is the linen shirt still in medium?
+                {{ __('Hi! Is the linen shirt still in medium?') }}
             </div>
         </div>
 
@@ -91,10 +91,10 @@
                     <svg class="size-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
                     </svg>
-                    <span class="font-semibold">Replied by AI</span>
+                    <span class="font-semibold">{{ __('Replied by AI') }}</span>
                     <span class="text-indigo-200">· 96% confidence</span>
                 </div>
-                Hi! Yes, 3 left in medium. Want me to hold one for you?
+                {{ __('Hi! Yes, 3 left in medium. Want me to hold one for you?') }}
             </div>
         </div>
 
@@ -105,7 +105,7 @@
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-start">
             <div class="max-w-[78%] rounded-2xl bg-zinc-100 px-4 py-2.5 text-sm leading-snug text-zinc-800">
-                Yes please. Shipping to Cairo?
+                {{ __('Yes please. Shipping to Cairo?') }}
             </div>
         </div>
 
@@ -120,10 +120,10 @@
                     <svg class="size-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
                     </svg>
-                    <span class="font-semibold">Replied by AI</span>
+                    <span class="font-semibold">{{ __('Replied by AI') }}</span>
                     <span class="text-indigo-200">· 91% confidence</span>
                 </div>
-                2-3 business days, free over EGP 1,500. Want a payment link?
+                {{ __('2-3 business days, free over EGP 1,500. Want a payment link?') }}
             </div>
         </div>
 
@@ -135,7 +135,7 @@
              class="flex justify-center pt-1">
             <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[11px] font-semibold text-rose-700">
                 <span class="size-1.5 rounded-full bg-rose-500"></span>
-                Hot lead detected · score 87/100
+                {{ __('Hot lead detected · score 87/100') }}
             </span>
         </div>
 
@@ -144,15 +144,15 @@
     {{-- Footer stats --}}
     <div class="mt-5 grid grid-cols-3 gap-3 border-t border-zinc-100 pt-4">
         <div>
-            <div class="text-[10px] font-medium uppercase tracking-widest text-zinc-400">Replied in</div>
+            <div class="text-[10px] font-medium uppercase tracking-widest text-zinc-400">{{ __('Replied in') }}</div>
             <div class="mt-0.5 text-sm font-semibold text-zinc-900">11 sec</div>
         </div>
         <div>
-            <div class="text-[10px] font-medium uppercase tracking-widest text-zinc-400">Human taps</div>
+            <div class="text-[10px] font-medium uppercase tracking-widest text-zinc-400">{{ __('Human taps') }}</div>
             <div class="mt-0.5 text-sm font-semibold text-zinc-900">0</div>
         </div>
         <div>
-            <div class="text-[10px] font-medium uppercase tracking-widest text-zinc-400">Lead score</div>
+            <div class="text-[10px] font-medium uppercase tracking-widest text-zinc-400">{{ __('Lead score') }}</div>
             <div class="mt-0.5 text-sm font-semibold text-zinc-900">87 / 100</div>
         </div>
     </div>

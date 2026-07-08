@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-6">
         {{-- Header --}}
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Create your account</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Create your account') }}</h1>
             <p class="mt-1 text-sm text-zinc-500">{{ __('Start managing all your conversations in one place') }}</p>
         </div>
 

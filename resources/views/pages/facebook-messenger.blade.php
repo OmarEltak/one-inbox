@@ -36,9 +36,9 @@
                             <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{{ __('AI Active') }}</span>
                         </div>
                         @foreach([
-                            ['Mohamed A.', 'What\'s your delivery time to Cairo?', '2s ago', '82'],
-                            ['Fatima R.', 'I want to place a bulk order for my store', '5m ago', '95'],
-                            ['Ahmed S.', 'Do you offer a warranty?', '12m ago', '67'],
+                            ['Mohamed A.', __('What\'s your delivery time to Cairo?'), __('2s ago'), '82'],
+                            ['Fatima R.', __('I want to place a bulk order for my store'), __('5m ago'), '95'],
+                            ['Ahmed S.', __('Do you offer a warranty?'), __('12m ago'), '67'],
                         ] as $msg)
                         <div class="flex items-center gap-3 border-t border-zinc-100 py-3 dark:border-zinc-200">
                             <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{{ substr($msg[0], 0, 1) }}</div>
@@ -125,10 +125,10 @@
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
-                    ['facebook-messenger-business-guide', 'Facebook Messenger for Business: Complete Guide', '5 min read'],
-                    ['connect-facebook-page-crm', 'How to Connect a Facebook Page to a CRM', '5 min read'],
-                    ['instagram-vs-facebook-customer-service', 'Instagram vs Facebook for Customer Service', '5 min read'],
-                    ['unified-inbox-vs-separate-apps', 'Unified Inbox vs Separate Apps: Cost Analysis', '5 min read'],
+                    ['facebook-messenger-business-guide', __('Facebook Messenger for Business: Complete Guide'), __('5 min read')],
+                    ['connect-facebook-page-crm', __('How to Connect a Facebook Page to a CRM'), __('5 min read')],
+                    ['instagram-vs-facebook-customer-service', __('Instagram vs Facebook for Customer Service'), __('5 min read')],
+                    ['unified-inbox-vs-separate-apps', __('Unified Inbox vs Separate Apps: Cost Analysis'), __('5 min read')],
                 ];
                 @endphp
                 @foreach($related as $r)

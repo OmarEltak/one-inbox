@@ -209,14 +209,88 @@ The original Phase 2/3 plan listed only 4 platform pages and 5 vs/* pages. As of
 
 ---
 
-## Blog Infrastructure Needed
-- [ ] Add `/blog` route and controller
-- [ ] Create `Post` model + migration (title, slug, excerpt, content, published_at, meta_title, meta_description)
-- [ ] Blog index page (`/blog`)
-- [ ] Blog article page (`/blog/{slug}`)
-- [ ] Add blog to sitemap
-- [ ] Add blog links to footer nav
-- [ ] Article JSON-LD schema (Article type)
+## Blog Infrastructure
+
+- [x] Add `/blog` route and controller
+- [x] Create `Post` model + migration (title, slug, excerpt, content, published_at, meta_title, meta_description)
+- [x] Blog index page (`/blog`)
+- [x] Blog article page (`/blog/{slug}`)
+- [x] Add blog to sitemap
+- [x] Add blog links to footer nav
+- [x] Article JSON-LD schema (Article type)
+- [ ] `language` field on posts (ISO 639-1: `en`, `ar`, etc.)
+- [ ] `is_rtl` field on posts (boolean — stored for fast rendering)
+- [ ] Blog admin UI at `/super-admin/blog` — write, edit, draft, schedule, publish
+- [ ] TipTap WYSIWYG editor: Bold, Italic, Headings, Color, Link, Image (URL + upload)
+- [ ] Image upload stored in `storage/app/public/blog/`
+
+---
+
+## Blog Post Schema (per article — LLM citation signals)
+
+- [x] `BlogPosting` type on post pages
+- [ ] `headline` field in schema
+- [ ] `description` (excerpt) in schema
+- [ ] `datePublished` in schema
+- [ ] `dateModified` (use `updated_at`) in schema
+- [ ] `author` — `Person` type with real name + LinkedIn URL (not "OT1-Pro Team")
+- [ ] `publisher` — `Organization` with logo
+- [ ] `inLanguage` — ISO 639-1 code per post
+- [ ] `wordCount` computed from content
+- [ ] `image` field in schema
+- [ ] `mainEntityOfPage` pointing to canonical URL
+- [ ] `BreadcrumbList` schema on every post page
+- [ ] `FAQPage` schema — add to posts that contain a Q&A section
+
+---
+
+## Language & RTL Support
+
+- [ ] Language filter on `/blog` index (All / English / Arabic)
+- [ ] `<html lang="...">` set per post language (not hardcoded `en`)
+- [ ] `dir="rtl"` on post content wrapper for Arabic posts
+- [ ] TipTap editor switches to RTL input mode when language = Arabic
+- [ ] Arabic posts have Arabic `meta_title` + `meta_description`
+- [ ] `<link rel="alternate" hreflang="...">` when a post exists in multiple languages
+
+---
+
+## LLM Ranking Checklist (ChatGPT / Gemini)
+
+ChatGPT indexes via Bing. Gemini indexes via Google. Both favor:
+
+- [ ] Submit sitemap to **Bing Webmaster Tools** (separate from Google — ChatGPT uses Bing)
+- [ ] Clear `H1 → H2 → H3` heading hierarchy enforced in editor
+- [ ] First 150 words answer the post title question directly (the "snippet zone")
+- [ ] `dateModified` kept fresh on every edit (signals content is maintained)
+- [ ] Author schema uses real person identity (Omar Eltak + `https://ot1-pro.com/about`)
+- [ ] Internal linking between related posts with descriptive anchor text
+- [ ] External links to authoritative sources in each post
+- [ ] FAQ section at bottom of each post (triggers `FAQPage` schema)
+- [ ] Arabic posts target Arabic-language keywords (low competition niche)
+
+---
+
+## Open Graph / Social Sharing (click-through → ranking signal)
+
+- [x] Default `og:image` (logo.png fallback)
+- [ ] Per-post `og:image` (use post's cover image or default)
+- [ ] `og:title` per post
+- [ ] `og:description` per post (use excerpt)
+- [ ] `og:type = article`
+- [ ] `article:published_time`
+- [ ] `article:modified_time`
+- [ ] `article:author`
+- [ ] `twitter:card = summary_large_image`
+
+---
+
+## Canonical & Crawlability
+
+- [ ] `<link rel="canonical">` on every post page
+- [ ] Verify `robots.txt` allows `/blog/*`
+- [ ] `<lastmod>` per post in sitemap uses `updated_at` not `published_at`
+- [ ] Cloudflare Page Rule: `/blog/*` → Cache Everything, Edge TTL 1d
 
 ---
 

@@ -38,7 +38,7 @@
                 {{-- Today count --}}
                 <div class="hidden text-right sm:block">
                     <div class="text-sm font-semibold text-zinc-900">{{ $client['today'] }}</div>
-                    <div class="text-[10px] uppercase tracking-widest text-zinc-400">today</div>
+                    <div class="text-[10px] uppercase tracking-widest text-zinc-400">{{ __('today') }}</div>
                 </div>
 
                 {{-- Sparkline --}}
@@ -66,10 +66,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
             <div>
-                <div class="text-sm font-semibold text-zinc-900">114 conversations today</div>
-                <div class="text-xs text-zinc-600">82 closed by AI · 6 hot leads waiting for you</div>
+                <div class="text-sm font-semibold text-zinc-900">{{ __('114 conversations today') }}</div>
+                <div class="text-xs text-zinc-600">{{ __('82 closed by AI · 6 hot leads waiting for you') }}</div>
             </div>
         </div>
-        <span class="hidden rounded-md bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-indigo-700 sm:inline">All clients</span>
+        <span class="hidden rounded-md bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-indigo-700 sm:inline">{{ __('All clients') }}</span>
     </div>
 </div>

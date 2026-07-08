@@ -48,7 +48,7 @@
                         <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                             {{ number_format($this->usage['ai_credits_used']) }}
                             <span class="text-sm font-normal text-zinc-400">
-                                / {{ $this->usage['ai_credits_limit'] === -1 ? 'Unlimited' : number_format($this->usage['ai_credits_limit']) }}
+                                / {{ $this->usage['ai_credits_limit'] === -1 ? __('Unlimited') : number_format($this->usage['ai_credits_limit']) }}
                             </span>
                         </div>
                         @if($this->usage['ai_credits_limit'] > 0)
@@ -68,7 +68,7 @@
                         <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                             {{ $this->usage['pages_used'] }}
                             <span class="text-sm font-normal text-zinc-400">
-                                / {{ $this->usage['pages_limit'] === -1 ? 'Unlimited' : $this->usage['pages_limit'] }}
+                                / {{ $this->usage['pages_limit'] === -1 ? __('Unlimited') : $this->usage['pages_limit'] }}
                             </span>
                         </div>
                         @if($this->usage['pages_limit'] > 0)
@@ -102,11 +102,11 @@
                             <ul class="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                                 <li class="flex items-center gap-2">
                                     <flux:icon name="check" class="w-4 h-4 text-green-500 flex-shrink-0" />
-                                    {{ $plan['ai_credits'] === -1 ? 'Unlimited' : number_format($plan['ai_credits']) }} AI credits/mo
+                                    {{ $plan['ai_credits'] === -1 ? __('Unlimited') : number_format($plan['ai_credits']) }} {{ __('AI credits/mo') }}
                                 </li>
                                 <li class="flex items-center gap-2">
                                     <flux:icon name="check" class="w-4 h-4 text-green-500 flex-shrink-0" />
-                                    {{ $plan['pages'] === -1 ? 'Unlimited' : $plan['pages'] }} connected {{ Str::plural('page', $plan['pages'] === -1 ? 2 : $plan['pages']) }}
+                                    {{ $plan['pages'] === -1 ? __('Unlimited') : $plan['pages'] }} {{ __('connected') }} {{ Str::plural(__('page'), $plan['pages'] === -1 ? 2 : $plan['pages']) }}
                                 </li>
                             </ul>
 

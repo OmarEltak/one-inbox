@@ -34,7 +34,7 @@
                         <div class="size-8 rounded-full bg-gradient-to-br from-pink-500 to-indigo-600"></div>
                         <div>
                             <p class="text-sm font-semibold">{{ __('Instagram DMs') }}</p>
-                            <p class="text-xs text-zinc-500">24 new · AI handling 18</p>
+                            <p class="text-xs text-zinc-500">{{ __('24 new · AI handling 18') }}</p>
                         </div>
                     </div>
                     @foreach([
@@ -153,10 +153,10 @@
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
-                    ['ai-sales-chatbot-instagram', 'AI Sales Chatbot for Instagram: 2026 Setup Guide', '7 min read'],
-                    ['auto-reply-instagram-comments-ai', 'How to Auto-Reply to Instagram Comments with AI', '6 min read'],
-                    ['instagram-lead-generation-dm-automation', 'Instagram Lead Generation with DM Automation', '6 min read'],
-                    ['instagram-dm-scripts-convert', 'Instagram DM Scripts That Convert Followers', '6 min read'],
+                    ['ai-sales-chatbot-instagram', __('AI Sales Chatbot for Instagram: 2026 Setup Guide'), __('7 min read')],
+                    ['auto-reply-instagram-comments-ai', __('How to Auto-Reply to Instagram Comments with AI'), __('6 min read')],
+                    ['instagram-lead-generation-dm-automation', __('Instagram Lead Generation with DM Automation'), __('6 min read')],
+                    ['instagram-dm-scripts-convert', __('Instagram DM Scripts That Convert Followers'), __('6 min read')],
                 ];
                 @endphp
                 @foreach($related as $r)

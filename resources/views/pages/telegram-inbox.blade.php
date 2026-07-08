@@ -40,10 +40,10 @@
                         </div>
                     </div>
                     @foreach([
-                        ['Sergei K.', 'Interested in your wholesale pricing', '91'],
-                        ['Layla M.', 'Can I get a demo of your software?', '86'],
-                        ['Ahmad T.', 'What payment methods do you accept?', '73'],
-                        ['User_7821', 'Hello', '15'],
+                        ['Sergei K.', __('Interested in your wholesale pricing'), '91'],
+                        ['Layla M.', __('Can I get a demo of your software?'), '86'],
+                        ['Ahmad T.', __('What payment methods do you accept?'), '73'],
+                        ['User_7821', __('Hello'), '15'],
                     ] as $msg)
                     <div class="flex items-center justify-between border-t border-zinc-100 py-3 dark:border-zinc-200">
                         <div class="min-w-0 flex-1">
@@ -126,10 +126,10 @@
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
-                    ['manage-telegram-business-scale', 'How to Manage Telegram Business at Scale', '5 min read'],
-                    ['unified-inbox-vs-separate-apps', 'Unified Inbox vs Separate Apps: Cost Analysis', '5 min read'],
-                    ['social-inbox-setup-1-hour', 'Social Inbox Setup: Zero to Automated in 1 Hour', '6 min read'],
-                    ['social-response-time-benchmarks', 'Response Time Benchmarks by Industry', '5 min read'],
+                    ['manage-telegram-business-scale', __('How to Manage Telegram Business at Scale'), __('5 min read')],
+                    ['unified-inbox-vs-separate-apps', __('Unified Inbox vs Separate Apps: Cost Analysis'), __('5 min read')],
+                    ['social-inbox-setup-1-hour', __('Social Inbox Setup: Zero to Automated in 1 Hour'), __('6 min read')],
+                    ['social-response-time-benchmarks', __('Response Time Benchmarks by Industry'), __('5 min read')],
                 ];
                 @endphp
                 @foreach($related as $r)

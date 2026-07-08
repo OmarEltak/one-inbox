@@ -21,18 +21,20 @@
 
 | Item | Value |
 |------|-------|
-| Local dev app | `C:\Users\NanoChip\Herd\one-inbox\` → `https://one-inbox.test` |
-| Production app | `C:\Users\NanoChip\Herd\one-inbox-prod\` → `https://ot1-pro.com` |
-| Both served by | Laravel Herd on Windows 11 via Cloudflare tunnel |
-| Database | SQLite — each app has its OWN `database/database.sqlite` |
+| Local dev app | `C:\Users\NanoChip\Herd\one-inbox\` → `https://one-inbox.test` (Herd on Windows) |
+| Production app | `/var/www/ot1-pro.com` on VPS `187.77.67.94` (Hostinger KVM2, Germany) |
+| Production served by | nginx + PHP 8.4-FPM + MySQL 8 + Redis on Ubuntu 24.04 |
+| Local dev DB | SQLite — `database/database.sqlite` |
+| Production DB | MySQL 8.0, database `one_inbox`, user `deploy`@`localhost` |
 | Queue driver | database |
-| PHP version | 8.4 (Herd) |
-| WhatsApp gateway | Evolution API v2.3.7 in Docker → `http://localhost:8081` |
+| PHP version | 8.4 (Herd locally, ondrej/php PPA on VPS) |
+| WhatsApp gateway | Evolution API v2.3.7 in Docker → `http://localhost:8081` (local dev only for now) |
 | Meta parent app | `1469090344742803` (One Inbox Business) |
 | Meta Instagram sub-app | `1408745007038040` |
-| Production domain | `https://ot1-pro.com` |
+| Production domain | `https://ot1-pro.com` (Cloudflare proxied) |
 | Production team_id | 3 (user: omareltak7@gmail.com, user id: 3) |
 | Local dev team_id | 1 (user: omareltak7@gmail.com, user id: 1) |
+| Auto-deploy | GitHub Actions push-to-main → SSH deploy in ~24s |
 
 > ⚠️ Local dev and production have SEPARATE databases. Fixes to one do NOT affect the other.
 > Always verify which app directory you're running `php artisan` from.
@@ -73,24 +75,40 @@
 
 ## Running Services (What Must Be Running for Full Functionality)
 
+### Production (VPS `187.77.67.94`) — auto-managed by systemd
+```bash
+# Queue worker — systemd service, auto-restarts
+systemctl status one-inbox-queue
+
+# Reverb WebSocket server (port 8080) — systemd service, auto-restarts
+systemctl status one-inbox-reverb
+
+# Scheduler — crontab for deploy user, runs every minute
+# php artisan schedule:run
+
+# nginx + php8.4-fpm — started at boot
+systemctl status nginx php8.4-fpm
+```
+
+### Local Dev (Windows, `one-inbox.test`)
 ```bash
 # 1. Docker (Evolution API — WhatsApp)
 docker compose -f docker-compose.evolution.yml up -d
 # Verify: curl http://localhost:8081/instance/fetchInstances -H "apikey: {EVOLUTION_API_KEY}"
 
-# 2. Queue worker (processes incoming messages, AI responses, email fetch)
+# 2. Queue worker
 php artisan queue:work
-# OR as NSSM service: OneInboxQueue / OneInboxQueueProd
+# OR NSSM service: OneInboxQueue
 
-# 3. Scheduler (polls email every 2 min)
+# 3. Scheduler
 php artisan schedule:work
-# OR as NSSM service: OneInboxScheduler / OneInboxSchedulerProd
+# OR NSSM service: OneInboxScheduler
 
-# 4. Cloudflare tunnel (exposes ot1-pro.com to internet)
-# Runs as Windows service — check Services panel if webhooks stop arriving
+# 4. ngrok tunnel (for Meta/Telegram webhooks in local dev)
+ngrok http https://one-inbox.test --host-header=one-inbox.test
 
-# 5. Reverb (WebSockets for real-time inbox updates)
-# NSSM service: OneInboxReverb / OneInboxReverbProd
+# 5. Reverb
+# NSSM service: OneInboxReverb
 ```
 
 ---
@@ -1507,3 +1525,133 @@ Committed on `main`, pushed. Prod: `git pull`, `php artisan config:clear && rout
 
 **Deferred / open**
 - If AI keeps emitting `[SPAM_DETECTED]` on a reactivated conversation across many messages, we currently silently skip every reply — customer sees nothing until the AI decides otherwise. Not a bug per se (operator can manually re-mark or unassign), but worth watching. If it becomes a real UX issue, we can escalate the conversation to a human after N consecutive suppressions.
+
+---
+
+### Session: 2026-07-08 — Cloud Deployment to Hostinger VPS
+
+**Goal**: Move production from Windows (Herd + Cloudflare Tunnel) to a real VPS.
+
+---
+
+#### Decisions Made
+
+- **Provider**: Hostinger KVM 2 (2 vCPU / 8 GB / 100 GB NVMe, Germany) — chosen because it accepts Apple Pay (only available payment method). ~£6.79/mo, 2-year plan.
+- **No Laravel Forge**: Stripe on Forge doesn't show Apple Pay on Windows/Chrome. Switched to fully self-managed nginx + PHP-FPM + MySQL 8 + Redis.
+- **WhatsApp deferred**: Evolution API / Wuzapi scope removed from this deployment. Saves a whole server and class of complexity.
+- **Object storage**: Cloudflare R2 deferred (not needed yet — app uses local storage for now).
+- **Auto-deploy**: GitHub Actions (`appleboy/ssh-action`) instead of Forge deploy hooks.
+
+---
+
+#### Server: `187.77.67.94` (Hostinger KVM 2, Germany)
+
+**OS**: Ubuntu 24.04.4 LTS
+**deploy user**: `deploy` (non-root, sudoers for `systemctl reload php8.4-fpm`)
+
+**Stack installed (as root)**:
+```bash
+add-apt-repository ppa:ondrej/php
+apt install php8.4-fpm php8.4-cli php8.4-mbstring php8.4-xml php8.4-curl \
+  php8.4-mysql php8.4-redis php8.4-zip php8.4-bcmath php8.4-gd \
+  nginx mysql-server-8.0 redis-server nodejs npm certbot python3-certbot-nginx ufw
+```
+
+**MySQL**: DB `one_inbox`, user `deploy`@`localhost`, password stored at `/root/db_password.txt` on server.
+
+**UFW**: ports 22, 80, 443, 8080 open.
+
+---
+
+#### Application Setup
+
+- Repo cloned to `/var/www/ot1-pro.com` via `git clone git@github.com:OmarEltak/one-inbox.git`
+- Deploy user SSH keypair generated on VPS at `~/.ssh/id_ed25519` — public key added as GitHub deploy key at github.com/OmarEltak/one-inbox/settings/keys
+- `.env` SCP'd from laptop (`C:\Users\NanoChip\Herd\one-inbox\.env`), then patched:
+  - `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://ot1-pro.com`
+  - `DB_CONNECTION=mysql`, host/db/user/password added (was sqlite-only in dev .env)
+- `composer install --no-dev --optimize-autoloader` ✅
+- `npm ci && npm run build` ✅
+- `php artisan migrate --force` ✅ (all migrations up)
+- `php artisan storage:link` ✅
+- `php artisan config:cache && route:cache && view:cache` ✅
+
+---
+
+#### nginx
+
+Vhost at `/etc/nginx/sites-available/ot1-pro.com` → symlinked to `sites-enabled`.
+Root: `/var/www/ot1-pro.com/public`, fastcgi to `unix:/var/run/php/php8.4-fpm.sock`.
+
+---
+
+#### SSL
+
+```bash
+certbot --nginx -d ot1-pro.com -d www.ot1-pro.com --non-interactive --agree-tos -m it@mishkahu.com
+```
+Certificate valid until 2026-10-05. Auto-renew via certbot systemd timer.
+
+---
+
+#### Systemd Services
+
+`/etc/systemd/system/one-inbox-queue.service` — queue worker, `Restart=always`
+`/etc/systemd/system/one-inbox-reverb.service` — Reverb on port 8080, `Restart=always`
+Both enabled and started. Check with `systemctl status one-inbox-queue one-inbox-reverb`.
+
+**Scheduler**: crontab for `deploy` user:
+```
+* * * * * cd /var/www/ot1-pro.com && php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+#### GitHub Actions Auto-Deploy
+
+File: `.github/workflows/deploy.yml`
+Trigger: push to `main`
+Action: `appleboy/ssh-action@v1` SSHs as `deploy` → git pull → composer → npm build → migrate → cache → queue:restart → reload php-fpm.
+
+**Secrets set in GitHub** (github.com/OmarEltak/one-inbox/settings/secrets/actions):
+- `DEPLOY_HOST` = `187.77.67.94`
+- `DEPLOY_KEY` = deploy user's private key (`~/.ssh/id_ed25519` on VPS)
+
+**Fix required**: VPS-generated keypair public key wasn't in `authorized_keys`. Fixed by appending `id_ed25519.pub` to `~/.ssh/authorized_keys`. First successful deploy: run #28900764059, 24s.
+
+---
+
+#### DNS (Cloudflare)
+
+- Deleted old Tunnel CNAME record for `ot1-pro.com`
+- Added `A ot1-pro.com → 187.77.67.94`
+- Added `A www.ot1-pro.com → 187.77.67.94`
+- Both records set to **Proxied** (orange cloud) — Cloudflare sits in front for DDoS protection.
+
+---
+
+#### Project Topology Update
+
+Production is now **VPS-hosted**, not Windows. Old topology (Herd + Cloudflare Tunnel) is gone for prod.
+
+| Item | New Value |
+|------|-----------|
+| Production app | `/var/www/ot1-pro.com` on VPS `187.77.67.94` |
+| Production served by | nginx + PHP 8.4-FPM on Ubuntu 24.04 |
+| Production DB | MySQL 8.0, db `one_inbox`, user `deploy` |
+| Queue worker | systemd `one-inbox-queue` |
+| WebSocket (Reverb) | systemd `one-inbox-reverb`, port 8080 |
+| Scheduler | crontab every minute |
+| Deploy | GitHub Actions push-to-main auto-deploy |
+| CDN / proxy | Cloudflare (proxied) |
+| SSL | Let's Encrypt via certbot |
+
+**No longer needed for prod**: Windows cloudflared tunnel, NSSM services for prod, `one-inbox-prod\` folder.
+
+---
+
+#### Open Items
+
+- Register `LEMONSQUEEZY_WEBHOOK_SECRET` in Lemon Squeezy dashboard (already in `.env`)
+- Submit Meta App Review for Facebook/Instagram Live Mode
+- Stop Windows cloudflared tunnel (no longer routes prod traffic)

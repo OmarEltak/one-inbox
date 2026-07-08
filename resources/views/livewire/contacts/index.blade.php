@@ -40,11 +40,11 @@
         <table class="w-full text-sm aio-table">
             <thead>
                 <tr>
-                    <th class="text-left px-4 py-3">Contact</th>
-                    <th class="text-left px-4 py-3">Pages</th>
-                    <th class="text-left px-4 py-3">Lead Score</th>
-                    <th class="text-left px-4 py-3">Status</th>
-                    <th class="text-left px-4 py-3">Last Interaction</th>
+                    <th class="text-left px-4 py-3">{{ __('Contact') }}</th>
+                    <th class="text-left px-4 py-3">{{ __('Pages') }}</th>
+                    <th class="text-left px-4 py-3">{{ __('Lead Score') }}</th>
+                    <th class="text-left px-4 py-3">{{ __('Status') }}</th>
+                    <th class="text-left px-4 py-3">{{ __('Last Interaction') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -153,7 +153,7 @@
 
                         {{-- Last interaction --}}
                         <td class="px-4 py-3 text-xs text-[#64748b]">
-                            {{ $contact->last_interaction_at?->diffForHumans() ?? 'Never' }}
+                            {{ $contact->last_interaction_at?->diffForHumans() ?? __('Never') }}
                         </td>
                     </tr>
                 @empty
@@ -162,7 +162,7 @@
                             <svg class="mx-auto mb-3 size-8 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            No contacts found. They appear here when people message your connected pages.
+                            {{ __('No contacts found. They appear here when people message your connected pages.') }}
                         </td>
                     </tr>
                 @endforelse
@@ -230,13 +230,13 @@
                             @if($sc->lead_status !== 'converted')
                                 <button wire:click="setLeadStatus({{ $sc->id }}, 'converted')"
                                     class="cursor-pointer rounded-full bg-green-500/20 px-2.5 py-0.5 text-xs font-medium text-green-400 hover:bg-green-500/30 transition-colors">
-                                    Mark Converted
+                                    {{ __('Mark Converted') }}
                                 </button>
                             @endif
                             @if($sc->lead_status !== 'lost')
                                 <button wire:click="setLeadStatus({{ $sc->id }}, 'lost')"
                                     class="cursor-pointer rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-medium text-red-400 hover:bg-red-500/30 transition-colors">
-                                    Mark Lost
+                                    {{ __('Mark Lost') }}
                                 </button>
                             @endif
                         </div>
@@ -266,9 +266,9 @@
 
                 {{-- Score Event History --}}
                 <div>
-                    <p class="text-sm font-semibold text-zinc-800 mb-2">Score History</p>
+                    <p class="text-sm font-semibold text-zinc-800 mb-2">{{ __('Score History') }}</p>
                     @if($sc->scoreEvents->isEmpty())
-                        <p class="text-sm text-[#64748b]">No score events yet.</p>
+                        <p class="text-sm text-[#64748b]">{{ __('No score events yet.') }}</p>
                     @else
                         <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                             @foreach($sc->scoreEvents->take(10) as $event)

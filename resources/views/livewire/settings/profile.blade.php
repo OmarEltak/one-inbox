@@ -43,7 +43,7 @@
         @php
             $team = auth()->user()?->currentTeam;
             $plan = $team?->subscription_plan ?? 'free';
-            $planLabels = ['free' => 'Free', 'starter' => 'Starter — $29/mo', 'pro' => 'Pro — $79/mo', 'enterprise' => 'Enterprise'];
+            $planLabels = ['free' => __('Free'), 'starter' => __('Starter — $29/mo'), 'pro' => __('Pro — $79/mo'), 'enterprise' => __('Enterprise')];
             $planColors = [
                 'enterprise' => 'bg-purple-100 text-purple-700 border-purple-200',
                 'pro'        => 'bg-blue-100 text-blue-700 border-blue-200',

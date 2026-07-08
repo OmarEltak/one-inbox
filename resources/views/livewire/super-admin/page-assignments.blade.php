@@ -1,7 +1,7 @@
 <div class="p-6">
     <div class="mb-6">
-        <flux:heading size="xl" class="text-zinc-900">Page Assignments</flux:heading>
-        <flux:text class="mt-1 text-zinc-900">Move pages connected through the OT AI account into the right customer workspace.</flux:text>
+        <flux:heading size="xl" class="text-zinc-900">{{ __('Page Assignments') }}</flux:heading>
+        <flux:text class="mt-1 text-zinc-900">{{ __('Move pages connected through the OT AI account into the right customer workspace.') }}</flux:text>
     </div>
 
     @if(session('success'))
@@ -16,7 +16,7 @@
         </div>
         <div class="w-40">
             <flux:select wire:model.live="platformFilter" class="text-zinc-900">
-                <option value="">All platforms</option>
+                <option value="">{{ __('All platforms') }}</option>
                 <option value="facebook">Facebook</option>
                 <option value="instagram">Instagram</option>
                 <option value="whatsapp">WhatsApp</option>
@@ -29,17 +29,17 @@
     @if($this->pages->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-12 text-center">
             <flux:icon name="rectangle-stack" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-            <flux:text class="text-zinc-500">No pages found. Connect a Facebook/Instagram/WhatsApp account with OT AI to import pages.</flux:text>
+            <flux:text class="text-zinc-500">{{ __('No pages found. Connect a Facebook/Instagram/WhatsApp account with OT AI to import pages.') }}</flux:text>
         </div>
     @else
         <div class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
             <table class="w-full text-sm">
                 <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                     <tr class="text-left text-xs uppercase tracking-wide text-zinc-500">
-                        <th class="px-4 py-3">Page</th>
-                        <th class="px-4 py-3">Platform</th>
-                        <th class="px-4 py-3">Currently In</th>
-                        <th class="px-4 py-3">Assign To</th>
+                        <th class="px-4 py-3">{{ __('Page') }}</th>
+                        <th class="px-4 py-3">{{ __('Platform') }}</th>
+                        <th class="px-4 py-3">{{ __('Currently In') }}</th>
+                        <th class="px-4 py-3">{{ __('Assign To') }}</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
@@ -77,13 +77,13 @@
                                         <option value="{{ $team->id }}">{{ $team->name }}</option>
                                     @endforeach
                                     @if($this->customerTeams->isEmpty())
-                                        <option value="">No customers yet</option>
+                                        <option value="">{{ __('No customers yet') }}</option>
                                     @endif
                                 </flux:select>
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <flux:button wire:click="assign({{ $page->id }})" size="sm" variant="primary" icon="arrow-right">
-                                    Move
+                                    {{ __('Move') }}
                                 </flux:button>
                             </td>
                         </tr>

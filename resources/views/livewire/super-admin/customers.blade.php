@@ -1,11 +1,11 @@
 <div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <flux:heading size="xl" class="text-zinc-900">Customers</flux:heading>
-            <flux:text class="mt-1 text-zinc-900">Provision a company workspace and the login the customer will use.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">{{ __('Customers') }}</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">{{ __('Provision a company workspace and the login the customer will use.') }}</flux:text>
         </div>
         <flux:button wire:click="openCreateModal" variant="primary" icon="plus">
-            New Customer
+            {{ __('New Customer') }}
         </flux:button>
     </div>
 
@@ -18,7 +18,7 @@
     @if($this->customers->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-12 text-center">
             <flux:icon name="building-office-2" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-            <flux:text class="text-zinc-500">No customers yet. Click "New Customer" to provision the first one.</flux:text>
+            <flux:text class="text-zinc-500">{{ __('No customers yet. Click "New Customer" to provision the first one.') }}</flux:text>
         </div>
     @else
         <div class="space-y-3">
@@ -28,19 +28,19 @@
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <flux:heading size="sm" class="text-zinc-900">{{ $team->name }}</flux:heading>
-                                <flux:badge color="zinc" size="sm">{{ $team->pages_count }} pages</flux:badge>
-                                <flux:badge color="zinc" size="sm">{{ $team->members_count }} users</flux:badge>
+                                <flux:badge color="zinc" size="sm">{{ $team->pages_count }} {{ __('pages') }}</flux:badge>
+                                <flux:badge color="zinc" size="sm">{{ $team->members_count }} {{ __('users') }}</flux:badge>
                             </div>
                             @if($team->owner)
                                 <flux:text size="xs" class="mt-1 text-zinc-900">
-                                    Owner: {{ $team->owner->name }} &middot; {{ $team->owner->email }}
+                                    {{ __('Owner') }}: {{ $team->owner->name }} &middot; {{ $team->owner->email }}
                                 </flux:text>
                             @endif
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
                             @if($team->owner)
                                 <flux:button wire:click="openPasswordModal({{ $team->owner->id }})" size="sm" variant="ghost" icon="key">
-                                    Reset Password
+                                    {{ __('Reset Password') }}
                                 </flux:button>
                             @endif
                             <flux:button
@@ -60,14 +60,14 @@
 
     <flux:modal wire:model="showCreateModal" class="md:w-[32rem]">
         <div class="space-y-5">
-            <flux:heading size="lg">New Customer</flux:heading>
-            <flux:text>Creates a workspace and a login for the customer. They will sign in with the email and password you set below.</flux:text>
+            <flux:heading size="lg">{{ __('New Customer') }}</flux:heading>
+            <flux:text>{{ __('Creates a workspace and a login for the customer. They will sign in with the email and password you set below.') }}</flux:text>
 
             <div class="space-y-4">
-                <flux:input wire:model="companyName" label="Company Name" placeholder="Acme Corp" required />
-                <flux:input wire:model="ownerName" label="Owner Full Name" placeholder="John Doe" required />
-                <flux:input wire:model="ownerEmail" label="Owner Email" type="email" placeholder="john@acme.com" required />
-                <flux:input wire:model="ownerPassword" label="Password" type="password" placeholder="Minimum 8 characters" required />
+                <flux:input wire:model="companyName" :label="__('Company Name')" placeholder="{{ __('Acme Corp') }}" required />
+                <flux:input wire:model="ownerName" :label="__('Owner Full Name')" placeholder="{{ __('John Doe') }}" required />
+                <flux:input wire:model="ownerEmail" :label="__('Owner Email')" type="email" placeholder="{{ __('john@acme.com') }}" required />
+                <flux:input wire:model="ownerPassword" :label="__('Password')" type="password" :placeholder="__('Minimum 8 characters')" required />
             </div>
 
             @error('companyName') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
@@ -76,23 +76,23 @@
             @error('ownerPassword') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">Cancel</flux:button>
-                <flux:button wire:click="createCustomer" variant="primary">Create Customer</flux:button>
+                <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="createCustomer" variant="primary">{{ __('Create Customer') }}</flux:button>
             </div>
         </div>
     </flux:modal>
 
     <flux:modal wire:model="showPasswordModal" class="md:w-[24rem]">
         <div class="space-y-5">
-            <flux:heading size="lg">Reset Password</flux:heading>
-            <flux:text>Set a new password for {{ $passwordUserName }}.</flux:text>
+            <flux:heading size="lg">{{ __('Reset Password') }}</flux:heading>
+            <flux:text>{{ __('Set a new password for') }} {{ $passwordUserName }}.</flux:text>
 
-            <flux:input wire:model="newPassword" label="New Password" type="password" placeholder="Minimum 8 characters" required />
+            <flux:input wire:model="newPassword" :label="__('New Password')" type="password" :placeholder="__('Minimum 8 characters')" required />
             @error('newPassword') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showPasswordModal', false)" variant="ghost">Cancel</flux:button>
-                <flux:button wire:click="resetPassword" variant="primary">Reset Password</flux:button>
+                <flux:button wire:click="$set('showPasswordModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="resetPassword" variant="primary">{{ __('Reset Password') }}</flux:button>
             </div>
         </div>
     </flux:modal>

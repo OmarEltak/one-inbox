@@ -179,7 +179,7 @@
                               {{ $isCurrent ? 'text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
                        @if($isCurrent) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
                         <flux:icon name="{{ $firstItem['icon'] }}" class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
-                        <span>{{ $firstItem['label'] }}</span>
+                        <span>{{ __($firstItem['label']) }}</span>
                     </a>
                 @endif
 
@@ -190,7 +190,7 @@
                 <button type="button" @click="$dispatch('needs-connection')"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-zinc-400 hover:text-zinc-500 opacity-60 hover:opacity-80">
                     <flux:icon name="inbox" class="size-4.5 flex-shrink-0 text-zinc-300" />
-                    <span class="flex-1 text-left">Inbox</span>
+                    <span class="flex-1 text-left">{{ __('Inbox') }}</span>
                     <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-zinc-300" />
                 </button>
                 @else
@@ -200,7 +200,7 @@
                                {{ $isInboxActive ? 'text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
                         @if($isInboxActive) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
                         <flux:icon name="inbox" class="size-4.5 flex-shrink-0 {{ $isInboxActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
-                        <span class="flex-1 text-left">Inbox</span>
+                        <span class="flex-1 text-left">{{ __('Inbox') }}</span>
                         @if(isset($unreadCount) && $unreadCount > 0)
                             <span class="flex-shrink-0 rounded-full bg-[#FB2C36] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                                 {{ $unreadCount > 99 ? '99+' : $unreadCount }}
@@ -229,7 +229,7 @@
                             <svg class="size-3.5 flex-shrink-0 {{ $allActive ? 'text-violet-600' : 'text-zinc-400 group-hover:text-zinc-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
-                            <span>All Messages</span>
+                            <span>{{ __('All Messages') }}</span>
                         </a>
 
                         {{-- Per-page sub-items --}}
@@ -251,7 +251,7 @@
                         @endforeach
 
                         @if($inboxPages->isEmpty())
-                            <p class="px-3 py-2 text-[11px] text-zinc-400 italic">No pages connected</p>
+                            <p class="px-3 py-2 text-[11px] text-zinc-400 italic">{{ __('No pages connected') }}</p>
                         @endif
                     </div>
                 </div>
@@ -265,7 +265,7 @@
                         <button type="button" @click="$dispatch('needs-connection')"
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer text-zinc-400 hover:text-zinc-500 opacity-60 hover:opacity-80">
                             <flux:icon name="{{ $item['icon'] }}" class="size-4.5 flex-shrink-0 text-zinc-300" />
-                            <span class="flex-1 text-left">{{ $item['label'] }}</span>
+                            <span class="flex-1 text-left">{{ __($item['label']) }}</span>
                             <flux:icon name="lock-closed" class="size-3.5 flex-shrink-0 text-zinc-300" />
                         </button>
                     @else
@@ -281,7 +281,7 @@
                         >
                             <flux:icon name="{{ $item['icon'] }}"
                                 class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
-                            <span>{{ $item['label'] }}</span>
+                            <span>{{ __($item['label']) }}</span>
 
                             {{-- AI ON/OFF indicator --}}
                             @if($item['route'] === 'settings.ai')
@@ -326,12 +326,12 @@
                                 </div>
                             </flux:menu.radio.group>
                             <flux:menu.separator />
-                            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>Settings</flux:menu.item>
+                            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>{{ __('Settings') }}</flux:menu.item>
                             <flux:menu.separator />
                             <form method="POST" action="{{ route('logout') }}" class="w-full">
                                 @csrf
                                 <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer">
-                                    Log Out
+                                    {{ __('Log Out') }}
                                 </flux:menu.item>
                             </form>
                         </flux:menu>
@@ -408,7 +408,7 @@
                         </div>
                     </flux:menu.radio.group>
                     <flux:menu.separator />
-                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>Settings</flux:menu.item>
+                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>{{ __('Settings') }}</flux:menu.item>
                     <flux:menu.separator />
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
@@ -431,19 +431,18 @@
              style="display: none;">
             <div @click.outside="open = false"
                  class="max-w-md w-[92vw] rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl">
-                <h3 class="text-lg font-semibold text-zinc-900">Connect your first page</h3>
+                <h3 class="text-lg font-semibold text-zinc-900">{{ __('Connect your first page') }}</h3>
                 <p class="mt-2 text-sm text-zinc-500">
-                    To see messages, contacts, and analytics, first connect at least one platform
-                    (Facebook, Instagram, WhatsApp, Telegram, or Email).
+                    {{ __('To see messages, contacts, and analytics, first connect at least one platform (Facebook, Instagram, WhatsApp, Telegram, or Email).') }}
                 </p>
                 <div class="mt-5 flex justify-end gap-2">
                     <button type="button" @click="open = false"
                             class="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-700 transition-colors">
-                        Cancel
+                        {{ __('Cancel') }}
                     </button>
                     <a href="{{ route('connections.index') }}" wire:navigate.hover @click="open = false"
                        class="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-500 transition-colors">
-                        Go to Connections →
+                        {{ __('Go to Connections') }} →
                     </a>
                 </div>
             </div>

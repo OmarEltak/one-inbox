@@ -203,7 +203,7 @@
                         @php $aiOn = auth()->user()->currentTeam?->ai_enabled; @endphp
                         <a href="{{ route('settings.ai') }}" wire:navigate class="flex items-center gap-1.5 text-xs">
                             <span class="size-1.5 rounded-full {{ $aiOn ? 'bg-green-400' : 'bg-red-400' }}"></span>
-                            <span class="text-zinc-400">{{ $aiOn ? 'AI ON' : 'AI OFF' }}</span>
+                            <span class="text-zinc-400">{{ $aiOn ? __('AI ON') : __('AI OFF') }}</span>
                         </a>
                     </div>
                     @php
@@ -300,13 +300,13 @@
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center justify-between gap-2">
                                             <p class="text-sm font-semibold text-zinc-700 truncate group-hover:text-zinc-900 transition-colors">
-                                                {{ $conv->contact?->name ?? 'Unknown' }}
+                                                {{ $conv->contact?->name ?? __('Unknown') }}
                                             </p>
                                             <span class="flex-shrink-0 text-[11px] text-zinc-400">
                                                 {{ $conv->last_message_at?->shortAbsoluteDiffForHumans() }}
                                             </span>
                                         </div>
-                                        <p class="text-xs text-zinc-400 truncate">{{ $conv->last_message_preview ?? 'No messages' }}</p>
+                                        <p class="text-xs text-zinc-400 truncate">{{ $conv->last_message_preview ?? __('No messages') }}</p>
                                     </div>
                                     @if($conv->unread_count > 0)
                                         <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"

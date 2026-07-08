@@ -145,14 +145,6 @@
                             @if($currentLocale === 'ar')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                             العربية
                         </a>
-                        <a href="?lang=de" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'de' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
-                            @if($currentLocale === 'de')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
-                            Deutsch
-                        </a>
-                        <a href="?lang=es" @click="open = false" class="flex items-center gap-2 px-4 py-2 text-sm transition-colors {{ $currentLocale === 'es' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-700' }}">
-                            @if($currentLocale === 'es')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
-                            Español
-                        </a>
                     </div>
                 </div>
 
@@ -198,7 +190,7 @@
             @php $currentLocale = app()->getLocale(); @endphp
             <div class="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
                 <p class="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-zinc-500">{{ __('Language') }}</p>
-                <div class="grid grid-cols-2 gap-1">
+                <div class="flex gap-1">
                     <a href="?lang=en" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'en' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
                         @if($currentLocale === 'en')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                         English
@@ -206,14 +198,6 @@
                     <a href="?lang=ar" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'ar' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
                         @if($currentLocale === 'ar')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
                         العربية
-                    </a>
-                    <a href="?lang=de" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'de' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
-                        @if($currentLocale === 'de')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
-                        Deutsch
-                    </a>
-                    <a href="?lang=es" @click="mobileOpen = false" class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm {{ $currentLocale === 'es' ? 'font-semibold text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' }}">
-                        @if($currentLocale === 'es')<svg class="size-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>@endif
-                        Español
                     </a>
                 </div>
             </div>

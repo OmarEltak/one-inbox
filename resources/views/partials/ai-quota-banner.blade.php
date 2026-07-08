@@ -28,17 +28,17 @@
             <flux:icon.exclamation-triangle class="w-5 h-5 {{ $isOutage ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400' }} shrink-0" />
             <p class="text-sm {{ $isOutage ? 'text-red-900 dark:text-red-200' : 'text-amber-900 dark:text-amber-200' }} truncate">
                 @if($isOutage)
-                    <span class="font-medium">AI is temporarily unavailable.</span>
+                    <span class="font-medium">{{ __('AI is temporarily unavailable.') }}</span>
                     <span class="text-red-700/80 dark:text-red-300/80">
-                        The upstream AI provider is experiencing an outage — new incoming messages will land in your inbox without an AI reply. If this persists for more than an hour, please contact support.
+                        {{ __('The upstream AI provider is experiencing an outage — new incoming messages will land in your inbox without an AI reply. If this persists for more than an hour, please contact support.') }}
                     </span>
                 @else
-                    <span class="font-medium">AI auto-replies are paused</span>
+                    <span class="font-medium">{{ __('AI auto-replies are paused') }}</span>
                     <span class="text-amber-700/80 dark:text-amber-300/80">
                         @if($planExhausted)
-                            — you've reached your plan's AI credit limit. New incoming messages will land in your inbox without an AI reply.
+                            — {{ __("you've reached your plan's AI credit limit. New incoming messages will land in your inbox without an AI reply.") }}
                         @else
-                            — your AI token limits are used up for now. New incoming messages will land in your inbox without an AI reply.
+                            — {{ __('your AI token limits are used up for now. New incoming messages will land in your inbox without an AI reply.') }}
                         @endif
                     </span>
                 @endif
@@ -47,7 +47,7 @@
         @unless($isOutage)
             <a href="{{ route('settings.billing') }}"
                class="text-sm font-medium text-amber-900 dark:text-amber-200 hover:text-amber-700 dark:hover:text-amber-100 underline whitespace-nowrap shrink-0">
-                Upgrade plan
+                {{ __('Upgrade plan') }}
             </a>
         @endunless
     </div>

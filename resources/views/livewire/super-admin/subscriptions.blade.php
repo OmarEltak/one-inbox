@@ -1,8 +1,8 @@
 <div class="p-6">
     <div class="mb-6 flex items-start justify-between gap-4">
         <div>
-            <flux:heading size="xl" class="text-zinc-900">Subscriptions</flux:heading>
-            <flux:text class="mt-1 text-zinc-900">Grant, extend, or revoke customer plans. Each row is a team — its owner is the paying customer.</flux:text>
+            <flux:heading size="xl" class="text-zinc-900">{{ __('Subscriptions') }}</flux:heading>
+            <flux:text class="mt-1 text-zinc-900">{{ __('Grant, extend, or revoke customer plans. Each row is a team — its owner is the paying customer.') }}</flux:text>
         </div>
     </div>
 
@@ -30,23 +30,23 @@
         </div>
         <div class="w-44">
             <flux:select wire:model.live="statusFilter" class="text-zinc-900">
-                <option value="all">All statuses</option>
-                <option value="free">Free tier</option>
-                <option value="active">Active paid</option>
-                <option value="expiring">Expiring in 7 days</option>
-                <option value="expired">Expired</option>
+                <option value="all">{{ __('All statuses') }}</option>
+                <option value="free">{{ __('Free tier') }}</option>
+                <option value="active">{{ __('Active paid') }}</option>
+                <option value="expiring">{{ __('Expiring in 7 days') }}</option>
+                <option value="expired">{{ __('Expired') }}</option>
             </flux:select>
         </div>
         <div class="w-44">
             <flux:select wire:model.live="planFilter" class="text-zinc-900">
-                <option value="all">All plans</option>
-                <option value="free">Free</option>
-                <option value="basic">Basic</option>
-                <option value="starter">Starter</option>
-                <option value="pro">Pro</option>
-                <option value="business">Business</option>
-                <option value="agency">Agency</option>
-                <option value="enterprise">Enterprise</option>
+                <option value="all">{{ __('All plans') }}</option>
+                <option value="free">{{ __('Free') }}</option>
+                <option value="basic">{{ __('Basic') }}</option>
+                <option value="starter">{{ __('Starter') }}</option>
+                <option value="pro">{{ __('Pro') }}</option>
+                <option value="business">{{ __('Business') }}</option>
+                <option value="agency">{{ __('Agency') }}</option>
+                <option value="enterprise">{{ __('Enterprise') }}</option>
             </flux:select>
         </div>
         <div class="text-sm text-zinc-500">
@@ -95,11 +95,11 @@
                                 title="Select all visible"
                             />
                         </th>
-                        <th class="text-left px-4 py-3">Team / Owner</th>
-                        <th class="text-left px-4 py-3">Plan</th>
-                        <th class="text-left px-4 py-3">Expires</th>
-                        <th class="text-left px-4 py-3">Usage</th>
-                        <th class="text-right px-4 py-3">Actions</th>
+                        <th class="text-left px-4 py-3">{{ __('Team / Owner') }}</th>
+                        <th class="text-left px-4 py-3">{{ __('Plan') }}</th>
+                        <th class="text-left px-4 py-3">{{ __('Expires') }}</th>
+                        <th class="text-left px-4 py-3">{{ __('Usage') }}</th>
+                        <th class="text-right px-4 py-3">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700 bg-white dark:bg-zinc-900">
@@ -142,7 +142,7 @@
                                 @if($pendingPaymentId)
                                     <span class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                                         <flux:icon name="banknotes" class="w-3 h-3" />
-                                        Pending payment request
+                                        {{ __('Pending payment request') }}
                                     </span>
                                 @endif
                             </td>
@@ -160,7 +160,7 @@
                             <td class="px-4 py-3">
                                 @if($team->subscription_ends_at)
                                     <span class="inline-flex items-center rounded-md bg-{{ $expiryColor }}-100 dark:bg-{{ $expiryColor }}-900/30 px-2 py-0.5 text-xs font-medium text-{{ $expiryColor }}-800 dark:text-{{ $expiryColor }}-300">
-                                        {{ $expired ? 'expired' : 'active' }}
+                                        {{ $expired ? __('expired') : __('active') }}
                                     </span>
                                     <div class="text-xs text-zinc-500 mt-1">
                                         {{ $team->subscription_ends_at->toFormattedDateString() }}
@@ -171,7 +171,7 @@
                                     <span class="text-xs text-zinc-400">—</span>
                                 @else
                                     <span class="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                                        no expiry
+                                        {{ __('no expiry') }}
                                     </span>
                                 @endif
                             </td>
@@ -187,7 +187,7 @@
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex gap-2">
                                     <flux:button wire:click="openGrant({{ $team->id }})" size="sm" variant="primary" icon="key">
-                                        Grant access
+                                        {{ __('Grant access') }}
                                     </flux:button>
                                     <flux:button
                                         wire:click="resetAiQuota({{ $team->id }})"
@@ -196,7 +196,7 @@
                                         variant="ghost"
                                         icon="arrow-path"
                                     >
-                                        Reset AI
+                                        {{ __('Reset AI') }}
                                     </flux:button>
                                     @if($plan !== 'free' || $team->subscription_ends_at)
                                         <flux:button
@@ -206,7 +206,7 @@
                                             variant="ghost"
                                             icon="x-mark"
                                         >
-                                            Revoke
+                                            {{ __('Revoke') }}
                                         </flux:button>
                                     @endif
                                 </div>
@@ -224,7 +224,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" wire:key="grant-modal-{{ $grantTeamId }}">
             <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5 border border-zinc-200 dark:border-zinc-700">
                 <div>
-                    <flux:heading size="lg">Grant plan access</flux:heading>
+                    <flux:heading size="lg">{{ __('Grant plan access') }}</flux:heading>
                     <flux:text class="mt-1">
                         {{ $grantTeam?->name }}
                         @if($grantTeam?->owner)
@@ -242,7 +242,7 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Plan</label>
+                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">{{ __('Plan') }}</label>
                         <flux:select wire:model="grantPlan">
                             <option value="basic">Basic — $8/mo</option>
                             <option value="starter">Starter — $29/mo</option>
@@ -254,27 +254,27 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Billing cycle</label>
+                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">{{ __('Billing cycle') }}</label>
                         <flux:select wire:model="grantBillingCycle">
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
+                            <option value="monthly">{{ __('Monthly') }}</option>
+                            <option value="yearly">{{ __('Yearly') }}</option>
                         </flux:select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Duration</label>
+                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">{{ __('Duration') }}</label>
                         <flux:select wire:model.live="grantDuration">
-                            <option value="1_month">1 month</option>
-                            <option value="3_months">3 months</option>
-                            <option value="6_months">6 months</option>
-                            <option value="12_months">1 year</option>
-                            <option value="custom">Custom end date...</option>
+                            <option value="1_month">{{ __('1 month') }}</option>
+                            <option value="3_months">{{ __('3 months') }}</option>
+                            <option value="6_months">{{ __('6 months') }}</option>
+                            <option value="12_months">{{ __('1 year') }}</option>
+                            <option value="custom">{{ __('Custom end date...') }}</option>
                         </flux:select>
                     </div>
 
                     @if($grantDuration === 'custom')
                         <div>
-                            <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Custom end date</label>
+                            <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">{{ __('Custom end date') }}</label>
                             <flux:input type="date" wire:model="grantCustomDate" min="{{ now()->addDay()->toDateString() }}" />
                         </div>
                     @endif
@@ -284,15 +284,15 @@
                             <label class="flex items-start gap-2 cursor-pointer">
                                 <input type="radio" wire:model="grantMode" value="extend" class="mt-0.5" />
                                 <div>
-                                    <div class="text-sm font-medium">Extend from current end date</div>
-                                    <div class="text-xs text-zinc-500">Adds duration to {{ $grantTeam->subscription_ends_at->toFormattedDateString() }}</div>
+                                    <div class="text-sm font-medium">{{ __('Extend from current end date') }}</div>
+                                    <div class="text-xs text-zinc-500">{{ __('Adds duration to') }} {{ $grantTeam->subscription_ends_at->toFormattedDateString() }}</div>
                                 </div>
                             </label>
                             <label class="flex items-start gap-2 cursor-pointer">
                                 <input type="radio" wire:model="grantMode" value="reset" class="mt-0.5" />
                                 <div>
-                                    <div class="text-sm font-medium">Reset — start duration from today</div>
-                                    <div class="text-xs text-zinc-500">Overwrites current end date</div>
+                                    <div class="text-sm font-medium">{{ __('Reset — start duration from today') }}</div>
+                                    <div class="text-xs text-zinc-500">{{ __('Overwrites current end date') }}</div>
                                 </div>
                             </label>
                         </div>
@@ -300,8 +300,8 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <flux:button wire:click="closeGrant" variant="ghost">Cancel</flux:button>
-                    <flux:button wire:click="grant" variant="primary" icon="check">Grant access</flux:button>
+                    <flux:button wire:click="closeGrant" variant="ghost">{{ __('Cancel') }}</flux:button>
+                    <flux:button wire:click="grant" variant="primary" icon="check">{{ __('Grant access') }}</flux:button>
                 </div>
             </div>
         </div>

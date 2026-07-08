@@ -7,17 +7,17 @@
             <p class="mt-1 text-sm text-white/40">{{ __('Upload a CSV/Excel sheet of contacts and send a bulk email blast.') }}</p>
         </div>
         <a href="{{ route('campaigns.index') }}" wire:navigate
-           class="text-sm text-white/60 hover:text-white">← Back to campaigns</a>
+           class="text-sm text-white/60 hover:text-white">← {{ __('Back to campaigns') }}</a>
     </div>
 
     {{-- Step indicator --}}
     @php
         $steps = [
-            'upload'   => '1. Upload',
-            'map'      => '2. Map columns',
-            'compose'  => '3. Compose',
-            'review'   => '4. Review',
-            'launched' => '5. Launched',
+            'upload'   => __('1. Upload'),
+            'map'      => __('2. Map columns'),
+            'compose'  => __('3. Compose'),
+            'review'   => __('4. Review'),
+            'launched' => __('5. Launched'),
         ];
         $stepKeys = array_keys($steps);
         $current  = array_search($step, $stepKeys, true);
@@ -43,7 +43,7 @@
     @if($step === 'upload')
         <div class="aio-card rounded-2xl p-8 space-y-4">
             <div>
-                <label class="block text-sm font-semibold text-white mb-2">CSV or Excel file</label>
+                <label class="block text-sm font-semibold text-white mb-2">{{ __('CSV or Excel file') }}</label>
                 <input type="file" wire:model="file"
                        accept=".csv,.txt,.xlsx"
                        class="block w-full text-sm text-white/80
@@ -51,17 +51,17 @@
                               file:text-sm file:font-semibold
                               file:bg-[#7C3AED]/20 file:text-[#C27AFF]
                               hover:file:bg-[#7C3AED]/30 cursor-pointer" />
-                <p class="text-xs text-white/40 mt-2">.csv or .xlsx, up to 10 MB, max 50,000 rows.</p>
+                <p class="text-xs text-white/40 mt-2">{{ __('.csv or .xlsx, up to 10 MB, max 50,000 rows.') }}</p>
                 @error('file') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div wire:loading wire:target="file" class="text-sm text-white/60">Uploading…</div>
+            <div wire:loading wire:target="file" class="text-sm text-white/60">{{ __('Uploading…') }}</div>
 
             @if($file)
                 <button wire:click="uploadAndPreview"
                         wire:loading.attr="disabled"
                         class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
-                    Preview &amp; map columns →
+                    {{ __('Preview & map columns') }} →
                 </button>
             @endif
         </div>
@@ -70,15 +70,15 @@
     {{-- STEP 2: MAP --}}
     @if($step === 'map')
         <div class="aio-card rounded-2xl p-6 space-y-4">
-            <h2 class="text-lg font-semibold text-white">Map columns</h2>
-            <p class="text-sm text-white/50">We detected {{ count($detectedHeaders) }} columns. Tell us which one holds the email address.</p>
+            <h2 class="text-lg font-semibold text-white">{{ __('Map columns') }}</h2>
+            <p class="text-sm text-white/50">{{ __('We detected :count columns. Tell us which one holds the email address.', ['count' => count($detectedHeaders)]) }}</p>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">Email column (required)</label>
+                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Email column (required)') }}</label>
                     <select wire:model="emailColumn"
                             class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
-                        <option value="">— pick a column —</option>
+                        <option value="">{{ __('— pick a column —') }}</option>
                         @foreach($detectedHeaders as $h)
                             <option value="{{ $h }}">{{ $h }}</option>
                         @endforeach
@@ -87,10 +87,10 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">Name column (optional)</label>
+                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Name column (optional)') }}</label>
                     <select wire:model="nameColumn"
                             class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
-                        <option value="">— none —</option>
+                        <option value="">{{ __('— none —') }}</option>
                         @foreach($detectedHeaders as $h)
                             <option value="{{ $h }}">{{ $h }}</option>
                         @endforeach
@@ -136,12 +136,12 @@
             </div>
 
             <div class="flex gap-2">
-                <button wire:click="$set('step', 'upload')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← Back</button>
+                <button wire:click="$set('step', 'upload')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← {{ __('Back') }}</button>
                 <button wire:click="confirmMapAndImport"
                         wire:loading.attr="disabled"
                         class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
-                    <span wire:loading.remove wire:target="confirmMapAndImport">Import contacts →</span>
-                    <span wire:loading wire:target="confirmMapAndImport">Importing…</span>
+                    <span wire:loading.remove wire:target="confirmMapAndImport">{{ __('Import contacts') }} →</span>
+                    <span wire:loading wire:target="confirmMapAndImport">{{ __('Importing…') }}</span>
                 </button>
             </div>
         </div>
@@ -155,14 +155,14 @@
             </flux:callout>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">Campaign name</label>
+                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Campaign name') }}</label>
                 <input type="text" wire:model="campaignName"
                        class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
                 @error('campaignName') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">Sender (your connected email account)</label>
+                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Sender (your connected email account)') }}</label>
                 @if($this->emailSenders->isEmpty())
                     <flux:callout variant="warning" icon="exclamation-triangle">
                         No connected email accounts. <a href="{{ route('connections.index') }}" wire:navigate class="underline text-[#C27AFF]">Connect one →</a>
@@ -178,7 +178,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">Subject</label>
+                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Subject') }}</label>
                 <input type="text" wire:model="subject"
                        placeholder="Quick question about {{ '{{name}}' }}'s setup"
                        class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
@@ -186,7 +186,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">Body</label>
+                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Body') }}</label>
                 <textarea wire:model="body" rows="8"
                           class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono"></textarea>
                 <p class="text-xs text-white/40 mt-1">
@@ -200,17 +200,17 @@
 
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">Daily cap</label>
+                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Daily cap') }}</label>
                     <input type="number" wire:model="dailyCap" min="1" max="10000"
                            class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">Jitter min (s)</label>
+                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Jitter min (s)') }}</label>
                     <input type="number" wire:model="jitterMin" min="0" max="3600"
                            class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">Jitter max (s)</label>
+                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Jitter max (s)') }}</label>
                     <input type="number" wire:model="jitterMax" min="0" max="3600"
                            class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
                 </div>
@@ -218,14 +218,14 @@
 
             <label class="flex items-center gap-2 text-sm text-white/80">
                 <input type="checkbox" wire:model="aiPersonalize" class="rounded">
-                AI-personalize each email (uses Gemini; costs more)
+                {{ __('AI-personalize each email (uses Gemini; costs more)') }}
             </label>
 
             <div class="flex gap-2">
-                <button wire:click="$set('step', 'map')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← Back</button>
+                <button wire:click="$set('step', 'map')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← {{ __('Back') }}</button>
                 <button wire:click="gotoReview"
                         class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
-                    Review →
+                    {{ __('Review') }} →
                 </button>
             </div>
         </div>
@@ -235,41 +235,40 @@
     @if($step === 'review')
         @php $stats = $this->reviewStats; @endphp
         <div class="aio-card rounded-2xl p-6 space-y-4">
-            <h2 class="text-lg font-semibold text-white">Review &amp; launch</h2>
+            <h2 class="text-lg font-semibold text-white">{{ __('Review & launch') }}</h2>
             <div class="grid grid-cols-3 gap-3">
                 <div class="aio-card rounded-xl p-4 text-center">
                     <p class="text-2xl font-bold text-zinc-900">{{ number_format($stats['total']) }}</p>
-                    <p class="text-xs text-white/40 mt-1">Recipients</p>
+                    <p class="text-xs text-white/40 mt-1">{{ __('Recipients') }}</p>
                 </div>
                 <div class="aio-card rounded-xl p-4 text-center">
                     <p class="text-2xl font-bold text-zinc-900">{{ number_format($dailyCap) }}</p>
-                    <p class="text-xs text-white/40 mt-1">Per day cap</p>
+                    <p class="text-xs text-white/40 mt-1">{{ __('Per day cap') }}</p>
                 </div>
                 <div class="aio-card rounded-xl p-4 text-center">
                     <p class="text-2xl font-bold text-zinc-900">~{{ $stats['days'] }}</p>
-                    <p class="text-xs text-white/40 mt-1">Day{{ $stats['days'] === 1 ? '' : 's' }} to send all</p>
+                    <p class="text-xs text-white/40 mt-1">{{ $stats['days'] === 1 ? __('Day to send all') : __('Days to send all') }}</p>
                 </div>
             </div>
 
             <div class="space-y-1 text-sm text-white/70">
-                <div><span class="text-white/40">Name:</span> {{ $campaignName }}</div>
-                <div><span class="text-white/40">Subject:</span> {{ $subject }}</div>
-                <div><span class="text-white/40">Sender:</span> {{ optional($this->emailSenders->firstWhere('id', $senderPageId))->name ?? '—' }}</div>
-                <div><span class="text-white/40">AI personalize:</span> {{ $aiPersonalize ? 'yes' : 'no' }}</div>
+                <div><span class="text-white/40">{{ __('Name') }}:</span> {{ $campaignName }}</div>
+                <div><span class="text-white/40">{{ __('Subject') }}:</span> {{ $subject }}</div>
+                <div><span class="text-white/40">{{ __('Sender') }}:</span> {{ optional($this->emailSenders->firstWhere('id', $senderPageId))->name ?? '—' }}</div>
+                <div><span class="text-white/40">{{ __('AI personalize') }}:</span> {{ $aiPersonalize ? __('yes') : __('no') }}</div>
             </div>
 
             <flux:callout variant="warning" icon="information-circle">
-                Each email includes a mandatory unsubscribe link and an open-tracking pixel.
-                Recipients who unsubscribe are saved to your team suppression list and skipped in all future campaigns.
+                {{ __('Each email includes a mandatory unsubscribe link and an open-tracking pixel. Recipients who unsubscribe are saved to your team suppression list and skipped in all future campaigns.') }}
             </flux:callout>
 
             <div class="flex gap-2">
-                <button wire:click="$set('step', 'compose')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← Back</button>
+                <button wire:click="$set('step', 'compose')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← {{ __('Back') }}</button>
                 <button wire:click="launch"
                         wire:loading.attr="disabled"
                         class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
-                    <span wire:loading.remove wire:target="launch">Launch campaign 🚀</span>
-                    <span wire:loading wire:target="launch">Scheduling…</span>
+                    <span wire:loading.remove wire:target="launch">{{ __('Launch campaign') }} 🚀</span>
+                    <span wire:loading wire:target="launch">{{ __('Scheduling…') }}</span>
                 </button>
             </div>
         </div>
@@ -283,13 +282,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
-            <h2 class="text-xl font-bold text-white">Campaign launched</h2>
-            <p class="text-sm text-white/60">Your email blast is scheduled. The dispatcher runs every minute and will respect your daily cap and jitter settings.</p>
+            <h2 class="text-xl font-bold text-white">{{ __('Campaign launched') }}</h2>
+            <p class="text-sm text-white/60">{{ __('Your email blast is scheduled. The dispatcher runs every minute and will respect your daily cap and jitter settings.') }}</p>
             <div class="flex gap-2 justify-center">
                 <a href="{{ route('campaigns.show', $createdCampaignId) }}" wire:navigate
-                   class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">View progress</a>
+                   class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">{{ __('View progress') }}</a>
                 <a href="{{ route('campaigns.index') }}" wire:navigate
-                   class="px-5 py-2.5 rounded-xl text-sm text-white/70 bg-white/[0.04]">All campaigns</a>
+                   class="px-5 py-2.5 rounded-xl text-sm text-white/70 bg-white/[0.04]">{{ __('All campaigns') }}</a>
             </div>
         </div>
     @endif

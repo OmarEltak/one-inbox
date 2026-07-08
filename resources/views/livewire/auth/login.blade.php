@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-6">
         {{-- Header --}}
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Welcome back</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Welcome back') }}</h1>
             <p class="mt-1 text-sm text-zinc-500">{{ __('Sign in to your account') }}</p>
         </div>
 

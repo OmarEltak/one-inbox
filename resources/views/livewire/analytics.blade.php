@@ -123,7 +123,7 @@
                 <div class="aio-card aio-stat-orange rounded-2xl p-5">
                     <p class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">{{ __('Conversion Rate') }}</p>
                     <span class="text-3xl font-bold text-[#FBBF24]">{{ $data['conversionFunnel']['conversion_rate'] }}%</span>
-                    <p class="mt-2 text-xs text-white/35">{{ $data['conversionFunnel']['stages']['converted'] ?? 0 }} converted of {{ $data['conversionFunnel']['total'] }}</p>
+                    <p class="mt-2 text-xs text-white/35">{{ $data['conversionFunnel']['stages']['converted'] ?? 0 }} {{ __('converted of') }} {{ $data['conversionFunnel']['total'] }}</p>
                 </div>
             </div>
 
@@ -149,7 +149,7 @@
                                  labels: labels,
                                  datasets: [
                                      {
-                                         label: 'Inbound',
+                                         label: @js(__('Inbound')),
                                          data: inbound,
                                          borderColor: '#64748b',
                                          backgroundColor: 'rgba(100,116,139,0.1)',
@@ -158,7 +158,7 @@
                                          pointRadius: 3,
                                      },
                                      {
-                                         label: 'AI Responses',
+                                         label: @js(__('AI Responses')),
                                          data: ai,
                                          borderColor: '#8b5cf6',
                                          backgroundColor: 'rgba(139,92,246,0.1)',
@@ -167,7 +167,7 @@
                                          pointRadius: 3,
                                      },
                                      {
-                                         label: 'Human Responses',
+                                         label: @js(__('Human Responses')),
                                          data: human,
                                          borderColor: '#3b82f6',
                                          backgroundColor: 'rgba(59,130,246,0.1)',
@@ -210,9 +210,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-semibold text-white/80">{{ __('Reach Across Platforms') }}</h3>
                     <div class="flex gap-4">
-                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#64748b]"></div><span class="text-xs text-white/40">Inbound</span></div>
+                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#64748b]"></div><span class="text-xs text-white/40">{{ __('Inbound') }}</span></div>
                         <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#8b5cf6]"></div><span class="text-xs text-white/40">AI</span></div>
-                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#3b82f6]"></div><span class="text-xs text-white/40">Human</span></div>
+                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#3b82f6]"></div><span class="text-xs text-white/40">{{ __('Human Responses') }}</span></div>
                     </div>
                 </div>
                 <div class="h-64">
@@ -242,11 +242,11 @@
                             <div class="flex justify-between">
                                 <div class="flex items-center gap-2">
                                     <div class="size-3 rounded-full bg-[#8b5cf6]"></div>
-                                    <span class="text-sm text-white/80">AI: {{ number_format($data['aiVsHuman']['ai']) }}</span>
+                                    <span class="text-sm text-white/80">{{ __('AI Responses') }}: {{ number_format($data['aiVsHuman']['ai']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="size-3 rounded-full bg-[#3b82f6]"></div>
-                                    <span class="text-sm text-white/80">Human: {{ number_format($data['aiVsHuman']['human']) }}</span>
+                                    <span class="text-sm text-white/80">{{ __('Human Responses') }}: {{ number_format($data['aiVsHuman']['human']) }}</span>
                                 </div>
                             </div>
                             @if($data['responseTime']['ai_avg'] !== null && $data['responseTime']['human_avg'] !== null)
@@ -255,7 +255,7 @@
                                 @endphp
                                 <div class="rounded-lg bg-white/5 p-3">
                                     <p class="text-sm text-white/40">
-                                        AI responds <span class="font-bold text-green-400">{{ $speedup }}x faster</span> than human agents
+                                        {{ __('AI responds') }} <span class="font-bold text-green-400">{{ $speedup }}x {{ __('faster') }}</span> {{ __('than human agents') }}
                                     </p>
                                 </div>
                             @endif
@@ -409,7 +409,7 @@
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm text-white/80">{{ $objection['reason'] }}</p>
-                                        <p class="text-xs text-white/40">{{ $objection['occurrences'] }}x in this period</p>
+                                        <p class="text-xs text-white/40">{{ $objection['occurrences'] }}x {{ __('in this period') }}</p>
                                     </div>
                                 </div>
                             @endforeach
@@ -441,7 +441,7 @@
                             <div class="rounded-xl border-2 p-3 text-center {{ $statusColors[$status] ?? 'border-white/15' }} bg-transparent">
                                 <p class="text-2xl font-bold text-white/80">{{ $info['count'] }}</p>
                                 <p class="mt-0.5 text-sm font-medium text-white/40">{{ ucfirst($status) }}</p>
-                                <p class="text-xs text-white/40">avg {{ $info['avg_score'] }}</p>
+                                <p class="text-xs text-white/40">{{ __('avg') }} {{ $info['avg_score'] }}</p>
                             </div>
                         @endforeach
                     </div>

@@ -1,7 +1,7 @@
 <div class="p-6">
     <div class="mb-6">
-        <flux:heading size="xl" class="text-zinc-900">Onboarding Requests</flux:heading>
-        <flux:text class="mt-1 text-zinc-900">Customers waiting on managed Facebook / Instagram setup. Connect their page through your own Meta account first, then complete the request below to hand it off.</flux:text>
+        <flux:heading size="xl" class="text-zinc-900">{{ __('Onboarding Requests') }}</flux:heading>
+        <flux:text class="mt-1 text-zinc-900">{{ __('Customers waiting on managed Facebook / Instagram setup. Connect their page through your own Meta account first, then complete the request below to hand it off.') }}</flux:text>
     </div>
 
     @if(session('success'))
@@ -19,12 +19,12 @@
     <div class="mb-4 flex flex-wrap items-end gap-3">
         <div class="w-48">
             <flux:select wire:model.live="statusFilter" class="text-zinc-900">
-                <option value="open">Open (pending + in progress)</option>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In progress</option>
-                <option value="completed">Completed</option>
-                <option value="rejected">Rejected</option>
-                <option value="all">All</option>
+                <option value="open">{{ __('Open (pending + in progress)') }}</option>
+                <option value="pending">{{ __('Pending') }}</option>
+                <option value="in_progress">{{ __('In progress') }}</option>
+                <option value="completed">{{ __('Completed') }}</option>
+                <option value="rejected">{{ __('Rejected') }}</option>
+                <option value="all">{{ __('All') }}</option>
             </flux:select>
         </div>
         <div class="ml-auto text-sm text-zinc-500">
@@ -35,7 +35,7 @@
     @if($this->requests->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-12 text-center">
             <flux:icon name="inbox" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-            <flux:text class="text-zinc-500">No requests in this view.</flux:text>
+            <flux:text class="text-zinc-500">{{ __('No requests in this view.') }}</flux:text>
         </div>
     @else
         <div class="space-y-4">
@@ -62,11 +62,11 @@
                                 <span class="text-xs text-zinc-500">#{{ $req->id }} · {{ $req->created_at->diffForHumans() }}</span>
                             </div>
                             <div class="text-base font-medium text-zinc-900 dark:text-zinc-100">
-                                {{ $req->business_name ?: '(no business name)' }}
+                                {{ $req->business_name ?: __('(no business name)') }}
                             </div>
                             <div class="text-sm text-zinc-500 mt-0.5">
-                                Team: <span class="text-zinc-700 dark:text-zinc-300">{{ $req->team?->name ?? '?' }}</span>
-                                · Requested by {{ $req->requestedBy?->name ?? '?' }} ({{ $req->requestedBy?->email ?? '?' }})
+                                {{ __('Team') }}: <span class="text-zinc-700 dark:text-zinc-300">{{ $req->team?->name ?? '?' }}</span>
+                                · {{ __('Requested by') }} {{ $req->requestedBy?->name ?? '?' }} ({{ $req->requestedBy?->email ?? '?' }})
                                 @if($req->contact_phone)
                                     · {{ $req->contact_phone }}
                                 @endif
@@ -80,14 +80,14 @@
 
                         @if($req->status === 'pending')
                             <flux:button wire:click="startReview({{ $req->id }})" size="sm" variant="outline">
-                                Start review
+                                {{ __('Start review') }}
                             </flux:button>
                         @endif
                     </div>
 
                     @if($req->notes)
                         <div class="mb-3 rounded-md bg-zinc-50 dark:bg-zinc-800/50 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-                            <span class="text-xs uppercase tracking-wide text-zinc-500 block mb-1">Customer notes</span>
+                            <span class="text-xs uppercase tracking-wide text-zinc-500 block mb-1">{{ __('Customer notes') }}</span>
                             {{ $req->notes }}
                         </div>
                     @endif

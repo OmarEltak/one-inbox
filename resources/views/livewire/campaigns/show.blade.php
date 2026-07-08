@@ -1,12 +1,12 @@
 <div class="p-6 max-w-6xl mx-auto space-y-6" wire:poll.10s>
     <div class="flex items-center justify-between">
         <div>
-            <a href="{{ route('campaigns.index') }}" wire:navigate class="text-xs text-white/40 hover:text-white">← Campaigns</a>
+            <a href="{{ route('campaigns.index') }}" wire:navigate class="text-xs text-white/40 hover:text-white">← {{ __('Campaigns') }}</a>
             <h1 class="text-2xl font-bold text-white mt-1">{{ $campaign->name }}</h1>
             <p class="text-sm text-white/40">
                 {{ ucfirst($campaign->platform ?? 'email') }} ·
-                Sender: {{ optional($campaign->senderPage)->name ?? '—' }} ·
-                Status:
+                {{ __('Sender') }}: {{ optional($campaign->senderPage)->name ?? '—' }} ·
+                {{ __('Status') }}:
                 <span class="font-semibold
                     @if($campaign->status === 'active') text-yellow-400
                     @elseif($campaign->status === 'completed') text-green-400
@@ -17,12 +17,12 @@
         </div>
         <div class="flex gap-2">
             @if($campaign->status === 'active')
-                <button wire:click="pause" class="px-4 py-2 rounded-xl text-sm text-orange-300 bg-orange-500/15">Pause</button>
+                <button wire:click="pause" class="px-4 py-2 rounded-xl text-sm text-orange-300 bg-orange-500/15">{{ __('Pause') }}</button>
             @elseif($campaign->status === 'paused')
-                <button wire:click="resume" class="px-4 py-2 rounded-xl text-sm text-green-300 bg-green-500/15">Resume</button>
+                <button wire:click="resume" class="px-4 py-2 rounded-xl text-sm text-green-300 bg-green-500/15">{{ __('Resume') }}</button>
             @endif
             @if($this->counts['failed'] > 0)
-                <button wire:click="retryFailed" class="px-4 py-2 rounded-xl text-sm text-white/80 bg-white/[0.06]">Retry failed</button>
+                <button wire:click="retryFailed" class="px-4 py-2 rounded-xl text-sm text-white/80 bg-white/[0.06]">{{ __('Retry failed') }}</button>
             @endif
         </div>
     </div>
@@ -50,7 +50,7 @@
         @php $pct = (int) round((($c['sent'] + $c['failed'] + $c['unsubscribed']) / $c['total']) * 100); @endphp
         <div>
             <div class="flex justify-between text-xs text-white/50 mb-1">
-                <span>Progress</span>
+                <span>{{ __('Progress') }}</span>
                 <span>{{ $pct }}%</span>
             </div>
             <div class="h-2 rounded-full bg-white/[0.05] overflow-hidden">
@@ -61,7 +61,7 @@
 
     {{-- Filter tabs --}}
     <div class="flex gap-0 border-b" style="border-color: rgba(255,255,255,0.07);">
-        @foreach(['all' => 'All', 'pending' => 'Pending', 'sent' => 'Sent', 'opened' => 'Opened', 'failed' => 'Failed', 'unsubscribed' => 'Unsubscribed'] as $key => $label)
+        @foreach(['all' => __('All'), 'pending' => __('Pending'), 'sent' => __('Sent'), 'opened' => __('Opened'), 'failed' => __('Failed'), 'unsubscribed' => __('Unsubscribed')] as $key => $label)
             <button wire:click="$set('filter', '{{ $key }}')"
                     class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px
                            {{ $filter === $key ? 'border-b-2 text-[#C27AFF]' : 'text-white/35 hover:text-white/60' }}"
@@ -76,13 +76,13 @@
         <table class="min-w-full text-sm">
             <thead class="bg-white/[0.03]">
                 <tr class="text-left text-xs text-white/50">
-                    <th class="px-4 py-2.5">Email</th>
-                    <th class="px-4 py-2.5">Name</th>
-                    <th class="px-4 py-2.5">Status</th>
-                    <th class="px-4 py-2.5">Attempts</th>
-                    <th class="px-4 py-2.5">Scheduled</th>
-                    <th class="px-4 py-2.5">Sent</th>
-                    <th class="px-4 py-2.5">Error</th>
+                    <th class="px-4 py-2.5">{{ __('Email') }}</th>
+                    <th class="px-4 py-2.5">{{ __('Name') }}</th>
+                    <th class="px-4 py-2.5">{{ __('Status') }}</th>
+                    <th class="px-4 py-2.5">{{ __('Attempts') }}</th>
+                    <th class="px-4 py-2.5">{{ __('Scheduled') }}</th>
+                    <th class="px-4 py-2.5">{{ __('Sent') }}</th>
+                    <th class="px-4 py-2.5">{{ __('Error') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -110,7 +110,7 @@
                         <td class="px-4 py-2 text-red-300/80 text-xs">{{ \Illuminate\Support\Str::limit($r->last_error ?? '', 60) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="px-4 py-6 text-center text-white/40">No recipients in this view.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-6 text-center text-white/40">{{ __('No recipients in this view.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

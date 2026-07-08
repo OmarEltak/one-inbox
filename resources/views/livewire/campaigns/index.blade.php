@@ -49,7 +49,7 @@
 
     {{-- Tab Filter Bar --}}
     <div class="flex gap-0 border-b pb-0" style="border-color: rgba(255,255,255,0.07);">
-        @foreach(['all' => 'All', 'active' => 'Active', 'scheduled' => 'Scheduled', 'draft' => 'Draft', 'completed' => 'Completed', 'paused' => 'Paused'] as $key => $label)
+        @foreach(['all' => __('All'), 'active' => __('Active'), 'scheduled' => __('Scheduled'), 'draft' => __('Draft'), 'completed' => __('Completed'), 'paused' => __('Paused')] as $key => $label)
             <button
                 @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
@@ -155,7 +155,7 @@
                     <div class="flex items-center gap-2 shrink-0">
                         @if($campaignPlatform === 'email')
                             <a href="{{ route('campaigns.show', $campaign->id) }}" wire:navigate
-                               class="px-3 py-1.5 rounded-lg text-xs text-white/70 bg-white/[0.06] hover:bg-white/[0.10]">View</a>
+                               class="px-3 py-1.5 rounded-lg text-xs text-white/70 bg-white/[0.06] hover:bg-white/[0.10]">{{ __('View') }}</a>
                         @endif
                         @if($campaign->status === 'active')
                             <flux:button
@@ -163,7 +163,7 @@
                                 variant="ghost"
                                 icon="pause"
                                 wire:click="pause({{ $campaign->id }})"
-                            >Pause</flux:button>
+                            >{{ __('Pause') }}</flux:button>
                         @endif
                         @if(in_array($campaign->status, ['draft', 'paused']))
                             <flux:button
@@ -173,7 +173,7 @@
                                 wire:click="launch({{ $campaign->id }})"
                                 wire:confirm="Launch campaign '{{ $campaign->name }}'? This will send to all matching contacts."
                             >
-                                {{ $campaign->status === 'paused' ? 'Resume' : 'Launch' }}
+                                {{ $campaign->status === 'paused' ? __('Resume') : __('Launch') }}
                             </flux:button>
                         @endif
                         @if($campaign->status !== 'active')
@@ -184,7 +184,7 @@
                                 class="text-red-500"
                                 wire:click="delete({{ $campaign->id }})"
                                 wire:confirm="Delete '{{ $campaign->name }}'?"
-                            >Delete</flux:button>
+                            >{{ __('Delete') }}</flux:button>
                         @endif
                     </div>
                 </div>
@@ -192,10 +192,10 @@
         @empty
             <div class="rounded-2xl p-10 text-center" style="border: 1px dashed rgba(124,58,237,0.2); background: rgba(124,58,237,0.03);">
                 <flux:icon.paper-airplane class="mx-auto size-10 text-white/40" />
-                <p class="mt-3 font-semibold text-white/80">No campaigns yet</p>
-                <p class="mt-1 text-sm text-white/40">Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.</p>
+                <p class="mt-3 font-semibold text-white/80">{{ __('No campaigns yet') }}</p>
+                <p class="mt-1 text-sm text-white/40">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
                 <div class="mt-4">
-                    <flux:button icon="plus" wire:click="openCreateModal">New Campaign</flux:button>
+                    <flux:button icon="plus" wire:click="openCreateModal">{{ __('New Campaign') }}</flux:button>
                 </div>
             </div>
         @endforelse
@@ -204,11 +204,11 @@
     {{-- Create Modal --}}
     <flux:modal wire:model="showModal" class="w-full max-w-lg">
         <div class="space-y-5">
-            <flux:heading size="lg">New Campaign</flux:heading>
+            <flux:heading size="lg">{{ __('New Campaign') }}</flux:heading>
 
             {{-- Platform Selector --}}
             <div>
-                <flux:label class="mb-2 block">Platform</flux:label>
+                <flux:label class="mb-2 block">{{ __('Platform') }}</flux:label>
                 <div class="grid grid-cols-2 gap-2">
                     {{-- Facebook --}}
                     <button
@@ -277,15 +277,15 @@
             </div>
 
             <flux:field>
-                <flux:label>Campaign Name</flux:label>
-                <flux:input wire:model="name" placeholder="e.g. January Promotion" />
+                <flux:label>{{ __('Campaign Name') }}</flux:label>
+                <flux:input wire:model="name" placeholder="{{ __('e.g. January Promotion') }}" />
                 <flux:error name="name" />
             </flux:field>
 
             <flux:field>
-                <flux:label>Page</flux:label>
+                <flux:label>{{ __('Page') }}</flux:label>
                 <flux:select wire:model.live="pageId">
-                    <option value="">Select a page…</option>
+                    <option value="">{{ __('Select a page…') }}</option>
                     @foreach($this->pagesForPlatform as $page)
                         <option value="{{ $page->id }}">{{ $page->name }}</option>
                     @endforeach
@@ -386,9 +386,9 @@
             <flux:field>
                 <flux:label>
                     @if($platform === 'whatsapp')
-                        WhatsApp Template Name
+                        {{ __('WhatsApp Template Name') }}
                     @else
-                        Message
+                        {{ __('Message') }}
                     @endif
                 </flux:label>
                 @if($platform === 'whatsapp')
@@ -403,31 +403,31 @@
             </flux:field>
 
             <flux:field>
-                <flux:label>Target — Lead Status <flux:badge size="sm" variant="outline">optional</flux:badge></flux:label>
+                <flux:label>{{ __('Target — Lead Status') }} <flux:badge size="sm" variant="outline">{{ __('optional') }}</flux:badge></flux:label>
                 <flux:select wire:model.live="leadStatus">
-                    <option value="">All contacts on this page</option>
-                    <option value="new">New</option>
-                    <option value="warm">Warm</option>
-                    <option value="hot">Hot</option>
-                    <option value="cold">Cold</option>
-                    <option value="converted">Converted</option>
+                    <option value="">{{ __('All contacts on this page') }}</option>
+                    <option value="new">{{ __('New') }}</option>
+                    <option value="warm">{{ __('Warm') }}</option>
+                    <option value="hot">{{ __('Hot') }}</option>
+                    <option value="cold">{{ __('Cold') }}</option>
+                    <option value="converted">{{ __('Converted') }}</option>
                 </flux:select>
             </flux:field>
 
             <flux:field>
-                <flux:label>Delay Between Messages <flux:badge size="sm" color="yellow">Rate-limit safe</flux:badge></flux:label>
+                <flux:label>{{ __('Delay Between Messages') }} <flux:badge size="sm" color="yellow">{{ __('Rate-limit safe') }}</flux:badge></flux:label>
                 <flux:select wire:model="delaySeconds">
-                    <option value="1">1 second (fast)</option>
-                    <option value="3" selected>3 seconds (recommended)</option>
-                    <option value="5">5 seconds</option>
-                    <option value="10">10 seconds (safe)</option>
-                    <option value="30">30 seconds (very safe)</option>
+                    <option value="1">{{ __('1 second (fast)') }}</option>
+                    <option value="3" selected>{{ __('3 seconds (recommended)') }}</option>
+                    <option value="5">{{ __('5 seconds') }}</option>
+                    <option value="10">{{ __('10 seconds (safe)') }}</option>
+                    <option value="30">{{ __('30 seconds (very safe)') }}</option>
                 </flux:select>
             </flux:field>
 
             <div class="flex justify-end gap-2 pt-2">
-                <flux:button variant="ghost" wire:click="$set('showModal', false)">Cancel</flux:button>
-                <flux:button variant="primary" wire:click="save">Create Campaign</flux:button>
+                <flux:button variant="ghost" wire:click="$set('showModal', false)">{{ __('Cancel') }}</flux:button>
+                <flux:button variant="primary" wire:click="save">{{ __('Create Campaign') }}</flux:button>
             </div>
         </div>
     </flux:modal>

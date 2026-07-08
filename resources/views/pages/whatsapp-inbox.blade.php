@@ -34,20 +34,20 @@
                 <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
                     <div class="space-y-4">
                         @foreach([
-                            ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', 'AI', 'Hi! Thanks for reaching out. What product are you interested in today?'],
-                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', 'Lead', 'I want to know the price of your premium package'],
-                            ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', 'AI', 'Great choice! The premium package is $299/mo and includes unlimited users. Are you looking for monthly or annual billing? (Annual saves 20%)'],
-                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', 'Lead', 'Annual sounds good. How do I sign up?'],
+                            ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', __('AI'), __('Hi! Thanks for reaching out. What product are you interested in today?'), false],
+                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', __('Lead'), __('I want to know the price of your premium package'), true],
+                            ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', __('AI'), __('Great choice! The premium package is $299/mo and includes unlimited users. Are you looking for monthly or annual billing? (Annual saves 20%)'), false],
+                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', __('Lead'), __('Annual sounds good. How do I sign up?'), true],
                         ] as $msg)
-                        <div class="flex {{ $msg[1] === 'Lead' ? 'justify-end' : 'justify-start' }}">
-                            <div class="max-w-xs rounded-2xl {{ $msg[1] === 'Lead' ? 'rounded-tr-sm' : 'rounded-tl-sm' }} {{ $msg[0] }} px-4 py-2.5 text-sm">
+                        <div class="flex {{ $msg[3] ? 'justify-end' : 'justify-start' }}">
+                            <div class="max-w-xs rounded-2xl {{ $msg[3] ? 'rounded-tr-sm' : 'rounded-tl-sm' }} {{ $msg[0] }} px-4 py-2.5 text-sm">
                                 <p class="mb-1 text-xs font-semibold opacity-60">{{ $msg[1] }}</p>
                                 {{ $msg[2] }}
                             </div>
                         </div>
                         @endforeach
                         <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-center text-xs font-medium text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300">
-                            Lead Score: 87/100 — Hot prospect · Handed off to sales team
+                            {{ __('Lead Score: 87/100 — Hot prospect · Handed off to sales team') }}
                         </div>
                     </div>
                 </div>
@@ -178,10 +178,10 @@
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
-                    ['whatsapp-crm-complete-guide', 'WhatsApp CRM: The Complete Guide for 2026', '8 min read'],
-                    ['whatsapp-business-api-setup', 'WhatsApp Business API: How to Get Access', '7 min read'],
-                    ['whatsapp-lead-generation-strategies', 'WhatsApp Lead Generation: 7 Proven Strategies', '7 min read'],
-                    ['whatsapp-ecommerce-cart-recovery', 'WhatsApp Cart Recovery for E-commerce', '6 min read'],
+                    ['whatsapp-crm-complete-guide', __('WhatsApp CRM: The Complete Guide for 2026'), __('8 min read')],
+                    ['whatsapp-business-api-setup', __('WhatsApp Business API: How to Get Access'), __('7 min read')],
+                    ['whatsapp-lead-generation-strategies', __('WhatsApp Lead Generation: 7 Proven Strategies'), __('7 min read')],
+                    ['whatsapp-ecommerce-cart-recovery', __('WhatsApp Cart Recovery for E-commerce'), __('6 min read')],
                 ];
                 @endphp
                 @foreach($related as $r)

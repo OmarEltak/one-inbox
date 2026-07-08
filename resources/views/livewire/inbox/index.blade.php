@@ -18,7 +18,7 @@
     {{-- AI Limit Banner --}}
     <div x-show="aiLimitReached" x-transition
          class="absolute inset-x-0 top-0 z-50 flex items-center justify-between gap-4 bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
-        <span>⚠️ AI limit reached — responses are paused. Contact support to upgrade or wait until next month.</span>
+        <span>{{ __('⚠️ AI limit reached — responses are paused. Contact support to upgrade or wait until next month.') }}</span>
         <button @click="aiLimitReached = false" class="shrink-0 rounded p-0.5 hover:bg-red-700">
             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -29,7 +29,7 @@
         <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 space-y-3">
             <div class="flex items-center gap-2">
                 <div class="flex-1 ring-2 ring-blue-500 rounded-lg">
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Search conversations..." icon="magnifying-glass" size="sm" class="w-full [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search conversations...') }}" icon="magnifying-glass" size="sm" class="w-full [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
             </div>
                 @if($pageId && optional(\App\Models\Page::find($pageId))->platform === 'email')
                     <flux:button wire:click="openCompose" size="sm" variant="ghost" icon="pencil-square" title="Compose new email" />
@@ -37,11 +37,11 @@
             </div>
 
             <div class="flex gap-1 flex-wrap items-center">
-                <flux:badge as="button" wire:click="setFilter('all')" :variant="$filter === 'all' ? 'solid' : 'outline'" color="zinc" size="sm" :class="$filter !== 'all' ? '!text-zinc-900' : ''">All</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('all')" :variant="$filter === 'all' ? 'solid' : 'outline'" color="zinc" size="sm" :class="$filter !== 'all' ? '!text-zinc-900' : ''">{{ __('All') }}</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('unread')" :variant="$filter === 'unread' ? 'solid' : 'outline'" color="red" size="sm" :class="$filter !== 'unread' ? '!text-zinc-900' : ''">
-                    Unread {{ $this->unreadCount > 0 ? "({$this->unreadCount})" : '' }}
+                    {{ __('Unread') }} {{ $this->unreadCount > 0 ? "({$this->unreadCount})" : '' }}
                 </flux:badge>
-                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">Mine</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">{{ __('Mine') }}</flux:badge>
                 @if(!$pageId)
                 <flux:badge as="button" wire:click="setFilter('facebook')" :variant="$filter === 'facebook' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'facebook' ? '!text-zinc-900' : ''">FB</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('instagram')" :variant="$filter === 'instagram' ? 'solid' : 'outline'" color="pink" size="sm" :class="$filter !== 'instagram' ? '!text-zinc-900' : ''">IG</flux:badge>
@@ -54,12 +54,12 @@
                      bright accent) and only appears when the team has at
                      least one spam-marked conversation, so a fresh team
                      isn't cluttered with a chip pointing to an empty view. --}}
-                <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm" :class="$filter !== 'escalated' ? '!text-zinc-900' : ''">Escalated</flux:badge>
-                <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'completed' ? '!text-zinc-900' : ''">Done</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm" :class="$filter !== 'escalated' ? '!text-zinc-900' : ''">{{ __('Escalated') }}</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'completed' ? '!text-zinc-900' : ''">{{ __('Done') }}</flux:badge>
                 @if($this->spamCount > 0 || $filter === 'spam')
                     <flux:badge as="button" wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" :variant="$filter === 'spam' ? 'solid' : 'outline'" color="zinc" size="sm">
                         <flux:icon name="no-symbol" class="w-3 h-3" />
-                        Spam ({{ $this->spamCount }})
+                        {{ __('Spam') }} ({{ $this->spamCount }})
                     </flux:badge>
                 @endif
 
@@ -67,13 +67,13 @@
                 @php $activeLabel = collect(\App\Livewire\Inbox\Index::LABELS)->keys()->contains($filter) ? $filter : null; @endphp
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-violet-600 border-violet-600 text-white' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100' }}">
-                        {{ $activeLabel ? ucfirst($activeLabel) : 'Labels' }}
+                        {{ $activeLabel ? ucfirst($activeLabel) : __('Labels') }}
                         <svg class="w-3 h-3 transition-transform" x-bind:class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="open = false" class="absolute left-0 top-full mt-1 z-50 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg min-w-32 overflow-hidden">
                         <div class="p-1">
                             @if($activeLabel)
-                                <button wire:click="setFilter('all')" @click="open = false" class="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500">Clear label</button>
+                                <button wire:click="setFilter('all')" @click="open = false" class="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500">{{ __('Clear label') }}</button>
                                 <div class="border-t border-zinc-100 dark:border-zinc-700 my-1"></div>
                             @endif
                             @foreach(\App\Livewire\Inbox\Index::LABELS as $slug => $color)
@@ -85,7 +85,7 @@
                             <div class="border-t border-zinc-100 dark:border-zinc-700 my-1"></div>
                             <button wire:click="setFilter('spam')" @click="open = false" class="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 {{ $filter === 'spam' ? 'font-semibold' : '' }} text-zinc-500">
                                 <flux:icon name="no-symbol" class="w-3 h-3" />
-                                Review spam
+                                {{ __('Review spam') }}
                             </button>
                         </div>
                     </div>
@@ -126,7 +126,7 @@
                             </div>
                             <div class="flex items-center justify-between mt-0.5">
                                 <p class="text-xs !text-zinc-900 dark:!text-zinc-900 truncate">
-                                    {{ $conversation->last_message_preview ?? 'No messages yet' }}
+                                    {{ $conversation->last_message_preview ?? __('No messages yet') }}
                                 </p>
                                 <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                                     @if($conversation->contact && $conversation->contact->lead_score > 0)
@@ -168,9 +168,9 @@
             @empty
                 <div class="flex flex-col items-center justify-center h-full p-6 text-center">
                     <flux:icon name="inbox" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mb-3" />
-                    <flux:heading size="sm" class="text-zinc-500">No conversations yet</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500">{{ __('No conversations yet') }}</flux:heading>
                     <flux:text size="sm" class="text-zinc-400 mt-1">
-                        Connect your social accounts to start receiving messages.
+                        {{ __('Connect your social accounts to start receiving messages.') }}
                     </flux:text>
                 </div>
             @endforelse
@@ -191,7 +191,7 @@
                     <template x-if="checking">
                         <span class="text-xs text-zinc-400 flex items-center justify-center gap-1.5">
                             <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                            Fetching older emails…
+                            {{ __('Fetching older emails…') }}
                         </span>
                     </template>
                     <template x-if="!checking">
@@ -210,7 +210,7 @@
                         >
                             <flux:icon name="arrow-path" class="w-3.5 h-3.5 animate-spin" wire:loading wire:target="loadOlderEmailsFromInbox" />
                             <flux:icon name="arrow-up" class="w-3.5 h-3.5" wire:loading.remove wire:target="loadOlderEmailsFromInbox" />
-                            <span wire:loading.remove wire:target="loadOlderEmailsFromInbox">Load older emails</span>
+                            <span wire:loading.remove wire:target="loadOlderEmailsFromInbox">{{ __('Load older emails') }}</span>
                         </button>
                     </template>
                 </div>
@@ -270,12 +270,12 @@
                         >
                             <div class="p-3 border-b border-zinc-100 dark:border-zinc-700">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-medium text-zinc-500">Score History</span>
+                                    <span class="text-xs font-medium text-zinc-500">{{ __('Score History') }}</span>
                                     <span class="text-lg font-bold">{{ $conv->contact->lead_score }}/100</span>
                                 </div>
                             </div>
                             <div class="max-h-64 overflow-y-auto">
-                                <div wire:loading wire:target="loadScoreHistory" class="px-3 py-4 text-center text-xs text-zinc-400">Loading...</div>
+                                <div wire:loading wire:target="loadScoreHistory" class="px-3 py-4 text-center text-xs text-zinc-400">{{ __('Loading...') }}</div>
                                 <div wire:loading.remove wire:target="loadScoreHistory">
                                     @forelse($scoreHistory as $event)
                                         <div class="px-3 py-2 border-b border-zinc-50 dark:border-zinc-700/50 last:border-0">
@@ -290,7 +290,7 @@
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="px-3 py-4 text-center text-xs text-zinc-400">No score events yet</div>
+                                        <div class="px-3 py-4 text-center text-xs text-zinc-400">{{ __('No score events yet') }}</div>
                                     @endforelse
                                 </div>
                             </div>
@@ -304,20 +304,20 @@
                         <button
                             wire:click="setContactLeadStatus({{ $conv->contact->id }}, 'converted')"
                             class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                            title="Mark as Converted"
+                            title="{{ __('Mark as Converted') }}"
                         >
                             <flux:icon name="check-circle" class="w-3.5 h-3.5" />
-                            Converted
+                            {{ __('Converted') }}
                         </button>
                     @endif
                     @if($conv->contact->lead_status !== 'lost')
                         <button
                             wire:click="setContactLeadStatus({{ $conv->contact->id }}, 'lost')"
                             class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                            title="Mark as Lost"
+                            title="{{ __('Mark as Lost') }}"
                         >
                             <flux:icon name="x-circle" class="w-3.5 h-3.5" />
-                            Lost
+                            {{ __('Lost') }}
                         </button>
                     @endif
                 @endif
@@ -354,7 +354,7 @@
                                     class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-emerald-700 dark:text-emerald-400"
                                 >
                                     <flux:icon name="arrow-path" class="w-4 h-4" />
-                                    Reactivate (resume AI)
+                                    {{ __('Reactivate (resume AI)') }}
                                 </button>
                             @endif
                             @if($stage !== 'escalated')
@@ -365,7 +365,7 @@
                                     class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-amber-700 dark:text-amber-400"
                                 >
                                     <flux:icon name="exclamation-triangle" class="w-4 h-4" />
-                                    Mark as Escalated
+                                    {{ __('Mark as Escalated') }}
                                 </button>
                             @endif
                             @if($stage !== 'completed')
@@ -376,7 +376,7 @@
                                     class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-blue-700 dark:text-blue-400"
                                 >
                                     <flux:icon name="check-badge" class="w-4 h-4" />
-                                    Mark as Completed
+                                    {{ __('Mark as Completed') }}
                                 </button>
                             @endif
                             @if($stage !== 'spam')
@@ -389,7 +389,7 @@
                                         class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2 disabled:opacity-50 text-zinc-600 dark:text-zinc-400"
                                     >
                                         <flux:icon name="no-symbol" class="w-4 h-4" />
-                                        Mark as Spam
+                                        {{ __('Mark as Spam') }}
                                     </button>
                                 </div>
                             @endif
@@ -405,7 +405,7 @@
                             <span class="max-w-20 truncate">{{ $conv->assignedUser->name }}</span>
                         @else
                             <flux:icon name="user-plus" class="w-3.5 h-3.5" />
-                            <span>Assign</span>
+                            <span>{{ __('Assign') }}</span>
                         @endif
                     </button>
                     <div x-show="open" @click.outside="open = false" class="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-50 min-w-44 overflow-hidden">
@@ -428,7 +428,7 @@
                                 <div class="border-t border-zinc-100 dark:border-zinc-700 mt-1 pt-1">
                                     <button wire:click="assignConversation({{ $conv->id }}, null)" wire:loading.attr="disabled" @click="open = false" class="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 text-red-500 flex items-center gap-2 disabled:opacity-50">
                                         <flux:icon name="x-mark" class="w-3.5 h-3.5" />
-                                        Unassign
+                                        {{ __('Unassign') }}
                                     </button>
                                 </div>
                             @endif
@@ -440,7 +440,7 @@
                 <div x-data="{ open: false }" class="relative flex-shrink-0">
                     <button @click="open = !open" wire:loading.attr="disabled" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs cursor-pointer transition-colors bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 disabled:opacity-50">
                         <flux:icon name="tag" class="w-3.5 h-3.5" />
-                        <span>Labels{{ count($conv->labels ?? []) > 0 ? ' (' . count($conv->labels) . ')' : '' }}</span>
+                        <span>{{ __('Labels') }}{{ count($conv->labels ?? []) > 0 ? ' (' . count($conv->labels) . ')' : '' }}</span>
                     </button>
                     <div x-show="open" @click.outside="open = false" class="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg z-50 min-w-36 overflow-hidden">
                         <div class="p-1">
@@ -467,24 +467,24 @@
                         wire:click="toggleAiPause({{ $conv->id }})"
                         wire:loading.attr="disabled"
                         class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors disabled:opacity-50 {{ $conv->ai_paused ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200' }}"
-                        title="{{ $conv->ai_paused ? 'Resume AI' : 'Pause AI' }}"
+                        title="{{ $conv->ai_paused ? __('Resume AI') : __('Pause AI') }}"
                     >
                         @if($conv->ai_paused)
                             <flux:icon name="pause-circle" class="w-4 h-4" />
-                            <span class="text-xs font-medium">AI Paused</span>
+                            <span class="text-xs font-medium">{{ __('AI Paused') }}</span>
                         @else
                             <flux:icon name="sparkles" class="w-4 h-4" />
-                            <span class="text-xs font-medium">AI Active</span>
+                            <span class="text-xs font-medium">{{ __('AI Active') }}</span>
                         @endif
                     </button>
                 @else
                     <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 {{ $conv->ai_paused ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' }}">
                         @if($conv->ai_paused)
                             <flux:icon name="pause-circle" class="w-4 h-4" />
-                            <span class="text-xs font-medium">AI Paused</span>
+                            <span class="text-xs font-medium">{{ __('AI Paused') }}</span>
                         @else
                             <flux:icon name="sparkles" class="w-4 h-4" />
-                            <span class="text-xs font-medium">AI Active</span>
+                            <span class="text-xs font-medium">{{ __('AI Active') }}</span>
                         @endif
                     </div>
                 @endif
@@ -512,14 +512,14 @@
                 <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
                     <button @click="scrollToBottom(); showNewMessageBadge = false"
                             class="rounded-full bg-purple-600 px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-purple-700">
-                        New messages
+                        {{ __('New messages') }}
                     </button>
                 </div>
 
                 <div wire:loading wire:target="selectConversation" class="flex-1 flex items-center justify-center">
                     <div class="text-center">
                         <flux:icon name="arrow-path" class="w-8 h-8 text-zinc-400 animate-spin mx-auto mb-2" />
-                        <flux:text size="sm" class="text-zinc-400">Loading messages...</flux:text>
+                        <flux:text size="sm" class="text-zinc-400">{{ __('Loading messages...') }}</flux:text>
                     </div>
                 </div>
 
@@ -530,9 +530,9 @@
                             <flux:icon name="arrow-path" class="w-4 h-4 animate-spin" wire:loading wire:target="loadOlderMessages" />
                             <span wire:loading.remove wire:target="loadOlderMessages">
                                 @if($conv->platform === 'email')
-                                    Load older emails
+                                    {{ __('Load older emails') }}
                                 @else
-                                    Load older messages
+                                    {{ __('Load older messages') }}
                                 @endif
                             </span>
                         </button>
@@ -572,7 +572,7 @@
                             @elseif($message->sender_type === 'external')
                                 <div class="flex items-center gap-1 mb-0.5">
                                     <flux:icon name="device-phone-mobile" class="w-3 h-3 opacity-70" />
-                                    <span class="text-xs opacity-70">Sent from {{ ucfirst($message->conversation->platform) }} app</span>
+                                    <span class="text-xs opacity-70">{{ __('Sent from') }} {{ ucfirst($message->conversation->platform) }} {{ __('app') }}</span>
                                 </div>
                             @endif
                             @if($message->media_url)
@@ -596,14 +596,14 @@
                             @endif
                             <span class="text-xs opacity-60 mt-1 block">
                                 {{ ($message->platform_sent_at ?? $message->created_at)->format('M j, g:i A') }}
-                                @if($message->isOutbound() && $message->delivered_at) &middot; Delivered @endif
-                                @if($message->isOutbound() && $message->read_at) &middot; Read @endif
+                                @if($message->isOutbound() && $message->delivered_at) &middot; {{ __('Delivered') }} @endif
+                                @if($message->isOutbound() && $message->read_at) &middot; {{ __('Read') }} @endif
                                 @php($sendStatus = $message->metadata['send_status'] ?? null)
                                 @if($message->isOutbound() && in_array($sendStatus, ['failed','failing'], true))
                                     &middot;
                                     <span class="inline-flex items-center gap-1 text-red-200" title="{{ $message->metadata['send_error'] ?? 'Send failed' }}">
                                         <flux:icon name="exclamation-triangle" class="w-3 h-3" />
-                                        {{ $sendStatus === 'failed' ? 'Not delivered' : 'Retrying' }}
+                                        {{ $sendStatus === 'failed' ? __('Not delivered') : __('Retrying') }}
                                     </span>
                                 @endif
                             </span>
@@ -691,7 +691,7 @@
                                         </button>
                                     </template>
                                     <template x-if="filteredReplies.length === 0">
-                                        <p class="text-xs text-zinc-400 text-center py-4">No quick replies found</p>
+                                        <p class="text-xs text-zinc-400 text-center py-4">{{ __('No quick replies found') }}</p>
                                     </template>
                                 </div>
                             </div>
@@ -701,7 +701,7 @@
                     <div class="flex-1" x-ref="textInput">
                         <flux:textarea
                             wire:model="messageText"
-                            placeholder="Type a message..."
+                            placeholder="{{ __('Type a message...') }}"
                             rows="1"
                             class="resize-none max-h-32 text-sm"
                             x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
@@ -714,8 +714,8 @@
         @else
             <div class="flex-1 flex flex-col items-center justify-center text-center p-6">
                 <flux:icon name="chat-bubble-left-right" class="w-16 h-16 text-zinc-300 dark:text-zinc-600 mb-4" />
-                <flux:heading size="lg" class="text-zinc-500">Select a conversation</flux:heading>
-                <flux:text class="text-zinc-400 mt-2">Choose a conversation from the sidebar to start messaging.</flux:text>
+                <flux:heading size="lg" class="text-zinc-500">{{ __('Select a conversation') }}</flux:heading>
+                <flux:text class="text-zinc-400 mt-2">{{ __('Choose a conversation from the sidebar to start messaging.') }}</flux:text>
             </div>
         @endif
     </div>
@@ -723,28 +723,28 @@
     {{-- Compose Email Modal --}}
     <flux:modal wire:model="showCompose" class="w-full max-w-lg">
         <div class="p-6 space-y-4">
-            <flux:heading size="lg">New Email</flux:heading>
+            <flux:heading size="lg">{{ __('New Email') }}</flux:heading>
             <flux:field>
-                <flux:label>To</flux:label>
+                <flux:label>{{ __('To') }}</flux:label>
                 <flux:input wire:model="composeTo" type="email" placeholder="recipient@example.com" />
                 <flux:error name="composeTo" />
             </flux:field>
             <flux:field>
-                <flux:label>Subject</flux:label>
-                <flux:input wire:model="composeSubject" placeholder="Subject" />
+                <flux:label>{{ __('Subject') }}</flux:label>
+                <flux:input wire:model="composeSubject" placeholder="{{ __('Subject') }}" />
                 <flux:error name="composeSubject" />
             </flux:field>
             <flux:field>
-                <flux:label>Message</flux:label>
-                <flux:textarea wire:model="composeBody" placeholder="Write your message..." rows="6" />
+                <flux:label>{{ __('Message') }}</flux:label>
+                <flux:textarea wire:model="composeBody" placeholder="{{ __('Write your message...') }}" rows="6" />
                 <flux:error name="composeBody" />
             </flux:field>
             <div class="flex justify-end gap-2 pt-2">
-                <flux:button wire:click="$set('showCompose', false)" variant="ghost">Cancel</flux:button>
+                <flux:button wire:click="$set('showCompose', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
                 <flux:button wire:click="sendCompose" variant="primary" wire:loading.attr="disabled" wire:target="sendCompose">
                     <flux:icon name="paper-airplane" class="w-4 h-4 mr-1" wire:loading.remove wire:target="sendCompose" />
                     <flux:icon name="arrow-path" class="w-4 h-4 mr-1 animate-spin" wire:loading wire:target="sendCompose" />
-                    Send
+                    {{ __('Send') }}
                 </flux:button>
             </div>
         </div>
