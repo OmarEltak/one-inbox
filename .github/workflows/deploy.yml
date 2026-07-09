@@ -34,7 +34,10 @@ jobs:
             php artisan view:cache
             php artisan queue:restart
             sudo systemctl reload php8.4-fpm
+            # storage/logs is written to by php-fpm (www-data) between commands,
+            # so any new files land with www-data ownership. Use sudo on chmod/touch
+            # so we can normalize permissions regardless of who created each file.
             sudo chown -R deploy:www-data storage bootstrap/cache
-            chmod -R 775 storage bootstrap/cache
-            touch storage/logs/laravel.log
-            chmod 664 storage/logs/laravel.log
+            sudo chmod -R 775 storage bootstrap/cache
+            sudo touch storage/logs/laravel.log
+            sudo chmod 664 storage/logs/laravel.log
