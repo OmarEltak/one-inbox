@@ -3,6 +3,18 @@
     :description="__('Manage all WhatsApp, Instagram, Facebook, and Telegram conversations from one inbox. AI qualifies leads, handles objections, and closes deals 24/7. Free plan available.')"
 >
 
+    {{--
+        ⚠️  DISABLED 2026-07-09 — replaced by pages/ai-campaign-manager.blade.php as the homepage.
+
+        This file is intentionally preserved (not deleted, not renamed) so the previous hero
+        copy, section structure, and inbox-first positioning stay searchable in git and
+        readable in the editor. The route `/` in routes/web.php no longer renders this view.
+
+        To restore the old homepage: remove the surrounding `@if(false) ... @endif` block
+        below and point `/` back to `view('welcome')` in routes/web.php.
+    --}}
+    @if(false)
+
     {{-- ───── 1. Hero ───── --}}
     <section class="relative pt-20 pb-24 lg:pt-32 lg:pb-36">
         <div class="mx-auto max-w-7xl px-6">
@@ -577,5 +589,8 @@
             </div>
         </div>
     </section>
+
+    @endif
+    {{-- End disabled homepage. See top of file for context. --}}
 
 </x-layouts.marketing>

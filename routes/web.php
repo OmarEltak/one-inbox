@@ -8,9 +8,10 @@ use App\Http\Controllers\BlogController;
 Route::get('auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Homepage: renders the AI Campaign Manager landing (was welcome.blade.php until 2026-07-09).
+// The old welcome view is preserved in resources/views/welcome.blade.php (content wrapped
+// in @if(false) as a reference/rollback point — DO NOT delete or rename).
+Route::view('/', 'pages.ai-campaign-manager')->name('home');
 
 // Marketing pages
 Route::view('about', 'pages.about')->name('about');
@@ -28,6 +29,10 @@ Route::get('/pay-wire', \App\Livewire\PayWire::class)->name('pay-wire');
 //     ->where('plan', 'starter|pro');
 Route::view('pricing', 'pages.pricing')->name('pricing');
 Route::view('features', 'pages.features')->name('features');
+// /ai-campaign-manager kept as a 301 to the canonical homepage `/` so any inbound
+// links (backlinks, blog references, sitemap history) don't 404. Named route preserved
+// so existing `route('ai-campaign-manager')` calls in views resolve to the same URL.
+Route::redirect('ai-campaign-manager', '/', 301)->name('ai-campaign-manager');
 
 // Platform landing pages
 Route::view('whatsapp-inbox', 'pages.whatsapp-inbox')->name('whatsapp-inbox');
