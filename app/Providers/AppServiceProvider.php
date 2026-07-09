@@ -114,9 +114,6 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => Password::min(8)
-            ->mixedCase()
-            ->numbers()
-        );
+        Password::defaults(fn (): ?Password => Password::min(8));
     }
 }

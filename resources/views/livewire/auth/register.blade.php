@@ -44,7 +44,7 @@
                     viewable
                 />
                 <p class="text-xs text-zinc-400">
-                    {{ __('Min. 8 characters with uppercase, lowercase, and a number.') }}
+                    {{ __('Min. 8 characters.') }}
                 </p>
             </div>
 
