@@ -46,6 +46,34 @@ class Index extends Component
     public function mount(): void
     {
         $this->refreshWaStates();
+        $this->maybePromptAiSetup();
+    }
+
+    /**
+     * Fire the "activate your AI" banner once, the first time the user visits
+     * /connections after their first page landed (whether via manual OAuth or
+     * the automated managed-onboarding pipeline). Guarded by team.settings so
+     * it never fires twice.
+     */
+    private function maybePromptAiSetup(): void
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $settings = $team->settings ?? [];
+        if (! empty($settings['ai_setup_prompted'])) {
+            return;
+        }
+
+        $hasActivePage = $team->pages()->where('is_active', true)->exists();
+        if (! $hasActivePage) {
+            return;
+        }
+
+        $team->update(['settings' => array_merge($settings, ['ai_setup_prompted' => true])]);
+        session()->flash('show_ai_setup_prompt', true);
     }
 
     /** Fetch live WhatsApp instance names from Evolution API (one call for all QR accounts). */
@@ -464,7 +492,7 @@ class Index extends Component
         $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactEmail', 'requestContactPhone', 'requestNotes']);
         unset($this->openOnboardingByPlatform);
 
-        session()->flash('success', 'Request submitted. We will set up your page within 24 hours and email you when it is ready.');
+        session()->flash('success', 'Request submitted. We will set up your page within 1 minute and email you when it is ready.');
         Flux::modal('onboarding-request')->close();
     }
 

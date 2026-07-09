@@ -93,7 +93,7 @@
                     <p class="text-amber-700 mt-1">
                         {{ __('While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add') }}
                         <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-900">{{ __('our account') }}</a>
-                        {{ __('as an admin to your page, then click "Request connection" below. We\'ll set it up within 24 hours. Telegram, Email, Slack and Discord are self-serve as usual.') }}
+                        {{ __('as an admin to your page, then click "Request connection" below. We\'ll set it up within 1 minute. Telegram, Email, Slack and Discord are self-serve as usual.') }}
                     </p>
                 </div>
             </div>
@@ -1191,7 +1191,7 @@
                         {{ __('as a Page admin') }}</li>
                     <li>{{ __('Submit this form so we know which page is yours') }}</li>
                 </ol>
-                <p class="text-blue-100/60 text-xs pt-1">{{ __("We'll set up the connection within 24 hours and notify you by email.") }}</p>
+                <p class="text-blue-100/60 text-xs pt-1">{{ __("We'll set up the connection within 1 minute and notify you by email.") }}</p>
             </div>
 
             <flux:input
