@@ -379,17 +379,6 @@ class Index extends Component
         $user = Auth::user();
         $team = $user?->currentTeam;
 
-        Log::info('submitOnboardingRequest: entry', [
-            'user_id'       => $user?->id,
-            'team_id'       => $team?->id,
-            'platform'      => $this->requestPlatform,
-            'business_name' => $this->requestBusinessName,
-            'page_url'      => $this->requestPageUrl,
-            'email'         => $this->requestContactEmail,
-            'phone'         => $this->requestContactPhone,
-            'notes_len'     => strlen($this->requestNotes),
-        ]);
-
         if (! $user) {
             session()->flash('error', 'Your session expired. Please refresh the page and log in again.');
             Flux::modal('onboarding-request')->close();
@@ -397,10 +386,12 @@ class Index extends Component
         }
 
         if (! $team) {
-            Log::warning('submitOnboardingRequest: user has no currentTeam', [
-                'user_id'         => $user->id,
-                'current_team_id' => $user->current_team_id,
-            ]);
+            try {
+                Log::warning('submitOnboardingRequest: user has no currentTeam', [
+                    'user_id'         => $user->id,
+                    'current_team_id' => $user->current_team_id,
+                ]);
+            } catch (\Throwable) {}
             session()->flash('error', 'No active team on your account. Contact support so we can attach one.');
             Flux::modal('onboarding-request')->close();
             return;
@@ -418,16 +409,12 @@ class Index extends Component
                 'requestContactEmail' => 'contact email',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::warning('submitOnboardingRequest: validation failed', [
-                'user_id' => $user->id,
-                'errors'  => $e->errors(),
-                'values'  => [
-                    'platform'      => $this->requestPlatform,
-                    'business_name' => $this->requestBusinessName,
-                    'page_url'      => $this->requestPageUrl,
-                    'email'         => $this->requestContactEmail,
-                ],
-            ]);
+            try {
+                Log::warning('submitOnboardingRequest: validation failed', [
+                    'user_id' => $user->id,
+                    'errors'  => $e->errors(),
+                ]);
+            } catch (\Throwable) {}
             throw $e;
         }
 
@@ -456,12 +443,14 @@ class Index extends Component
                 'status'               => OnboardingRequest::STATUS_PENDING,
             ]);
         } catch (\Throwable $e) {
-            Log::error('submitOnboardingRequest: create failed', [
-                'user_id'  => $user->id,
-                'team_id'  => $team->id,
-                'platform' => $this->requestPlatform,
-                'error'    => $e->getMessage(),
-            ]);
+            try {
+                Log::error('submitOnboardingRequest: create failed', [
+                    'user_id'  => $user->id,
+                    'team_id'  => $team->id,
+                    'platform' => $this->requestPlatform,
+                    'error'    => $e->getMessage(),
+                ]);
+            } catch (\Throwable) {}
             session()->flash('error', 'We could not save your request (' . class_basename($e) . '). Our team has been notified.');
             Flux::modal('onboarding-request')->close();
             return;

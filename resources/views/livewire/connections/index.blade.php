@@ -1213,7 +1213,7 @@
                 type="email"
                 label="{{ __('Contact email') }}"
                 placeholder="you@company.com"
-                description="{{ __("We won't send marketing — we only email you if we need something to complete your setup.") }}"
+                description="{{ __('We will not send marketing — we only email you if we need something to complete your setup.') }}"
                 required
             />
 
