@@ -13,6 +13,7 @@ use App\Services\Platforms\WhatsAppPlatform;
 use Flux\Flux;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -375,22 +376,60 @@ class Index extends Component
 
     public function submitOnboardingRequest(): void
     {
-        $team = Auth::user()->currentTeam;
         $user = Auth::user();
-        if (! $team || ! $user) {
+        $team = $user?->currentTeam;
+
+        Log::info('submitOnboardingRequest: entry', [
+            'user_id'       => $user?->id,
+            'team_id'       => $team?->id,
+            'platform'      => $this->requestPlatform,
+            'business_name' => $this->requestBusinessName,
+            'page_url'      => $this->requestPageUrl,
+            'email'         => $this->requestContactEmail,
+            'phone'         => $this->requestContactPhone,
+            'notes_len'     => strlen($this->requestNotes),
+        ]);
+
+        if (! $user) {
+            session()->flash('error', 'Your session expired. Please refresh the page and log in again.');
+            Flux::modal('onboarding-request')->close();
             return;
         }
 
-        $this->validate([
-            'requestPlatform'     => 'required|in:facebook,instagram',
-            'requestBusinessName' => 'required|string|max:120',
-            'requestPageUrl'      => 'nullable|url|max:255',
-            'requestContactEmail' => 'required|email|max:190',
-            'requestContactPhone' => 'nullable|string|max:40',
-            'requestNotes'        => 'nullable|string|max:1500',
-        ], attributes: [
-            'requestContactEmail' => 'contact email',
-        ]);
+        if (! $team) {
+            Log::warning('submitOnboardingRequest: user has no currentTeam', [
+                'user_id'         => $user->id,
+                'current_team_id' => $user->current_team_id,
+            ]);
+            session()->flash('error', 'No active team on your account. Contact support so we can attach one.');
+            Flux::modal('onboarding-request')->close();
+            return;
+        }
+
+        try {
+            $this->validate([
+                'requestPlatform'     => 'required|in:facebook,instagram',
+                'requestBusinessName' => 'required|string|max:120',
+                'requestPageUrl'      => 'nullable|url|max:255',
+                'requestContactEmail' => 'required|email|max:190',
+                'requestContactPhone' => 'nullable|string|max:40',
+                'requestNotes'        => 'nullable|string|max:1500',
+            ], attributes: [
+                'requestContactEmail' => 'contact email',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('submitOnboardingRequest: validation failed', [
+                'user_id' => $user->id,
+                'errors'  => $e->errors(),
+                'values'  => [
+                    'platform'      => $this->requestPlatform,
+                    'business_name' => $this->requestBusinessName,
+                    'page_url'      => $this->requestPageUrl,
+                    'email'         => $this->requestContactEmail,
+                ],
+            ]);
+            throw $e;
+        }
 
         // Prevent stacking — one open request per platform per team.
         $existing = OnboardingRequest::where('team_id', $team->id)
@@ -404,17 +443,29 @@ class Index extends Component
             return;
         }
 
-        OnboardingRequest::create([
-            'team_id'              => $team->id,
-            'requested_by_user_id' => $user->id,
-            'platform'             => $this->requestPlatform,
-            'business_name'        => $this->requestBusinessName,
-            'page_url'             => $this->requestPageUrl ?: null,
-            'contact_email'        => $this->requestContactEmail,
-            'contact_phone'        => $this->requestContactPhone ?: null,
-            'notes'                => $this->requestNotes ?: null,
-            'status'               => OnboardingRequest::STATUS_PENDING,
-        ]);
+        try {
+            OnboardingRequest::create([
+                'team_id'              => $team->id,
+                'requested_by_user_id' => $user->id,
+                'platform'             => $this->requestPlatform,
+                'business_name'        => $this->requestBusinessName,
+                'page_url'             => $this->requestPageUrl ?: null,
+                'contact_email'        => $this->requestContactEmail,
+                'contact_phone'        => $this->requestContactPhone ?: null,
+                'notes'                => $this->requestNotes ?: null,
+                'status'               => OnboardingRequest::STATUS_PENDING,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('submitOnboardingRequest: create failed', [
+                'user_id'  => $user->id,
+                'team_id'  => $team->id,
+                'platform' => $this->requestPlatform,
+                'error'    => $e->getMessage(),
+            ]);
+            session()->flash('error', 'We could not save your request (' . class_basename($e) . '). Our team has been notified.');
+            Flux::modal('onboarding-request')->close();
+            return;
+        }
 
         $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactEmail', 'requestContactPhone', 'requestNotes']);
         unset($this->openOnboardingByPlatform);
