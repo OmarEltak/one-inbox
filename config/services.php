@@ -55,6 +55,13 @@ return [
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN', ''),
         'graph_api_version' => env('META_GRAPH_API_VERSION', 'v21.0'),
         'login_config_id' => env('META_LOGIN_CONFIG_ID', ''),
+        // Full-auto managed onboarding: when true, new OnboardingRequests are
+        // processed by App\Services\Meta\OnboardingAutomator — parses the page
+        // URL, refreshes super-admin's /me/accounts list, asks the AI whether
+        // the submitted business name matches, then auto-assigns or auto-rejects
+        // with an AI-drafted reason. Kill switch for the whole pipeline.
+        'managed_onboarding_auto' => env('MANAGED_ONBOARDING_AUTO', false),
+        'managed_onboarding_notify' => env('MANAGED_ONBOARDING_NOTIFY_EMAIL', 'omareltak7@gmail.com'),
     ],
 
     /*

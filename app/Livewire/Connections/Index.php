@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Connections;
 
+use App\Jobs\AutoProcessOnboardingRequest;
 use App\Models\ConnectedAccount;
 use App\Models\OnboardingRequest;
 use App\Models\Page;
@@ -431,7 +432,7 @@ class Index extends Component
         }
 
         try {
-            OnboardingRequest::create([
+            $created = OnboardingRequest::create([
                 'team_id'              => $team->id,
                 'requested_by_user_id' => $user->id,
                 'platform'             => $this->requestPlatform,
@@ -442,6 +443,10 @@ class Index extends Component
                 'notes'                => $this->requestNotes ?: null,
                 'status'               => OnboardingRequest::STATUS_PENDING,
             ]);
+
+            if (config('services.meta.managed_onboarding_auto')) {
+                AutoProcessOnboardingRequest::dispatch($created->id);
+            }
         } catch (\Throwable $e) {
             try {
                 Log::error('submitOnboardingRequest: create failed', [
