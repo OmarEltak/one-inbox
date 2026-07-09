@@ -7,6 +7,8 @@
   gtag('config', 'G-WHWVHWKR3T');
 </script>
 
+@include('partials.conversion-tracking')
+
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 

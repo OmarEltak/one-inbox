@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="{{ $htmlLang ?? str_replace('_', '-', app()->getLocale()) }}" dir="{{ $htmlDir ?? (app()->getLocale() === 'ar' ? 'rtl' : 'ltr') }}" class="scroll-smooth">
 <head>
+    {{-- Google Analytics --}}
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WHWVHWKR3T"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-WHWVHWKR3T');
+    </script>
+
+    @include('partials.conversion-tracking')
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}</title>

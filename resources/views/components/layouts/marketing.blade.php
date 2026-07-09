@@ -10,6 +10,8 @@
       gtag('config', 'G-WHWVHWKR3T');
     </script>
 
+    @include('partials.conversion-tracking')
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}</title>

@@ -207,4 +207,11 @@ return [
         'qr_enabled'  => filter_var(env('WUZAPI_QR_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
+    'google_ads' => [
+        'conversion_id'   => env('GOOGLE_ADS_CONVERSION_ID'),   // e.g. AW-1234567890
+        'signup_label'    => env('GOOGLE_ADS_SIGNUP_LABEL'),    // conversion label from Google Ads UI
+        'whatsapp_label'  => env('GOOGLE_ADS_WHATSAPP_LABEL'),
+        'form_label'      => env('GOOGLE_ADS_FORM_LABEL'),
+    ],
+
 ];
