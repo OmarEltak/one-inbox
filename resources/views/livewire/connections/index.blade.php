@@ -144,9 +144,9 @@
                 <div class="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="text-red-300 font-medium">{{ __('Your Facebook connection request was rejected') }}</p>
-                            <p class="text-red-100/80 mt-1 whitespace-pre-wrap break-words">{{ $fbRejected->admin_notes }}</p>
-                            <p class="text-red-200/50 mt-1 text-[10px]">{{ __('Rejected') }} {{ optional($fbRejected->completed_at)->diffForHumans() }}</p>
+                            <p class="text-zinc-900 font-medium">{{ __('Your Facebook connection request was rejected') }}</p>
+                            <p class="text-zinc-800 mt-1 whitespace-pre-wrap break-words">{{ $fbRejected->admin_notes }}</p>
+                            <p class="text-zinc-600 mt-1 text-[10px]">{{ __('Rejected') }} {{ optional($fbRejected->completed_at)->diffForHumans() }}</p>
                         </div>
                         <button
                             type="button"
@@ -223,9 +223,9 @@
                 <div class="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="text-red-300 font-medium">{{ __('Your Instagram connection request was rejected') }}</p>
-                            <p class="text-red-100/80 mt-1 whitespace-pre-wrap break-words">{{ $igRejected->admin_notes }}</p>
-                            <p class="text-red-200/50 mt-1 text-[10px]">{{ __('Rejected') }} {{ optional($igRejected->completed_at)->diffForHumans() }}</p>
+                            <p class="text-zinc-900 font-medium">{{ __('Your Instagram connection request was rejected') }}</p>
+                            <p class="text-zinc-800 mt-1 whitespace-pre-wrap break-words">{{ $igRejected->admin_notes }}</p>
+                            <p class="text-zinc-600 mt-1 text-[10px]">{{ __('Rejected') }} {{ optional($igRejected->completed_at)->diffForHumans() }}</p>
                         </div>
                         <button
                             type="button"
