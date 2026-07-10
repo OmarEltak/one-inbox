@@ -117,7 +117,7 @@
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
-                                <span class="font-medium text-sm truncate !text-zinc-900 dark:!text-zinc-900 dark:group-hover:!text-white {{ $selectedConversationId === $conversation->id ? 'dark:!text-white' : '' }}">
+                                <span class="font-medium text-sm truncate {{ $selectedConversationId === $conversation->id ? '!text-white dark:!text-white' : '!text-zinc-900 dark:!text-zinc-900 group-hover:!text-white dark:group-hover:!text-white' }}">
                                     {{ $conversation->contact?->name ?? 'Unknown' }}
                                 </span>
                                 <span class="text-xs text-zinc-500 flex-shrink-0 ml-2">
@@ -125,7 +125,7 @@
                                 </span>
                             </div>
                             <div class="flex items-center justify-between mt-0.5">
-                                <p class="text-xs !text-zinc-900 dark:!text-zinc-900 truncate">
+                                <p class="text-xs truncate {{ $selectedConversationId === $conversation->id ? '!text-white dark:!text-white' : '!text-zinc-900 dark:!text-zinc-900 group-hover:!text-white dark:group-hover:!text-white' }}">
                                     {{ $conversation->last_message_preview ?? __('No messages yet') }}
                                 </p>
                                 <div class="flex items-center gap-1 flex-shrink-0 ml-2">
@@ -230,12 +230,12 @@
                 </button>
                 <flux:avatar :name="$conv->contact?->name ?? 'Unknown'" :src="$conv->contact?->avatar" size="sm" />
                 <div class="flex-1 min-w-0">
-                    <flux:heading size="sm">{{ $conv->contact?->name ?? 'Unknown' }}</flux:heading>
-                    <flux:text size="xs">
+                    <flux:heading size="sm" class="!text-zinc-900 dark:!text-zinc-900">{{ $conv->contact?->name ?? 'Unknown' }}</flux:heading>
+                    <flux:text size="xs" class="!text-zinc-600 dark:!text-zinc-600">
                         {{ ucfirst($conv->platform) }}
                         @if($conv->page) &middot; {{ $conv->page->name }} @endif
                         @if($conv->platform === 'email' && !empty($conv->metadata['subject']))
-                            &middot; <span class="font-medium text-zinc-600 dark:text-zinc-300">{{ $conv->metadata['subject'] }}</span>
+                            &middot; <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $conv->metadata['subject'] }}</span>
                         @endif
                     </flux:text>
                 </div>
@@ -245,12 +245,12 @@
                     <div x-data="{ showScoreHistory: false }" class="relative">
                         <button
                             @click="showScoreHistory = !showScoreHistory; if(showScoreHistory) { $wire.loadScoreHistory({{ $conv->contact->id }}) }"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors {{ match(true) {
-                                $conv->contact->lead_score >= 86 => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200',
-                                $conv->contact->lead_score >= 71 => 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200',
-                                $conv->contact->lead_score >= 51 => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 hover:bg-yellow-200',
-                                $conv->contact->lead_score >= 26 => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200',
-                                default => 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200',
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors !text-zinc-900 dark:!text-zinc-900 {{ match(true) {
+                                $conv->contact->lead_score >= 86 => 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200',
+                                $conv->contact->lead_score >= 71 => 'bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200',
+                                $conv->contact->lead_score >= 51 => 'bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200',
+                                $conv->contact->lead_score >= 26 => 'bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200',
+                                default => 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200',
                             } }}"
                         >
                             <span class="text-xs font-bold">{{ $conv->contact->lead_score }}</span>
@@ -303,7 +303,7 @@
                     @if($conv->contact->lead_status !== 'converted')
                         <button
                             wire:click="setContactLeadStatus({{ $conv->contact->id }}, 'converted')"
-                            class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                            class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-green-100 dark:bg-green-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
                             title="{{ __('Mark as Converted') }}"
                         >
                             <flux:icon name="check-circle" class="w-3.5 h-3.5" />
@@ -313,7 +313,7 @@
                     @if($conv->contact->lead_status !== 'lost')
                         <button
                             wire:click="setContactLeadStatus({{ $conv->contact->id }}, 'lost')"
-                            class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                            class="flex items-center gap-1 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer text-xs font-medium bg-red-100 dark:bg-red-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                             title="{{ __('Mark as Lost') }}"
                         >
                             <flux:icon name="x-circle" class="w-3.5 h-3.5" />
@@ -327,10 +327,10 @@
                 @php
                     $stage = $conv->sales_stage ?? 'active';
                     $stageBadge = match($stage) {
-                        'escalated' => ['icon' => 'exclamation-triangle', 'label' => 'Escalated', 'cls' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-200'],
-                        'completed' => ['icon' => 'check-badge',          'label' => 'Completed', 'cls' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200'],
-                        'spam'      => ['icon' => 'no-symbol',            'label' => 'Spam',      'cls' => 'bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-300'],
-                        default     => ['icon' => 'chat-bubble-left-right','label' => 'Active',   'cls' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200'],
+                        'escalated' => ['icon' => 'exclamation-triangle', 'label' => 'Escalated', 'cls' => 'bg-amber-100 dark:bg-amber-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-amber-200'],
+                        'completed' => ['icon' => 'check-badge',          'label' => 'Completed', 'cls' => 'bg-blue-100 dark:bg-blue-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-blue-200'],
+                        'spam'      => ['icon' => 'no-symbol',            'label' => 'Spam',      'cls' => 'bg-zinc-200 dark:bg-zinc-800 !text-zinc-900 dark:!text-zinc-900 hover:bg-zinc-300'],
+                        default     => ['icon' => 'chat-bubble-left-right','label' => 'Active',   'cls' => 'bg-emerald-100 dark:bg-emerald-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-emerald-200'],
                     };
                 @endphp
                 <div x-data="{ open: false }" class="relative flex-shrink-0">
@@ -466,7 +466,7 @@
                     <button
                         wire:click="toggleAiPause({{ $conv->id }})"
                         wire:loading.attr="disabled"
-                        class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors disabled:opacity-50 {{ $conv->ai_paused ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200' }}"
+                        class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors disabled:opacity-50 !text-zinc-900 dark:!text-zinc-900 {{ $conv->ai_paused ? 'bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200' : 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200' }}"
                         title="{{ $conv->ai_paused ? __('Resume AI') : __('Pause AI') }}"
                     >
                         @if($conv->ai_paused)
@@ -478,7 +478,7 @@
                         @endif
                     </button>
                 @else
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 {{ $conv->ai_paused ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' }}">
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 !text-zinc-900 dark:!text-zinc-900 {{ $conv->ai_paused ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-green-100 dark:bg-green-900/30' }}">
                         @if($conv->ai_paused)
                             <flux:icon name="pause-circle" class="w-4 h-4" />
                             <span class="text-xs font-medium">{{ __('AI Paused') }}</span>
@@ -636,7 +636,7 @@
                     </div>
                 @endif
 
-                <form wire:submit="sendMessage" class="flex items-end gap-2"
+                <form wire:submit="sendMessage" class="flex items-stretch gap-2"
                       x-data="{
                           ...emojiPicker('messageText'),
                           showQuickReplies: false,
@@ -657,17 +657,17 @@
                     <input type="file" wire:model="attachment" class="hidden" x-ref="fileInput"
                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
 
-                    <button type="button" @click="$refs.fileInput.click()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
+                    <button type="button" @click="$refs.fileInput.click()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
                         <flux:icon name="paper-clip" class="h-5 w-5" />
                     </button>
 
-                    <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
+                    <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
                         <flux:icon name="face-smile" class="h-5 w-5" />
                     </button>
 
                     {{-- Quick replies button --}}
                     @if($quickReplies->isNotEmpty())
-                        <div class="relative flex-shrink-0 mb-1" x-data>
+                        <div class="relative flex-shrink-0 self-end mb-1" x-data>
                             <button type="button" @click="showQuickReplies = !showQuickReplies" class="p-1 text-zinc-400 hover:text-blue-500 cursor-pointer" title="Quick Replies">
                                 <flux:icon name="bolt" class="h-5 w-5" />
                             </button>
@@ -703,12 +703,12 @@
                             wire:model="messageText"
                             placeholder="{{ __('Type a message...') }}"
                             rows="1"
-                            class="resize-none max-h-32 text-sm"
+                            class="resize-none max-h-32 text-sm !text-zinc-900 dark:!text-zinc-900"
                             x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                             x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                         />
                     </div>
-                    <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" class="mb-0.5" wire:loading.attr="disabled" />
+                    <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" class="self-stretch !h-auto" wire:loading.attr="disabled" />
                 </form>
             </div>
         @else
