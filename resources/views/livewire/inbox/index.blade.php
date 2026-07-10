@@ -700,14 +700,23 @@
 
                     <div class="flex-1"
                          x-ref="textInput"
+                         wire:key="composer-textarea-wrapper"
                          x-data
                          x-init="
                              const t = $el.querySelector('textarea');
-                             $nextTick(() => t?.focus());
-                             $watch('$wire.messageText', (val, oldVal) => {
-                                 if (!val && oldVal) $nextTick(() => t?.focus());
+                             const refocus = () => { if (t && document.activeElement !== t) t.focus(); };
+                             $nextTick(refocus);
+                             $watch('$wire.messageText', (val, oldVal) => { if (!val && oldVal) $nextTick(refocus); });
+                             $watch('$wire.selectedConversationId', () => $nextTick(refocus));
+                             Livewire.hook('morph.updated', () => {
+                                 if (document.activeElement === document.body) $nextTick(refocus);
                              });
-                             $watch('$wire.selectedConversationId', () => $nextTick(() => t?.focus()));
+                             window.addEventListener('focus', () => $nextTick(refocus));
+                             t?.addEventListener('blur', (e) => {
+                                 setTimeout(() => {
+                                     if (document.activeElement === document.body) refocus();
+                                 }, 50);
+                             });
                          ">
                         <flux:textarea
                             wire:model="messageText"
