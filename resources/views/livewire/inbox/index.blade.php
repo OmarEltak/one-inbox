@@ -224,7 +224,7 @@
             @php $conv = $this->selectedConversation; @endphp
 
             {{-- Thread Header --}}
-            <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 flex items-center gap-2 flex-wrap">
+            <div class="sticky top-0 z-20 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700 p-3 flex items-center gap-2 flex-wrap">
                 <button wire:click="$set('selectedConversationId', null)" class="md:hidden cursor-pointer">
                     <flux:icon name="arrow-left" class="w-5 h-5" />
                 </button>
@@ -698,12 +698,23 @@
                         </div>
                     @endif
 
-                    <div class="flex-1" x-ref="textInput">
+                    <div class="flex-1"
+                         x-ref="textInput"
+                         x-data
+                         x-init="
+                             const t = $el.querySelector('textarea');
+                             $nextTick(() => t?.focus());
+                             $watch('$wire.messageText', (val, oldVal) => {
+                                 if (!val && oldVal) $nextTick(() => t?.focus());
+                             });
+                             $watch('$wire.selectedConversationId', () => $nextTick(() => t?.focus()));
+                         ">
                         <flux:textarea
                             wire:model="messageText"
                             placeholder="{{ __('Type a message...') }}"
                             rows="1"
                             class="resize-none max-h-32 text-sm !text-zinc-900 dark:!text-zinc-900"
+                            autofocus
                             x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                             x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                         />
