@@ -224,7 +224,7 @@
             @php $conv = $this->selectedConversation; @endphp
 
             {{-- Thread Header --}}
-            <div class="sticky top-0 z-20 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700 p-3 flex items-center gap-2 flex-wrap">
+            <div class="sticky top-0 z-20 bg-white border-b border-zinc-200 dark:border-zinc-700 p-3 flex items-center gap-2 flex-wrap">
                 <button wire:click="$set('selectedConversationId', null)" class="md:hidden cursor-pointer">
                     <flux:icon name="arrow-left" class="w-5 h-5" />
                 </button>
