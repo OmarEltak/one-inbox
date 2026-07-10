@@ -245,7 +245,7 @@
                     <div x-data="{ showScoreHistory: false }" class="relative">
                         <button
                             @click="showScoreHistory = !showScoreHistory; if(showScoreHistory) { $wire.loadScoreHistory({{ $conv->contact->id }}) }"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors !text-zinc-900 dark:!text-zinc-900 {{ match(true) {
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors !text-white dark:!text-white {{ match(true) {
                                 $conv->contact->lead_score >= 86 => 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200',
                                 $conv->contact->lead_score >= 71 => 'bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200',
                                 $conv->contact->lead_score >= 51 => 'bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200',
