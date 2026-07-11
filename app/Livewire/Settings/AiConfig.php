@@ -35,6 +35,8 @@ class AiConfig extends Component
     public string $sales_goal_preset       = AiConfigModel::GOAL_INFO_ONLY;
     public array  $required_capture_fields = [];
     public array  $escalation_keywords     = [];
+    public bool   $escalate_on_media       = false;
+    public array  $escalation_topics       = [];
     public int    $contact_ai_reply_cap    = 20;
 
     // Toggle
@@ -90,6 +92,8 @@ class AiConfig extends Component
             $this->sales_goal_preset       = $config->sales_goal_preset ?: AiConfigModel::GOAL_INFO_ONLY;
             $this->required_capture_fields = $config->required_capture_fields ?? [];
             $this->escalation_keywords     = $config->escalation_keywords ?? AiConfigModel::defaultEscalationKeywordsFor($this->sales_goal_preset);
+            $this->escalate_on_media       = (bool) ($config->escalate_on_media ?? false);
+            $this->escalation_topics       = $config->escalation_topics ?? [];
             $this->contact_ai_reply_cap    = (int) ($config->contact_ai_reply_cap ?? 20);
             $this->is_active = $config->is_active ?? true;
         } else {
@@ -139,6 +143,21 @@ class AiConfig extends Component
             fn ($k) => $k !== '',
         ));
 
+        // Topic groups: drop empty labels and empty keyword rows so we don't
+        // persist ghost entries the operator created but never filled in.
+        $escalationTopics = array_values(array_filter(
+            array_map(function ($topic) {
+                $label = trim((string) ($topic['label'] ?? ''));
+                $keywords = array_values(array_filter(
+                    array_map(fn ($k) => trim((string) $k), $topic['keywords'] ?? []),
+                    fn ($k) => $k !== '',
+                ));
+
+                return ['label' => $label, 'keywords' => $keywords];
+            }, $this->escalation_topics),
+            fn ($t) => $t['label'] !== '' && ! empty($t['keywords']),
+        ));
+
         if ($this->response_delay_min_seconds > $this->response_delay_max_seconds) {
             $this->response_delay_max_seconds = $this->response_delay_min_seconds;
         }
@@ -161,6 +180,8 @@ class AiConfig extends Component
             'sales_goal_preset'        => $this->sales_goal_preset,
             'required_capture_fields'  => $captureFields,
             'escalation_keywords'      => $escalationKeywords,
+            'escalate_on_media'        => $this->escalate_on_media,
+            'escalation_topics'        => $escalationTopics,
             'contact_ai_reply_cap'     => $this->contact_ai_reply_cap,
             'is_active' => $this->is_active,
         ];
@@ -262,6 +283,34 @@ class AiConfig extends Component
         $this->escalation_keywords = array_values($this->escalation_keywords);
     }
 
+    public function addEscalationTopic(): void
+    {
+        $this->escalation_topics[] = ['label' => '', 'keywords' => ['']];
+    }
+
+    public function removeEscalationTopic(int $index): void
+    {
+        unset($this->escalation_topics[$index]);
+        $this->escalation_topics = array_values($this->escalation_topics);
+    }
+
+    public function addTopicKeyword(int $topicIndex): void
+    {
+        if (! isset($this->escalation_topics[$topicIndex])) {
+            return;
+        }
+        $this->escalation_topics[$topicIndex]['keywords'][] = '';
+    }
+
+    public function removeTopicKeyword(int $topicIndex, int $keywordIndex): void
+    {
+        if (! isset($this->escalation_topics[$topicIndex]['keywords'][$keywordIndex])) {
+            return;
+        }
+        unset($this->escalation_topics[$topicIndex]['keywords'][$keywordIndex]);
+        $this->escalation_topics[$topicIndex]['keywords'] = array_values($this->escalation_topics[$topicIndex]['keywords']);
+    }
+
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
@@ -286,6 +335,8 @@ class AiConfig extends Component
         $this->sales_goal_preset       = AiConfigModel::GOAL_INFO_ONLY;
         $this->required_capture_fields = [];
         $this->escalation_keywords     = AiConfigModel::defaultEscalationKeywordsFor(AiConfigModel::GOAL_INFO_ONLY);
+        $this->escalate_on_media       = false;
+        $this->escalation_topics       = [];
         $this->contact_ai_reply_cap    = 20;
         $this->is_active = true;
     }

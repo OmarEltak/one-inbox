@@ -133,6 +133,23 @@ class SendAiResponse implements ShouldQueue
             return;
         }
 
+        // Operator-configured: hand off whenever the inbound is (or contains)
+        // media — image / video / audio / sticker / document. See AiConfig
+        // "escalate_on_media" toggle in the Handoff tab. Detection mirrors the
+        // pattern used in resources/views/livewire/inbox/index.blade.php:579.
+        if (($aiConfig->escalate_on_media ?? false) && $this->isMediaMessage($triggerMessage)) {
+            $conversation->escalate('media_received');
+            return;
+        }
+
+        // Operator-configured: topic groups. Any keyword hit inside a topic
+        // escalates and stamps the audit reason with the topic label so
+        // support can filter later (e.g. "topic_matched:Medical").
+        if ($topicLabel = $this->matchedTopicLabel($triggerMessage->content ?? '', $aiConfig)) {
+            $conversation->escalate('topic_matched:' . $topicLabel);
+            return;
+        }
+
         // Capture pass: try to extract any required fields from this inbound
         // BEFORE generating the reply, so the reply prompt knows what's still
         // missing and pushes for it. If everything is captured after this
@@ -285,6 +302,62 @@ class SendAiResponse implements ShouldQueue
         }
 
         return false;
+    }
+
+    /**
+     * A message is "media" when it carries a non-text payload — image, video,
+     * audio, sticker, document, file. Two signals because platforms disagree:
+     * some set content_type ('image'/'video'/...), others only set media_type
+     * (a MIME string like 'image/jpeg'). Mirrors the detection used in the
+     * inbox blade so the UI and the AI gate agree.
+     */
+    protected function isMediaMessage(Message $message): bool
+    {
+        $contentType = (string) ($message->content_type ?? 'text');
+
+        if ($contentType !== '' && $contentType !== 'text') {
+            return true;
+        }
+
+        return ! empty($message->media_url) || ! empty($message->media_type);
+    }
+
+    /**
+     * Return the topic label whose keyword list matched the message content,
+     * or null. Matching is case-insensitive substring, identical to
+     * shouldEscalate() so operators don't have to learn a second rule set.
+     */
+    protected function matchedTopicLabel(string $messageContent, ?\App\Models\AiConfig $config): ?string
+    {
+        $topics = $config?->escalation_topics ?? [];
+        if (empty($topics)) {
+            return null;
+        }
+
+        $lower = mb_strtolower($messageContent);
+        if ($lower === '') {
+            return null;
+        }
+
+        foreach ($topics as $topic) {
+            $label = trim((string) ($topic['label'] ?? ''));
+            $keywords = $topic['keywords'] ?? [];
+            if ($label === '' || empty($keywords)) {
+                continue;
+            }
+
+            foreach ($keywords as $keyword) {
+                $needle = mb_strtolower(trim((string) $keyword));
+                if ($needle === '') {
+                    continue;
+                }
+                if (str_contains($lower, $needle)) {
+                    return $label;
+                }
+            }
+        }
+
+        return null;
     }
 
     protected function sendToPlatform(Conversation $conversation, string $text, Message $aiMessage): void

@@ -391,10 +391,16 @@
 
                         {{-- Tab: Handoff --}}
                         @if($activeTab === 'handoff')
+                            {{-- Intro: what handoff means, in one place, in plain English. --}}
+                            <section class="rounded-lg border border-violet-200 bg-violet-50 p-4">
+                                <flux:heading size="sm" class="mb-1 text-violet-900">{{ __('What is handoff?') }}</flux:heading>
+                                <flux:text size="sm" class="text-violet-900">{{ __('Handoff means: the AI stops replying and the conversation is flagged as "Escalated" in your inbox so a human on your team takes over. The customer never sees an apology or an error — they just stop getting AI replies until you (or a teammate) jumps in. Any rule you turn on below will trigger a handoff automatically.') }}</flux:text>
+                            </section>
+
                             {{-- Section: Escalation Keywords --}}
                             <section>
                                 <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Escalation keywords') }}</flux:heading>
-                                <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('If the customer\'s message contains any of these words, AI stops and the conversation is marked escalated so a human can take over. Includes bilingual defaults (Arabic + English) from your Sales Goal preset.') }}</flux:text>
+                                <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('If the customer\'s message contains any of these words, the AI stops and a human takes over. Matching is case-insensitive and works on partial words too (e.g. "refund" matches "refunds"). Bilingual defaults (Arabic + English) come from your Sales Goal preset — feel free to add or remove.') }}</flux:text>
 
                                 <div class="flex flex-wrap gap-2 mb-3">
                                     @foreach($escalation_keywords as $index => $kw)
@@ -416,10 +422,89 @@
                                 </flux:button>
                             </section>
 
+                            {{-- Section: Media handoff --}}
+                            <section>
+                                <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Hand off when the customer sends media') }}</flux:heading>
+                                <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('When ON: if the customer sends a photo, video, voice note, audio clip, sticker, or document / file, the AI will not reply and the conversation is escalated to a human. Use this when your product actually needs a person to look at what the customer sent — for example: an ID card, a prescription photo, a damaged-item picture, or a voice message. When OFF: the AI keeps replying based on any text the customer sent alongside the media (and ignores the media itself).') }}</flux:text>
+
+                                <label class="flex items-start gap-3 rounded-lg border border-zinc-200 p-3 cursor-pointer hover:bg-zinc-50">
+                                    <flux:switch wire:model.live="escalate_on_media" class="mt-0.5" />
+                                    <div>
+                                        <div class="text-sm font-medium text-zinc-900">{{ __('Escalate on any image, video, audio, or file') }}</div>
+                                        <div class="text-xs text-zinc-600 mt-0.5">{{ __('All-or-nothing: covers every non-text attachment across Facebook, Instagram, WhatsApp, Telegram, and email.') }}</div>
+                                    </div>
+                                </label>
+                            </section>
+
+                            {{-- Section: Topic-based handoff --}}
+                            <section>
+                                <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Hand off on specific topics') }}</flux:heading>
+                                <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('Group keywords under a topic label (e.g. "Medical", "Legal", "Financial"). If the customer\'s message contains ANY keyword from a topic, the AI stops and a human takes over. The topic label shows up in the escalation reason in your inbox, so you know why the AI backed off. Use this for questions that are risky for AI to answer — medical advice, legal questions, refund disputes — anything you\'d rather a human handle.') }}</flux:text>
+
+                                <div class="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 mb-4">
+                                    <flux:text size="xs" class="text-amber-900">{{ __('Tip: keyword matching only finds the exact words you list. "Prescription" won\'t match a customer who writes "meds my doctor gave me". Add multiple variants (English + Arabic + slang) per topic to catch more phrasings.') }}</flux:text>
+                                </div>
+
+                                <div class="space-y-3 mb-3">
+                                    @foreach($escalation_topics as $topicIndex => $topic)
+                                        <div wire:key="topic-{{ $topicIndex }}" class="rounded-lg border border-zinc-200 p-3 bg-white">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <flux:input
+                                                    wire:model.blur="escalation_topics.{{ $topicIndex }}.label"
+                                                    placeholder="{{ __('Topic label (e.g. Medical)') }}"
+                                                    class="flex-1 text-zinc-900"
+                                                    size="sm"
+                                                />
+                                                <flux:button
+                                                    wire:click="removeEscalationTopic({{ $topicIndex }})"
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    icon="trash"
+                                                >
+                                                    {{ __('Remove topic') }}
+                                                </flux:button>
+                                            </div>
+
+                                            <flux:text size="xs" class="mb-2 text-zinc-600">{{ __('Keywords that trigger handoff for this topic:') }}</flux:text>
+
+                                            <div class="flex flex-wrap gap-2 mb-2">
+                                                @foreach(($topic['keywords'] ?? []) as $kwIndex => $kw)
+                                                    <div wire:key="topic-{{ $topicIndex }}-kw-{{ $kwIndex }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 border border-white pl-3 pr-1 py-1" style="--color-violet-400: white;">
+                                                        <flux:input
+                                                            wire:model.blur="escalation_topics.{{ $topicIndex }}.keywords.{{ $kwIndex }}"
+                                                            size="xs"
+                                                            class="!w-32 !bg-transparent !p-0 !text-sm"
+                                                        />
+                                                        <button type="button" wire:click="removeTopicKeyword({{ $topicIndex }}, {{ $kwIndex }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                                            <flux:icon name="x-mark" class="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+
+                                            <flux:button
+                                                wire:click="addTopicKeyword({{ $topicIndex }})"
+                                                type="button"
+                                                variant="outline"
+                                                size="xs"
+                                                icon="plus"
+                                            >
+                                                {{ __('Add keyword to this topic') }}
+                                            </flux:button>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <flux:button wire:click="addEscalationTopic" type="button" variant="outline" size="sm" icon="plus">
+                                    {{ __('Add a topic') }}
+                                </flux:button>
+                            </section>
+
                             {{-- Section: Per-contact AI reply cap --}}
                             <section>
                                 <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Per-contact daily AI reply cap') }}</flux:heading>
-                                <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('Maximum AI replies a single contact can receive in 24 hours. Prevents one chatty (or abusive) customer from burning your AI budget. Once a contact hits this, further inbounds still land in your inbox but the AI stops replying to them until the window rolls over.') }}</flux:text>
+                                <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('The maximum number of AI replies a single customer can receive in any 24-hour window. Once a customer hits this number, the AI stops replying to them (their messages still arrive in your inbox — the AI just stays quiet) until 24 hours have passed since their first reply of the day. This protects you from one chatty or abusive customer draining your AI budget. Recommended: 20 for most businesses; lower it if you sell high-touch products where humans should take over quickly.') }}</flux:text>
 
                                 <div class="max-w-xs">
                                     <flux:input
