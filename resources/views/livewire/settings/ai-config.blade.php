@@ -1,4 +1,4 @@
-<div class="p-6 w-full">
+<div class="p-3 sm:p-6 w-full min-w-0">
     <flux:heading size="xl" class="mb-2 !text-zinc-900 dark:!text-zinc-900">{{ __('AI Configuration') }}</flux:heading>
     <flux:text class="mb-6 !text-zinc-900 dark:!text-zinc-900">{{ __('Configure AI behavior per connected page. The AI uses this info to respond to customers.') }}</flux:text>
 
@@ -12,7 +12,7 @@
             </flux:button>
         </div>
     @else
-        <div class="grid gap-6" style="grid-template-columns: 16rem 1fr;">
+        <div class="grid gap-6 md:[grid-template-columns:16rem_1fr] grid-cols-1 min-w-0">
             {{-- Left: Page Selector --}}
             <div>
                 <flux:heading size="sm" class="mb-3">{{ __('Pages') }}</flux:heading>
