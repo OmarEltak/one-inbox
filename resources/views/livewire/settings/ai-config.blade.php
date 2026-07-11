@@ -55,6 +55,12 @@
                         [data-flux-label] { color: rgb(9,9,11) !important; }
                         [data-flux-control] { color: rgb(9,9,11) !important; }
                         .kw-chip input[data-flux-control] { color: white !important; border-color: white !important; }
+                        /* Topic keyword chips sit on a white card, so the global white-text
+                           rule above would make them invisible. Force dark text here. */
+                        .topic-kw-chip input[data-flux-control] { color: rgb(9,9,11) !important; border-color: rgb(228,228,231) !important; }
+                        /* Flux switch has nearly-transparent bg when off; make it visibly
+                           grey against light backgrounds so users can see the OFF state. */
+                        [data-flux-switch]:not([aria-checked="true"]) { background-color: rgb(212,212,216) !important; }
                     </style>
                     <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
                         {{-- Active Toggle --}}
@@ -470,13 +476,13 @@
 
                                             <div class="flex flex-wrap gap-2 mb-2">
                                                 @foreach(($topic['keywords'] ?? []) as $kwIndex => $kw)
-                                                    <div wire:key="topic-{{ $topicIndex }}-kw-{{ $kwIndex }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 border border-white pl-3 pr-1 py-1" style="--color-violet-400: white;">
+                                                    <div wire:key="topic-{{ $topicIndex }}-kw-{{ $kwIndex }}" class="topic-kw-chip flex items-center gap-1 rounded-full bg-zinc-100 border border-zinc-300 pl-3 pr-1 py-1">
                                                         <flux:input
                                                             wire:model.blur="escalation_topics.{{ $topicIndex }}.keywords.{{ $kwIndex }}"
                                                             size="xs"
                                                             class="!w-32 !bg-transparent !p-0 !text-sm"
                                                         />
-                                                        <button type="button" wire:click="removeTopicKeyword({{ $topicIndex }}, {{ $kwIndex }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                                        <button type="button" wire:click="removeTopicKeyword({{ $topicIndex }}, {{ $kwIndex }})" class="w-5 h-5 flex items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-300">
                                                             <flux:icon name="x-mark" class="w-3 h-3" />
                                                         </button>
                                                     </div>
