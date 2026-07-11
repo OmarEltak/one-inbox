@@ -4,12 +4,20 @@
     <flux:heading class="sr-only">{{ __('Profile Settings') }}</flux:heading>
 
     <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
-        {{-- Force the Flux ring-shadow to always be visible on the Name and
-             Email inputs, not just on focus. --}}
+        {{-- Force a permanent violet border + ring around Name and Email
+             inputs, in every state (default, hover, focus). --}}
         <style>
-            .profile-form input[data-flux-control] {
-                --tw-ring-shadow: 0 0 0 2px rgb(139 92 246 / 1) !important; /* violet-500 */
-                box-shadow: var(--tw-ring-shadow) !important;
+            .profile-form input,
+            .profile-form input[data-flux-control],
+            .profile-form input:hover,
+            .profile-form input:focus,
+            .profile-form input:focus-visible {
+                border-color: rgb(139 92 246) !important;   /* violet-500 */
+                box-shadow: 0 0 0 2px rgb(139 92 246) !important;
+                outline: none !important;
+                --tw-ring-shadow: 0 0 0 2px rgb(139 92 246) !important;
+                --tw-ring-color: rgb(139 92 246) !important;
+                --tw-ring-offset-shadow: 0 0 #0000 !important;
             }
         </style>
         <form wire:submit="updateProfileInformation" class="profile-form my-6 w-full space-y-6">
