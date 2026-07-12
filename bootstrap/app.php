@@ -32,6 +32,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetCurrentTeam::class,
         ]);
 
+        // The locale cookie carries a public value (`en` | `ar`). Encrypting
+        // it makes it unreadable to Cloudflare's Vary logic and to any
+        // client-side language-aware code, so we keep it as plain text.
+        $middleware->encryptCookies(except: [
+            \App\Http\Middleware\SetLocale::COOKIE_NAME,
+        ]);
+
         // Prepend so this runs LAST on the outbound response — after EncryptCookies
         // and AddQueuedCookiesToResponse have already attached session/XSRF cookies.
         // Otherwise stripped cookies get re-added downstream and the CDN still

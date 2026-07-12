@@ -66,9 +66,14 @@ final class CachePublicMarketing
         }
 
         // Drop session/XSRF cookies so Cloudflare keys the cache without them.
+        // Keep the locale cookie: it's small, public (en|ar), and required for
+        // language persistence to survive the strip.
         $cookies = $response->headers->getCookies();
         foreach ($cookies as $cookie) {
             $name = $cookie->getName();
+            if ($name === SetLocale::COOKIE_NAME) {
+                continue;
+            }
             if (str_contains($name, 'session') || $name === 'XSRF-TOKEN') {
                 $response->headers->removeCookie($name, $cookie->getPath(), $cookie->getDomain());
             }
@@ -79,9 +84,10 @@ final class CachePublicMarketing
             'public, max-age=' . self::BROWSER_TTL . ', s-maxage=' . self::SHARED_TTL
         );
 
-        // Vary on language so different locales don't collide in the shared cache.
+        // Vary on the locale cookie so different languages don't collide in
+        // shared caches. Accept-Language is kept as a secondary signal.
         $vary = $response->headers->get('Vary');
-        $response->headers->set('Vary', $vary ? $vary . ', Accept-Language' : 'Accept-Language');
+        $response->headers->set('Vary', $vary ? $vary . ', Cookie, Accept-Language' : 'Cookie, Accept-Language');
 
         return $response;
     }
@@ -100,11 +106,30 @@ final class CachePublicMarketing
             return false;
         }
 
+        // Non-default locale users bypass the shared cache. English is the
+        // default and hits the fast path; Arabic users pay the origin round
+        // trip but get correctly-translated content instead of a stale cache.
+        //
+        // Note: comparing against `config('app.fallback_locale')` rather than
+        // `app.locale` because SetLocale mutates the runtime app.locale via
+        // `app()->setLocale()` — by the time this outbound check runs, the
+        // "current" locale and the "config" locale are the same.
+        $locale = $request->cookie(SetLocale::COOKIE_NAME);
+        if (is_string($locale) && $locale !== (string) config('app.fallback_locale', 'en')) {
+            return false;
+        }
+
         // A non-empty query string is unsafe to cache aggressively (?lang= is
-        // already handled by Vary; tracking params would otherwise multiply
-        // cache entries).
+        // already handled by the cookie bypass above; tracking params would
+        // otherwise multiply cache entries).
         $query = $request->query();
         if (! empty($query) && ! (count($query) === 1 && array_key_exists('lang', $query))) {
+            return false;
+        }
+
+        // When ?lang= is present, the request is switching languages — always
+        // hit origin so SetLocale can write the cookie.
+        if (array_key_exists('lang', $query)) {
             return false;
         }
 
