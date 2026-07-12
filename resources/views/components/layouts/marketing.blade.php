@@ -1,5 +1,13 @@
+@props([
+    'title'       => null,
+    'description' => null,
+    'canonical'   => null,
+    'htmlLang'    => null,
+    'htmlDir'     => null,
+    'ogImage'     => null,
+])
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" class="scroll-smooth">
+<html lang="{{ $htmlLang ?? str_replace('_', '-', app()->getLocale()) }}" dir="{{ $htmlDir ?? (app()->getLocale() === 'ar' ? 'rtl' : 'ltr') }}" class="scroll-smooth">
 <head>
     {{-- Google Analytics --}}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-WHWVHWKR3T"></script>
