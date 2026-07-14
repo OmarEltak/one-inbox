@@ -1183,14 +1183,15 @@
             <div class="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm space-y-2">
                 <p class="font-medium text-blue-200">{{ __('Before submitting:') }}</p>
                 <ol class="list-decimal list-inside text-blue-100/80 space-y-1 leading-relaxed">
-                    <li>{{ __('Open your Facebook Business Page → Settings → Page roles') }}</li>
+                    <li>{{ __('Open your Facebook Business Page → Settings → Page setup → Page access → Add new → add our user with basic control (not full control)') }}</li>
                     <li>{{ __('Add') }}
                         <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-white">
                             {{ __('our admin account') }}
                         </a>
-                        {{ __('as a Page admin') }}</li>
+                        {{ __('with basic control (not full control)') }}</li>
                     <li>{{ __('Submit this form so we know which page is yours') }}</li>
                 </ol>
+                <p class="text-amber-200/90 text-xs pt-1">{{ __('Note: Meta sometimes redirects you to Meta Business Suite, and in some cases the "Add new" option is only available in the Meta Business Suite mobile app — not on desktop. If you cannot find it on PC, please use the phone app.') }}</p>
                 <p class="text-blue-100/60 text-xs pt-1">{{ __("We'll set up the connection within 1 minute and notify you by email.") }}</p>
             </div>
 
