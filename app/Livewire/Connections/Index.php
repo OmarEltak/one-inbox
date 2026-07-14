@@ -3,6 +3,7 @@
 namespace App\Livewire\Connections;
 
 use App\Jobs\AutoProcessOnboardingRequest;
+use App\Mail\NewOnboardingRequestSubmitted;
 use App\Models\ConnectedAccount;
 use App\Models\OnboardingRequest;
 use App\Models\Page;
@@ -15,6 +16,7 @@ use Flux\Flux;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -475,6 +477,18 @@ class Index extends Component
             if (config('services.meta.managed_onboarding_auto')) {
                 AutoProcessOnboardingRequest::dispatch($created->id);
             }
+
+            // Instantly notify super-admin so they can accept the FB Page invitation.
+            // Without this, the automator retries in vain until a human notices.
+            try {
+                $to = config('services.meta.managed_onboarding_notify', 'omareltak7@gmail.com');
+                Mail::to($to)->send(new NewOnboardingRequestSubmitted($created));
+            } catch (\Throwable $e) {
+                Log::warning('submitOnboardingRequest: super-admin notify email failed', [
+                    'request_id' => $created->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
         } catch (\Throwable $e) {
             try {
                 Log::error('submitOnboardingRequest: create failed', [
@@ -492,7 +506,7 @@ class Index extends Component
         $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactEmail', 'requestContactPhone', 'requestNotes']);
         unset($this->openOnboardingByPlatform);
 
-        session()->flash('success', 'Request submitted. We will set up your page within 1 minute and email you when it is ready.');
+        session()->flash('success', 'Request submitted. Our admin will accept your Page invitation on Facebook and finish the setup — usually within a few hours during business hours (9am–9pm Cairo). We will email you the moment it is live.');
         Flux::modal('onboarding-request')->close();
     }
 

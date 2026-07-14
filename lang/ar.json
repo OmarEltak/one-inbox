@@ -950,6 +950,8 @@
     "While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add": "بينما يتم مراجعة تطبيقنا على Meta، نربط صفحات فيسبوك وإنستغرام نيابةً عنك. أضف",
     "our account": "حسابنا",
     "as an admin to your page, then click \"Request connection\" below. We'll set it up within 24 hours. Telegram, Email, Slack and Discord are self-serve as usual.": "مسؤولاً في صفحتك، ثم انقر على \"طلب الاتصال\" أدناه. سنقوم بالإعداد خلال 24 ساعة. تيليجرام والبريد الإلكتروني وSlack وDiscord تعمل بشكل عادي.",
+    "as an admin to your page (with basic control), then click \"Request connection\" below. Our admin will accept your Page invitation on Facebook and finish the setup — usually within a few hours during business hours (9am–9pm Cairo). Telegram, Email, Slack and Discord are self-serve as usual.": "كمسؤول في صفحتك (بصلاحية تحكم أساسي)، ثم انقر على \"طلب الاتصال\" أدناه. سيقوم فريقنا بقبول دعوة الصفحة على فيسبوك وإنهاء الإعداد — عادةً خلال ساعات قليلة في مواعيد العمل (9 صباحًا – 9 مساءً بتوقيت القاهرة). تيليجرام والبريد الإلكتروني وSlack وDiscord تعمل بشكل عادي.",
+    "Our admin needs to accept your Page invitation on Facebook before we can finish. This usually happens within a few hours during business hours (9am–9pm Cairo). You'll get an email the moment the connection is live.": "يحتاج فريقنا إلى قبول دعوة الصفحة على فيسبوك قبل أن نتمكن من إكمال الإعداد. يحدث هذا عادةً خلال ساعات قليلة في مواعيد العمل (9 صباحًا – 9 مساءً بتوقيت القاهرة). ستتلقى بريدًا إلكترونيًا بمجرد أن يصبح الاتصال جاهزًا.",
     "Messenger": "ماسنجر",
     "Disconnect": "قطع الاتصال",
     "Messenger messages will stop coming in for this page.": "ستتوقف رسائل ماسنجر عن الوصول لهذه الصفحة.",

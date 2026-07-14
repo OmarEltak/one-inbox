@@ -19,7 +19,10 @@ class AutoProcessOnboardingRequest implements ShouldQueue
     public int $tries = 2;
     public int $backoff = 30;
 
-    public function __construct(public int $onboardingRequestId) {}
+    public function __construct(
+        public int $onboardingRequestId,
+        public int $attempt = 1,
+    ) {}
 
     public function handle(OnboardingAutomator $automator): void
     {
@@ -28,6 +31,6 @@ class AutoProcessOnboardingRequest implements ShouldQueue
             return;
         }
 
-        $automator->handle($req);
+        $automator->handle($req, $this->attempt);
     }
 }

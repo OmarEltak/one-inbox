@@ -93,7 +93,7 @@
                     <p class="text-amber-700 mt-1">
                         {{ __('While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add') }}
                         <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-900">{{ __('our account') }}</a>
-                        {{ __('as an admin to your page, then click "Request connection" below. We\'ll set it up within 1 minute. Telegram, Email, Slack and Discord are self-serve as usual.') }}
+                        {{ __('as an admin to your page (with basic control), then click "Request connection" below. Our admin will accept your Page invitation on Facebook and finish the setup — usually within a few hours during business hours (9am–9pm Cairo). Telegram, Email, Slack and Discord are self-serve as usual.') }}
                     </p>
                 </div>
             </div>
@@ -1192,7 +1192,7 @@
                     <li>{{ __('Submit this form so we know which page is yours') }}</li>
                 </ol>
                 <p class="text-amber-200/90 text-xs pt-1">{{ __('Note: Meta sometimes redirects you to Meta Business Suite, and in some cases the "Add new" option is only available in the Meta Business Suite mobile app — not on desktop. If you cannot find it on PC, please use the phone app.') }}</p>
-                <p class="text-blue-100/60 text-xs pt-1">{{ __("We'll set up the connection within 1 minute and notify you by email.") }}</p>
+                <p class="text-blue-100/60 text-xs pt-1">{{ __("Our admin needs to accept your Page invitation on Facebook before we can finish. This usually happens within a few hours during business hours (9am–9pm Cairo). You'll get an email the moment the connection is live.") }}</p>
             </div>
 
             <flux:input

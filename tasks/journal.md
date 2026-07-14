@@ -1655,3 +1655,38 @@ Production is now **VPS-hosted**, not Windows. Old topology (Herd + Cloudflare T
 - Register `LEMONSQUEEZY_WEBHOOK_SECRET` in Lemon Squeezy dashboard (already in `.env`)
 - Submit Meta App Review for Facebook/Instagram Live Mode
 - Stop Windows cloudflared tunnel (no longer routes prod traffic)
+
+---
+
+### Session: 2026-07-14 — Managed onboarding: honest UX + 24h retry + super-admin notify
+
+**Problem (customer-reported):** Connection card promises "we'll set up your page within 1 minute" but the OnboardingAutomator hard-rejects the moment super-admin's `/me/accounts` doesn't include the customer's page. That happens whenever the customer added `omarEltak88` as Page admin but omarEltak88 hasn't clicked "Accept" on Facebook yet. Customers saw the wrong error: *"you didn't add us as admin"* — blaming them for a step they had already completed. Root cause: FB Page role invitations are NOT auto-accepted, and Meta exposes no public Graph API to auto-accept them (deprecated `manage_notifications`, no `/page_invitations/{id}/accept` endpoint).
+
+**Approach:** Since we cannot auto-accept on the FB side, do two things:
+1. Instantly notify super-admin (omareltak7@gmail.com) the moment a customer submits, with a deep-link to `business.facebook.com/latest/settings/pending_requests` — so acceptance is minutes-not-hours latency.
+2. Retry `OnboardingAutomator` on a 24h schedule (15min → 1h → 6h → 24h) before ever hard-rejecting. If super-admin accepts the invite during that window, the next retry succeeds and the customer gets a success email instead of a wrong-blame rejection.
+
+**Files changed:**
+- `app/Mail/NewOnboardingRequestSubmitted.php` (new) — mailable for instant super-admin notification.
+- `resources/views/mail/new-onboarding-request.blade.php` (new) — email template with deep-link + acceptance checklist.
+- `app/Livewire/Connections/Index.php` — dispatches new mailable inside `submitOnboardingRequest`; also updates the flash success copy from "within 1 minute" to honest "few hours during business hours" wording.
+- `app/Jobs/AutoProcessOnboardingRequest.php` — added `$attempt` constructor param, passes it into automator.
+- `app/Services/Meta/OnboardingAutomator.php` — added `RETRY_SCHEDULE_MINUTES` const (attempts 2–5 at 15m/1h/6h/24h); when no candidate page is found, dispatches next retry with `delay()` instead of hard-rejecting; only rejects after final attempt with an honest, three-cause explanation (including Meta Business Suite mobile-app hint).
+- `resources/views/livewire/connections/index.blade.php` — replaced both "within 1 minute" strings (managed-onboarding banner + request modal footer) with honest expectation copy.
+- `lang/ar.json` + `lang/en.json` — added translation entries for the two new customer-facing strings. Old "1 minute" and "24 hours" keys are now orphaned (harmless).
+
+**What we did NOT do:**
+- Did NOT add WhatsApp integration for super-admin ping (email is enough for MVP; WA can be added later if latency really matters).
+- Did NOT poll Facebook for pending invitations (no reliable public Graph endpoint since v2.4 deprecation).
+- Did NOT touch `$metaVerified` flag, OAuth flow, or `superAdminFacebookAccount()` lookup — orthogonal to this change.
+
+**Config used:** `services.meta.managed_onboarding_notify` (already existed, defaults to `omareltak7@gmail.com`).
+
+**Kill switch:** `MANAGED_ONBOARDING_AUTO=false` in prod `.env` still disables the whole pipeline including retries — no new env var introduced.
+
+**Verification:** `php -l` clean on all 4 changed PHP files; JSON parse-check clean on both translation files. Behavior verification requires an end-to-end onboarding submission on prod (customer submits → email arrives → super-admin accepts → retry succeeds → page assigned). Recommended to smoke-test on the next real onboarding request.
+
+**Follow-ups worth tracking:**
+- If Meta app review passes → this whole pipeline becomes dead code (customers OAuth directly). See `$metaVerified` and CLAUDE.md §1.
+- Consider adding a WhatsApp notification (`+201026361218`) as a second channel if email latency proves too slow in practice.
+- Consider surfacing "retry in progress" status to customers in `/super-admin/onboarding-requests` UI so they can see the automator is still working, not silently stuck.

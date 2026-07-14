@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Meta;
 
 use App\Contracts\AiProviderInterface;
+use App\Jobs\AutoProcessOnboardingRequest;
 use App\Mail\OnboardingAutomationFailed;
 use App\Models\ConnectedAccount;
 use App\Models\Contact;
@@ -35,12 +36,21 @@ class OnboardingAutomator
 {
     private const CONFIDENCE_THRESHOLD = 0.85;
 
+    // Delay (in minutes) before the Nth retry attempt. Attempt 1 = initial run.
+    // Chain covers 24h total, giving super-admin realistic acceptance window.
+    private const RETRY_SCHEDULE_MINUTES = [
+        2 => 15,     // +15m
+        3 => 60,     // +1h
+        4 => 6 * 60, // +6h
+        5 => 24 * 60, // +24h — final attempt
+    ];
+
     public function __construct(
         private AiProviderInterface $ai,
         private FacebookPlatform $facebook,
     ) {}
 
-    public function handle(OnboardingRequest $req): void
+    public function handle(OnboardingRequest $req, int $attempt = 1): void
     {
         try {
             $account = $this->superAdminFacebookAccount();
@@ -54,11 +64,33 @@ class OnboardingAutomator
 
             $candidate = $this->findCandidatePage($account, $req);
             if (! $candidate) {
+                // Page not yet visible via /me/accounts. Most common cause: super-admin
+                // has not yet clicked "Accept" on the FB Page invitation. Retry on a
+                // schedule (see RETRY_SCHEDULE_MINUTES). Only reject after final attempt.
+                $nextDelay = self::RETRY_SCHEDULE_MINUTES[$attempt + 1] ?? null;
+
+                if ($nextDelay !== null) {
+                    Log::info('OnboardingAutomator: no candidate yet, scheduling retry', [
+                        'request_id'      => $req->id,
+                        'attempt'         => $attempt,
+                        'next_attempt_in' => $nextDelay . 'm',
+                    ]);
+                    AutoProcessOnboardingRequest::dispatch($req->id, $attempt + 1)
+                        ->delay(now()->addMinutes($nextDelay));
+                    return;
+                }
+
+                // Final attempt reached — honest rejection.
                 $this->autoReject(
                     $req,
-                    "We could not find a page matching \"{$req->business_name}\" among the pages you gave us admin access to. Please confirm you added our admin account (facebook.com/omarEltak88) as a Page admin, then resubmit."
+                    "After 24 hours we still cannot see your Page from our admin account (facebook.com/omarEltak88).\n\n"
+                    . "This usually means one of:\n"
+                    . "  (a) The Page invitation was never sent — please open your Page Settings → Page setup → Page access and re-add our admin with basic control.\n"
+                    . "  (b) The invitation was declined or expired.\n"
+                    . "  (c) Meta's Business Suite mobile app is the only place where the \"Add new\" option appears — try adding us from the phone app.\n\n"
+                    . "Once you have re-added us, please submit a new request."
                 );
-                $this->notifyOwner($req, 'No candidate page found in super-admin /me/accounts list.');
+                $this->notifyOwner($req, 'Retry schedule exhausted (24h). Page never appeared in super-admin /me/accounts. Customer notified.');
                 return;
             }
 
