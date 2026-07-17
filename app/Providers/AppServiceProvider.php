@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Contracts\AiProviderInterface;
+use App\Models\Post;
+use App\Observers\PostObserver;
 use App\Services\Ai\GeminiProvider;
 use App\Services\Ai\NaraRouterProvider;
 use App\Services\Ai\OllamaProvider;
@@ -56,6 +58,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Registered::class, function (Registered $event): void {
             Session::flash('track_signup_conversion', $event->user->getKey());
         });
+
+        Post::observe(PostObserver::class);
     }
 
     /**

@@ -74,6 +74,13 @@ Route::middleware('signed')->group(function () {
         ->name('email.unsubscribe.confirm');
 });
 
+// IndexNow ownership verification — Bing/Yandex fetch /{key}.txt to prove control of the domain.
+Route::get('{key}.txt', function (string $key) {
+    $configured = (string) config('services.indexnow.key', '');
+    abort_if($configured === '' || ! hash_equals($configured, $key), 404);
+    return response($configured, 200, ['Content-Type' => 'text/plain']);
+})->where('key', '[a-f0-9]{8,128}');
+
 // Sitemap
 Route::get('sitemap.xml', function () {
     $today = now()->toDateString();
@@ -105,7 +112,9 @@ Route::get('sitemap.xml', function () {
     ];
 
     // Add published blog posts
-    $posts = \App\Models\Post::published()->orderByDesc('published_at')->get();
+    $posts       = \App\Models\Post::published()->orderByDesc('published_at')->get();
+    $latestPost  = $posts->max('updated_at');
+    $lastModified = $latestPost?->toRfc7231String() ?? now()->toRfc7231String();
     foreach ($posts as $post) {
         $pages[] = [
             'loc'        => route('blog.show', $post->slug),
@@ -138,6 +147,7 @@ Route::get('sitemap.xml', function () {
     return response($xml, 200, [
         'Content-Type'  => 'application/xml; charset=UTF-8',
         'Cache-Control' => 'public, max-age=3600, s-maxage=21600',
+        'Last-Modified' => $lastModified,
         'X-Robots-Tag'  => 'noindex',
     ]);
 })->name('sitemap');

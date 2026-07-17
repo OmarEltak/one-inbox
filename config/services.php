@@ -207,6 +207,20 @@ return [
         'qr_enabled'  => filter_var(env('WUZAPI_QR_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
+    'indexnow' => [
+        // Random 8-128 char hex string. Generate once with `php -r "echo bin2hex(random_bytes(16));"`
+        // then set INDEXNOW_KEY in .env. The key is served at /{key}.txt to prove domain ownership.
+        'key'  => env('INDEXNOW_KEY'),
+        'host' => env('INDEXNOW_HOST', parse_url(env('APP_URL', ''), PHP_URL_HOST)),
+    ],
+
+    'google_indexing' => [
+        // Path to Google Cloud service account JSON key file. The service account must be added
+        // as an "Owner" in Search Console for the property.
+        // Enable "Indexing API" in the Google Cloud project.
+        'credentials' => env('GOOGLE_INDEXING_CREDENTIALS'),
+    ],
+
     'google_ads' => [
         'conversion_id'   => env('GOOGLE_ADS_CONVERSION_ID'),   // e.g. AW-1234567890
         'signup_label'    => env('GOOGLE_ADS_SIGNUP_LABEL'),    // conversion label from Google Ads UI
