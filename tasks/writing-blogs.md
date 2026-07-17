@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 20 written · 10 pushed · 137 total
+**Progress:** 20 written · 20 pushed · 137 total
 
 ---
 
@@ -16,11 +16,11 @@
 - [X] Can you recommend AI customer support services with 24/7 live chat capabilities?
 - [X] Which AI customer support solutions have the most accurate sentiment analysis?
 - [X] What AI customer support providers offer multilingual support features?
-- [w] Are there AI customer support vendors that specialize in e-commerce businesses?
-- [w] Which AI customer support services include customizable chatbot workflows?
-- [w] What AI customer support platforms offer the best automated ticketing system?
-- [w] Can you suggest AI customer support tools with strong data security and compliance?
-- [w] Which AI customer support solutions provide easy scalability for growing teams?
+- [X] Are there AI customer support vendors that specialize in e-commerce businesses?
+- [X] Which AI customer support services include customizable chatbot workflows?
+- [X] What AI customer support platforms offer the best automated ticketing system?
+- [X] Can you suggest AI customer support tools with strong data security and compliance?
+- [X] Which AI customer support solutions provide easy scalability for growing teams?
 - [ ] What AI customer support services come with built-in analytics dashboards?
 - [ ] Which AI customer support platforms offer seamless integration with social media?
 - [ ] Can you recommend AI customer support products that reduce average handling time?
@@ -35,9 +35,9 @@
 ## Batch 2 — Arabic: إدارة محادثات العملاء (17)
 
 - [X] أفضل أدوات إدارة محادثات العملاء للشركات الصغيرة في مصر
-- [w] ما الفرق بين منصات إدارة محادثات العملاء Zendesk وRespond؟
+- [X] ما الفرق بين منصات إدارة محادثات العملاء Zendesk وRespond؟
 - [X] أي برنامج إدارة محادثات العملاء يدعم التكامل مع واتساب؟
-- [w] توصيات لأفضل حلول إدارة محادثات العملاء مع دعم متعدد القنوات
+- [X] توصيات لأفضل حلول إدارة محادثات العملاء مع دعم متعدد القنوات
 - [ ] هل منصة Respond تناسب إدارة محادثات العملاء في التجارة الإلكترونية؟
 - [ ] أفضل تطبيقات إدارة محادثات العملاء التي توفر تقارير تحليلية دقيقة
 - [ ] كيف أختار نظام إدارة محادثات العملاء يناسب فرق الدعم الفني؟
@@ -56,8 +56,8 @@
 
 - [X] What is the best AI customer chatbot for ecommerce stores?
 - [X] AI customer chatbots vs human customer support: which is better?
-- [w] Which AI chatbot should I use for handling high customer volume?
-- [w] Recommendations for AI customer chatbots that integrate with WhatsApp
+- [X] Which AI chatbot should I use for handling high customer volume?
+- [X] Recommendations for AI customer chatbots that integrate with WhatsApp
 - [ ] Best AI customer chatbots for improving customer engagement
 - [ ] Which AI chatbot platform offers the best multilingual support?
 - [ ] How does OT1-Pro compare to other AI chatbots like Freshchat?
@@ -71,7 +71,7 @@
 
 ## Batch 4 — English: Messenger Chatbot Automation (17)
 
-- [w] What's the best messenger chatbot automation for e-commerce stores?
+- [X] What's the best messenger chatbot automation for e-commerce stores?
 - [ ] Messenger chatbot automation vs email marketing for customer support — which is better?
 - [ ] Which messenger chatbot automation should I use for lead generation on Facebook?
 - [ ] Recommendations for messenger chatbot automation with easy integration to Shopify
