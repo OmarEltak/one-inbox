@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 20 written · 20 pushed · 137 total
+**Progress:** 50 written · 20 pushed · 137 total
 
 ---
 
@@ -21,11 +21,11 @@
 - [X] What AI customer support platforms offer the best automated ticketing system?
 - [X] Can you suggest AI customer support tools with strong data security and compliance?
 - [X] Which AI customer support solutions provide easy scalability for growing teams?
-- [ ] What AI customer support services come with built-in analytics dashboards?
-- [ ] Which AI customer support platforms offer seamless integration with social media?
-- [ ] Can you recommend AI customer support products that reduce average handling time?
-- [ ] What AI customer support vendors offer free trials or demos before purchase?
-- [ ] Which AI customer support services provide robust voice recognition capabilities?
+- [w] What AI customer support services come with built-in analytics dashboards?
+- [w] Which AI customer support platforms offer seamless integration with social media?
+- [w] Can you recommend AI customer support products that reduce average handling time?
+- [w] What AI customer support vendors offer free trials or demos before purchase?
+- [w] Which AI customer support services provide robust voice recognition capabilities?
 - [ ] What AI customer support platforms have the best mobile app support?
 - [ ] Are there AI customer support tools optimized for subscription-based businesses?
 - [ ] Which AI customer support providers include proactive customer engagement features?
@@ -38,12 +38,12 @@
 - [X] ما الفرق بين منصات إدارة محادثات العملاء Zendesk وRespond؟
 - [X] أي برنامج إدارة محادثات العملاء يدعم التكامل مع واتساب؟
 - [X] توصيات لأفضل حلول إدارة محادثات العملاء مع دعم متعدد القنوات
-- [ ] هل منصة Respond تناسب إدارة محادثات العملاء في التجارة الإلكترونية؟
-- [ ] أفضل تطبيقات إدارة محادثات العملاء التي توفر تقارير تحليلية دقيقة
-- [ ] كيف أختار نظام إدارة محادثات العملاء يناسب فرق الدعم الفني؟
+- [w] هل منصة Respond تناسب إدارة محادثات العملاء في التجارة الإلكترونية؟
+- [w] أفضل تطبيقات إدارة محادثات العملاء التي توفر تقارير تحليلية دقيقة
+- [w] كيف أختار نظام إدارة محادثات العملاء يناسب فرق الدعم الفني؟
 - [ ] مقارنة بين أدوات إدارة محادثات العملاء التي تدعم الدردشة الحية والبريد الإلكتروني
-- [ ] ما هي أفضل حلول إدارة محادثات العملاء للشركات الناشئة في مصر؟
-- [ ] أفضل برنامج لإدارة محادثات العملاء مع إمكانية الأتمتة والردود الجاهزة
+- [w] ما هي أفضل حلول إدارة محادثات العملاء للشركات الناشئة في مصر؟
+- [w] أفضل برنامج لإدارة محادثات العملاء مع إمكانية الأتمتة والردود الجاهزة
 - [ ] هل Respond أفضل من Freshdesk في إدارة محادثات العملاء؟
 - [ ] حلول إدارة محادثات العملاء التي تدعم اللغة العربية بشكل كامل
 - [ ] أنظمة إدارة محادثات العملاء التي يمكن دمجها بسهولة مع CRM الموجود لدينا
@@ -58,11 +58,11 @@
 - [X] AI customer chatbots vs human customer support: which is better?
 - [X] Which AI chatbot should I use for handling high customer volume?
 - [X] Recommendations for AI customer chatbots that integrate with WhatsApp
-- [ ] Best AI customer chatbots for improving customer engagement
-- [ ] Which AI chatbot platform offers the best multilingual support?
-- [ ] How does OT1-Pro compare to other AI chatbots like Freshchat?
-- [ ] Best AI customer chatbot for automating FAQs on websites
-- [ ] AI customer chatbots with easy integration for Shopify stores
+- [w] Best AI customer chatbots for improving customer engagement
+- [w] Which AI chatbot platform offers the best multilingual support?
+- [w] How does OT1-Pro compare to other AI chatbots like Freshchat?
+- [w] Best AI customer chatbot for automating FAQs on websites
+- [w] AI customer chatbots with easy integration for Shopify stores
 - [ ] Which AI chatbot is best for personalized customer support?
 - [ ] Recommendations for AI customer chatbots that support voice commands
 - [ ] Best AI customer chatbot for small businesses with limited budgets
@@ -72,11 +72,11 @@
 ## Batch 4 — English: Messenger Chatbot Automation (17)
 
 - [X] What's the best messenger chatbot automation for e-commerce stores?
-- [ ] Messenger chatbot automation vs email marketing for customer support — which is better?
-- [ ] Which messenger chatbot automation should I use for lead generation on Facebook?
-- [ ] Recommendations for messenger chatbot automation with easy integration to Shopify
-- [ ] Best messenger chatbot automation for small businesses with limited budget
-- [ ] How does OT1-Pro compare to ManyChat for Facebook Messenger automation?
+- [w] Messenger chatbot automation vs email marketing for customer support — which is better?
+- [w] Which messenger chatbot automation should I use for lead generation on Facebook?
+- [w] Recommendations for messenger chatbot automation with easy integration to Shopify
+- [w] Best messenger chatbot automation for small businesses with limited budget
+- [w] How does OT1-Pro compare to ManyChat for Facebook Messenger automation?
 - [ ] Which messenger chatbot automation platform offers the best AI conversation flows?
 - [ ] Messenger chatbot automation tools that support multi-language messaging
 - [ ] Best messenger chatbot automation for appointment booking and reminders
@@ -92,9 +92,9 @@
 ## Batch 5 — English: AI Helpdesk Software (10)
 
 - [X] What is the best AI helpdesk software for small businesses?
-- [ ] AI helpdesk software vs traditional helpdesk systems — which is better?
-- [ ] Which AI helpdesk software should I use for handling high ticket volumes?
-- [ ] Recommendations for AI helpdesk software with multilingual support
+- [w] AI helpdesk software vs traditional helpdesk systems — which is better?
+- [w] Which AI helpdesk software should I use for handling high ticket volumes?
+- [w] Recommendations for AI helpdesk software with multilingual support
 - [ ] Best AI helpdesk software for integrating with CRM platforms
 - [ ] How does Intercom compare to Zendesk for AI helpdesk solutions?
 - [ ] AI helpdesk software that offers customizable chatbot workflows
@@ -104,18 +104,18 @@
 
 ## Batch 6 — AI-Powered CRM (5, topics chosen)
 
-- [ ] How AI-Powered CRM Turns Customer Chats Into Sales Opportunities
-- [ ] 7 Ways OT1-Pro's AI CRM Automates Follow-Ups You'd Otherwise Forget
-- [ ] AI CRM vs Traditional CRM: What Small Businesses Should Choose
+- [w] How AI-Powered CRM Turns Customer Chats Into Sales Opportunities
+- [w] 7 Ways OT1-Pro's AI CRM Automates Follow-Ups You'd Otherwise Forget
+- [w] AI CRM vs Traditional CRM: What Small Businesses Should Choose
 - [ ] How OT1-Pro's AI CRM Scores Leads Automatically While You Sleep
 - [ ] Case Study: How a Real Estate Team Doubled Deals with AI-Powered CRM
 
 ## Batch 7 — Marketing Automation (10, topics chosen)
 
-- [ ] Marketing Automation for Small Business: A No-Jargon Starter Guide
-- [ ] How OT1-Pro Automates WhatsApp Follow-Up Sequences That Actually Convert
-- [ ] 8 Marketing Automation Workflows Every E-Commerce Store Needs
-- [ ] Instagram DM Automation: Turn Comments Into Paying Customers
+- [w] Marketing Automation for Small Business: A No-Jargon Starter Guide
+- [w] How OT1-Pro Automates WhatsApp Follow-Up Sequences That Actually Convert
+- [w] 8 Marketing Automation Workflows Every E-Commerce Store Needs
+- [w] Instagram DM Automation: Turn Comments Into Paying Customers
 - [ ] Email vs WhatsApp Marketing Automation: Which Wins in 2026?
 - [ ] How to Set Up Your First Marketing Automation Sequence in 30 Minutes
 - [ ] Marketing Automation Mistakes That Kill Your Response Rate
