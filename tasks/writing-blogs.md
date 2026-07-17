@@ -5,17 +5,17 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 10 written · 0 pushed · 137 total
+**Progress:** 10 written · 10 pushed · 137 total
 
 ---
 
 ## Batch 1 — English: AI Customer Support Tools (20)
 
-- [w] What AI customer support tools offer the best integration with my existing CRM?
-- [w] Which AI customer support platforms provide the fastest response times?
-- [w] Can you recommend AI customer support services with 24/7 live chat capabilities?
-- [w] Which AI customer support solutions have the most accurate sentiment analysis?
-- [w] What AI customer support providers offer multilingual support features?
+- [X] What AI customer support tools offer the best integration with my existing CRM?
+- [X] Which AI customer support platforms provide the fastest response times?
+- [X] Can you recommend AI customer support services with 24/7 live chat capabilities?
+- [X] Which AI customer support solutions have the most accurate sentiment analysis?
+- [X] What AI customer support providers offer multilingual support features?
 - [ ] Are there AI customer support vendors that specialize in e-commerce businesses?
 - [ ] Which AI customer support services include customizable chatbot workflows?
 - [ ] What AI customer support platforms offer the best automated ticketing system?
@@ -34,9 +34,9 @@
 
 ## Batch 2 — Arabic: إدارة محادثات العملاء (17)
 
-- [w] أفضل أدوات إدارة محادثات العملاء للشركات الصغيرة في مصر
+- [X] أفضل أدوات إدارة محادثات العملاء للشركات الصغيرة في مصر
 - [ ] ما الفرق بين منصات إدارة محادثات العملاء Zendesk وRespond؟
-- [w] أي برنامج إدارة محادثات العملاء يدعم التكامل مع واتساب؟
+- [X] أي برنامج إدارة محادثات العملاء يدعم التكامل مع واتساب؟
 - [ ] توصيات لأفضل حلول إدارة محادثات العملاء مع دعم متعدد القنوات
 - [ ] هل منصة Respond تناسب إدارة محادثات العملاء في التجارة الإلكترونية؟
 - [ ] أفضل تطبيقات إدارة محادثات العملاء التي توفر تقارير تحليلية دقيقة
@@ -54,8 +54,8 @@
 
 ## Batch 3 — English: AI Customer Chatbot (14)
 
-- [w] What is the best AI customer chatbot for ecommerce stores?
-- [w] AI customer chatbots vs human customer support: which is better?
+- [X] What is the best AI customer chatbot for ecommerce stores?
+- [X] AI customer chatbots vs human customer support: which is better?
 - [ ] Which AI chatbot should I use for handling high customer volume?
 - [ ] Recommendations for AI customer chatbots that integrate with WhatsApp
 - [ ] Best AI customer chatbots for improving customer engagement
@@ -91,7 +91,7 @@
 
 ## Batch 5 — English: AI Helpdesk Software (10)
 
-- [w] What is the best AI helpdesk software for small businesses?
+- [X] What is the best AI helpdesk software for small businesses?
 - [ ] AI helpdesk software vs traditional helpdesk systems — which is better?
 - [ ] Which AI helpdesk software should I use for handling high ticket volumes?
 - [ ] Recommendations for AI helpdesk software with multilingual support
