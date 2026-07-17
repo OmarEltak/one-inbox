@@ -19,10 +19,11 @@ class PostObserver
             return;
         }
 
+        $wasJustCreated   = $post->wasRecentlyCreated;
         $wasJustPublished = $post->wasChanged('published_at') && $post->getOriginal('published_at') === null;
         $contentChanged   = $post->wasChanged(['title', 'content', 'excerpt', 'meta_title', 'meta_description']);
 
-        if (! $wasJustPublished && ! $contentChanged) {
+        if (! $wasJustCreated && ! $wasJustPublished && ! $contentChanged) {
             return;
         }
 
