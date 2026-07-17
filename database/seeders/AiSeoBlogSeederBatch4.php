@@ -523,7 +523,7 @@ HTML,
 <li><strong>Intent</strong> — is the person researching, comparing, or ready to buy?</li>
 <li><strong>Urgency</strong> — "next month" outranks "sometime."</li>
 <li><strong>Authority</strong> — decision maker vs scout.</li>
-<li><strong>Budget signals</strong> — "under $X" language, price sensitivity.</li>
+<li><strong>Budget signals</strong> — "under \$X" language, price sensitivity.</li>
 <li><strong>Engagement pace</strong> — reply speed, question depth, repeat visits.</li>
 </ul>
 
