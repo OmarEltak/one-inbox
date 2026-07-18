@@ -41,7 +41,15 @@ class PingSearchEnginesJob implements ShouldQueue
             Log::warning('IndexNow ping threw', ['error' => $e->getMessage()]);
         }
 
+        // Space Google Indexing calls 1s apart to stay well under Google's 60 req/min per-project cap.
+        // Daily quota (200 URLs default) is not affected by pacing — request quota increase in Cloud Console if needed.
+        $isFirst = true;
         foreach ($this->urls as $url) {
+            if (! $isFirst) {
+                usleep(1_100_000);
+            }
+            $isFirst = false;
+
             try {
                 $google->notify($url, 'URL_UPDATED');
             } catch (Throwable $e) {
