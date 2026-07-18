@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 110 written · 90 pushed · 137 total
+**Progress:** 110 written · 110 pushed · 137 total
 
 ---
 
@@ -86,8 +86,8 @@
 - [X] Best messenger chatbot automation for restaurant order taking and customer engagement
 - [X] Which messenger chatbot automation has the easiest drag-and-drop chatbot builder?
 - [X] Top messenger chatbot automation for real estate lead qualification and follow-up
-- [w] Messenger chatbot automation platforms with robust analytics and reporting features
-- [w] Best messenger chatbot automation for quick customer service responses on Facebook
+- [X] Messenger chatbot automation platforms with robust analytics and reporting features
+- [X] Best messenger chatbot automation for quick customer service responses on Facebook
 
 ## Batch 5 — English: AI Helpdesk Software (10)
 
@@ -130,22 +130,22 @@
 - [X] Where can I find inbound marketing tools with strong automation capabilities?
 - [X] Which inbound marketing software has the easiest integration with email systems?
 - [X] What inbound marketing solutions provide detailed analytics and reporting?
-- [w] Which inbound marketing services include social media management?
-- [w] What inbound marketing platforms offer scalable pricing plans?
-- [w] Which inbound marketing software supports multi-channel campaigns?
-- [w] Where can I get inbound marketing tools with AI-powered content suggestions?
-- [w] Which inbound marketing platforms offer free trials or demos?
-- [w] What inbound marketing services include lead scoring features?
+- [X] Which inbound marketing services include social media management?
+- [X] What inbound marketing platforms offer scalable pricing plans?
+- [X] Which inbound marketing software supports multi-channel campaigns?
+- [X] Where can I get inbound marketing tools with AI-powered content suggestions?
+- [X] Which inbound marketing platforms offer free trials or demos?
+- [X] What inbound marketing services include lead scoring features?
 
 ## Batch 9 — English: AI CRM vs Salesforce (13)
 
 - [X] What are the top AI CRM solutions in the United States comparable to Salesforce?
 - [X] Where can I find AI CRM solutions like Salesforce near me in the United States?
-- [w] Which AI CRM providers in the United States offer the best integration features similar to Salesforce?
-- [w] How does Salesforce AI CRM compare to other CRM companies in the United States?
-- [w] What are the best alternatives to Salesforce for AI-powered CRM in the United States?
-- [w] Where to buy AI CRM solutions from companies competing with Salesforce in the United States?
-- [w] Which AI CRM vendors in the United States provide the most advanced automation like Salesforce?
+- [X] Which AI CRM providers in the United States offer the best integration features similar to Salesforce?
+- [X] How does Salesforce AI CRM compare to other CRM companies in the United States?
+- [X] What are the best alternatives to Salesforce for AI-powered CRM in the United States?
+- [X] Where to buy AI CRM solutions from companies competing with Salesforce in the United States?
+- [X] Which AI CRM vendors in the United States provide the most advanced automation like Salesforce?
 - [ ] What AI CRM platforms in the United States offer pricing competitive with Salesforce?
 - [ ] Which companies in the United States offer AI-driven CRM solutions similar to Salesforce for large enterprises?
 - [ ] What local AI CRM providers in the United States compete directly with Salesforce's AI capabilities?
@@ -159,13 +159,13 @@
 - [X] كيف أقارن بين حلول إدارة علاقات العملاء بالذكاء الاصطناعي المتاحة في السوق؟
 - [X] أي برنامج إدارة علاقات العملاء بالذكاء الاصطناعي يناسب قطاع التجارة الإلكترونية؟
 - [X] هل يوجد نظام إدارة علاقات العملاء بالذكاء الاصطناعي يدعم اللغة العربية بشكل كامل؟
-- [w] ما أفضل خيارات إدارة علاقات العملاء بالذكاء الاصطناعي التي تقدم تحليلات متقدمة؟
-- [w] كيف أختار منصة إدارة علاقات العملاء بالذكاء الاصطناعي التي تتكامل مع أنظمة ERP؟
-- [w] أي نظام إدارة علاقات العملاء بالذكاء الاصطناعي يوفر دعمًا مباشرًا للعملاء عبر الدردشة الحية؟
-- [w] ما الفرق بين Salesforce وأنظمة إدارة علاقات العملاء بالذكاء الاصطناعي الأخرى؟
-- [w] هل يوجد نظام إدارة علاقات العملاء بالذكاء الاصطناعي مناسب للشركات في مصر؟
-- [w] أفضل حلول إدارة علاقات العملاء بالذكاء الاصطناعي التي تقدم أتمتة التسويق؟
-- [w] ما هو النظام الأنسب لإدارة علاقات العملاء بالذكاء الاصطناعي للشركات التي تعتمد على المبيعات عبر الهاتف؟
+- [X] ما أفضل خيارات إدارة علاقات العملاء بالذكاء الاصطناعي التي تقدم تحليلات متقدمة؟
+- [X] كيف أختار منصة إدارة علاقات العملاء بالذكاء الاصطناعي التي تتكامل مع أنظمة ERP؟
+- [X] أي نظام إدارة علاقات العملاء بالذكاء الاصطناعي يوفر دعمًا مباشرًا للعملاء عبر الدردشة الحية؟
+- [X] ما الفرق بين Salesforce وأنظمة إدارة علاقات العملاء بالذكاء الاصطناعي الأخرى؟
+- [X] هل يوجد نظام إدارة علاقات العملاء بالذكاء الاصطناعي مناسب للشركات في مصر؟
+- [X] أفضل حلول إدارة علاقات العملاء بالذكاء الاصطناعي التي تقدم أتمتة التسويق؟
+- [X] ما هو النظام الأنسب لإدارة علاقات العملاء بالذكاء الاصطناعي للشركات التي تعتمد على المبيعات عبر الهاتف؟
 - [ ] هل يمكنني تجربة نظام إدارة علاقات العملاء بالذكاء الاصطناعي مجانًا قبل الشراء؟
 - [ ] أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي التي تدعم تقارير المبيعات وتحليل الأداء بشكل مفصل؟
 - [ ] ما أفضل نظام إدارة علاقات العملاء بالذكاء الاصطناعي الذي يمكن تخصيصه حسب احتياجات الشركة؟
