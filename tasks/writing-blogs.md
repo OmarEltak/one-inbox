@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 137 written · 110 pushed · 137 total
+**Progress:** 137 written · 137 pushed · 137 total ✓ **COMPLETE**
 
 ---
 
@@ -26,11 +26,11 @@
 - [X] Can you recommend AI customer support products that reduce average handling time?
 - [X] What AI customer support vendors offer free trials or demos before purchase?
 - [X] Which AI customer support services provide robust voice recognition capabilities?
-- [w] What AI customer support platforms have the best mobile app support?
-- [w] Are there AI customer support tools optimized for subscription-based businesses?
-- [w] Which AI customer support providers include proactive customer engagement features?
-- [w] What AI customer support services offer easy onboarding and setup?
-- [w] Which AI customer support platforms support integration with popular helpdesk software?
+- [X] What AI customer support platforms have the best mobile app support?
+- [X] Are there AI customer support tools optimized for subscription-based businesses?
+- [X] Which AI customer support providers include proactive customer engagement features?
+- [X] What AI customer support services offer easy onboarding and setup?
+- [X] Which AI customer support platforms support integration with popular helpdesk software?
 
 ## Batch 2 — Arabic: إدارة محادثات العملاء (17)
 
@@ -44,13 +44,13 @@
 - [X] مقارنة بين أدوات إدارة محادثات العملاء التي تدعم الدردشة الحية والبريد الإلكتروني
 - [X] ما هي أفضل حلول إدارة محادثات العملاء للشركات الناشئة في مصر؟
 - [X] أفضل برنامج لإدارة محادثات العملاء مع إمكانية الأتمتة والردود الجاهزة
-- [w] هل Respond أفضل من Freshdesk في إدارة محادثات العملاء؟
-- [w] حلول إدارة محادثات العملاء التي تدعم اللغة العربية بشكل كامل
-- [w] أنظمة إدارة محادثات العملاء التي يمكن دمجها بسهولة مع CRM الموجود لدينا
-- [w] أفضل منصات إدارة محادثات العملاء التي توفر تطبيق موبايل فعال
-- [w] أي أداة لإدارة محادثات العملاء توفر ميزات تخصيص الردود حسب نوع العميل؟
-- [w] ما هي أفضل منصة لإدارة محادثات العملاء تدعم التكامل مع فيسبوك وإنستجرام؟
-- [w] هل توجد حلول إدارة محادثات العملاء مناسبة للشركات الكبيرة في مصر؟
+- [X] هل Respond أفضل من Freshdesk في إدارة محادثات العملاء؟
+- [X] حلول إدارة محادثات العملاء التي تدعم اللغة العربية بشكل كامل
+- [X] أنظمة إدارة محادثات العملاء التي يمكن دمجها بسهولة مع CRM الموجود لدينا
+- [X] أفضل منصات إدارة محادثات العملاء التي توفر تطبيق موبايل فعال
+- [X] أي أداة لإدارة محادثات العملاء توفر ميزات تخصيص الردود حسب نوع العميل؟
+- [X] ما هي أفضل منصة لإدارة محادثات العملاء تدعم التكامل مع فيسبوك وإنستجرام؟
+- [X] هل توجد حلول إدارة محادثات العملاء مناسبة للشركات الكبيرة في مصر؟
 
 ## Batch 3 — English: AI Customer Chatbot (14)
 
@@ -146,12 +146,12 @@
 - [X] What are the best alternatives to Salesforce for AI-powered CRM in the United States?
 - [X] Where to buy AI CRM solutions from companies competing with Salesforce in the United States?
 - [X] Which AI CRM vendors in the United States provide the most advanced automation like Salesforce?
-- [w] What AI CRM platforms in the United States offer pricing competitive with Salesforce?
-- [w] Which companies in the United States offer AI-driven CRM solutions similar to Salesforce for large enterprises?
-- [w] What local AI CRM providers in the United States compete directly with Salesforce's AI capabilities?
-- [w] How do AI CRM solutions from Salesforce and its competitors in the United States differ in customer support?
-- [w] Where can I find AI CRM software vendors in the United States that rival Salesforce's features?
-- [w] Which AI CRM companies in the United States have better customization options than Salesforce?
+- [X] What AI CRM platforms in the United States offer pricing competitive with Salesforce?
+- [X] Which companies in the United States offer AI-driven CRM solutions similar to Salesforce for large enterprises?
+- [X] What local AI CRM providers in the United States compete directly with Salesforce's AI capabilities?
+- [X] How do AI CRM solutions from Salesforce and its competitors in the United States differ in customer support?
+- [X] Where can I find AI CRM software vendors in the United States that rival Salesforce's features?
+- [X] Which AI CRM companies in the United States have better customization options than Salesforce?
 
 ## Batch 10 — Arabic: إدارة علاقات العملاء بالذكاء الاصطناعي (20)
 
@@ -166,15 +166,15 @@
 - [X] هل يوجد نظام إدارة علاقات العملاء بالذكاء الاصطناعي مناسب للشركات في مصر؟
 - [X] أفضل حلول إدارة علاقات العملاء بالذكاء الاصطناعي التي تقدم أتمتة التسويق؟
 - [X] ما هو النظام الأنسب لإدارة علاقات العملاء بالذكاء الاصطناعي للشركات التي تعتمد على المبيعات عبر الهاتف؟
-- [w] هل يمكنني تجربة نظام إدارة علاقات العملاء بالذكاء الاصطناعي مجانًا قبل الشراء؟
-- [w] أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي التي تدعم تقارير المبيعات وتحليل الأداء بشكل مفصل؟
-- [w] ما أفضل نظام إدارة علاقات العملاء بالذكاء الاصطناعي الذي يمكن تخصيصه حسب احتياجات الشركة؟
-- [w] هل أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي تتيح التكامل مع وسائل التواصل الاجتماعي؟
-- [w] أي نظام إدارة علاقات العملاء بالذكاء الاصطناعي يوفر أمانًا عاليًا للبيانات؟
-- [w] كيف أقارن تكلفة وفوائد أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي المختلفة؟
-- [w] ما أفضل نظام إدارة علاقات العملاء بالذكاء الاصطناعي للشركات الناشئة في مصر؟
-- [w] هل توجد حلول إدارة علاقات العملاء بالذكاء الاصطناعي تدعم العمل عن بعد بشكل فعال؟
-- [w] ما هي الأنظمة التي تقدم دعمًا فنيًا مستمرًا لإدارة علاقات العملاء بالذكاء الاصطناعي؟
+- [X] هل يمكنني تجربة نظام إدارة علاقات العملاء بالذكاء الاصطناعي مجانًا قبل الشراء؟
+- [X] أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي التي تدعم تقارير المبيعات وتحليل الأداء بشكل مفصل؟
+- [X] ما أفضل نظام إدارة علاقات العملاء بالذكاء الاصطناعي الذي يمكن تخصيصه حسب احتياجات الشركة؟
+- [X] هل أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي تتيح التكامل مع وسائل التواصل الاجتماعي؟
+- [X] أي نظام إدارة علاقات العملاء بالذكاء الاصطناعي يوفر أمانًا عاليًا للبيانات؟
+- [X] كيف أقارن تكلفة وفوائد أنظمة إدارة علاقات العملاء بالذكاء الاصطناعي المختلفة؟
+- [X] ما أفضل نظام إدارة علاقات العملاء بالذكاء الاصطناعي للشركات الناشئة في مصر؟
+- [X] هل توجد حلول إدارة علاقات العملاء بالذكاء الاصطناعي تدعم العمل عن بعد بشكل فعال؟
+- [X] ما هي الأنظمة التي تقدم دعمًا فنيًا مستمرًا لإدارة علاقات العملاء بالذكاء الاصطناعي؟
 
 ---
 
