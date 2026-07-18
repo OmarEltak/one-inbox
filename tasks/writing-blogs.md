@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 154 written · 144 pushed · 154 total (Batch 9 competitor push in progress)
+**Progress:** 154 written · 154 pushed · 154 total ✓ **COMPLETE (137 seed + 17 competitor)**
 
 ---
 
@@ -180,16 +180,16 @@
 
 ## Batch 9 — Competitor SEO Round 2 (10 more high-intent blogs)
 
-- [w] OT1-Pro vs WATI: Which WhatsApp Business CRM Wins in 2026
-- [w] OT1-Pro vs Interakt: Best WhatsApp Business Suite 2026
-- [w] OT1-Pro vs AiSensy: WhatsApp Business Automation Compared
-- [w] OT1-Pro vs Trengo: Multichannel Inbox Compared
-- [w] 7 Best ManyChat Alternatives for 2026 (Ranked)
-- [w] 5 Best Respond.io Alternatives for 2026 (Pricing Compared)
-- [w] OT1-Pro vs Zendesk Chat: When to Choose Each in 2026
-- [w] OT1-Pro vs HubSpot Service Hub: Real Comparison for Growing Teams
-- [w] ManyChat Pricing Calculator: What You'll Actually Pay in 2026
-- [w] Respond.io Pricing Explained: Hidden Costs and Alternatives
+- [X] OT1-Pro vs WATI: Which WhatsApp Business CRM Wins in 2026
+- [X] OT1-Pro vs Interakt: Best WhatsApp Business Suite 2026
+- [X] OT1-Pro vs AiSensy: WhatsApp Business Automation Compared
+- [X] OT1-Pro vs Trengo: Multichannel Inbox Compared
+- [X] 7 Best ManyChat Alternatives for 2026 (Ranked)
+- [X] 5 Best Respond.io Alternatives for 2026 (Pricing Compared)
+- [X] OT1-Pro vs Zendesk Chat: When to Choose Each in 2026
+- [X] OT1-Pro vs HubSpot Service Hub: Real Comparison for Growing Teams
+- [X] ManyChat Pricing Calculator: What You'll Actually Pay in 2026
+- [X] Respond.io Pricing Explained: Hidden Costs and Alternatives
 
 ## Batch 8 — Competitor SEO (7 blogs, high-intent bottom-funnel)
 
