@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 137 written · 137 pushed · 137 total ✓ **COMPLETE**
+**Progress:** 144 written · 137 pushed · 144 total (Batch 8 competitor push in progress)
 
 ---
 
@@ -177,6 +177,16 @@
 - [X] ما هي الأنظمة التي تقدم دعمًا فنيًا مستمرًا لإدارة علاقات العملاء بالذكاء الاصطناعي؟
 
 ---
+
+## Batch 8 — Competitor SEO (7 blogs, high-intent bottom-funnel)
+
+- [w] chats.com, chat man, my manychat: The Real Cost of Legacy Messenger Chatbots in 2026
+- [w] OT1-Pro vs ManyChat: Full Feature Comparison (2026)
+- [w] Why OT1-Pro Costs Up to 60% Less Than ManyChat (Real Math)
+- [w] Migrating From ManyChat to OT1-Pro: Step-by-Step Guide
+- [w] OT1-Pro vs Respond.io: The Response AI Showdown 2026
+- [w] The Fastest Response Message + Response Chat AI for WhatsApp Business
+- [w] "I Responded" Isn't Enough — OT1-Pro vs Respond.io (Conversion focus)
 
 ## Workflow
 
