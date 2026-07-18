@@ -5,7 +5,7 @@
 >
 > **Legend:** `[ ]` not started · `[w]` written locally · `[X]` pushed to prod
 
-**Progress:** 154 written · 154 pushed · 154 total ✓ **COMPLETE (137 seed + 17 competitor)**
+**Progress:** 164 written · 164 pushed · 164 total ✓ **COMPLETE (137 seed + 27 competitor)**
 
 ---
 
@@ -177,6 +177,19 @@
 - [X] ما هي الأنظمة التي تقدم دعمًا فنيًا مستمرًا لإدارة علاقات العملاء بالذكاء الاصطناعي؟
 
 ---
+
+## Batch 10 — Competitor SEO Round 3 (10 more, all auto-indexed)
+
+- [X] OT1-Pro vs Gorgias: Best Shopify Support 2026
+- [X] OT1-Pro vs Tidio: Budget-Friendly AI Chatbot 2026
+- [X] OT1-Pro vs LiveChat: Which Chat Platform Wins 2026
+- [X] OT1-Pro vs Crisp: Best Business Messenger 2026
+- [X] OT1-Pro vs Front: Team Inbox for Modern Support 2026
+- [X] WhatsApp Business API Providers 2026: Complete Buyer's List
+- [X] Cheapest WhatsApp Business API Providers 2026 (Real Pricing)
+- [X] Best AI Chatbot for Shopify in 2026 (Complete Comparison)
+- [X] OT1-Pro vs Twilio Studio: When to Choose Which
+- [X] Best Instagram DM Automation Tools of 2026 (Ranked)
 
 ## Batch 9 — Competitor SEO Round 2 (10 more high-intent blogs)
 
