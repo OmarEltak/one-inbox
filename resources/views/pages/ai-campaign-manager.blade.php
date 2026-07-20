@@ -14,8 +14,10 @@
                         {{ __('The chat-driven marketing manager') }}
                     </div>
                     <h1 class="mt-5 text-4xl font-bold leading-[1.05] tracking-tight text-zinc-900 sm:text-5xl lg:text-[52px]">
-                        {{ __('Launch a marketing campaign') }}
-                        <span class="text-indigo-600">{{ __('in seconds.') }}</span>
+                        {{-- TEMPORARY: simplified headline until Meta app review finishes. Restore the lines below afterwards. --}}
+                        {{ __('OT Pro') }}
+                        {{-- {{ __('Launch a marketing campaign') }} --}}
+                        {{-- <span class="text-indigo-600">{{ __('in seconds.') }}</span> --}}
                     </h1>
                     <p class="mt-6 max-w-[36ch] text-base leading-relaxed text-zinc-600 lg:text-lg">
                         {{ __("Tell your AI what to run. It picks the audience, writes the message, and ships it across WhatsApp, Instagram, Facebook, Telegram, and any website's chat widget. You handle the replies in one inbox.") }}
