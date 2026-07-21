@@ -1690,3 +1690,56 @@ Production is now **VPS-hosted**, not Windows. Old topology (Herd + Cloudflare T
 - If Meta app review passes → this whole pipeline becomes dead code (customers OAuth directly). See `$metaVerified` and CLAUDE.md §1.
 - Consider adding a WhatsApp notification (`+201026361218`) as a second channel if email latency proves too slow in practice.
 - Consider surfacing "retry in progress" status to customers in `/super-admin/onboarding-requests` UI so they can see the automator is still working, not silently stuck.
+
+---
+
+## 2026-07-21 — Meta verification investigation + full SEO push (Weeks 1-4)
+
+### Meta app OAuth failure — root cause identified
+
+**Problem:** After business portfolio verification completed, non-admin accounts still saw "Feature unavailable: Facebook Login is currently unavailable for this app" during OAuth. Flipping `META_APP_VERIFIED=true` in prod `.env` didn't help; had to roll back.
+
+**Diagnosis (via developers.facebook.com):** Meta verification is TWO milestones, not one. Business portfolio verification (which we just got) is only the prerequisite. Each individual permission (`public_profile`, `email`, `pages_show_list`, `pages_messaging`, `pages_manage_metadata`, `pages_read_engagement`, `instagram_basic`, `instagram_manage_messages`, `business_management`) must be separately submitted for App Review and receive "Advanced Access". All 13 required permissions currently show "جاهز للاختبار" / "Ready to Test" (Standard Access only = admins/testers only). That's why non-admin OAuth 5xx's.
+
+**Files changed:**
+- `CLAUDE.md` — pin #1 rewritten with the 2-milestone correction, table of required permissions, verification checklist, and rollback command. This was the highest-priority preservation task since the original pin actively misleads future sessions into repeating the same failed flag flip.
+
+**Next step for Omar:** submit the ~9 core permissions for App Review with screencasts + reviewer instructions. Only after each shows "Advanced Access" is it safe to flip `META_APP_VERIFIED=true`.
+
+### Full 4-week SEO push shipped
+
+Ran the diagnostic → plan → execution cycle based on Search Console data (avg position 55.5, 169 impressions/wk, 1 click).
+
+**Week 1 (commit 28cb37c):** Rewrote `/blog/respond-io-pricing-explained-2026` (position 17.6) from ~600 to ~1,680 words. Added regional WhatsApp cost table, 4 real annual cost scenarios, 10-question FAQ, outbound links to Meta docs / G2 / Respond.io ToS. Shipped `BlogController::PRIORITY_SLUGS` internal-linking algorithm: 2 hand-picked slugs get injected into every blog post's related section = ~240 new internal links pointing at 3 SEO targets. Full rationale documented in memory (`seo_priority_slugs_pattern.md`).
+
+**Week 2 (commit d6998a5):** Rewrote `/blog/what-is-unified-inbox-complete-guide-2026` (~700 → 2,000 words) and `/blog/unified-inbox-vs-shared-inbox-vs-team-inbox-difference` (~650 → 2,100 words). Both are the top-2 impression pages after respond-io-pricing. Added 8-channel matrix, ROI math, 5 real scenarios, decision framework, 10-Q FAQ each.
+
+**Week 3 (commit 4a59672):** Shipped 8 programmatic vertical landing pages at `/unified-inbox-for-{role}` for engineering-managers / sales-teams / support-teams / agencies / customer-success-teams / devops-teams / hr-teams / marketing-teams. Validated by Search Console showing "unified inbox for engineering managers" at 22 impressions/day with near-zero competition. Implementation:
+- `app/Http/Controllers/VerticalLandingController.php` — one controller with static ROLES config array (source of truth), `Cache::remember` per role for 6h
+- `resources/views/pages/vertical-landing.blade.php` — single Blade template driven by config
+- `routes/web.php` — route with regex constraint (`->where('role', 'engineering-managers|sales-teams|...')`), sitemap iterator auto-includes all 8
+- Each page: literal-keyword H1, 3 metrics, 4 pain points, 6 use cases, 4-Q FAQ with `FAQPage` schema, cross-links to 7 other role pages with keyword anchors (56 total new internal links across the cluster)
+
+**Week 4 (commit e7c04d2):** Backlinks launch kit shipped as `tasks/backlinks-launch-kit.md` — ready-to-paste copy for Product Hunt (tagline, first-comment, categories), Show HN (3 titles + body), 6 directory submissions (SaaSHub, AlternativeTo, StackShare, G2, Capterra, TAAFT), Reddit strategy, niche community outreach. Requires human execution — accounts, timing, upvote coordination.
+
+**Content batches also shipped this session:**
+- Batch 12 (commit 38bc0d2): 10 blogs filling the Phase 4 gap topics — `automate-whatsapp-replies-human-touch`, `whatsapp-broadcast-vs-groups-sales`, `instagram-lead-generation-dm-automation`, `best-instagram-dm-tools-2026`, `instagram-shopping-dm-automation-funnel`, `build-social-crm-from-scratch`, `social-media-customer-service-playbook`, `ai-sales-chatbots-what-works-2026`, `qualify-leads-whatsapp-instagram-ai`, `whatsapp-sales-scripts-that-convert`. Also reconciled `tasks/seo-plan.md` — the Phase 4 checklist was heavily stale, most items were already shipped.
+- Batch 13 (commit 1fc9419): 10 blogs on the AI closing sales cluster targeting specific keywords per post — `how-ai-closes-sales-guide`, `ai-sales-closer-deploy-guide`, `ai-objection-handling-scripts`, `conversational-ai-for-sales`, `ai-follow-up-sequences-cadence`, `ai-sales-negotiation-guide`, `ai-cold-outreach-book-meetings`, `ai-sales-assistant-vs-sdr`, `ai-voice-agents-sales`, `ai-sales-funnel-automation`.
+
+**Pattern learned:** `<<<HTML` (interpolated heredocs) silently mangle content with `$X`, `$0.30`, `$79/mo` because PHP tries to interpolate those as variables. Switched all new content seeders to `<<<'HTML'` (nowdoc) + `{{CTA}}` placeholder + `str_replace` in `run()`. Documented in memory (`seo_content_seeder_conventions.md`).
+
+### Small home-page copy edit
+Temporary hero swap to "OT Pro" during Meta app review — reverted on same day once app was flagged verified (though see Meta OAuth issue above for the follow-up correction). Commits: `3ce69ea` (swap in), `49509ea` (revert).
+
+### Verification results
+- All 4 SEO weeks: URLs return 200 on prod, content renders, schema validates.
+- Priority-slugs pattern working: `curl` on a random blog post confirmed `respond-io-pricing-explained-2026` and `what-is-unified-inbox-complete-guide-2026` in the related-articles section.
+- 8 vertical landing pages: all 200 on prod, invalid role slugs return 404 (route constraint working).
+- Sitemap: 8 new URLs present.
+- Meta rollback: `config('services.meta.app_verified')` confirmed `false` on prod after `sed -i '/^META_APP_VERIFIED=/d' .env && php artisan config:cache`.
+
+### Follow-ups worth tracking
+- Watch Search Console weekly for the 3 priority slugs — expected position improvement 10-20 within 30 days from the content rewrites + internal linking compound.
+- After Meta approves the ~9 core permissions (Advanced Access), flip `META_APP_VERIFIED=true` — but only then, per corrected CLAUDE.md pin #1.
+- Execute the Product Hunt launch when Omar picks a Tuesday/Wednesday date. Materials ready in `tasks/backlinks-launch-kit.md`.
+- Batches 12/13 URLs still need Search Console indexing submission (Days 8 & 9 in `tasks/seo-indexing-plan.md`).

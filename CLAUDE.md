@@ -6,7 +6,18 @@
 
 ## Non-negotiable pins (things sessions have actually broken)
 
-1. **`$metaVerified` in `resources/views/livewire/connections/index.blade.php` IS defined** — as a Blade `@php` var reading `config('services.meta.app_verified')`. **Do NOT** rewrite it as a Livewire property. **Do NOT** default it to `true` "to restore the OAuth button" — Meta rejects unverified apps at the OAuth callback, so real customers can't use it. When Meta approves us, the fix is `META_APP_VERIFIED=true` in `.env`. See ARCHITECTURE §1.
+1. **`$metaVerified` in `resources/views/livewire/connections/index.blade.php` IS defined** — as a Blade `@php` var reading `config('services.meta.app_verified')`. **Do NOT** rewrite it as a Livewire property. **Do NOT** default it to `true` "to restore the OAuth button" — Meta rejects unverified apps at the OAuth callback, so real customers can't use it. See ARCHITECTURE §1.
+
+   **⚠️ CRITICAL CORRECTION (2026-07-21):** Meta "verification" is TWO separate milestones, not one. Both must be complete before flipping `META_APP_VERIFIED=true`:
+
+   | Milestone | Where | Effect |
+   |---|---|---|
+   | (a) **Business Portfolio Verification** (OT1 Pro, ID `2169075923895403`) | Meta Business Suite → Security Center | Prerequisite. Unlocks the ability to submit App Review. Does NOT unlock OAuth. |
+   | (b) **App Review with Advanced Access** on each permission (`public_profile`, `email`, `pages_show_list`, `pages_messaging`, `pages_manage_metadata`, `pages_read_engagement`, `instagram_basic`, `instagram_manage_messages`, `business_management`) | developers.facebook.com/apps/1469090344742803 → Use Cases → Permissions | Each permission must show "Advanced Access" (not "جاهز للاختبار" / "Ready to Test", which = Standard Access = admins/testers only). Without this, non-admin OAuth returns *"Feature unavailable: Facebook Login is currently unavailable for this app"*. |
+
+   **How to verify before flipping the flag:** Log in to developers.facebook.com, open the "Facebook Messaging" use case, and confirm every permission the app requires shows "Advanced Access". If any show "Ready to Test" / "جاهز للاختبار" / blank, DO NOT flip the flag — real customers will still get the "Feature unavailable" error and the direct-OAuth button will be worse than the managed-onboarding fallback.
+
+   **Rollback:** `ssh root@187.77.67.94 "cd /var/www/ot1-pro.com && sed -i '/^META_APP_VERIFIED=/d' .env && php artisan config:cache"` (a timestamped `.env.bak.*` is preserved from any prior flip).
 
 2. **Managed onboarding is the current OAuth alternative.** Customers use "Request connection" → super-admin OAuths through their own OT account → super-admin re-assigns the `Page` to the customer team at `/super-admin/onboarding-requests`. **Do NOT** remove or "simplify" this flow. See ARCHITECTURE §1.
 
