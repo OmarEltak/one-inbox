@@ -167,6 +167,32 @@ Note: these are indexed under the same English URL (Google treats `/blog/{slug}`
 
 ---
 
+## Day 10 — Vertical landing pages: "unified inbox for [role]" (published 2026-07-21)
+
+8 programmatic landing pages targeting long-tail role-specific keywords. Validated by Search Console showing 22 impressions/day for "unified inbox for engineering managers" alone with near-zero competition. Each URL is a full landing page (hero + pain points + 6 use cases + FAQ schema + CTA).
+
+| # | URL | Target keyword |
+|---|---|---|
+| 1 | https://ot1-pro.com/unified-inbox-for-engineering-managers | unified inbox for engineering managers |
+| 2 | https://ot1-pro.com/unified-inbox-for-sales-teams | unified inbox for sales teams |
+| 3 | https://ot1-pro.com/unified-inbox-for-support-teams | unified inbox for support teams |
+| 4 | https://ot1-pro.com/unified-inbox-for-agencies | unified inbox for agencies |
+| 5 | https://ot1-pro.com/unified-inbox-for-customer-success-teams | unified inbox for customer success |
+| 6 | https://ot1-pro.com/unified-inbox-for-devops-teams | unified inbox for devops |
+| 7 | https://ot1-pro.com/unified-inbox-for-hr-teams | unified inbox for hr teams |
+| 8 | https://ot1-pro.com/unified-inbox-for-marketing-teams | unified inbox for marketing teams |
+
+- [ ] https://ot1-pro.com/unified-inbox-for-engineering-managers
+- [ ] https://ot1-pro.com/unified-inbox-for-sales-teams
+- [ ] https://ot1-pro.com/unified-inbox-for-support-teams
+- [ ] https://ot1-pro.com/unified-inbox-for-agencies
+- [ ] https://ot1-pro.com/unified-inbox-for-customer-success-teams
+- [ ] https://ot1-pro.com/unified-inbox-for-devops-teams
+- [ ] https://ot1-pro.com/unified-inbox-for-hr-teams
+- [ ] https://ot1-pro.com/unified-inbox-for-marketing-teams
+
+---
+
 ## Day 9 — Batch 13: AI closing sales cluster (published 2026-07-21)
 
 10 English posts targeting the "AI closing sales" keyword cluster — high commercial intent, buyer-stage traffic. Each post targets one specific keyword phrase.

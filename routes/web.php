@@ -58,6 +58,12 @@ Route::view('industries/agencies', 'pages.industries.agencies')->name('industry.
 Route::view('industries/restaurants', 'pages.industries.restaurants')->name('industry.restaurants');
 Route::view('industries/education', 'pages.industries.education')->name('industry.education');
 
+// Programmatic vertical landing pages targeting "unified inbox for [role]"
+// long-tail keywords. Route constraint list must match VerticalLandingController::ROLES keys.
+Route::get('unified-inbox-for-{role}', [\App\Http\Controllers\VerticalLandingController::class, 'show'])
+    ->where('role', 'engineering-managers|sales-teams|support-teams|agencies|customer-success-teams|devops-teams|hr-teams|marketing-teams')
+    ->name('vertical-landing');
+
 // Public status page for Meta data deletion requests (referenced from the
 // callback's JSON response so end-users can check status).
 Route::get('data-deletion/status/{code}', [\App\Http\Controllers\Webhooks\MetaDataDeletionController::class, 'status'])
@@ -104,12 +110,25 @@ Route::get('sitemap.xml', function () {
         ['loc' => url('/industries/agencies'),       'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/industries/restaurants'),    'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/industries/education'),      'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+    ];
+
+    // Programmatic vertical landing pages — one per supported role
+    foreach (\App\Http\Controllers\VerticalLandingController::roleSlugs() as $roleSlug) {
+        $pages[] = [
+            'loc'        => url('/unified-inbox-for-' . $roleSlug),
+            'priority'   => '0.8',
+            'changefreq' => 'monthly',
+            'lastmod'    => $today,
+        ];
+    }
+
+    $pages = array_merge($pages, [
         ['loc' => url('/about'),                     'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/contact'),                   'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/privacy'),                   'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2025-01-01'],
         ['loc' => url('/terms'),                     'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2025-01-01'],
         ['loc' => url('/refund'),                    'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2026-07-04'],
-    ];
+    ]);
 
     // Add published blog posts
     $posts       = \App\Models\Post::published()->orderByDesc('published_at')->get();
