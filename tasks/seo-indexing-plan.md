@@ -117,23 +117,6 @@ No referring sitemaps detected
 
 ---
 
-## Day 8 — Batch 12: Phase 4 gap-fill (published 2026-07-21)
-
-10 new English posts filling the gaps between the Phase 4 SEO plan and what was already shipped. Topics: WhatsApp automation, Instagram DM funnels, AI sales chatbots, social CRM, lead qualification, sales scripts.
-
-- [ ] https://ot1-pro.com/blog/automate-whatsapp-replies-human-touch
-- [ ] https://ot1-pro.com/blog/whatsapp-broadcast-vs-groups-sales
-- [ ] https://ot1-pro.com/blog/instagram-lead-generation-dm-automation
-- [ ] https://ot1-pro.com/blog/best-instagram-dm-tools-2026
-- [ ] https://ot1-pro.com/blog/instagram-shopping-dm-automation-funnel
-- [ ] https://ot1-pro.com/blog/build-social-crm-from-scratch
-- [ ] https://ot1-pro.com/blog/social-media-customer-service-playbook
-- [ ] https://ot1-pro.com/blog/ai-sales-chatbots-what-works-2026
-- [ ] https://ot1-pro.com/blog/qualify-leads-whatsapp-instagram-ai
-- [ ] https://ot1-pro.com/blog/whatsapp-sales-scripts-that-convert
-
----
-
 ## Day 7 — Egyptian Arabic articles (published 2026-07-12)
 
 10 new Arabic posts targeting Egyptian search intent — dialect keywords ("إزاي", "عايز", "دلوقتي") pointing back to product and industry pages.
@@ -164,6 +147,53 @@ No referring sitemaps detected
 | `bot-mabee3at-yebee3-badal-mowazafeen` | بوت مبيعات AI |
 
 Note: these are indexed under the same English URL (Google treats `/blog/{slug}` as one URL regardless of content language, and detects Arabic content from `lang="ar"` and `dir="rtl"` attributes on the page). No `?lang=ar` needed.
+
+---
+
+## Day 8 — Batch 12: Phase 4 gap-fill (published 2026-07-21)
+
+10 new English posts filling the gaps between the Phase 4 SEO plan and what was already shipped. Topics: WhatsApp automation, Instagram DM funnels, AI sales chatbots, social CRM, lead qualification, sales scripts.
+
+- [ ] https://ot1-pro.com/blog/automate-whatsapp-replies-human-touch
+- [ ] https://ot1-pro.com/blog/whatsapp-broadcast-vs-groups-sales
+- [ ] https://ot1-pro.com/blog/instagram-lead-generation-dm-automation
+- [ ] https://ot1-pro.com/blog/best-instagram-dm-tools-2026
+- [ ] https://ot1-pro.com/blog/instagram-shopping-dm-automation-funnel
+- [ ] https://ot1-pro.com/blog/build-social-crm-from-scratch
+- [ ] https://ot1-pro.com/blog/social-media-customer-service-playbook
+- [ ] https://ot1-pro.com/blog/ai-sales-chatbots-what-works-2026
+- [ ] https://ot1-pro.com/blog/qualify-leads-whatsapp-instagram-ai
+- [ ] https://ot1-pro.com/blog/whatsapp-sales-scripts-that-convert
+
+---
+
+## Day 9 — Batch 13: AI closing sales cluster (published 2026-07-21)
+
+10 English posts targeting the "AI closing sales" keyword cluster — high commercial intent, buyer-stage traffic. Each post targets one specific keyword phrase.
+
+| # | URL | Target keyword |
+|---|---|---|
+| 1 | https://ot1-pro.com/blog/how-ai-closes-sales-guide | how ai closes sales |
+| 2 | https://ot1-pro.com/blog/ai-sales-closer-deploy-guide | ai sales closer |
+| 3 | https://ot1-pro.com/blog/ai-objection-handling-scripts | ai objection handling |
+| 4 | https://ot1-pro.com/blog/conversational-ai-for-sales | conversational ai for sales |
+| 5 | https://ot1-pro.com/blog/ai-follow-up-sequences-cadence | ai follow up sales |
+| 6 | https://ot1-pro.com/blog/ai-sales-negotiation-guide | ai sales negotiation |
+| 7 | https://ot1-pro.com/blog/ai-cold-outreach-book-meetings | ai cold outreach |
+| 8 | https://ot1-pro.com/blog/ai-sales-assistant-vs-sdr | ai sales assistant vs sdr |
+| 9 | https://ot1-pro.com/blog/ai-voice-agents-sales | ai voice agent sales |
+| 10 | https://ot1-pro.com/blog/ai-sales-funnel-automation | ai sales funnel automation |
+
+- [ ] https://ot1-pro.com/blog/how-ai-closes-sales-guide
+- [ ] https://ot1-pro.com/blog/ai-sales-closer-deploy-guide
+- [ ] https://ot1-pro.com/blog/ai-objection-handling-scripts
+- [ ] https://ot1-pro.com/blog/conversational-ai-for-sales
+- [ ] https://ot1-pro.com/blog/ai-follow-up-sequences-cadence
+- [ ] https://ot1-pro.com/blog/ai-sales-negotiation-guide
+- [ ] https://ot1-pro.com/blog/ai-cold-outreach-book-meetings
+- [ ] https://ot1-pro.com/blog/ai-sales-assistant-vs-sdr
+- [ ] https://ot1-pro.com/blog/ai-voice-agents-sales
+- [ ] https://ot1-pro.com/blog/ai-sales-funnel-automation
 
 ---
 
