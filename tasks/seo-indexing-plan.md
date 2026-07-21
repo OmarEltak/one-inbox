@@ -32,6 +32,9 @@ Takes about 15 minutes per day for 10 URLs.
 
 --- x mean requested 
 
+most of our blogs Sitemaps have this why?
+No referring sitemaps detected
+
 ## Day 1 — Money pages (buying intent, highest ROI)
 
 - [x] https://ot1-pro.com/pricing
@@ -53,12 +56,12 @@ Takes about 15 minutes per day for 10 URLs.
 - [x] https://ot1-pro.com/industries/restaurants
 - [x] https://ot1-pro.com/about
 - [x] https://ot1-pro.com/contact
-- [ ] https://ot1-pro.com/blog/whatsapp-crm-complete-guide
-- [ ] https://ot1-pro.com/blog/best-whatsapp-business-inbox-tools-2025
-- [ ] https://ot1-pro.com/blog/unified-social-inbox-guide
-- [ ] https://ot1-pro.com/blog/shared-whatsapp-inbox-team-setup
-- [ ] https://ot1-pro.com/blog/instagram-dm-management-for-business
-- [ ] https://ot1-pro.com/blog/manage-whatsapp-business-messages-at-scale
+- [x ] https://ot1-pro.com/blog/whatsapp-crm-complete-guide
+- [x ] https://ot1-pro.com/blog/best-whatsapp-business-inbox-tools-2025
+- [x ] https://ot1-pro.com/blog/unified-social-inbox-guide
+- [x ] https://ot1-pro.com/blog/shared-whatsapp-inbox-team-setup
+- [x ] https://ot1-pro.com/blog/instagram-dm-management-for-business
+- [x ] https://ot1-pro.com/blog/manage-whatsapp-business-messages-at-scale
 
 ---
 
@@ -72,45 +75,62 @@ Takes about 15 minutes per day for 10 URLs.
 - [ ] https://ot1-pro.com/blog/whatsapp-ecommerce-cart-recovery
 - [ ] https://ot1-pro.com/blog/whatsapp-vs-sms-business
 - [ ] https://ot1-pro.com/blog/manage-multiple-whatsapp-numbers
-- [ ] https://ot1-pro.com/blog/ai-sales-responder-whatsapp
+- [x ] https://ot1-pro.com/blog/ai-sales-responder-whatsapp
 - [ ] https://ot1-pro.com/blog/auto-reply-instagram-comments-ai
 
 ---
 
 ## Day 4 — Instagram + AI content
 
-- [ ] https://ot1-pro.com/blog/instagram-dm-scripts-convert
-- [ ] https://ot1-pro.com/blog/instagram-comments-to-dms
-- [ ] https://ot1-pro.com/blog/manage-instagram-dms-large-team
-- [ ] https://ot1-pro.com/blog/instagram-vs-facebook-customer-service
-- [ ] https://ot1-pro.com/blog/ai-lead-scoring
-- [ ] https://ot1-pro.com/blog/ai-sales-prompt-closes-deals
-- [ ] https://ot1-pro.com/blog/ai-vs-human-support-handoff
-- [ ] https://ot1-pro.com/blog/ai-increase-social-media-sales
-- [ ] https://ot1-pro.com/blog/set-up-ai-sales-bot
-- [ ] https://ot1-pro.com/blog/roi-ai-social-media-support
+- [x ] https://ot1-pro.com/blog/instagram-dm-scripts-convert
+- [x ] https://ot1-pro.com/blog/instagram-comments-to-dms
+- [x ] https://ot1-pro.com/blog/manage-instagram-dms-large-team
+- [x ] https://ot1-pro.com/blog/instagram-vs-facebook-customer-service
+- [x ] https://ot1-pro.com/blog/ai-lead-scoring
+- [x ] https://ot1-pro.com/blog/ai-sales-prompt-closes-deals
+- [x ] https://ot1-pro.com/blog/ai-vs-human-support-handoff
+- [x ] https://ot1-pro.com/blog/ai-increase-social-media-sales
+- [x ] https://ot1-pro.com/blog/set-up-ai-sales-bot
+- [x ] https://ot1-pro.com/blog/roi-ai-social-media-support
 
 ---
 
 ## Day 5 — Team/scale + Facebook/Telegram
 
-- [ ] https://ot1-pro.com/blog/scale-customer-support-without-hiring
+- [x ] https://ot1-pro.com/blog/scale-customer-support-without-hiring
 - [ ] https://ot1-pro.com/blog/social-inbox-setup-1-hour
-- [ ] https://ot1-pro.com/blog/social-response-time-benchmarks
+- [x ] https://ot1-pro.com/blog/social-response-time-benchmarks
 - [ ] https://ot1-pro.com/blog/reduce-social-response-time-80-percent
 - [ ] https://ot1-pro.com/blog/team-inbox-setup-assign-manage
-- [ ] https://ot1-pro.com/blog/manage-1000-social-messages-per-day
+- [x ] https://ot1-pro.com/blog/manage-1000-social-messages-per-day
 - [ ] https://ot1-pro.com/blog/manage-telegram-business-scale
-- [ ] https://ot1-pro.com/blog/facebook-messenger-business-guide
-- [ ] https://ot1-pro.com/blog/connect-facebook-page-crm
+- [ ] https://ot1-pro.com/blog/facebook-messenger-business-guide     Incorrect value type "inLanguage": &quot;en&quot;,
+- [x ] https://ot1-pro.com/blog/connect-facebook-page-crm   
 - [ ] https://ot1-pro.com/blog/unified-inbox-vs-separate-apps
 
 ---
 
 ## Day 6 — Cleanup
 
-- [ ] https://ot1-pro.com/blog/track-social-media-leads-crm
+- [x ] https://ot1-pro.com/blog/track-social-media-leads-crm
 - [ ] https://ot1-pro.com/terms
+
+---
+
+## Day 8 — Batch 12: Phase 4 gap-fill (published 2026-07-21)
+
+10 new English posts filling the gaps between the Phase 4 SEO plan and what was already shipped. Topics: WhatsApp automation, Instagram DM funnels, AI sales chatbots, social CRM, lead qualification, sales scripts.
+
+- [ ] https://ot1-pro.com/blog/automate-whatsapp-replies-human-touch
+- [ ] https://ot1-pro.com/blog/whatsapp-broadcast-vs-groups-sales
+- [ ] https://ot1-pro.com/blog/instagram-lead-generation-dm-automation
+- [ ] https://ot1-pro.com/blog/best-instagram-dm-tools-2026
+- [ ] https://ot1-pro.com/blog/instagram-shopping-dm-automation-funnel
+- [ ] https://ot1-pro.com/blog/build-social-crm-from-scratch
+- [ ] https://ot1-pro.com/blog/social-media-customer-service-playbook
+- [ ] https://ot1-pro.com/blog/ai-sales-chatbots-what-works-2026
+- [ ] https://ot1-pro.com/blog/qualify-leads-whatsapp-instagram-ai
+- [ ] https://ot1-pro.com/blog/whatsapp-sales-scripts-that-convert
 
 ---
 
@@ -118,16 +138,16 @@ Takes about 15 minutes per day for 10 URLs.
 
 10 new Arabic posts targeting Egyptian search intent — dialect keywords ("إزاي", "عايز", "دلوقتي") pointing back to product and industry pages.
 
-- [ ] https://ot1-pro.com/blog/edarat-rasael-whatsapp-lil-farik
-- [ ] https://ot1-pro.com/blog/ai-yerudd-3ala-3omalak-bel-3arabi
-- [ ] https://ot1-pro.com/blog/rasael-instagram-lil-3amal
-- [ ] https://ot1-pro.com/blog/whatsapp-lil-3aqarat-fi-masr
-- [ ] https://ot1-pro.com/blog/whatsapp-lil-tijara-electronia
-- [ ] https://ot1-pro.com/blog/whatsapp-lil-mata3em-wel-delivery
+- [x ] https://ot1-pro.com/blog/edarat-rasael-whatsapp-lil-farik
+- [x ] https://ot1-pro.com/blog/ai-yerudd-3ala-3omalak-bel-3arabi
+- [x ] https://ot1-pro.com/blog/rasael-instagram-lil-3amal
+- [x ] https://ot1-pro.com/blog/whatsapp-lil-3aqarat-fi-masr
+- [x ] https://ot1-pro.com/blog/whatsapp-lil-tijara-electronia
+- [x ] https://ot1-pro.com/blog/whatsapp-lil-mata3em-wel-delivery
 - [ ] https://ot1-pro.com/blog/ai-badal-mowazaf-call-center
-- [ ] https://ot1-pro.com/blog/sor3at-el-rud-3ala-social-media
+- [x ] https://ot1-pro.com/blog/sor3at-el-rud-3ala-social-media
 - [ ] https://ot1-pro.com/blog/facebook-messenger-lil-sharekat-fi-masr
-- [ ] https://ot1-pro.com/blog/bot-mabee3at-yebee3-badal-mowazafeen
+- [x ] https://ot1-pro.com/blog/bot-mabee3at-yebee3-badal-mowazafeen
 
 **Keyword targets (Egyptian search intent):**
 | Slug | Target search |

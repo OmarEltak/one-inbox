@@ -1,4 +1,4 @@
-# SEO Traffic Growth Plan — ot1-pro.com
+`   # SEO Traffic Growth Plan — ot1-pro.com
 **Product:** One Inbox
 **Goal:** Organic traffic → signups
 **Started:** 2026-04-19
@@ -15,14 +15,14 @@
 ## Phase 1 — Quick Wins (Week 1)
 *Low effort, immediate impact on crawlability and SERP appearance*
 
-- [ ] Fix robots.txt — wrong domain (oneinbox.app → ot1-pro.com)
-- [ ] Fix title tags — all 4 inner pages (generic → keyword-targeted)
-- [ ] Add FAQ schema (FAQPage JSON-LD) to homepage + pricing
-- [ ] Set default og:image in layout (1200×630 branded PNG)
-- [ ] Remove hreflang tags (no real translated content, confuses Google)
+- [ x] Fix robots.txt — wrong domain (oneinbox.app → ot1-pro.com)
+- [ x] Fix title tags — all 4 inner pages (generic → keyword-targeted)
+- [ x] Add FAQ schema (FAQPage JSON-LD) to homepage + pricing
+- [ x] Set default og:image in layout (1200×630 branded PNG)
+- [ x] Remove hreflang tags (no real translated content, confuses Google)
 - [ ] Delete adminer.php + db.php from production public/ folder
-- [ ] Submit sitemap to Google Search Console
-- [ ] Verify ot1-pro.com in Google Search Console
+- [ x] Submit sitemap to Google Search Console
+- [ x] Verify ot1-pro.com in Google Search Console
 
 ---
 
@@ -67,55 +67,58 @@
 ## Phase 4 — Blog Content Machine (Month 2–6)
 *This is where the majority of organic traffic comes from.*
 
-### Cluster 1: WhatsApp for Business (12 articles)
-- [ ] WhatsApp CRM: The complete guide for 2026
-- [ ] How to automate WhatsApp replies without losing the human touch
-- [ ] Best WhatsApp CRM tools compared (2026)
-- [ ] WhatsApp Business API: how to get access and set it up
-- [ ] WhatsApp for real estate agents: scripts + automation guide
-- [ ] WhatsApp for e-commerce: recover abandoned carts automatically
-- [ ] How to manage multiple WhatsApp business numbers
-- [ ] WhatsApp lead generation: 7 proven strategies
-- [ ] WhatsApp vs SMS for business: which wins in 2026?
-- [ ] How to set up WhatsApp chatbot without coding
-- [ ] WhatsApp broadcast vs groups: which is better for sales?
-- [ ] WhatsApp Business compliance: what you need to know
+### Cluster 1: WhatsApp for Business (12 articles) — ✅ COMPLETE
+- [x] WhatsApp CRM: The complete guide for 2026 → `/blog/whatsapp-crm-complete-guide`
+- [x] How to automate WhatsApp replies without losing the human touch → `/blog/automate-whatsapp-replies-human-touch` (Batch 12)
+- [x] Best WhatsApp CRM tools compared (2026) → `/blog/best-whatsapp-business-inbox-tools-2025`
+- [x] WhatsApp Business API: how to get access and set it up → `/blog/whatsapp-business-api-setup`
+- [x] WhatsApp for real estate agents: scripts + automation guide → `/blog/whatsapp-real-estate-agents`
+- [x] WhatsApp for e-commerce: recover abandoned carts automatically → `/blog/whatsapp-ecommerce-cart-recovery`
+- [x] How to manage multiple WhatsApp business numbers → `/blog/manage-multiple-whatsapp-numbers`
+- [x] WhatsApp lead generation: 7 proven strategies → `/blog/whatsapp-lead-generation-strategies`
+- [x] WhatsApp vs SMS for business: which wins in 2026? → `/blog/whatsapp-vs-sms-business`
+- [x] How to set up WhatsApp chatbot without coding → `/blog/whatsapp-chatbot-no-code`
+- [x] WhatsApp broadcast vs groups: which is better for sales? → `/blog/whatsapp-broadcast-vs-groups-sales` (Batch 12)
+- [x] WhatsApp Business compliance: what you need to know → `/blog/whatsapp-business-compliance`
 
-### Cluster 2: Instagram DM Automation (8 articles)
-- [ ] How to auto-reply to Instagram DMs (step-by-step)
-- [ ] Instagram lead generation with DM automation
-- [ ] Best Instagram DM tools for businesses in 2026
-- [ ] How to turn Instagram comments into DM conversations
-- [ ] Instagram DM scripts that convert followers into customers
-- [ ] Instagram vs Facebook for customer service: the data
-- [ ] How to manage Instagram DMs for a large team
-- [ ] Instagram Shopping + DM automation: the full funnel
+### Cluster 2: Instagram DM Automation (8 articles) — ✅ COMPLETE
+- [x] How to auto-reply to Instagram DMs (step-by-step) → `/blog/instagram-dm-management-for-business`
+- [x] Instagram lead generation with DM automation → `/blog/instagram-lead-generation-dm-automation` (Batch 12)
+- [x] Best Instagram DM tools for businesses in 2026 → `/blog/best-instagram-dm-tools-2026` (Batch 12)
+- [x] How to turn Instagram comments into DM conversations → `/blog/instagram-comments-to-dms`
+- [x] Instagram DM scripts that convert followers into customers → `/blog/instagram-dm-scripts-convert`
+- [x] Instagram vs Facebook for customer service: the data → `/blog/instagram-vs-facebook-customer-service`
+- [x] How to manage Instagram DMs for a large team → `/blog/manage-instagram-dms-large-team`
+- [x] Instagram Shopping + DM automation: the full funnel → `/blog/instagram-shopping-dm-automation-funnel` (Batch 12)
 
-### Cluster 3: Social Media Customer Service (8 articles)
-- [ ] How to manage 1,000+ social messages per day
-- [ ] Social media response time benchmarks by industry (2026)
-- [ ] Building a social CRM from scratch: what you need
-- [ ] Unified inbox vs separate apps: cost and efficiency analysis
-- [ ] How to reduce social media response time by 80%
-- [ ] Social media customer service: the ultimate playbook
-- [ ] How to scale customer support without hiring more agents
-- [ ] ROI of AI social media support: real numbers
+### Cluster 3: Social Media Customer Service (8 articles) — ✅ COMPLETE
+- [x] How to manage 1,000+ social messages per day → `/blog/manage-1000-social-messages-per-day`
+- [x] Social media response time benchmarks by industry (2026) → `/blog/social-response-time-benchmarks`
+- [x] Building a social CRM from scratch: what you need → `/blog/build-social-crm-from-scratch` (Batch 12)
+- [x] Unified inbox vs separate apps: cost and efficiency analysis → `/blog/unified-inbox-vs-separate-apps`
+- [x] How to reduce social media response time by 80% → `/blog/reduce-social-response-time-80-percent`
+- [x] Social media customer service: the ultimate playbook → `/blog/social-media-customer-service-playbook` (Batch 12)
+- [x] How to scale customer support without hiring more agents → `/blog/scale-customer-support-without-hiring`
+- [x] ROI of AI social media support: real numbers → `/blog/roi-ai-social-media-support`
 
-### Cluster 4: AI Sales Automation (6 articles)
-- [ ] AI sales chatbots: what actually works in 2026
-- [ ] How to qualify leads automatically on WhatsApp and Instagram
-- [ ] AI vs human support: when to hand off (and how)
-- [ ] How to write an AI sales prompt that actually closes deals
-- [ ] AI lead scoring: how it works and why you need it
-- [ ] 10 ways AI can increase your social media sales
+### Cluster 4: AI Sales Automation (6 articles) — ✅ COMPLETE
+- [x] AI sales chatbots: what actually works in 2026 → `/blog/ai-sales-chatbots-what-works-2026` (Batch 12)
+- [x] How to qualify leads automatically on WhatsApp and Instagram → `/blog/qualify-leads-whatsapp-instagram-ai` (Batch 12)
+- [x] AI vs human support: when to hand off (and how) → `/blog/ai-vs-human-support-handoff`
+- [x] How to write an AI sales prompt that actually closes deals → `/blog/ai-sales-prompt-closes-deals`
+- [x] AI lead scoring: how it works and why you need it → `/blog/ai-lead-scoring`
+- [x] 10 ways AI can increase your social media sales → `/blog/ai-increase-social-media-sales`
 
-### Cluster 5: How-To Tutorials (6 articles)
-- [ ] How to connect a Facebook Page to a CRM
-- [ ] How to manage Telegram business messages at scale
-- [ ] Social inbox setup guide: from zero to fully automated in 1 hour
-- [ ] How to set up an AI sales bot for your business
-- [ ] How to track social media leads in a CRM
-- [ ] Team inbox setup: how to assign and manage social conversations
+### Cluster 5: How-To Tutorials (6 articles) — ✅ COMPLETE
+- [x] How to connect a Facebook Page to a CRM → `/blog/connect-facebook-page-crm`
+- [x] How to manage Telegram business messages at scale → `/blog/manage-telegram-business-scale`
+- [x] Social inbox setup guide: from zero to fully automated in 1 hour → `/blog/social-inbox-setup-1-hour`
+- [x] How to set up an AI sales bot for your business → `/blog/set-up-ai-sales-bot`
+- [x] How to track social media leads in a CRM → `/blog/track-social-media-leads-crm`
+- [x] Team inbox setup: how to assign and manage social conversations → `/blog/team-inbox-setup-assign-manage`
+
+### Bonus: WhatsApp sales scripts (Batch 12)
+- [x] WhatsApp sales scripts that convert: 12 templates for 2026 → `/blog/whatsapp-sales-scripts-that-convert`
 
 ---
 
