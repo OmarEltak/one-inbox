@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\AiProviderInterface;
+use App\Mail\WelcomeEmail;
 use App\Models\Post;
 use App\Observers\PostObserver;
 use App\Services\Ai\GeminiProvider;
@@ -16,6 +17,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
@@ -57,6 +59,17 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(Registered::class, function (Registered $event): void {
             Session::flash('track_signup_conversion', $event->user->getKey());
+
+            if ($event->user instanceof \App\Models\User && $event->user->email) {
+                try {
+                    Mail::to($event->user->email)->queue(new WelcomeEmail($event->user));
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to queue welcome email', [
+                        'user_id' => $event->user->getKey(),
+                        'error'   => $e->getMessage(),
+                    ]);
+                }
+            }
         });
 
         Post::observe(PostObserver::class);
