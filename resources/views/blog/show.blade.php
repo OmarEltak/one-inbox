@@ -16,7 +16,7 @@
     "image": [{!! json_encode(config('app.url') . '/og-image.png') !!}],
     "datePublished": "{{ $post->published_at->toIso8601String() }}",
     "dateModified": "{{ $post->updated_at->toIso8601String() }}",
-    "inLanguage": {{ json_encode($post->language) }},
+    "inLanguage": {!! json_encode($post->language) !!},
     "wordCount": {{ $post->wordCount() }},
     "author": {
         "@@type": "Person",
