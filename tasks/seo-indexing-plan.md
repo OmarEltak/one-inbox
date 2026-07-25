@@ -155,13 +155,13 @@ Note: these are indexed under the same English URL (Google treats `/blog/{slug}`
 10 new English posts filling the gaps between the Phase 4 SEO plan and what was already shipped. Topics: WhatsApp automation, Instagram DM funnels, AI sales chatbots, social CRM, lead qualification, sales scripts.
 
 - [ ] https://ot1-pro.com/blog/automate-whatsapp-replies-human-touch
-- [ ] https://ot1-pro.com/blog/whatsapp-broadcast-vs-groups-sales
-- [ ] https://ot1-pro.com/blog/instagram-lead-generation-dm-automation
-- [ ] https://ot1-pro.com/blog/best-instagram-dm-tools-2026
-- [ ] https://ot1-pro.com/blog/instagram-shopping-dm-automation-funnel
-- [ ] https://ot1-pro.com/blog/build-social-crm-from-scratch
-- [ ] https://ot1-pro.com/blog/social-media-customer-service-playbook
-- [ ] https://ot1-pro.com/blog/ai-sales-chatbots-what-works-2026
+- [x ] https://ot1-pro.com/blog/whatsapp-broadcast-vs-groups-sales
+- [x ] https://ot1-pro.com/blog/instagram-lead-generation-dm-automation
+- [x ] https://ot1-pro.com/blog/best-instagram-dm-tools-2026
+- [x ] https://ot1-pro.com/blog/instagram-shopping-dm-automation-funnel
+- [x ] https://ot1-pro.com/blog/build-social-crm-from-scratch
+- [x ] https://ot1-pro.com/blog/social-media-customer-service-playbook
+- [x ] https://ot1-pro.com/blog/ai-sales-chatbots-what-works-2026
 - [ ] https://ot1-pro.com/blog/qualify-leads-whatsapp-instagram-ai
 - [ ] https://ot1-pro.com/blog/whatsapp-sales-scripts-that-convert
 
@@ -182,8 +182,8 @@ Note: these are indexed under the same English URL (Google treats `/blog/{slug}`
 | 7 | https://ot1-pro.com/unified-inbox-for-hr-teams | unified inbox for hr teams |
 | 8 | https://ot1-pro.com/unified-inbox-for-marketing-teams | unified inbox for marketing teams |
 
-- [ ] https://ot1-pro.com/unified-inbox-for-engineering-managers
-- [ ] https://ot1-pro.com/unified-inbox-for-sales-teams
+- [x ] https://ot1-pro.com/unified-inbox-for-engineering-managers
+- [x ] https://ot1-pro.com/unified-inbox-for-sales-teams
 - [ ] https://ot1-pro.com/unified-inbox-for-support-teams
 - [ ] https://ot1-pro.com/unified-inbox-for-agencies
 - [ ] https://ot1-pro.com/unified-inbox-for-customer-success-teams
@@ -220,6 +220,22 @@ Note: these are indexed under the same English URL (Google treats `/blog/{slug}`
 - [ ] https://ot1-pro.com/blog/ai-sales-assistant-vs-sdr
 - [ ] https://ot1-pro.com/blog/ai-voice-agents-sales
 - [ ] https://ot1-pro.com/blog/ai-sales-funnel-automation
+
+---
+
+## Day 11 — Batch 14: Competitor alternatives + Messaging CRM category (published 2026-07-26)
+
+3 long-form English posts (8–10 min reads) targeting high-intent competitor-alternative and category-defining keywords. Each ~1,500 words with structured tables, migration steps, and FAQ schema. Backlink bait for the "Messaging CRM" category which OT1-Pro is positioning to own.
+
+| # | URL | Target keyword |
+|---|---|---|
+| 1 | https://ot1-pro.com/blog/respond-io-alternative-omnichannel-support | respond.io alternative |
+| 2 | https://ot1-pro.com/blog/manychat-alternative-hybrid-automation | manychat alternative |
+| 3 | https://ot1-pro.com/blog/messaging-crm-replace-chat-stack | messaging crm |
+
+- [ ] https://ot1-pro.com/blog/respond-io-alternative-omnichannel-support
+- [ ] https://ot1-pro.com/blog/manychat-alternative-hybrid-automation
+- [ ] https://ot1-pro.com/blog/messaging-crm-replace-chat-stack
 
 ---
 
