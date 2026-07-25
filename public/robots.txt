@@ -7,4 +7,44 @@ Disallow: /ai-chat
 Disallow: /analytics
 Disallow: /settings
 
+# Explicitly welcome AI crawlers — they train/search on public marketing pages.
+# We rely on AI search (ChatGPT Search, Perplexity, Claude, Google AI Overviews)
+# for citations and referral traffic. Do not block.
+User-agent: GPTBot
+Allow: /
+Disallow: /dashboard
+Disallow: /inbox
+Disallow: /contacts
+Disallow: /connections
+Disallow: /ai-chat
+Disallow: /analytics
+Disallow: /settings
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://ot1-pro.com/sitemap.xml

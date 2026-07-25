@@ -146,6 +146,24 @@ return [
         'site_verification' => env('GOOGLE_SITE_VERIFICATION', ''),
     ],
 
+    'bing' => [
+        // Bing Webmaster Tools verification meta tag content.
+        // Get from bing.com/webmasters → Add site → HTML meta tag method.
+        'site_verification' => env('BING_SITE_VERIFICATION', ''),
+    ],
+
+    'ahrefs' => [
+        // Ahrefs Webmaster Tools verification meta tag content.
+        // Get from ahrefs.com/webmaster-tools → Verify site → HTML tag method.
+        'site_verification' => env('AHREFS_SITE_VERIFICATION', ''),
+    ],
+
+    'clarity' => [
+        // Microsoft Clarity project ID (found in Clarity dashboard → Settings → Setup).
+        // Free session-recording + heatmap tool. Leave blank to disable in dev.
+        'project_id' => env('CLARITY_PROJECT_ID', ''),
+    ],
+
     'snapchat' => [
         // Marketing API OAuth 2.0 (Public Profile Messaging API)
         // Register at: Snap Business Manager → Business Details → Marketing API

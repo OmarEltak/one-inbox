@@ -43,7 +43,7 @@
                     <p class="mt-2">{{ __('We automatically collect certain information about how you interact with our service, including browser type, IP address, pages visited, and actions performed within the app. This data is used solely to improve service performance and reliability.') }}</p>
 
                     <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.5 AI Interaction Data') }}</h3>
-                    <p class="mt-2">{{ __('When you use our AI-powered auto-reply feature, message content is sent to our AI provider (Google Gemini) to generate responses. No message content is stored by the AI provider beyond the immediate API call.') }}</p>
+                    <p class="mt-2">{{ __('When you use our AI-powered auto-reply feature, message content is sent to our AI provider partners (such as Anthropic Claude) to generate responses. No message content is retained by these providers beyond the immediate API call, and none of it is used to train their models.') }}</p>
                 </div>
 
                 <div>
@@ -65,7 +65,7 @@
                     <p class="mt-3">{{ __('We share data only in the following circumstances:') }}</p>
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
                         <li><strong>{{ __('Platform APIs:') }}</strong> {{ __('Data is exchanged with Meta (Facebook, Instagram, WhatsApp), Telegram, TikTok, and email servers solely to provide the inbox functionality.') }}</li>
-                        <li><strong>{{ __('AI Providers:') }}</strong> {{ __('Message content may be sent to Google Gemini for AI reply generation. This is opt-in and can be disabled.') }}</li>
+                        <li><strong>{{ __('AI Providers:') }}</strong> {{ __('Message content may be sent to our AI provider partners (such as Anthropic Claude) for AI reply generation. This is opt-in and can be disabled from your team settings at any time. Providers do not retain or train on your content.') }}</li>
                         <li><strong>{{ __('Payment Processor:') }}</strong> {{ __('Billing and payment data is handled by Paddle (paddle.com), our authorised reseller and Merchant of Record. When you subscribe, Paddle collects your payment information directly. We do not store your card details. Paddle\'s privacy policy applies to payment data: paddle.com/legal/privacy.') }}</li>
                         <li><strong>{{ __('Infrastructure Providers:') }}</strong> {{ __('We use cloud infrastructure providers (servers, databases) that process data on our behalf under data processing agreements.') }}</li>
                         <li><strong>{{ __('Legal Requirements:') }}</strong> {{ __('We may disclose information if required by law, court order, or to protect the rights and safety of our users.') }}</li>

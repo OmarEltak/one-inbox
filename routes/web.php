@@ -47,16 +47,28 @@ Route::get('blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 // Comparison pages
 Route::view('vs/trengo', 'pages.vs.trengo')->name('vs.trengo');
 Route::view('vs/manychat', 'pages.vs.manychat')->name('vs.manychat');
-Route::view('vs/freshchat', 'pages.vs.freshchat')->name('vs.freshchat');
-Route::view('vs/respond-io', 'pages.vs.respond-io')->name('vs.respond-io');
 Route::view('vs/tidio', 'pages.vs.tidio')->name('vs.tidio');
+Route::view('vs/wati', 'pages.vs.wati')->name('vs.wati');
+Route::view('vs/aisensy', 'pages.vs.aisensy')->name('vs.aisensy');
+
+// SEO consolidation redirects (per audit 2026-07-25):
+//   - /vs/respond-io was cannibalising the pos-1 blog post; consolidate signal there.
+//   - /vs/freshchat had 0 impressions and Freshchat is being deprioritised by Freshworks.
+//   - Named routes preserved so existing route('vs.freshchat') / route('vs.respond-io')
+//     calls in views resolve to the redirect target.
+Route::redirect('vs/respond-io', '/blog/ot1pro-vs-respond-io-unified-inbox-comparison', 301)->name('vs.respond-io');
+Route::redirect('vs/freshchat', '/vs/manychat', 301)->name('vs.freshchat');
 
 // Industry landing pages
 Route::view('industries/real-estate', 'pages.industries.real-estate')->name('industry.real-estate');
 Route::view('industries/ecommerce', 'pages.industries.ecommerce')->name('industry.ecommerce');
 Route::view('industries/agencies', 'pages.industries.agencies')->name('industry.agencies');
 Route::view('industries/restaurants', 'pages.industries.restaurants')->name('industry.restaurants');
-Route::view('industries/education', 'pages.industries.education')->name('industry.education');
+Route::view('industries/dropshipping', 'pages.industries.dropshipping')->name('industry.dropshipping');
+
+// Industry consolidation: education had 0 impressions + long procurement cycles.
+// Redirect to ecommerce (the ICP page per our Meta ads plan).
+Route::redirect('industries/education', '/industries/ecommerce', 301)->name('industry.education');
 
 // Programmatic vertical landing pages targeting "unified inbox for [role]"
 // long-tail keywords. Route constraint list must match VerticalLandingController::ROLES keys.
@@ -102,14 +114,14 @@ Route::get('sitemap.xml', function () {
         ['loc' => url('/telegram-inbox'),            'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/vs/trengo'),                 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/vs/manychat'),               'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/freshchat'),              'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/vs/respond-io'),             'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/vs/tidio'),                  'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/wati'),                   'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/vs/aisensy'),                'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/industries/real-estate'),    'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/ecommerce'),      'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/agencies'),       'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/restaurants'),    'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/industries/education'),      'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/ecommerce'),      'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/agencies'),       'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/restaurants'),    'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/industries/dropshipping'),   'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
     ];
 
     // Programmatic vertical landing pages — one per supported role
@@ -170,6 +182,76 @@ Route::get('sitemap.xml', function () {
         'X-Robots-Tag'  => 'noindex',
     ]);
 })->name('sitemap');
+
+// llms.txt — canonical site summary for AI crawlers (ChatGPT, Perplexity, Claude, Cursor, etc.)
+// Spec: https://llmstxt.org
+// This is what AI search engines will cite when asked "what is OT1-Pro?".
+Route::get('llms.txt', function () {
+    $body = <<<'TXT'
+# OT1-Pro
+
+> OT1-Pro is a unified social inbox and AI sales responder for small businesses. It brings WhatsApp Business, Instagram Direct, Facebook Messenger, Telegram, and email conversations into a single shared team inbox, and can auto-reply with an AI sales agent that qualifies leads and closes deals 24/7.
+
+Built for Arabic and English-speaking small-to-mid ecommerce brands, agencies, real estate teams, clinics, and D2C stores that receive 50-1000+ customer messages per day across social platforms and cannot afford to miss sales at night.
+
+## What OT1-Pro does
+
+- Unified inbox: Reply to Facebook Messenger, Instagram DMs, WhatsApp Business, Telegram, and email from one screen.
+- AI sales responder: Auto-replies to customer messages in your brand voice, qualifies leads, books appointments, answers FAQs, and hands over to humans on high-intent conversations.
+- Shared team inbox: Assign conversations to teammates, add internal notes, track response times, and see who is handling what in real time.
+- Multi-tenant SaaS: Each team gets isolated pages, contacts, conversations, and AI training data.
+- Language: Full Arabic and English UI. AI replies in the language the customer wrote in.
+- Region: Optimised for Egypt, Saudi Arabia, UAE, and MENA, but works globally.
+
+## Pricing (USD, monthly)
+
+- Free: 1 connected page, 20 AI responses/month, 1 user. No credit card.
+- Basic $8: 1 page, 100 AI responses/month, 1 user.
+- Starter $29: 3 pages, 500 AI responses/month, all 4 platforms, lead scoring, 3 users.
+- Pro $79: 5 pages, 2,000 AI responses/month, all platforms, advanced analytics, AI bulk campaigns, 10 users, priority support.
+- Enterprise: Custom pricing for agencies and large teams. Contact via WhatsApp.
+
+## Key differentiators vs alternatives
+
+- Arabic-first product (vs Respond.io, ManyChat, WATI, AiSensy which are English-only or English-primary).
+- All 4 social channels plus email in one inbox at $29 (vs Respond.io starting at $79 without AI).
+- AI reply generation included at the $8 tier (competitors charge $50-200 more for AI features).
+- Founder-accessible support via WhatsApp +201026361218.
+
+## Alternatives comparison pages
+
+- vs Respond.io: https://ot1-pro.com/vs/respond-io
+- vs ManyChat: https://ot1-pro.com/vs/manychat
+- vs Trengo: https://ot1-pro.com/vs/trengo
+- vs Tidio: https://ot1-pro.com/vs/tidio
+- vs Freshchat: https://ot1-pro.com/vs/freshchat
+
+## Key pages
+
+- Homepage: https://ot1-pro.com/
+- Features: https://ot1-pro.com/features
+- Pricing: https://ot1-pro.com/pricing
+- WhatsApp Inbox: https://ot1-pro.com/whatsapp-inbox
+- Instagram DM: https://ot1-pro.com/instagram-dm
+- Facebook Messenger: https://ot1-pro.com/facebook-messenger
+- Telegram Inbox: https://ot1-pro.com/telegram-inbox
+- Blog: https://ot1-pro.com/blog
+- Contact: https://ot1-pro.com/contact
+- Privacy Policy: https://ot1-pro.com/privacy
+- Terms of Service: https://ot1-pro.com/terms
+
+## Contact
+
+- Website: https://ot1-pro.com
+- WhatsApp sales: +20 102 636 1218
+- Email: support@ot1-pro.com
+TXT;
+
+    return response($body, 200, [
+        'Content-Type'  => 'text/plain; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=86400, s-maxage=86400',
+    ]);
+})->name('llms');
 
 Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function () {
     Route::get('dashboard', \App\Livewire\Dashboard::class)->middleware('permission:dashboard')->name('dashboard');

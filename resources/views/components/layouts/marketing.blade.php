@@ -18,15 +18,40 @@
       gtag('config', 'G-WHWVHWKR3T');
     </script>
 
+    {{-- Microsoft Clarity: free session recordings + heatmaps. Loads only when project ID set. --}}
+    @if(config('services.clarity.project_id'))
+        <script>
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "{{ config('services.clarity.project_id') }}");
+        </script>
+    @endif
+
     @include('partials.conversion-tracking')
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}</title>
     <meta name="description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place. AI-powered sales responder closes deals 24/7.' }}">
-    <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
+    @php
+        // Canonical MUST strip ?lang= — otherwise EN and AR versions of the same page
+        // canonical to themselves and Google splits ranking signal between them.
+        // (See tasks/audit note 2026-07-25.)
+        $canonicalUrl = $canonical ?? url()->current();
+        $canonicalUrl = preg_replace('/([?&])lang=[^&]*(&|$)/', '$1', $canonicalUrl);
+        $canonicalUrl = rtrim($canonicalUrl, '?&');
+    @endphp
+    <link rel="canonical" href="{{ $canonicalUrl }}">
     @if(config('services.google.site_verification'))
         <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+    @endif
+    @if(config('services.bing.site_verification'))
+        <meta name="msvalidate.01" content="{{ config('services.bing.site_verification') }}">
+    @endif
+    @if(config('services.ahrefs.site_verification'))
+        <meta name="ahrefs-site-verification" content="{{ config('services.ahrefs.site_verification') }}">
     @endif
 
     {{-- Open Graph: 1200×630 branded image. Page can override via $ogImage slot.
@@ -35,7 +60,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}">
     <meta property="og:description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place.' }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:site_name" content="OT1-Pro">
     <meta property="og:image" content="{{ $ogImageUrl }}">
     <meta property="og:image:width" content="1200">
