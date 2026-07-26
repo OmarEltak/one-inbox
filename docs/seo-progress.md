@@ -86,7 +86,9 @@ Serves the "what is OT1-Pro?" answer to ChatGPT/Perplexity/Claude/Cursor. Route 
 | `resources/views/pages/vs/wati.blade.php` | Biggest MENA competitor — 15-row comparison table + honest positioning + 5-step migration |
 | `resources/views/pages/vs/aisensy.blade.php` | Indian/MENA competitor — 13-row comparison + 3-question decision framework |
 | `resources/views/pages/industries/dropshipping.blade.php` | ICP-aligned page for Meta ads landing (Egyptian/MENA dropshippers) |
-| `database/seeders/AiSeoBlogSeederBatch15MenaEcom.php` | 4 blog posts (see below) |
+| `database/seeders/AiSeoBlogSeederBatch15MenaEcom.php` | 4 blog posts (see Batch15 below) |
+| `database/seeders/AiSeoBlogSeederBatch16HighVolume.php` | 5 blog posts targeting high-volume keywords (see Batch16 below) |
+| `.claude/skills/seo-feedback/SKILL.md` | Project-scoped Claude Code skill — auto-triggers on "how's my seo", "feedback on my seo", etc. Pulls live data from GSC/Bing/Ahrefs/Clarity/GA4 via browser MCP + technical checks via curl, produces prioritized report. |
 | `docs/seo-progress.md` | This document — living log of SEO work; update at the end of each SEO-focused session |
 
 ### Blog posts inserted by Batch15
@@ -97,6 +99,18 @@ Serves the "what is OT1-Pro?" answer to ChatGPT/Perplexity/Claude/Cursor. Route 
 | `aisensy-alternative-mena-multi-channel` | EN | 1,011 | "AiSensy alternative" | Fills `/vs/aisensy` gap |
 | `egyptian-ecommerce-500-whatsapp-orders-per-day` | EN | 1,530 | "whatsapp for ecommerce egypt" | ICP landing content (Meta ads magnet) |
 | `edarat-500-rasala-whatsapp-metajer-masr` | AR (RTL) | 1,402 | "واتساب للتجارة الإلكترونية مصر" | MENA long-tail, Egyptian dialect |
+
+### Blog posts inserted by Batch16 (high-volume impressions play)
+
+Strategy: existing 100+ posts rank pos 40-95 because they target low-volume keywords. Batch 16 targets high-volume commercial + troubleshooting queries where competitors are outdated or thin. Realistic outcome: 2 of 5 ranking page 1 within 90 days = +500-2,000 impressions/month per ranking post.
+
+| Slug | Words | Target keyword (est. monthly volume) | Angle |
+|---|---|---|---|
+| `whatsapp-business-api-pricing-2026-complete-breakdown` | 1,400 | "whatsapp business api pricing" (~2,000/mo) | Real 2026 rates; competitors are stale |
+| `instagram-dms-not-showing-all-messages-fixes-2026` | 1,200 | "instagram dms not showing" (~4,000/mo) | Troubleshooting; huge natural volume |
+| `meta-business-suite-inbox-missing-messages-fix-2026` | 1,137 | "meta business suite inbox missing" (~3,000/mo) | Chronic bug most competitors ignore |
+| `whatsapp-broadcast-vs-groups-vs-channels-sales-2026` | 1,214 | "whatsapp broadcast vs groups" (~1,500/mo) | 3-way comparison; growing category |
+| `meta-app-verification-2026-founder-guide` | 1,443 | "meta app verification" (~500/mo) | Unique founder POV; unbeatable angle |
 
 ### Consolidation redirects (kill weak pages, transfer link equity)
 
