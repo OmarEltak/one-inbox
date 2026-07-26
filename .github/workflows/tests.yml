@@ -44,6 +44,11 @@ jobs:
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
 
+      # Create the SQLite file before composer install — otherwise package:discover
+      # crashes in AppServiceProvider (WAL PRAGMA needs the file to exist).
+      - name: Create SQLite database file
+        run: mkdir -p database && touch database/database.sqlite
+
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
@@ -52,6 +57,9 @@ jobs:
 
       - name: Generate Application Key
         run: php artisan key:generate
+
+      - name: Run Migrations
+        run: php artisan migrate --force
 
       - name: Build Assets
         run: npm run build

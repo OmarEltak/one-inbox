@@ -121,10 +121,15 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
-        // SQLite WAL mode: allows concurrent reads + queue worker writes without "database is locked"
+        // SQLite WAL mode: allows concurrent reads + queue worker writes without "database is locked".
+        // Guard against missing DB file (fresh clones, CI before migrate, etc.) — otherwise
+        // `composer install` crashes during package:discover because AppServiceProvider boots.
         if (config('database.default') === 'sqlite') {
-            DB::statement('PRAGMA journal_mode=WAL;');
-            DB::statement('PRAGMA busy_timeout=5000;'); // wait up to 5s instead of failing instantly
+            $sqlitePath = config('database.connections.sqlite.database');
+            if (is_string($sqlitePath) && file_exists($sqlitePath)) {
+                DB::statement('PRAGMA journal_mode=WAL;');
+                DB::statement('PRAGMA busy_timeout=5000;'); // wait up to 5s instead of failing instantly
+            }
         }
 
         DB::prohibitDestructiveCommands(
