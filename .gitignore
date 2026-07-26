@@ -28,6 +28,10 @@ yarn-error.log
 /nul
 
 # Local dev artifacts
-/.claude
+/.claude/*
+!/.claude/skills/
 /storage/ngrok_requests.json
 .aider*
+
+# Local DB dumps — never commit
+/backups/
