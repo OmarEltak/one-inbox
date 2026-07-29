@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "heronsignal": {
+      "command": "npx",
+      "args": ["-y", "@heronsignal/mcp"],
+      "env": {
+        "HERONSIGNAL_TOKEN": "${HERONSIGNAL_TOKEN}"
+      }
+    }
+  }
+}

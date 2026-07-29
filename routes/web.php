@@ -179,7 +179,6 @@ Route::get('sitemap.xml', function () {
         'Content-Type'  => 'application/xml; charset=UTF-8',
         'Cache-Control' => 'public, max-age=3600, s-maxage=21600',
         'Last-Modified' => $lastModified,
-        'X-Robots-Tag'  => 'noindex',
     ]);
 })->name('sitemap');
 

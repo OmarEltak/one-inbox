@@ -506,6 +506,10 @@ class Index extends Component
         $this->reset(['requestBusinessName', 'requestPageUrl', 'requestContactEmail', 'requestContactPhone', 'requestNotes']);
         unset($this->openOnboardingByPlatform);
 
+        $this->dispatch('heron-event', name: 'onboarding_request_submitted', payload: [
+            'platform' => $this->requestPlatform,
+        ]);
+
         session()->flash('success', 'Request submitted. Our admin will accept your Page invitation on Facebook and finish the setup — usually within a few hours during business hours (9am–9pm Cairo). We will email you the moment it is live.');
         Flux::modal('onboarding-request')->close();
     }

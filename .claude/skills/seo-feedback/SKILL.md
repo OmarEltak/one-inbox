@@ -1,6 +1,6 @@
 ---
 name: seo-feedback
-description: Use when the user asks for feedback on their SEO, an SEO health report, "how is my SEO", "check my SEO", "give me my SEO status", or any variant that means "audit the current SEO state of ot1-pro.com and tell me what to do." Pulls LIVE data from Google Search Console, Bing Webmaster Tools, Microsoft Clarity, Google Analytics 4, and Ahrefs via browser MCP, cross-references with technical on-page checks (canonical, sitemap, robots, llms.txt, page speed hints), and produces a prioritized report. Do not invoke for one-off keyword lookups or "how do I rank for X" questions — this skill is for the full-portfolio audit.
+description: Use when the user asks for feedback on their SEO, an SEO health report, "how is my SEO", "check my SEO", "give me my SEO status", or any variant that means "audit the current SEO state of ot1-pro.com and tell me what to do." Pulls LIVE data from Google Search Console, Bing Webmaster Tools, Microsoft Clarity, Google Analytics 4, Ahrefs (browser MCP), and HeronSignal (real user monitoring, MCP), cross-references with technical on-page checks (canonical, sitemap, robots, llms.txt, page speed hints, HeronSignal tracker presence), and produces a prioritized report. Do not invoke for one-off keyword lookups or "how do I rank for X" questions — this skill is for the full-portfolio audit.
 ---
 
 # SEO Feedback Skill for OT1-Pro
@@ -43,8 +43,21 @@ curl -s "https://ot1-pro.com/?lang=ar" | grep -oE '<link rel="canonical" href="[
 # 5. Homepage HTTP status + response time
 curl -o /dev/null -s -w "HTTP: %{http_code}  Time: %{time_total}s  Size: %{size_download}b\n" "https://ot1-pro.com/"
 
-# 6. Verify our 3 verification meta tags render on prod homepage
-curl -s "https://ot1-pro.com/" | grep -oE '<meta name="(google-site-verification|msvalidate\.01|ahrefs-site-verification|clarity)[^>]*>' 
+# 5b. Sitemap must NOT carry X-Robots-Tag: noindex — that header made HeronSignal
+# (and other third-party SEO scanners) skip the sitemap during a 2026-07-29 scan.
+# See routes/web.php `Route::get('sitemap.xml', ...)`.
+curl -sI "https://ot1-pro.com/sitemap.xml" | grep -i "x-robots" || echo "OK: no X-Robots-Tag on sitemap"
+
+# 5c. HeronSignal tracker must be present on public marketing pages once
+# HERONSIGNAL_PUBLIC_KEY is set on prod. Absence means the include was
+# accidentally removed OR the env var was dropped from prod .env.
+curl -s "https://ot1-pro.com/" | grep -oE 'api\.heronsignal\.com/tracker\.js' | head -1 || echo "MISSING: HeronSignal tracker not on homepage"
+
+# 6. Verify our verification meta tags render on prod homepage.
+# NOTE: Clarity is installed as a <script> tag (not <meta>) — confirm separately via `grep -o "clarity\.ms/tag"`.
+# NOTE: Bing (msvalidate.01) may be absent from HTML if verified via DNS/XML file — check bing.com/webmasters before flagging.
+curl -s "https://ot1-pro.com/" | grep -oE '<meta name="(google-site-verification|msvalidate\.01|ahrefs-site-verification)[^>]*>'
+curl -s "https://ot1-pro.com/" | grep -oE 'clarity\.ms/tag/[a-z0-9]+' | head -1
 
 # 7. Confirm the 301 redirects are still 301s (not accidentally 200s)
 for u in "vs/respond-io" "vs/freshchat" "industries/education"; do
@@ -52,7 +65,7 @@ for u in "vs/respond-io" "vs/freshchat" "industries/education"; do
 done
 ```
 
-**Flag anything that isn't as expected.** Especially: canonical missing `?lang=` strip, sitemap URL count dropped >10%, any of the 3 verification meta tags missing, any 301 turned into a 200 or 500.
+**Flag anything that isn't as expected.** Especially: canonical missing `?lang=` strip, sitemap URL count dropped >10%, any of the 3 verification meta tags missing, any 301 turned into a 200 or 500, `X-Robots-Tag: noindex` re-added to the sitemap, HeronSignal tracker missing from the homepage.
 
 ### Phase 2 — Google Search Console (browser MCP)
 
@@ -107,6 +120,22 @@ Navigate to and read each of these tabs sequentially (create new tab if needed):
 3. **Top competitors' organic keywords vs ours:**
    Compare against wati.io, respond.io, manychat.com. Any keyword where a competitor ranks top 10 and we rank 20+ is a rewrite target.
 
+### Phase 4b — HeronSignal (MCP, live data)
+
+HeronSignal is installed on ot1-pro.com as of 2026-07-29 (see `resources/views/partials/heronsignal.blade.php`). It provides the outside-in signal the other dashboards miss: real user sessions, JS errors, failed XHR/fetch, funnel drop-off, page-performance percentiles.
+
+The HeronSignal MCP server is configured in `.mcp.json` at project root and authenticates via the `HERONSIGNAL_TOKEN` env var. If the MCP tools are unavailable in this session, tell the user to (a) set `HERONSIGNAL_TOKEN`, (b) restart Claude Code, and skip the phase rather than fabricating numbers.
+
+Pull:
+
+1. **Traffic + errors last 7 days** — total sessions, unique visitors, error rate. Compare against GA4 sessions for the same window — divergence >20% usually means the tracker was mis-scoped or a page is missing the include.
+2. **Top frontend errors** — surface the top 3 by session-affected count. Any error affecting >5% of sessions is a P0 for the next sprint, regardless of what the SEO report otherwise says.
+3. **Slow pages (p95 LCP)** — surface the 3 pages with the worst LCP. Cross-reference against GSC top pages — a slow LCP on a high-impression page is a ranking risk (Core Web Vitals) *and* a conversion risk.
+4. **Failed requests** — any endpoint with a spike in 4xx/5xx. Common suspect: the Meta OAuth callback failing while `META_APP_VERIFIED=false`.
+5. **Funnel: `plan_selected` → `signup_completed` → `onboarding_request_submitted`** — this is the customer-acquisition funnel. Every drop-off point named a real conversion problem. If the funnel isn't defined yet in the HeronSignal dashboard, tell the user to create it from those three event names (they're already firing from `pages/pricing.blade.php`, `CreateNewUser.php`, `Connections/Index.php`).
+
+Report the HeronSignal numbers alongside GSC data in the report body — they're the same story from opposite ends (Google sees the impression, HeronSignal sees whether the visitor could actually convert).
+
 ### Phase 5 — Microsoft Clarity + GA4 (browser MCP)
 
 1. **Clarity dashboard:**
@@ -153,10 +182,12 @@ Only include this section if data supports a comparison.
 - Any new backlinks in last 7 days
 - Top 3 competitor keywords where we're 20+ but competitor is top 10
 
-### UX & funnel (Clarity + GA4)
-- Sessions in last 7 days
-- Top 3 pages with rage clicks or dead clicks
-- Conversion funnel drop-off if visible
+### UX & funnel (Clarity + GA4 + HeronSignal)
+- Sessions in last 7 days (compare Clarity vs GA4 vs HeronSignal — divergence is a signal)
+- Top 3 pages with rage clicks or dead clicks (Clarity)
+- Top 3 frontend errors by sessions affected (HeronSignal) — a P0 if any exceed 5% of sessions
+- Slow pages by p95 LCP (HeronSignal) — cross-reference against GSC top pages
+- `plan_selected` → `signup_completed` → `onboarding_request_submitted` funnel drop-off (HeronSignal). If the funnel isn't defined yet, flag it and give the user the event-name list to create it.
 
 ### The 3 things to do next (ranked by ROI/hour)
 Each item must be:
@@ -187,6 +218,7 @@ One-liner from the pins in docs/seo-progress.md that's most relevant to the curr
 - Bing Webmaster Tools: `https://www.bing.com/webmasters/reports/searchperformance?siteUrl=https://ot1-pro.com/`
 - Ahrefs project: `https://app.ahrefs.com/site-explorer/overview?projectId=10148820&target=ot1-pro.com%2F`
 - Microsoft Clarity: `https://clarity.microsoft.com/projects/view/xs758fpq2f/dashboard`
+- HeronSignal dashboard: `https://app.heronsignal.com` (RUM + funnels + errors). MCP configured in `.mcp.json`; requires `HERONSIGNAL_TOKEN` env var on the local machine.
 - GA4 property: `https://analytics.google.com/analytics/web/#/a388783609p531080583/`
 - Prod domain: `https://ot1-pro.com` · VPS: `root@187.77.67.94:/var/www/ot1-pro.com`
 - Session-wide SEO doc: `docs/seo-progress.md` (single source of truth for prior decisions)

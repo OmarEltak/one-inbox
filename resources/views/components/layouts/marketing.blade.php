@@ -29,6 +29,8 @@
         </script>
     @endif
 
+    @include('partials.heronsignal')
+
     @include('partials.conversion-tracking')
 
     <meta charset="utf-8">

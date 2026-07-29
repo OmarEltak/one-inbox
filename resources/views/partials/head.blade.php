@@ -7,6 +7,8 @@
   gtag('config', 'G-WHWVHWKR3T');
 </script>
 
+@include('partials.heronsignal')
+
 @include('partials.conversion-tracking')
 
 <meta charset="utf-8" />

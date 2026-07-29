@@ -164,6 +164,16 @@ return [
         'project_id' => env('CLARITY_PROJECT_ID', ''),
     ],
 
+    'heronsignal' => [
+        // Public tracker key from HeronSignal dashboard → Install.
+        // Loads real user monitoring: sessions, frontend errors, failed requests,
+        // funnels, custom events. Leave blank to disable (dev/local).
+        // Docs: https://heronsignal.com/llms.txt
+        'public_key'  => env('HERONSIGNAL_PUBLIC_KEY', ''),
+        'service'     => env('HERONSIGNAL_SERVICE', 'ot1-pro-web'),
+        'environment' => env('HERONSIGNAL_ENV', env('APP_ENV', 'production')),
+    ],
+
     'snapchat' => [
         // Marketing API OAuth 2.0 (Public Profile Messaging API)
         // Register at: Snap Business Manager → Business Details → Marketing API

@@ -7,6 +7,7 @@ use App\Concerns\ProfileValidationRules;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -42,6 +43,11 @@ class CreateNewUser implements CreatesNewUsers
 
             $team->members()->attach($user->id, ['role' => 'admin']);
             $user->update(['current_team_id' => $team->id]);
+
+            Session::flash('heron_event', [
+                'name' => 'signup_completed',
+                'payload' => ['method' => 'email'],
+            ]);
 
             return $user;
         });
