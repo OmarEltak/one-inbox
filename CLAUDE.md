@@ -37,6 +37,19 @@
 
 10. **Once a conversation has `metadata.reactivated_at`, `SendAiResponse` MUST NOT auto-re-flag it as spam even if the AI still emits `[SPAM_DETECTED]`.** Otherwise every subsequent inbound message loops through the same history and re-triggers the classifier — the human's reactivation click gets undone within seconds. See ARCHITECTURE §9 "Reactivation loop". Feature test: `tests/Feature/SendAiResponseSpamGuardTest.php`.
 
+11. **Blog post body quality standard (SEO).** New blog posts go in numbered batch seeders (`database/seeders/AiSeoBlogSeederBatch{N}{Theme}.php`) — that pattern is settled and not what this pin is about. This pin is about the **body content** itself. The bar is set by `meta-app-verification-2026-founder-guide` (the site's only real SEO winner per the 2026-08-06 audit: UK founders on Google, 5-20 min dwell time in Clarity). Every new post MUST meet ALL of the following or it will silently sink to position 40+ like the ~100 low-quality posts before it did:
+
+    - **1,800–2,500 words minimum.** Under 1,500 = won't rank in 2026 for anything competitive. Padded fluff also fails — length must come from real specificity.
+    - **Founder-POV or specialist-POV, first person where useful.** No third-person "businesses should consider" corporate voice. The winner post opens with "I built OT1-Pro… so I had to walk this path myself." That voice IS the moat vs corporate SEO farms.
+    - **Named, concrete failure modes.** List real error codes, real Meta rejection strings in the original language ("جاهز للاختبار" / "Feature unavailable: Facebook Login…"), real document names (السجل التجاري, Ejari, Companies House confirmation statement), and real dollar figures. Vague ("various issues can arise") = auto-rejection by Google's helpful-content classifier.
+    - **Numbered lists, tables, and H2s every 200-300 words.** Google rewards scannable structure. Solid text walls = low dwell time = demotion. Aim for 8-12 H2s per post so the auto-TOC in `resources/views/blog/show.blade.php` (added 2026-08-06) actually renders — it needs 3+ H2s and looks empty with few.
+    - **Every post MUST internally link to at least 3 of:** the winning meta-app-verification post, `/pricing`, `/vs/wati`, another post in the same cluster, and `/register`. Link equity concentration is the biggest DR-0 site lever.
+    - **Every post MUST end with the `{{CTA}}` placeholder** so `run()` swaps in the CTA block. Never hard-code a CTA — the CTA copy will change and hard-coded ones rot.
+    - **Meta description 150-160 chars, ends with the primary keyword.** Meta title ≤ 60 chars, primary keyword in first 40. `excerpt` (used in the "Quick answer" box) MUST be a genuinely useful 40-60 word answer to the post's headline query — it renders in the featured-snippet-magnet card at the top of every post.
+    - **No AI-content-farm tells:** don't say "In today's fast-paced digital landscape", don't open with a rhetorical question, don't use "revolutionize" / "seamless" / "delve into" / "in conclusion". Read the winner post aloud — if a section sounds like it could come from RankPill or Byword, rewrite it in the founder voice (which per pin #5 in `docs/seo-progress.md` we explicitly rejected as a channel).
+    - **Publish flow:** commit → push → auto-deploy → SSH `php artisan db:seed --class='Database\\Seeders\\...' --force` (seeders do NOT auto-run). Then submit each new slug in Google Search Console URL Inspection to nudge indexing.
+    - **Batch 17 (2026-08-06)** is the current reference batch. If you need a template, copy `database/seeders/AiSeoBlogSeederBatch17MetaFounderCluster.php` — it hits every rule above.
+
 If your task touches AI, messaging, connections, sales flow, or the sidebar — **grep the relevant ARCHITECTURE section** before writing code. Every pin above corresponds to a real bug shipped by a previous session that thought they were helping.
 
 ## Debugging discipline (mandatory)
