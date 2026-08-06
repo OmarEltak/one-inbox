@@ -112,6 +112,29 @@ Strategy: existing 100+ posts rank pos 40-95 because they target low-volume keyw
 | `whatsapp-broadcast-vs-groups-vs-channels-sales-2026` | 1,214 | "whatsapp broadcast vs groups" (~1,500/mo) | 3-way comparison; growing category |
 | `meta-app-verification-2026-founder-guide` | 1,443 | "meta app verification" (~500/mo) | Unique founder POV; unbeatable angle |
 
+### Blog posts inserted by Batch17 (Meta founder-pain cluster — 2026-08-06)
+
+Strategy: `meta-app-verification-2026-founder-guide` is the site's only SEO winner per the 2026-08-06 audit — 5-20 min dwell time from UK Google founders per Clarity. Google clearly rewards this cluster. Batch 17 clones the pattern with 5 sibling posts targeting the same audience: bureaucratic Meta pain that outdated competitor articles fail to answer. Every post internal-links back to the winner + `/pricing` + `/vs/wati` to concentrate link equity. Realistic outcome: +100-200 impressions/day within 4-6 weeks after indexing.
+
+| Slug | Words | Target keyword | Angle |
+|---|---|---|---|
+| `whatsapp-business-api-approval-2026-founder-guide` | ~1,800 | "whatsapp business api approval" | The 4 approvals nobody explains; honest timeline |
+| `instagram-graph-api-business-verification-2026` | ~1,700 | "instagram business verification api" | Decodes "Feature unavailable" OAuth error; the 6 required permissions |
+| `meta-business-portfolio-verification-documents-2026` | ~2,000 | "meta business verification documents" | Country-by-country: Egypt, Saudi, UAE, US, UK, India |
+| `facebook-page-admin-transfer-agencies-2026` | ~1,900 | "facebook page admin transfer" | 4 transfer types explained; 3-day security hold gotcha |
+| `meta-app-review-rejection-reasons-2026-decoded` | ~2,100 | "meta app review rejected" | 12 rejection reasons decoded from 50+ real submissions |
+
+### Blog UI upgrade shipped with Batch 17 (2026-08-06)
+
+`resources/views/blog/show.blade.php` gained four dwell-boosting UI elements — all pure Blade + vanilla JS, zero new deps, compounding across all 100+ existing blog posts immediately:
+
+1. **Gradient reading-progress bar** (fixed top of viewport) — visual completion cue that reduces bounce.
+2. **"Quick answer" highlight box** under the header rendering `$post->excerpt` in a bordered gradient card. Featured-snippet magnet for Google.
+3. **Auto-generated Table of Contents** — inline collapsible above the article (mobile + desktop) and sticky right sidebar (desktop-only). Built client-side from `<h2>` elements; only rendered when a post has 3+ H2s to avoid clutter on short posts. Auto-generated stable slug IDs on each H2 for direct-link support.
+4. **IntersectionObserver scroll-spy** — the sticky sidebar TOC highlights the current section with an indigo left border + bold text as the reader scrolls, using `-96px 0px -70%` root margin so the "current" link tracks with the reader's focal zone rather than the top of the viewport.
+
+The sidebar TOC also carries a small sticky CTA card promoting managed onboarding — captures readers who reach mid-article but did not scroll to the bottom CTA.
+
 ### Consolidation redirects (kill weak pages, transfer link equity)
 
 | Old URL | New target | Reason |
