@@ -1,7 +1,6 @@
 <x-layouts.marketing
     :title="__('Find your OT1-Pro fit — 60-second interactive quiz')"
     :description="__('Answer 3 short questions and get a personalized AI + inbox setup recommendation for your business, industry, and goals. No email required.')"
-    :noindex="true"
 >
 
     {{-- ═══════════════════════════════════════════════════════════════════
