@@ -29,6 +29,11 @@ Route::get('/pay-wire', \App\Livewire\PayWire::class)->name('pay-wire');
 //     ->where('plan', 'starter|pro');
 Route::view('pricing', 'pages.pricing')->name('pricing');
 Route::view('features', 'pages.features')->name('features');
+// Find-Your-Fit interactive quiz. `noindex` — this page is a conversion
+// destination for traffic that already arrived (from blogs, ads, direct).
+// It is NOT an SEO landing page. CTAs deliberately unwired until Meta App
+// Review completes; see CLAUDE.md pin #1.
+Route::view('find-your-fit', 'pages.find-your-fit')->name('find-your-fit');
 // /ai-campaign-manager kept as a 301 to the canonical homepage `/` so any inbound
 // links (backlinks, blog references, sitemap history) don't 404. Named route preserved
 // so existing `route('ai-campaign-manager')` calls in views resolve to the same URL.

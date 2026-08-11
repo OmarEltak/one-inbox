@@ -5,6 +5,7 @@
     'htmlLang'    => null,
     'htmlDir'     => null,
     'ogImage'     => null,
+    'noindex'     => false,
 ])
 <!DOCTYPE html>
 <html lang="{{ $htmlLang ?? str_replace('_', '-', app()->getLocale()) }}" dir="{{ $htmlDir ?? (app()->getLocale() === 'ar' ? 'rtl' : 'ltr') }}" class="scroll-smooth">
@@ -46,6 +47,9 @@
         $canonicalUrl = rtrim($canonicalUrl, '?&');
     @endphp
     <link rel="canonical" href="{{ $canonicalUrl }}">
+    @if($noindex)
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     @if(config('services.google.site_verification'))
         <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
     @endif
