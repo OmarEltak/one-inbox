@@ -105,7 +105,6 @@
                         {{ $post->category }}
                     </span>
                     <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">{{ $post->title }}</h1>
-                    <p class="mt-5 text-lg text-zinc-600 dark:text-zinc-600">{{ $post->excerpt }}</p>
                     <div class="mt-6 flex items-center gap-4 text-sm text-zinc-500">
                         <span>{{ __('By') }} <strong class="text-zinc-700 dark:text-zinc-700">{{ $post->author }}</strong></span>
                         <span>·</span>
@@ -168,13 +167,6 @@
                             {{ __('On this page') }}
                         </div>
                         <ol id="toc-sidebar-list" class="border-l border-zinc-200 text-sm dark:border-zinc-200"></ol>
-                        <div class="mt-6 rounded-lg bg-gradient-to-br from-indigo-50 to-blue-50 p-4 text-xs text-zinc-700">
-                            <p class="font-semibold text-indigo-700">{{ __('Skip the Meta bureaucracy') }}</p>
-                            <p class="mt-1 leading-relaxed">{{ __('Managed onboarding gets your Page live in an hour, not a month.') }}</p>
-                            <a href="{{ route('register') }}" class="mt-3 inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800">
-                                {{ __('Start free →') }}
-                            </a>
-                        </div>
                     </nav>
                 </div>
             </aside>

@@ -224,6 +224,8 @@ HTML,
             [
                 'title'   => 'Why Are My Instagram DMs Not Showing All Messages? 8 Real Fixes for 2026',
                 'slug'    => 'instagram-dms-not-showing-all-messages-fixes-2026',
+                'meta_title'       => 'Instagram DMs Not Showing All Messages? 8 Fixes 2026',
+                'meta_description' => 'Missing Instagram DMs kills ad ROI. 8 fixes that work in 2026 — the message-request folder trap, Meta Business Suite bug, and missing DMs on Instagram.',
                 'excerpt' => 'Missing Instagram DMs is one of the most frustrating bugs for business owners running ads. Here are the 8 fixes that actually work in 2026 — including the message-request folder trap, the Meta Business Suite bug, and the professional-account permission most people miss.',
                 'content' => <<<'HTML'
 <p><strong>You know the panic. You launched an Instagram ad campaign yesterday, and your notifications are pinging non-stop, but when you open your DMs, half the conversations you were sure had come in are simply not there.</strong> Some are in the "Requests" folder you forgot exists. Others are trapped in Meta Business Suite\'s inbox. A few are showing on your phone but not on desktop. And some are just gone — Instagram says they were delivered, but they never appear in any inbox you have access to.</p>
@@ -317,6 +319,8 @@ HTML,
             [
                 'title'   => 'Meta Business Suite Inbox Missing Messages? Here Is Why (and How to Fix It)',
                 'slug'    => 'meta-business-suite-inbox-missing-messages-fix-2026',
+                'meta_title'       => 'Meta Business Suite Inbox Missing Messages? 6 Fixes 2026',
+                'meta_description' => 'Meta Business Suite drops Instagram DMs, Messenger chats, and WhatsApp messages other tools receive. 6 real fixes for the missing messages bug in 2026.',
                 'excerpt' => 'Meta Business Suite\'s inbox regularly misses Instagram DMs, Facebook Messenger conversations, and WhatsApp messages that other tools receive. Here is the technical reason it happens, why Meta has not fixed it, and the 6 workarounds that actually work for MENA business owners.',
                 'content' => <<<'HTML'
 <p><strong>If you have ever been staring at your Meta Business Suite inbox at 11pm, watching customer notifications ping your phone but seeing an empty conversation list on your laptop, you are not going crazy.</strong> The Meta Business Suite inbox has a well-documented sync problem, and it has been broken in the same specific way for well over a year. Meta acknowledges the issue in support forums but has not shipped a fix. Business owners quietly work around it or migrate to third-party tools.</p>
