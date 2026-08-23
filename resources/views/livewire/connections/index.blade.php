@@ -279,7 +279,9 @@
                 @php
                     $instanceName = $account->metadata['gateway_instance'] ?? null;
                     $isGateway    = ! empty($account->metadata['gateway_mode']);
-                    $isOnline     = $isGateway && $instanceName && isset($waInstanceStates[$instanceName]);
+                    // Use helper that also grants a 90s "just paired" grace window,
+                    // covering the Wuzapi jid-propagation lag right after PairSuccess.
+                    $isOnline     = $isGateway && $this->isGatewayAccountActive($account);
                 @endphp
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">

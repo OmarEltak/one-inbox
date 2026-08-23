@@ -109,7 +109,14 @@ class Index extends Component
         try {
             $instanceName = $account->metadata['gateway_instance'] ?? null;
             if ($instanceName) {
-                app(EvolutionApiService::class)->deleteInstance($instanceName, $account->access_token ?? '');
+                // Race guard: Wuzapi's `jid` write is async — a freshly paired tenant
+                // can briefly appear in the "not online" set before its jid propagates.
+                // If we blindly delete here, we nuke a working pair the user just made.
+                // Only delete if the tenant is actually not live right now.
+                $liveNames = app(EvolutionApiService::class)->fetchConnectedInstanceNames();
+                if (! in_array($instanceName, $liveNames, true)) {
+                    app(EvolutionApiService::class)->deleteInstance($instanceName, $account->access_token ?? '');
+                }
             }
         } catch (\Throwable) {
             // Instance already gone — fine
@@ -317,6 +324,36 @@ class Index extends Component
     {
         unset($this->connectedAccounts, $this->pages);
         $this->refreshWaStates();
+    }
+
+    /**
+     * True when a QR-gateway account should be shown as Active in the UI.
+     *
+     * Wuzapi's `jid` field is written async after PairSuccess — for a few seconds
+     * after a fresh pair, /admin/users can return `jid=""` even though the session
+     * is fully live. Without this grace window, the UI briefly shows "Disconnected"
+     * right after a successful pair; the user then clicks "Reconnect" which deletes
+     * the just-paired tenant. Trust `connected_at` within 90s to avoid that race.
+     */
+    public function isGatewayAccountActive(ConnectedAccount $account): bool
+    {
+        $instanceName = $account->metadata['gateway_instance'] ?? null;
+        if (! $instanceName) {
+            return false;
+        }
+
+        // Fast path: Wuzapi reports this instance as online → definitely active.
+        if (isset($this->waInstanceStates[$instanceName])) {
+            return true;
+        }
+
+        // Grace path: freshly paired (or just re-saved) within the last 90 seconds.
+        // Covers the Wuzapi jid-propagation lag right after PairSuccess.
+        if ($account->connected_at && $account->connected_at->gt(now()->subSeconds(90))) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
