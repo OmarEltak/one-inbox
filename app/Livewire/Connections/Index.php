@@ -106,17 +106,24 @@ class Index extends Component
             ->where('platform', 'whatsapp')
             ->firstOrFail();
 
+        // Bulletproof race guard: if this account was saved within the last 90s,
+        // the tenant IS live even if Wuzapi's async jid write hasn't propagated yet.
+        // Deleting here would nuke a working pair. Just re-open the modal for a fresh
+        // scan; if the user really wants to re-pair, the existing tenant becomes an
+        // orphan (Wuzapi doesn't care) and the new one will updateOrCreate on phone.
+        if ($account->connected_at && $account->connected_at->gt(now()->subSeconds(90))) {
+            Log::info('WhatsApp: reconnectGateway skipped delete — account is fresh', [
+                'account_id'   => $account->id,
+                'connected_at' => (string) $account->connected_at,
+            ]);
+            $this->dispatch('open-whatsapp-qr');
+            return;
+        }
+
         try {
             $instanceName = $account->metadata['gateway_instance'] ?? null;
             if ($instanceName) {
-                // Race guard: Wuzapi's `jid` write is async — a freshly paired tenant
-                // can briefly appear in the "not online" set before its jid propagates.
-                // If we blindly delete here, we nuke a working pair the user just made.
-                // Only delete if the tenant is actually not live right now.
-                $liveNames = app(EvolutionApiService::class)->fetchConnectedInstanceNames();
-                if (! in_array($instanceName, $liveNames, true)) {
-                    app(EvolutionApiService::class)->deleteInstance($instanceName, $account->access_token ?? '');
-                }
+                app(EvolutionApiService::class)->deleteInstance($instanceName, $account->access_token ?? '');
             }
         } catch (\Throwable) {
             // Instance already gone — fine

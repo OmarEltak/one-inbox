@@ -232,6 +232,30 @@ class WhatsAppQrModal extends Component
             return;
         }
 
+        // Bulletproof race guard: if a ConnectedAccount was persisted for THIS instance
+        // within the last 90 seconds, this is a live paired session — do NOT delete it
+        // even if this method was invoked with a stale Livewire snapshot showing
+        // status='qr_pending'. Prior symptom: modal closed with stale snapshot after
+        // saveConnection ran, cleanupInstance fired, freshly-paired tenant nuked.
+        $recentlyPaired = ConnectedAccount::query()
+            ->where('platform', 'whatsapp')
+            ->where('connected_at', '>', now()->subSeconds(90))
+            ->where('metadata->gateway_instance', $this->instanceName)
+            ->exists();
+
+        if ($recentlyPaired) {
+            Log::info('WhatsApp QR: cleanupInstance skipped — instance freshly paired', [
+                'instance' => $this->instanceName,
+                'status'   => $this->status,
+            ]);
+            return;
+        }
+
+        Log::info('WhatsApp QR: cleanupInstance firing deleteInstance', [
+            'instance' => $this->instanceName,
+            'status'   => $this->status,
+        ]);
+
         try {
             app(EvolutionApiService::class)->deleteInstance($this->instanceName, $this->instanceApiKey);
             Cache::forget("evo_qr_{$this->instanceName}");
