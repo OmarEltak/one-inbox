@@ -503,12 +503,14 @@ class ProcessIncomingMessage implements ShouldQueue
         }
 
         // Skip echoes — we already wrote our own outbound on send.
+        // Current Wuzapi shape has these directly on Info (older Baileys builds nested
+        // under Info.MessageSource — accept both for safety).
         if (! empty($info['IsFromMe']) || ! empty($info['MessageSource']['IsFromMe'])) {
             return;
         }
 
         // Skip group chats for now — the rest of the inbox assumes 1:1 conversations.
-        if (! empty($info['MessageSource']['IsGroup'])) {
+        if (! empty($info['IsGroup']) || ! empty($info['MessageSource']['IsGroup'])) {
             return;
         }
 
@@ -527,7 +529,8 @@ class ProcessIncomingMessage implements ShouldQueue
 
         WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
 
-        $senderJid   = $info['MessageSource']['Sender'] ?? '';
+        // Current Wuzapi: Sender is directly on Info. Older Baileys: nested under MessageSource.
+        $senderJid   = $info['Sender'] ?? ($info['MessageSource']['Sender'] ?? '');
         $senderPhone = preg_replace('/:.*$/', '', explode('@', $senderJid)[0] ?? '') ?: '';
         if (! $senderPhone) {
             return;

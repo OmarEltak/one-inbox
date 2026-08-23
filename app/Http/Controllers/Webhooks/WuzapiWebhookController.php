@@ -33,12 +33,37 @@ class WuzapiWebhookController extends Controller
 {
     public function handle(Request $request): Response
     {
-        $payload = $request->all();
-        $event   = $payload['event'] ?? 'unknown';
+        $raw = $request->all();
+
+        // Current Wuzapi ships events as:
+        //   { instanceName, userID, jsonData: "{...}" }  <- jsonData is a STRING
+        // where the parsed jsonData is:
+        //   { type: "Message"|"ReadReceipt"|..., event: { Info: {...}, Message: {...} } }
+        //
+        // ProcessIncomingMessage::processWuzapi() was written against an older shape
+        // that expected `event` and `instance` at top level plus `data.Info` /
+        // `data.Message` underneath. Normalize here so the processor stays simple
+        // and old rows in webhook_logs (with the raw shape) can still be replayed
+        // by re-dispatching through this normaliser.
+        $inner = [];
+        if (isset($raw['jsonData']) && is_string($raw['jsonData'])) {
+            $inner = json_decode($raw['jsonData'], true) ?? [];
+        }
+
+        $payload = [
+            'event'    => $inner['type'] ?? ($raw['event'] ?? 'unknown'),
+            'instance' => $raw['instanceName'] ?? ($raw['instance'] ?? null),
+            'userID'   => $raw['userID'] ?? null,
+            'data'     => [
+                'Info'    => $inner['event']['Info'] ?? [],
+                'Message' => $inner['event']['Message'] ?? [],
+            ],
+            'raw'      => $raw,
+        ];
 
         $log = WebhookLog::create([
             'platform'   => 'whatsapp_gateway',  // same bucket as the legacy Evolution feed
-            'event_type' => "wuzapi.{$event}",
+            'event_type' => "wuzapi.{$payload['event']}",
             'payload'    => $payload,
         ]);
 
