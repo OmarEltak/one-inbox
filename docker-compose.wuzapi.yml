@@ -27,7 +27,10 @@ services:
     container_name: wuzapi
     restart: unless-stopped
     ports:
-      - "8082:8080"
+      # Bind to loopback ONLY — Docker publishes ports past UFW/iptables, so a bare
+      # "PORT:8080" would expose Wuzapi (and its admin token) to the public internet.
+      # Override host bind + port per-env via .env (dev: 127.0.0.1:8082, prod: 127.0.0.1:8083).
+      - "${WUZAPI_HOST_BIND:-127.0.0.1}:${WUZAPI_HOST_PORT:-8082}:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
