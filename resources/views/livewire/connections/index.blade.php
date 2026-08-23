@@ -322,13 +322,27 @@
             @endforeach
 
             <div class="{{ $whatsappAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
-                <div class="rounded-lg bg-zinc-100 border border-zinc-200 p-3 text-xs text-center">
-                    <span class="inline-flex items-center gap-1.5 text-zinc-600 font-medium">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        {{ __('Currently unavailable') }}
-                    </span>
-                    <p class="text-zinc-500 mt-1">{{ __('WhatsApp connections are temporarily disabled while we rebuild the gateway. Coming back soon.') }}</p>
-                </div>
+                @if(config('services.wuzapi.qr_enabled'))
+                    {{-- Primary path: QR pairing via Wuzapi gateway (personal / small-team). --}}
+                    <flux:button
+                        x-on:click="$dispatch('open-whatsapp-qr')"
+                        variant="primary"
+                        icon="qr-code"
+                        class="w-full !bg-green-600 hover:!bg-green-700"
+                    >
+                        {{ __('Connect via QR (Beta)') }}
+                    </flux:button>
+                    <p class="text-[11px] text-white/50 text-center leading-snug">
+                        {{ __('Scan with WhatsApp on your phone. No Meta setup required.') }}
+                    </p>
+                @endif
+
+                {{-- Secondary path: WhatsApp Cloud API (official, requires Meta setup). --}}
+                <flux:modal.trigger name="whatsapp-connect">
+                    <flux:button variant="{{ config('services.wuzapi.qr_enabled') ? 'ghost' : 'primary' }}" class="w-full">
+                        {{ __('Connect via Cloud API (Advanced)') }}
+                    </flux:button>
+                </flux:modal.trigger>
             </div>
         </div>
 
