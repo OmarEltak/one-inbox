@@ -514,6 +514,17 @@ class ProcessIncomingMessage implements ShouldQueue
             return;
         }
 
+        // Skip WhatsApp Channels (@newsletter), status broadcasts (@broadcast) and
+        // group JIDs (@g.us) — these are one-to-many publishing streams, not customer
+        // conversations. Without this guard, subscribing to a channel from the paired
+        // phone floods the inbox with unactionable "conversations" (one per channel).
+        $chatJid = strtolower((string) ($info['Chat'] ?? ''));
+        foreach (['@newsletter', '@broadcast', '@g.us'] as $suffix) {
+            if (str_ends_with($chatJid, $suffix)) {
+                return;
+            }
+        }
+
         $page = Page::where('platform', 'whatsapp')
             ->where('is_active', true)
             ->where(function ($q) use ($instanceName) {
@@ -564,7 +575,15 @@ class ProcessIncomingMessage implements ShouldQueue
             'content_type'        => $contentType,
             'content'             => $content,
             'media_url'           => $mediaUrl,
-            'platform_sent_at'    => $timestamp ? \Carbon\Carbon::parse($timestamp) : now(),
+            // Wuzapi emits Info.Timestamp as ISO 8601 with a +03:00 (or wherever the
+            // container's TZ) offset. Carbon::parse preserves that offset — Eloquent
+            // then serialises the LOCAL time rather than UTC, so the DB row ends up
+            // 3h ahead of created_at (which IS UTC). Symptom: inbox displays inbound
+            // messages 3h later than they actually happened, so they sort AFTER
+            // subsequent outbound messages. Normalize to UTC before persisting.
+            'platform_sent_at'    => $timestamp
+                ? \Carbon\Carbon::parse($timestamp)->setTimezone('UTC')
+                : now(),
         ]);
 
         $conversation->update([
