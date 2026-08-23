@@ -397,6 +397,34 @@ class SendAiResponse implements ShouldQueue
 
     protected function sendViaWhatsApp(Page $page, string $recipientId, string $text, Message $aiMessage): void
     {
+        // QR-gateway pages (metadata.gateway_mode) route through Wuzapi.
+        // Without this branch, AI replies on QR-connected numbers hit Meta's Graph
+        // API with what is actually a Wuzapi per-user token, producing OAuthException
+        // code 190 ("Cannot parse access token") and no message delivery. The user-
+        // triggered send path (SendPlatformMessage::sendViaWhatsApp) has the same
+        // gate — keep them in sync if either side changes.
+        if (! empty($page->metadata['gateway_mode'])) {
+            $instanceName   = $page->metadata['gateway_instance'] ?? $page->platform_page_id;
+            $instanceApiKey = $page->page_access_token;
+
+            $messageId = app(\App\Services\EvolutionApiService::class)
+                ->sendText($instanceName, $instanceApiKey, $recipientId, $text);
+
+            if ($messageId) {
+                $aiMessage->update([
+                    'platform_message_id' => $messageId,
+                    'platform_sent_at'    => now(),
+                ]);
+            } else {
+                Log::error('WhatsApp (Wuzapi) AI send failed', [
+                    'instance' => $instanceName,
+                    'to'       => $recipientId,
+                ]);
+            }
+            return;
+        }
+
+        // Meta Cloud API path (non-gateway, WABA-registered numbers).
         $version = config('services.meta.graph_api_version', 'v21.0');
         $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
 
