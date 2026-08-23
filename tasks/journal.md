@@ -1743,3 +1743,157 @@ Temporary hero swap to "OT Pro" during Meta app review — reverted on same day 
 - After Meta approves the ~9 core permissions (Advanced Access), flip `META_APP_VERIFIED=true` — but only then, per corrected CLAUDE.md pin #1.
 - Execute the Product Hunt launch when Omar picks a Tuesday/Wednesday date. Materials ready in `tasks/backlinks-launch-kit.md`.
 - Batches 12/13 URLs still need Search Console indexing submission (Days 8 & 9 in `tasks/seo-indexing-plan.md`).
+
+## 2026-08-12 — Meta App Review resubmission (round 2)
+
+### Context
+Round 1 (submitted 2026-08-11 19:40 GMT+3) got rejected on 11 of 12 requested permissions. Only `public_profile` approved. Every rejection cited Policy 1.6 with the same boilerplate: "screencast fails to show end-to-end experience of the use case." Reviewer notes on the messaging permissions were specific: need to see (1) asset selection, (2) live send action from app UI, (3) delivered message in native Messenger/Instagram client on a phone.
+
+### Diagnosis
+Not an app problem. Screencast-quality problem. Original videos likely skipped the FB OAuth flow or didn't cut to the phone showing the delivered message.
+
+### Strategy for round 2
+Chose the tight-resubmission path: only submit permissions we can demonstrate cleanly with the three new videos Omar already recorded. Dropped `pages_utility_messaging` (no template feature), `pages_manage_metadata` (no Page-subscription settings UI to demo), `instagram_manage_comments` (no comment moderation feature). Kept the 8 permissions where the video coverage is real:
+- `pages_show_list`, `pages_read_engagement`, `business_management`, `pages_messaging` — covered by `Connect a Facebook Page.mp4` and `Reply to a Facebook Messenger conversation.mp4`
+- `instagram_basic`, `instagram_manage_messages` — covered by `Reply to an Instagram DM.mp4` via Facebook Login for Business path
+- `instagram_business_basic`, `instagram_business_manage_messages` — covered by same IG DM video because the app actually offers a separate Instagram Business Login flow (correction — earlier draft had said "no separate IG login" which was wrong)
+
+### New info about the app that came out of this session
+- OT1 Pro has TWO Instagram onboarding paths: (a) Facebook Login for Business with linked IG account (feeds `instagram_basic`, `instagram_manage_messages`), (b) direct Instagram Business Login (feeds `instagram_business_basic`, `instagram_business_manage_messages`). This wasn't obvious from the codebase read.
+- `accountformetaappreview@gmail.com` is Omar's dedicated Facebook reviewer account. Same password as email. This is the Facebook account he wants Meta reviewers to use for OAuth testing. It has his personal Pages connected — do NOT touch or suggest disconnecting them.
+
+### Submission form work done in this session
+Wrote clean copy-paste text for every field of the resubmission for all 8 permissions plus the "Provide your website for review" section. All descriptions include: (1) product context, (2) exact permission usage, (3) "Response to previous rejection" paragraph that literally addresses the reviewer's rejection reason with the 3-part fix, (4) how-to-test steps using `accountformetaappreview@gmail.com` as both the OT1 Pro login AND the Meta OAuth credential. Data Handling questions filled: processor=Yes (Hetzner, Gemini API, Cloudflare listed as processors), controller = Omar Mohamed / Egypt, no national-security requests, minimum-viable public-authority policies checked (mandatory legality review + data minimization).
+
+### Pre-submission checklist (must be done before hitting Submit)
+- [ ] Verify `accountformetaappreview@gmail.com` can actually log into OT1 Pro at ot1-pro.com (create the user if not).
+- [ ] Add `accountformetaappreview@gmail.com` as a Tester in the app's Roles (الأدوار) — required per Meta's own warning for `pages_messaging`.
+- [ ] Confirm the linked Instagram Business account on that Facebook account is set up for both OAuth paths.
+- [ ] Videos are already uploaded to their respective permission slots.
+
+### Open question flagged to Omar
+Whether to flip `META_APP_VERIFIED=true` during the review window so reviewers can hit the direct OAuth button. Trade-off: real customers who try to add NEW connections during the ~7 business day review would hit the broken OAuth callback (per CLAUDE.md pin #1). Existing customer connections are unaffected either way. Recommended keeping it `false` and flipping to `true` only after each permission shows "Advanced Access" — matching CLAUDE.md pin #1's stated policy. Reviewers use their internal Meta tester accounts which bypass the "unverified app" callback rejection, so keeping the flag `false` should not block them from testing.
+
+### Follow-ups
+- Wait 3-7 business days for Meta's decision on the 8 permissions.
+- If any of the two `_business_` variants get rejected specifically for the login-flow mismatch, next round should include a dedicated screencast of just the Instagram Business Login flow (not intermixed with FB Login).
+- Once at least the 6 non-`_business_` permissions show Advanced Access, flip `META_APP_VERIFIED=true` on prod per the rollback command in CLAUDE.md pin #1.
+
+
+---
+
+## 2026-08-23 — WhatsApp End-to-End Fix on Prod (Wuzapi Gateway Deployed)
+
+**Symptom** (verbatim): "our whatsapp feature has never connected and worked at all"
+
+### Root cause diagnosis (5 stacked blockers)
+
+Evidence-first check found *five* independent reasons WhatsApp had never worked, each one alone would block the flow:
+
+1. UI: `resources/views/livewire/connections/index.blade.php:324-332` rendered a hard-coded "temporarily disabled while we rebuild the gateway" placard — **no Connect button existed at all**. The `WhatsAppQrModal` Livewire component was silently mounted at line 1035 with nothing to dispatch `open-whatsapp-qr`.
+2. Prod `.env` had zero `WUZAPI_*` vars → `EvolutionApiService::isConfigured()` returned false → any Connect call would short-circuit.
+3. Prod VPS had **no Docker installed** → Wuzapi container had never run.
+4. `WUZAPI_QR_ENABLED` config flag defaulted to false (feature gate that was never flipped).
+5. Alternative Cloud API modal existed but its trigger button was also removed when the placard was added.
+
+Also relevant: local `.env` had `WUZAPI_WEBHOOK_URL=https://ot1-pro.com/...` (pointing at prod, not local Herd) — explains why local scan attempts, if they ever succeeded, would have delivered webhook messages to prod.
+
+Also: `EvolutionApiService` is a misleading class name — it was rewritten to call Wuzapi (whatsmeow-based, Go) while keeping the class + method names for backwards compat. Active compose file is `docker-compose.wuzapi.yml`, NOT `docker-compose.evolution.yml`.
+
+### What was done (in order, all on prod VPS 187.77.67.94 unless noted)
+
+1. **Local**: edited `resources/views/livewire/connections/index.blade.php` — replaced the "temporarily disabled" placard (WhatsApp card) with a green "Connect via QR (Beta)" button that dispatches `open-whatsapp-qr`, plus a secondary "Connect via Cloud API (Advanced)" that opens the existing `whatsapp-connect` Flux modal. Both gated behind `config('services.wuzapi.qr_enabled')`. Committed as `46f1e43` and auto-deployed.
+2. **VPS**: installed Docker via `curl -fsSL https://get.docker.com | sh` (official convenience script; Ubuntu 24.04's `docker.io` package doesn't ship `docker-compose-plugin`). Result: Docker 29.7.2, Compose v5.5.0, daemon active.
+3. **VPS**: generated fresh Wuzapi secrets — `WUZAPI_ADMIN_TOKEN` (64 hex chars), `WUZAPI_GLOBAL_ENCRYPTION_KEY` (32 hex), `WUZAPI_GLOBAL_HMAC_KEY` (32 hex). Appended a `# --- Wuzapi block ---` section to `/var/www/ot1-pro.com/.env` with all `WUZAPI_*` vars including `WUZAPI_QR_ENABLED=true`, `WUZAPI_URL=http://127.0.0.1:8083`, `WUZAPI_HOST_PORT=8083`, `WUZAPI_WEBHOOK_URL=https://ot1-pro.com/api/webhooks/wuzapi`. Preserved with `.env.bak.{ts}` backup. `chmod 600 .env`. Ran `php artisan config:cache`.
+4. **VPS**: booted Wuzapi via `docker compose -f docker-compose.wuzapi.yml up -d`. Migrations applied cleanly (12 whatsmeow schema migrations). Container listens on port 8080 internally.
+5. **Port conflict on 8082** on first boot (docker-proxy leftover from failed create attempts) → moved prod bind to port 8083 via `WUZAPI_HOST_PORT` env var. Local dev continues to use 8082.
+6. **CRITICAL security fix**: Docker publishes ports by inserting rules into the DOCKER-USER iptables chain, which **bypasses UFW**. On first boot, the compose file's bare `- "8082:8080"` bound to `0.0.0.0` and an external `curl http://187.77.67.94:8082/admin/users` returned `HTTP 401` (the Wuzapi auth challenge — proving reachability). Fixed by:
+   - `sed`'ing the base compose file on prod to `- "127.0.0.1:8083:8080"` (loopback-only) and recreating the container.
+   - Committed the tracked-file fix as `a9bda97`: compose now uses `"${WUZAPI_HOST_BIND:-127.0.0.1}:${WUZAPI_HOST_PORT:-8082}:8080"` so loopback is the *default* going forward (dev is safer too).
+   - After fix: external test `HTTP 000` (unreachable) on both 8082 and 8083; local `HTTP 200` on 8083. Verified.
+7. **Browser E2E test (Phase A — pairing infrastructure)**: navigated Chrome to `https://ot1-pro.com/connections` → "Connect via QR (Beta)" button rendered → click → modal opened → click "Generate QR Code" → Livewire called `EvolutionApiService::createInstance()` → Wuzapi created tenant `team_2_U6ztSsdS` (id `b52724fe...`) → QR PNG rendered in modal. Full pairing infrastructure proven working, awaiting scan.
+
+### Isolation guarantees (per user rule "if WhatsApp breaks, don't affect other features")
+
+- New systemd services: `docker.service` + one wuzapi container. Zero touch to `nginx`, `php8.4-fpm`, `mysql`, `redis`, `one-inbox-queue`, `one-inbox-reverb`.
+- All new code paths gated by `config('services.wuzapi.qr_enabled')`. If Wuzapi is offline the button doesn't render; WhatsApp card degrades to showing existing connections + Cloud API path only.
+- No changes to `Team::canDispatchAi()`, `NaraRouter`, spam pipeline, or FB/IG/Telegram/Email code.
+- New webhook route `/api/webhooks/wuzapi` is separate from all other webhook endpoints.
+
+### Key locations (append to top table on next journal edit)
+
+| Key | Where to find it |
+|-----|-----------------|
+| `WUZAPI_ADMIN_TOKEN` (prod) | `/var/www/ot1-pro.com/.env` — in `# --- Wuzapi block ---` |
+| `WUZAPI_GLOBAL_ENCRYPTION_KEY` / `HMAC_KEY` (prod) | Same block. **CRITICAL: never regenerate** — every paired user's device store is encrypted with these; changing them = every user must re-scan QR. |
+| Wuzapi HTTP endpoint (prod) | `http://127.0.0.1:8083` — loopback only, never exposed to public. |
+| Wuzapi compose files | `docker-compose.wuzapi.yml` (tracked, secure defaults). No override file needed. |
+
+### Follow-ups still pending
+
+- **Phase B (inbound message webhook test)**: after successful QR pair, send yourself a WhatsApp message to the connected number and verify it lands in the inbox via `/api/webhooks/wuzapi` → `ProcessIncomingMessage::processWuzapi()`.
+- **Local dev**: `WUZAPI_WEBHOOK_URL` in local `.env` points at prod; to test webhook locally, set it to the ngrok tunnel URL. Not blocking prod.
+- **Consider**: renaming `EvolutionApiService` → `WhatsAppGatewayService` for clarity (deferred to avoid churn during rollout).
+
+
+---
+
+## 2026-08-23 (continued) — WhatsApp End-to-End Full Fix (post-rollout stabilization)
+
+**Context:** After the initial Wuzapi rollout got the QR pair working, five follow-on bugs surfaced when the paired phone actually started receiving real messages. All are fixed and live in commits `482a0ba → 6bf0c93`.
+
+### Bugs found & fixes shipped (in order)
+
+1. **Race: reconnect nukes freshly paired tenant** (`482a0ba`)
+   - Sequence: PairSuccess → Laravel `saveConnection` writes DB → `refreshWaStates` queries Wuzapi → Wuzapi's `jid` write is async & hasn't propagated → the just-paired tenant is filtered out of `fetchConnectedInstanceNames` → UI shows the fresh pair as "Disconnected" → user clicks "Reconnect" → `reconnectGateway` calls `deleteInstance` on the still-live paired tenant → session dies.
+   - Fix: `Connections\Index::reconnectGateway` now checks `$account->connected_at->gt(now()->subSeconds(90))` before touching `deleteInstance`. Fresh accounts are left alone; the modal just reopens for a new scan. Same 90s grace also added to `isGatewayAccountActive()` for the UI badge.
+
+2. **Race: closeModal nukes freshly paired tenant** (`a063b9a`)
+   - Symptom: even with the reconnect fix, `POST /session/logout` was still firing ~7s after PairSuccess. Cause: `WhatsAppQrModal::cleanupInstance()` fires from `closeModal` if the Livewire snapshot the client posted back still had `status='qr_pending'` (client saw stale state while server had already advanced to `'connected'`).
+   - Fix: `cleanupInstance()` short-circuits if `ConnectedAccount` with `metadata->gateway_instance = $this->instanceName` exists with `connected_at` in the last 90s. DB is now the authoritative "was this paired?" signal, not the possibly-stale Livewire snapshot.
+
+3. **Payload shape mismatch: no inbound message ever created** (`4ff846f`)
+   - Wuzapi upgrade changed the outbound envelope from `{event, instance, data}` to `{instanceName, userID, jsonData: "..."}` where `jsonData` is a JSON string containing `{type, event: {Info, Message}}`. `processWuzapi` was reading the old shape, so every real message landed as `event_type=wuzapi.unknown` and the first `if ($event !== 'Message') return;` bailed out. Also field paths for Sender/IsFromMe/IsGroup moved from `Info.MessageSource.*` (Baileys) to `Info.*` (whatsmeow).
+   - Fix: `WuzapiWebhookController::handle` parses `jsonData` and normalises into the shape `processWuzapi` expects (raw envelope preserved in `payload.raw` for debugging). `processWuzapi` reads Sender/IsGroup directly on Info with a fallback to the legacy MessageSource nesting.
+
+4. **Channel/broadcast pollution + wrong-TZ timestamps** (`8521e5a`)
+   - `120363XXX@newsletter` (WhatsApp Channels) subscribed by the paired phone were being turned into "conversations" in the inbox. Added a suffix guard for `@newsletter`, `@broadcast`, `@g.us` in `processWuzapi`.
+   - `Info.Timestamp` from Wuzapi arrives as ISO 8601 with a `+03:00` offset. `Carbon::parse` preserved the offset, Eloquent serialised the local wall time — so `platform_sent_at` was 3h ahead of the UTC `created_at`. Inbox displayed inbound messages at "6:39 PM" for what was actually 15:39 UTC, so they sorted AFTER subsequent outbound messages. Fix: `->setTimezone('UTC')` before persisting.
+   - Retroactive cleanup: deleted 4 channel-garbage conversations from page 18 (ids 893, 895, 896, 897) + rewound `platform_sent_at` by 3h on 7 previously-mis-stored messages.
+
+5. **AI replies bypassed the gateway_mode gate** (`6bf0c93`)
+   - `SendAiResponse::sendViaWhatsApp` hardcoded Meta Graph API — never checked `gateway_mode`. Every AI-generated reply on a QR-paired page hit Meta with a Wuzapi per-user token, producing `OAuthException code 190 ("Cannot parse access token")` and no delivery. The user-triggered `SendPlatformMessage::sendViaWhatsApp` already had the gate, so user messages worked and AI messages didn't — perfectly matches the reported "AI replies show in inbox but don't reach WhatsApp" symptom.
+   - Fix: added the same `gateway_mode` branch to `SendAiResponse::sendViaWhatsApp`, calling `EvolutionApiService::sendText()` with the paired tenant name + Wuzapi per-user token. Comments on both sides asking future edits to keep them in sync.
+
+### Verified end-to-end on prod
+
+- Two paired pages simultaneously: page 18 (`201026361218`, tenant `team_2_nTlYG3Ka`), page 19 (`201148041136`, tenant `team_2_6f6EEzRU`). Both `loggedIn=true`. Sends per-page correctly route to the matching Wuzapi tenant via `metadata.gateway_instance`.
+- Inbound: real WhatsApp text → webhook → `WuzapiWebhookController` → `ProcessIncomingMessage::processWuzapi` → `Contact`/`Conversation`/`Message` rows written → `SendAiResponse` dispatched → AI reply generated → `sendViaWhatsApp` gates to Wuzapi → `POST /chat/send/text` returns 200 → customer's phone shows the AI reply.
+- User-triggered inbox send: same path via `SendPlatformMessage` — verified with 5 messages Omar typed into conv 894 (msg 525-529), all delivered with real Wuzapi message IDs.
+
+### Operational lessons (also captured in memory)
+
+- **NEVER run `php artisan config:cache` as root on prod.** Twice in this session I did so via SSH `root@` — the cached file was written with root ownership context and PHP-FPM (running as www-data) served intermittent `MissingAppKeyException` on ~1 in N requests, causing user-visible 500s. Correct pattern: `sudo -u deploy XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan config:cache && systemctl reload php8.4-fpm`.
+- **`SendPlatformMessage::sendViaWhatsApp` and `SendAiResponse::sendViaWhatsApp` are parallel code paths that both need the same routing gates.** Adding a new WhatsApp send condition (gateway_mode, media handling, tokens, etc.) requires editing both, or one flow silently misroutes. Comments now on both sides.
+
+### Files touched this session
+
+- `resources/views/livewire/connections/index.blade.php` — QR Connect button, isOnline uses helper
+- `app/Livewire/Connections/Index.php` — `reconnectGateway` guard, `isGatewayAccountActive` helper
+- `app/Livewire/Connections/WhatsAppQrModal.php` — `cleanupInstance` DB-level guard
+- `app/Http/Controllers/Webhooks/WuzapiWebhookController.php` — payload normalization
+- `app/Jobs/ProcessIncomingMessage.php` — `processWuzapi` new payload shape + channel/broadcast skip + UTC timestamp
+- `app/Jobs/SendAiResponse.php` — gateway_mode branch mirroring `SendPlatformMessage`
+- `docker-compose.wuzapi.yml` — loopback-only bind, env-configurable port
+
+### Commits in order
+
+- `46f1e43` — expose QR Connect button on connections page
+- `a9bda97` — bind Wuzapi port to loopback only, env-configurable
+- `482a0ba` — reconnect nukes freshly paired tenant (race guard v1)
+- `a063b9a` — DB-level race guard on cleanup + reconnect (race guard v2)
+- `4ff846f` — parse new Wuzapi webhook payload shape
+- `8521e5a` — skip channels/broadcasts + normalize webhook timestamp to UTC
+- `6bf0c93` — AI send must respect gateway_mode too
+
+*Session end: WhatsApp is production-ready on prod. Two paired phones tested end-to-end (inbound + outbound + AI reply). Zero send failures in the last 30+ minutes.*
