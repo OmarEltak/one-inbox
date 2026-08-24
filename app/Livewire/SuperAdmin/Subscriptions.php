@@ -7,6 +7,7 @@ namespace App\Livewire\SuperAdmin;
 use App\Models\PaymentRequest;
 use App\Models\Team;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -221,7 +222,7 @@ class Subscriptions extends Component
         unset($this->teams);
     }
 
-    private function resolveEndsAt(Team $team): ?Carbon
+    private function resolveEndsAt(Team $team): ?CarbonInterface
     {
         $base = $this->grantMode === 'extend'
                 && $team->subscription_ends_at
