@@ -199,8 +199,14 @@ class EvolutionApiService
                 return [];
             }
 
+            // Filter by loggedIn=true AND connected=true, NOT by jid presence.
+            // Whatsmeow persists the paired device's jid across logout/disconnect for
+            // reconnect-restore, so `!empty($u['jid'])` remains true even after the
+            // user unlinks the device on their phone. Using jid as the online signal
+            // would mark a fully-dead session as "Active", silently accepting sends
+            // that would then fail with HTTP 500 "no session" downstream.
             return collect($resp->json('data') ?? [])
-                ->filter(fn ($u) => ! empty($u['jid']))
+                ->filter(fn ($u) => ! empty($u['loggedIn']) && ! empty($u['connected']))
                 ->pluck('name')
                 ->filter()
                 ->values()

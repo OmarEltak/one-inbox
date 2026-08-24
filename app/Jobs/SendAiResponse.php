@@ -420,6 +420,7 @@ class SendAiResponse implements ShouldQueue
                     'instance' => $instanceName,
                     'to'       => $recipientId,
                 ]);
+                $this->stampSendFailure($aiMessage, "WhatsApp is disconnected. Re-scan the QR code on the Connections page.");
             }
             return;
         }
@@ -443,7 +444,22 @@ class SendAiResponse implements ShouldQueue
             ]);
         } else {
             Log::error('WhatsApp send failed', ['body' => $response->body()]);
+            $this->stampSendFailure($aiMessage, 'WhatsApp Cloud API rejected the send: ' . substr($response->body(), 0, 200));
         }
+    }
+
+    /**
+     * Stamp an AI-generated Message row so the inbox blade surfaces the failure
+     * with a red "Not delivered" indicator (blade reads metadata.send_status).
+     * Mirrors what SendPlatformMessage::failed() does for user-triggered sends.
+     */
+    private function stampSendFailure(Message $aiMessage, string $error): void
+    {
+        $meta = $aiMessage->metadata ?? [];
+        $meta['send_status']    = 'failed';
+        $meta['send_error']     = $error;
+        $meta['send_error_raw'] = $error;
+        $aiMessage->update(['metadata' => $meta]);
     }
 
     protected function sendViaTelegram(Page $page, string $chatId, string $text, Message $aiMessage): void

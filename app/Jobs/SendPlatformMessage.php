@@ -284,7 +284,11 @@ class SendPlatformMessage implements ShouldQueue
 
         Log::error('WhatsApp send failed', ['body' => $response->body()]);
 
-        return null;
+        // Throw so the outer catch stamps metadata.send_status and the job retries.
+        // Silent `return null` here made send failures invisible in the inbox UI —
+        // the message would render as delivered because the blade only shows a
+        // failure indicator when metadata.send_status is 'failing' or 'failed'.
+        throw new \RuntimeException('WhatsApp (Meta) send failed: ' . $response->body());
     }
 
     /**
@@ -311,6 +315,11 @@ class SendPlatformMessage implements ShouldQueue
 
         if (! $messageId) {
             Log::error('Evolution send failed', ['instance' => $instanceName, 'to' => $recipientId]);
+            // Wuzapi returns HTTP 500 "no session" when the paired device has been
+            // unlinked on the phone (loggedIn=false). Silent null-return here made
+            // the failure invisible in the inbox — throw so the outer catch stamps
+            // metadata.send_status and the user sees "Not delivered" on the bubble.
+            throw new \RuntimeException("WhatsApp (Wuzapi) send failed — instance '{$instanceName}' may be disconnected. Re-scan the QR code.");
         }
 
         return $messageId;
