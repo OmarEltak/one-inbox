@@ -18,6 +18,12 @@ class ScoreLeadJob implements ShouldQueue
 
     public int $tries = 2;
 
+    // NaraRouter fallback chain + AI classification regularly exceed the
+    // 60s default. When this job times out, Laravel SIGKILLs the worker,
+    // which nukes any concurrently-running SendPlatformMessage / webhook
+    // job and stalls the whole queue — see docs/incidents/2026-08-25-queue-cascade.md.
+    public int $timeout = 300;
+
     public function __construct(
         public int $messageId,
         public int $contactId
