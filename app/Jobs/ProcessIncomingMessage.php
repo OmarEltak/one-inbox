@@ -583,7 +583,13 @@ class ProcessIncomingMessage implements ShouldQueue
         if (! $senderPhone) {
             return;
         }
-        $senderName = $info['PushName'] ?? $senderPhone;
+        // PushName on the webhook is the SENDER's WhatsApp display name.
+        // For inbound that IS the customer; for fromMe (operator replied
+        // from their own phone/WA Web) that is US, not the recipient. Use
+        // it as the contact name only when it actually belongs to the
+        // contact; otherwise fall back to phone until a later inbound from
+        // this contact backfills the real name.
+        $senderName = $isFromMe ? $senderPhone : ($info['PushName'] ?? $senderPhone);
 
         // Pull text or media descriptor out of the typed Message envelope.
         // Wuzapi mirrors whatsmeow's protobuf field names, e.g. messageBody.conversation,
