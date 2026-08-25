@@ -21,6 +21,11 @@ class ProcessIncomingMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    // Inbound webhook → conversation/message materialization. Users see
+    // this as "did their message arrive in my inbox" latency, so it goes
+    // on 'urgent' alongside outbound sends.
+    public string $queue = 'urgent';
+
     public int $tries = 3;
     public int $backoff = 30;
 

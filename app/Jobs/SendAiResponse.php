@@ -41,6 +41,10 @@ class SendAiResponse implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    // Customer-visible: this is the AI's reply to a real inbound. Runs on
+    // 'urgent' so it doesn't queue behind background scoring/sync.
+    public string $queue = 'urgent';
+
     public int $tries = 2;
     public int $backoff = 10;
 
