@@ -20,6 +20,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+
 /**
  * ══ ARCHITECTURE REFERENCE §5, §7, §9, §11, §12 ══
  * READ docs/ARCHITECTURE.md before restructuring handle(). This job is the
@@ -42,6 +43,11 @@ class SendAiResponse implements ShouldQueue
 
     public int $tries = 2;
     public int $backoff = 10;
+
+    // NaraRouter provider chain + gateway HTTP send can compound to >60s
+    // under provider failover. Without an explicit timeout, this job would
+    // SIGKILL the worker on slow paths.
+    public int $timeout = 240;
 
     public function __construct(
         public int $conversationId,

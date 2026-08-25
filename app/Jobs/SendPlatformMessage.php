@@ -20,6 +20,11 @@ class SendPlatformMessage implements ShouldQueue
     public int $tries = 3;
     public int $backoff = 10;
 
+    // Explicit — do not silently inherit the queue default. Outbound HTTP
+    // to Meta / WhatsApp / Wuzapi / SMTP can take up to ~90s under load;
+    // a 60s default would SIGKILL the worker and drop the send silently.
+    public int $timeout = 120;
+
     public function __construct(
         public int $messageId
     ) {}

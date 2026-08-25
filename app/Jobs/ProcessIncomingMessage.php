@@ -24,6 +24,12 @@ class ProcessIncomingMessage implements ShouldQueue
     public int $tries = 3;
     public int $backoff = 30;
 
+    // Webhook processing chains into AiProvider calls (spam classify,
+    // sales-stage). AI calls can run 30-90s. Without an explicit timeout
+    // this job inherits the 60s default and SIGKILLs the worker, taking
+    // any concurrent SendPlatformMessage down with it.
+    public int $timeout = 180;
+
     public function __construct(
         public int $webhookLogId
     ) {}
