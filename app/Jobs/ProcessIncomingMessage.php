@@ -550,7 +550,16 @@ class ProcessIncomingMessage implements ShouldQueue
         // (which wrote platform_message_id when we called Wuzapi). This must happen
         // before the fromMe branch below, otherwise every OT1 send would be duplicated
         // as a "user sent from phone" message when Wuzapi echoes it back.
-        if ($messageId && Message::where('platform_message_id', $messageId)->exists()) {
+        //
+        // NOTE: scope the dedupe to THIS page. When both sides of a conversation are
+        // on OT1 (Omar's own two phones, or an internal team chat), Wuzapi fires two
+        // webhooks with the same platform_message_id — one to the sender's instance
+        // (fromMe=true → we record as outbound on THIS page) and one to the receiver's
+        // instance (fromMe=false → we record as inbound on the OTHER page). Global
+        // dedupe would drop whichever arrived second, losing one side of the thread.
+        if ($messageId && Message::where('platform_message_id', $messageId)
+                ->whereHas('conversation', fn ($q) => $q->where('page_id', $page->id))
+                ->exists()) {
             return;
         }
 
