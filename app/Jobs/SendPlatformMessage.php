@@ -17,11 +17,6 @@ class SendPlatformMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // User-facing outbound send. Lives on the 'urgent' queue so a slow
-    // background job (ScoreLead, SyncPage, AI classify) can never head-of-line
-    // block a human customer's typed reply. See docs/incidents/2026-08-25-queue-cascade.md.
-    public string $queue = 'urgent';
-
     public int $tries = 3;
     public int $backoff = 10;
 
@@ -32,7 +27,13 @@ class SendPlatformMessage implements ShouldQueue
 
     public function __construct(
         public int $messageId
-    ) {}
+    ) {
+        // Route to the 'urgent' queue so a slow background job (ScoreLead,
+        // SyncPage, AI classify) can never head-of-line block a user's send.
+        // Property override on $queue collides with Queueable trait — use the
+        // runtime setter instead.
+        $this->onQueue('urgent');
+    }
 
     public function handle(): void
     {

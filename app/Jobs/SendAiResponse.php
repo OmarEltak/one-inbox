@@ -41,10 +41,6 @@ class SendAiResponse implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // Customer-visible: this is the AI's reply to a real inbound. Runs on
-    // 'urgent' so it doesn't queue behind background scoring/sync.
-    public string $queue = 'urgent';
-
     public int $tries = 2;
     public int $backoff = 10;
 
@@ -56,7 +52,10 @@ class SendAiResponse implements ShouldQueue
     public function __construct(
         public int $conversationId,
         public int $triggerMessageId
-    ) {}
+    ) {
+        // Route to 'urgent' — AI reply latency is customer-visible.
+        $this->onQueue('urgent');
+    }
 
     public function handle(AiProviderInterface $ai): void
     {

@@ -21,11 +21,6 @@ class ProcessIncomingMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // Inbound webhook → conversation/message materialization. Users see
-    // this as "did their message arrive in my inbox" latency, so it goes
-    // on 'urgent' alongside outbound sends.
-    public string $queue = 'urgent';
-
     public int $tries = 3;
     public int $backoff = 30;
 
@@ -37,7 +32,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
     public function __construct(
         public int $webhookLogId
-    ) {}
+    ) {
+        // Route to 'urgent' — inbound-message latency is customer-visible.
+        $this->onQueue('urgent');
+    }
 
     public function handle(AiProviderInterface $ai): void
     {
