@@ -511,13 +511,6 @@ class ProcessIncomingMessage implements ShouldQueue
             return;
         }
 
-        // Skip echoes — we already wrote our own outbound on send.
-        // Current Wuzapi shape has these directly on Info (older Baileys builds nested
-        // under Info.MessageSource — accept both for safety).
-        if (! empty($info['IsFromMe']) || ! empty($info['MessageSource']['IsFromMe'])) {
-            return;
-        }
-
         // Skip group chats for now — the rest of the inbox assumes 1:1 conversations.
         if (! empty($info['IsGroup']) || ! empty($info['MessageSource']['IsGroup'])) {
             return;
@@ -549,20 +542,39 @@ class ProcessIncomingMessage implements ShouldQueue
 
         WebhookLog::where('id', $this->webhookLogId)->update(['team_id' => $page->team_id]);
 
-        // Current Wuzapi: Sender is directly on Info. Older Baileys: nested under MessageSource.
-        $senderJid   = $info['Sender'] ?? ($info['MessageSource']['Sender'] ?? '');
-        $senderPhone = preg_replace('/:.*$/', '', explode('@', $senderJid)[0] ?? '') ?: '';
-        if (! $senderPhone) {
-            return;
-        }
-        $senderName  = $info['PushName'] ?? $senderPhone;
-        $messageId   = $info['ID'] ?? null;
-        $timestamp   = $info['Timestamp'] ?? null;
+        $isFromMe = ! empty($info['IsFromMe']) || ! empty($info['MessageSource']['IsFromMe']);
+        $messageId = $info['ID'] ?? null;
+        $timestamp = $info['Timestamp'] ?? null;
 
-        // De-dupe — if Wuzapi retries (or our own send wrote this id back), skip.
+        // De-dupe FIRST — catches Wuzapi retries AND echoes of our own OT1-side sends
+        // (which wrote platform_message_id when we called Wuzapi). This must happen
+        // before the fromMe branch below, otherwise every OT1 send would be duplicated
+        // as a "user sent from phone" message when Wuzapi echoes it back.
         if ($messageId && Message::where('platform_message_id', $messageId)->exists()) {
             return;
         }
+
+        // For fromMe: derive the customer from the Chat JID (recipient), not Sender.
+        // For inbound: derive the customer from Sender.
+        if ($isFromMe) {
+            // RecipientAlt is the customer's real @s.whatsapp.net phone when Chat is @lid.
+            // Fall back to Chat itself if RecipientAlt is empty.
+            $customerJid = $info['RecipientAlt'] ?? '';
+            if (! $customerJid) {
+                $customerJid = $info['Chat'] ?? '';
+            }
+        } else {
+            // SenderAlt is the customer's real phone when Sender is @lid.
+            $customerJid = $info['SenderAlt'] ?? '';
+            if (! $customerJid) {
+                $customerJid = $info['Sender'] ?? ($info['MessageSource']['Sender'] ?? '');
+            }
+        }
+        $senderPhone = preg_replace('/:.*$/', '', explode('@', $customerJid)[0] ?? '') ?: '';
+        if (! $senderPhone) {
+            return;
+        }
+        $senderName = $info['PushName'] ?? $senderPhone;
 
         // Pull text or media descriptor out of the typed Message envelope.
         // Wuzapi mirrors whatsmeow's protobuf field names, e.g. messageBody.conversation,
@@ -578,9 +590,9 @@ class ProcessIncomingMessage implements ShouldQueue
         $message = Message::create([
             'conversation_id'     => $conversation->id,
             'platform_message_id' => $messageId,
-            'direction'           => 'inbound',
-            'sender_type'         => 'contact',
-            'sender_id'           => $contact->id,
+            'direction'           => $isFromMe ? 'outbound' : 'inbound',
+            'sender_type'         => $isFromMe ? 'user' : 'contact',
+            'sender_id'           => $isFromMe ? null : $contact->id,
             'content_type'        => $contentType,
             'content'             => $content,
             'media_url'           => $mediaUrl,
@@ -600,15 +612,26 @@ class ProcessIncomingMessage implements ShouldQueue
             'last_message_preview' => \Illuminate\Support\Str::limit($content ?? '[Media]', 100),
             'status'               => 'open',
         ]);
-        $conversation->incrementUnread();
 
-        ScoreLeadJob::dispatch($message->id, $contact->id);
+        if ($isFromMe) {
+            // The operator replied directly from their phone/WhatsApp Web (not from OT1).
+            // Pause the AI so it stops replying on top of the human — same behaviour as
+            // Livewire\Inbox\Index::sendMessage(). No unread bump, no lead scoring, no
+            // AI dispatch — this message IS the reply.
+            if (! $conversation->ai_paused) {
+                $conversation->pauseAi();
+            }
+        } else {
+            $conversation->incrementUnread();
 
-        $team = $page->team;
-        if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            ScoreLeadJob::dispatch($message->id, $contact->id);
+
+            $team = $page->team;
+            if ($team->canDispatchAi()) {
+                SendAiResponse::dispatch($conversation->id, $message->id)->delay(
+                    now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
+                );
+            }
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
