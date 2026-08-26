@@ -98,20 +98,28 @@ return [
         'model'    => env('OLLAMA_MODEL', 'qwen2.5:7b'),
     ],
 
-    // NaraRouter — OpenAI-compatible chat completions router. One key routes to
-    // Claude, GPT, Gemini, etc. depending on the model name. Default reply and
-    // scoring both use the same model unless explicitly split via env.
+    // NaraRouter — OpenAI-compatible chat completions router. Nara's Free plan
+    // gives access to a curated model set with per-model quota weights (0.05x
+    // ... 3x). Chain order: best available quality → mistral-large as the
+    // reliable final safety net (verified to never disconnect from Nara).
+    //
+    // Multi-key: NARAROUTER_API_KEY is primary, NARAROUTER_API_KEY_SECONDARY
+    // is optional. When primary hits 401/402/429 (auth/quota/rate limit) we
+    // rotate to secondary for the SAME model attempt. Both exhausted for one
+    // model → cascade to next model, restart key rotation. Both exhausted for
+    // every model in the chain → email alert to NARAROUTER_ALERT_EMAIL.
     'nararouter' => [
-        'api_key'       => env('NARAROUTER_API_KEY'),
-        'base_url'      => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
-        'model'         => env('NARAROUTER_MODEL', 'claude-sonnet-4.5'),
-        'scoring_model' => env('NARAROUTER_SCORING_MODEL', env('NARAROUTER_MODEL', 'claude-sonnet-4.5')),
-        // Ordered failover chain. If sonnet 502s, cascade to mistral-medium-3-5,
-        // then mistral-large, then haiku. Reset to head-of-chain every 6h.
-        // Names must match NaraRouter's model aliases exactly — verify via
-        // GET /v1/models when adjusting. Override via env with a comma-
-        // separated string.
-        'fallback_models' => env('NARAROUTER_FALLBACK_MODELS', 'claude-sonnet-4.5,mistral-medium-3-5,mistral-large,claude-haiku-4.5'),
+        'api_key'           => env('NARAROUTER_API_KEY'),                                          // primary (BC)
+        'api_key_secondary' => env('NARAROUTER_API_KEY_SECONDARY'),                                // optional 2nd account
+        'base_url'          => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
+        'model'             => env('NARAROUTER_MODEL', 'agnes-2.5-flash'),
+        'scoring_model'     => env('NARAROUTER_SCORING_MODEL', 'ox-alpha-bynara'),                 // 0.05x weight — near-zero quota drain for background scoring/analysis
+        'fallback_models'   => env(
+            'NARAROUTER_FALLBACK_MODELS',
+            'agnes-2.5-flash,agnes-2.0-flash,nemotron-3-ultra,qwen-3.8-max-free,deepseek-v4-flash,mistral-large'
+        ),
+        'reset_hours'       => (int) env('NARAROUTER_RESET_HOURS', 5),                             // return to head-of-chain every N hours from FIRST fallback
+        'alert_email'       => env('NARAROUTER_ALERT_EMAIL', 'omareltak7@gmail.com'),              // notified when every (model × key) attempt failed
     ],
 
     /*
