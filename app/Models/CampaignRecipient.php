@@ -30,6 +30,9 @@ class CampaignRecipient extends Model
         'sent_at',
         'opened_at',
         'failed_at',
+        'phone',
+        'phone_country',
+        'channel',
     ];
 
     protected function casts(): array

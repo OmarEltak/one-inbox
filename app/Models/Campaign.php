@@ -36,23 +36,34 @@ class Campaign extends Model
         'unsubscribed_count',
         'status',
         'scheduled_at',
+        'warmup_bypass',
+        'quiet_hours_start',
+        'quiet_hours_end',
+        'respect_recipient_tz',
+        'paused_reason',
+        'use_spintax',
     ];
 
     protected function casts(): array
     {
         return [
-            'target_criteria'    => 'array',
-            'ai_personalize'     => 'boolean',
-            'total_contacts'     => 'integer',
-            'sent_count'         => 'integer',
-            'reply_count'        => 'integer',
-            'failed_count'       => 'integer',
-            'opened_count'       => 'integer',
-            'unsubscribed_count' => 'integer',
-            'daily_cap'          => 'integer',
-            'jitter_min_seconds' => 'integer',
-            'jitter_max_seconds' => 'integer',
-            'scheduled_at'       => 'datetime',
+            'target_criteria'      => 'array',
+            'ai_personalize'       => 'boolean',
+            'total_contacts'       => 'integer',
+            'sent_count'           => 'integer',
+            'reply_count'          => 'integer',
+            'failed_count'         => 'integer',
+            'opened_count'         => 'integer',
+            'unsubscribed_count'   => 'integer',
+            'daily_cap'            => 'integer',
+            'jitter_min_seconds'   => 'integer',
+            'jitter_max_seconds'   => 'integer',
+            'scheduled_at'         => 'datetime',
+            'warmup_bypass'        => 'boolean',
+            'quiet_hours_start'    => 'integer',
+            'quiet_hours_end'      => 'integer',
+            'respect_recipient_tz' => 'boolean',
+            'use_spintax'          => 'boolean',
         ];
     }
 
