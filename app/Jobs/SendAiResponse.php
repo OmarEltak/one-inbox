@@ -174,6 +174,16 @@ class SendAiResponse implements ShouldQueue
             }
         }
 
+        // Track wall-clock so we can overlap the AI call with the "typing
+        // indicator" delay budget instead of stacking them. Concretely:
+        //   old: wait 15s in queue, then call AI (10s), then send → 25s total
+        //   new: dispatch fires immediately, call AI (10s), then sleep the
+        //        REMAINING typing budget (max 0, 15-10=5s), then send → 15s total
+        // Slow-AI case is even better: if AI takes 20s, no extra sleep needed
+        // and total lag is 20s instead of the old 15+20=35s.
+        $handleStartedAt = microtime(true);
+        $desiredDelaySec = (int) ($aiConfig?->getRandomDelay() ?? 0);
+
         try {
             $responseText = $ai->generateResponse($conversation, $triggerMessage, $aiConfig);
 
@@ -212,6 +222,30 @@ class SendAiResponse implements ShouldQueue
                         'marked_spam_reason' => 'ai_detected_abuse',
                     ]),
                 ]);
+                return;
+            }
+
+            // Wait out the REMAINING typing-indicator budget (if any) BEFORE
+            // storing/sending, so the customer sees the reply at ~desiredDelaySec
+            // after their message — same UX as before, without stacking the AI
+            // call time on top.
+            $elapsedSec = microtime(true) - $handleStartedAt;
+            $remainingSec = $desiredDelaySec - $elapsedSec;
+            if ($remainingSec > 0.5) {
+                usleep((int) ($remainingSec * 1_000_000));
+            }
+
+            // Debounce check AFTER the sleep: if the customer sent another
+            // inbound message during the AI call or the remaining typing
+            // budget, THIS reply is now stale — the newer message's own
+            // SendAiResponse job will run and generate a fresh reply that
+            // sees the full context. Bail so we don't double-reply.
+            $newerInboundAfterAi = $conversation->messages()
+                ->where('id', '>', $this->triggerMessageId)
+                ->where('direction', 'inbound')
+                ->exists();
+
+            if ($newerInboundAfterAi) {
                 return;
             }
 

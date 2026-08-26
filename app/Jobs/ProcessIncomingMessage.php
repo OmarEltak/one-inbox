@@ -250,9 +250,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
             $team = $page->team;
             if ($team->canDispatchAi()) {
-                SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                    now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-                );
+                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+                // typing-delay AFTER the AI call so the API round-trip overlaps the
+                // "human is typing" budget instead of being stacked on top of it.
+                SendAiResponse::dispatch($conversation->id, $message->id);
             }
         }
 
@@ -342,9 +343,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -464,9 +466,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -643,9 +646,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
             $team = $page->team;
             if ($team->canDispatchAi()) {
-                SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                    now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-                );
+                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+                // typing-delay AFTER the AI call so the API round-trip overlaps the
+                // "human is typing" budget instead of being stacked on top of it.
+                SendAiResponse::dispatch($conversation->id, $message->id);
             }
         }
 
@@ -767,9 +771,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -864,9 +869,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -957,9 +963,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -1033,9 +1040,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -1155,9 +1163,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -1460,9 +1469,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            SendAiResponse::dispatch($conversation->id, $message->id)->delay(
-                now()->addSeconds($page->aiConfig?->getRandomDelay() ?? 60)
-            );
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));

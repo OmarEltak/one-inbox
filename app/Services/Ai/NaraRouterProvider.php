@@ -308,7 +308,12 @@ class NaraRouterProvider implements AiProviderInterface
             $response = Http::withToken($this->apiKey)
                 ->acceptJson()
                 ->asJson()
-                ->timeout(60)
+                // 25s per-model attempt (not 60): a broken upstream should cascade
+                // to the next model in the chain quickly instead of eating the
+                // whole worker budget on one stuck request. connectTimeout(5) fails
+                // fast if the host itself is unreachable (DNS / TLS handshake stall).
+                ->connectTimeout(5)
+                ->timeout(25)
                 ->post("{$this->baseUrl}/chat/completions", [
                     'model'       => $tryModel,
                     'messages'    => $messages,
