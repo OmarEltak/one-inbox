@@ -46,6 +46,7 @@ class Team extends Model
         'settings',
         'ai_memory',
         'audio_transcription_enabled',
+        'features',
     ];
 
     protected function casts(): array
@@ -58,6 +59,7 @@ class Team extends Model
             'ai_credits_limit' => 'integer',
             'settings' => 'array',
             'audio_transcription_enabled' => 'boolean',
+            'features' => 'array',
         ];
     }
 
@@ -133,6 +135,11 @@ class Team extends Model
     public function isAiEnabled(): bool
     {
         return $this->ai_enabled;
+    }
+
+    public function hasFeature(string $key): bool
+    {
+        return (bool) data_get($this->features, $key, false);
     }
 
     /**
