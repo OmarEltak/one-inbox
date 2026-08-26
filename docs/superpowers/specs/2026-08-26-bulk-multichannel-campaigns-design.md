@@ -230,7 +230,9 @@ one-inbox-queue-ai-bulk     → --queue=ai-bulk   --tries=2 --timeout=45 --sleep
 ```
 GET  /campaigns/whatsapp/new          → WhatsAppWizard
 POST /campaigns/{campaign}/test-send  → CampaignController@testSend (throttle: 5/hr/user)
-GET  /health/metrics                  → HealthMetricsController (internal; drives backpressure)
+GET  /health/metrics                  → HealthMetricsController (external observability only —
+                                       the scheduler does NOT call this endpoint; it measures
+                                       queue depth + page state via direct in-process query)
 ```
 Existing email routes unchanged.
 
