@@ -274,7 +274,7 @@ Existing email routes unchanged.
 **Architectural invariant:**
 > No background workload may cause `urgent` queue p95 latency to exceed 2 seconds.
 
-**SLO panel** (measured, exported to `/health/metrics`):
+**SLO panel** (measured):
 | Metric                    | Target      | Enforcement                        |
 |---------------------------|-------------|------------------------------------|
 | `urgent_queue_p95`        | < 2000 ms   | HARD — auto-pauses new dispatch    |
@@ -284,12 +284,34 @@ Existing email routes unchanged.
 | `http_p95`                | < 1000 ms   | SOFT — logged                      |
 | `db_query_p95`            | < 100 ms    | SOFT — logged                      |
 
-**Banned patterns:**
-- `sleep()` inside a worker. Jitter = varied `scheduled_at`, never runtime sleep.
-- Dispatching to `urgent` from any campaign code path.
-- Writing to `campaign_events` for framework/debug noise. Only business state transitions.
-- Direct Wuzapi calls from campaign code. Every campaign send routes through `WhatsAppSender`.
-- SELECT-then-UPDATE on `page_send_counters`. Must be atomic upsert.
+**Measurement source discipline:**
+The scheduler runs inside the application — it MUST measure queue depth and page state via **direct in-process queries** (Laravel's `Queue::size('campaigns')` or a direct `SELECT COUNT(*)` on the `jobs` table with a targeted index), NOT via HTTP to `/health/metrics`. The endpoint exists for external observability only. Coupling the scheduler to its own HTTP surface is the kind of accidental circular dependency that produces mysterious cascading failures under load.
+
+**Backpressure (phase a):** simple threshold — `campaigns_queue_depth > 500 → skip tick`.
+
+**Backpressure with hysteresis (phase b refinement):**
+```
+depth > 500  → STOP dispatching, set state = paused
+depth < 300  → RESUME dispatching, set state = active
+```
+Prevents the 499→501→499 oscillation at the boundary. Not a phase-a blocker at current volume.
+
+### Banned patterns (guardrails against architectural regression)
+
+Regressions on any of these will be caught in code review; they are hard rules, not preferences:
+
+- ❌ `sleep()` inside any campaign worker. Jitter = varied `scheduled_at`, never runtime sleep.
+- ❌ Campaign jobs dispatched to the `urgent` queue.
+- ❌ Direct Wuzapi calls from any campaign code path. All go through `WhatsAppSender`.
+- ❌ Unbounded scheduler dispatch (no `LIMIT` on the claim query).
+- ❌ `SELECT count → UPDATE count` on `page_send_counters`. Must be atomic upsert.
+- ❌ Synchronous AI calls from a webhook handler.
+- ❌ Synchronous AI calls from an HTTP request/Livewire action.
+- ❌ Scanning `campaign_recipients` without the `(status, scheduled_at)` index.
+- ❌ Scheduler dispatching when sender page is `disconnected` or `banned`.
+- ❌ Writing to `campaign_events` for framework/debug noise (only business state transitions).
+- ❌ Scheduler reading its inputs via HTTP to its own application (direct in-process query only).
+- ❌ A third parallel Wuzapi send path (preserves the invariant from project memory `whatsapp_parallel_send_paths`).
 
 ## Validation & Safety
 
