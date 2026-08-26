@@ -254,7 +254,7 @@ trait BuildsConversationPrompts
         return implode("\n\n", $parts);
     }
 
-    protected function buildConversationHistory(Conversation $conversation, int $limit = 20): array
+    protected function buildConversationHistory(Conversation $conversation, int $limit = 40): array
     {
         $messages = $conversation->messages()
             ->orderBy('created_at', 'desc')
