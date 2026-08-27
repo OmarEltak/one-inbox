@@ -8,6 +8,9 @@ use App\Http\Controllers\BlogController;
 Route::get('auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
+// Health & Observability (external monitoring)
+Route::get('/health/metrics', \App\Http\Controllers\HealthMetricsController::class)->name('health.metrics');
+
 // Homepage: renders the AI Campaign Manager landing (was welcome.blade.php until 2026-07-09).
 // The old welcome view is preserved in resources/views/welcome.blade.php (content wrapped
 // in @if(false) as a reference/rollback point — DO NOT delete or rename).
