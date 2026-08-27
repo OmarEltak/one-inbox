@@ -18,6 +18,7 @@ class CampaignRecipientFactory extends Factory
             'campaign_id'  => Campaign::factory(),
             'channel'      => 'email',
             'email'        => $this->faker->unique()->safeEmail(),
+            'phone'        => null,
             'status'       => 'pending',
             'attempts'     => 0,
             'scheduled_at' => now(),
