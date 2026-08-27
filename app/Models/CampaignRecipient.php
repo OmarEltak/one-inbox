@@ -13,6 +13,7 @@ class CampaignRecipient extends Model
     use HasFactory;
 
     public const STATUS_PENDING      = 'pending';
+    public const STATUS_QUEUED       = 'queued';
     public const STATUS_SENDING      = 'sending';
     public const STATUS_SENT         = 'sent';
     public const STATUS_FAILED       = 'failed';
