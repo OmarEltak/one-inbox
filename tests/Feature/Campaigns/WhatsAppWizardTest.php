@@ -30,6 +30,10 @@ class WhatsAppWizardTest extends TestCase
         $csv = "phone,name\n01026361218,Ahmed\n+971501234567,Fatima\n";
         $file = UploadedFile::fake()->createWithContent('list.csv', $csv);
 
+        $sender = \Mockery::mock(\App\Services\Wuzapi\WhatsAppSender::class);
+        $sender->shouldReceive('send')->once()->andReturn(\App\Services\Wuzapi\SendResult::ok('test-id'));
+        $this->app->instance(\App\Services\Wuzapi\WhatsAppSender::class, $sender);
+
         Livewire::actingAs($user)
             ->test(WhatsAppWizard::class)
             ->set('file', $file)
@@ -42,6 +46,11 @@ class WhatsAppWizardTest extends TestCase
             ->assertSet('step', 'compose')
             ->set('campaignName', 'August Promo')
             ->set('body', 'Hi {{name}}, we have a deal for you')
+            ->call('advanceToTest')
+            ->assertSet('step', 'test')
+            ->set('testPhone', '+201026361218')
+            ->call('sendTest')
+            ->assertSet('testResult', true)
             ->call('advanceToReview')
             ->assertSet('step', 'review')
             ->call('launch')

@@ -47,6 +47,11 @@ class WhatsAppWizard extends Component
     public int $importedCount = 0;
     public ?int $createdCampaignId = null;
 
+    public string $testPhone = '';
+    public string $testName  = 'Test';
+    public ?bool  $testResult = null;
+    public ?string $testError = null;
+
     public function mount(): void
     {
         $team = Auth::user()?->currentTeam;
@@ -121,7 +126,7 @@ class WhatsAppWizard extends Component
         $this->step = 'compose';
     }
 
-    public function advanceToReview(): void
+    public function advanceToTest(): void
     {
         $this->validate([
             'campaignName' => 'required|string|max:100',
@@ -130,6 +135,30 @@ class WhatsAppWizard extends Component
             'jitterMin'    => 'required|integer|min:15|max:600',
             'jitterMax'    => 'required|integer|min:15|max:600|gte:jitterMin',
         ]);
+        $this->step = 'test';
+    }
+
+    public function sendTest(\App\Services\Wuzapi\WhatsAppSender $sender): void
+    {
+        $this->validate([
+            'testPhone' => 'required|string',
+            'testName'  => 'nullable|string|max:80',
+        ]);
+
+        $page = Page::findOrFail($this->senderPageId);
+        $body = str_replace(
+            ['{{name}}', '{{phone}}'],
+            [$this->testName, $this->testPhone],
+            $this->body,
+        );
+        $result = $sender->send($page, $this->testPhone, $body);
+        $this->testResult = $result->sent;
+        $this->testError = $result->error;
+    }
+
+    public function advanceToReview(): void
+    {
+        abort_unless($this->testResult === true, 422, 'You must successfully test-send before launching.');
         $this->step = 'review';
     }
 

@@ -38,7 +38,22 @@
                 <flux:input wire:model="jitterMin" type="number" label="Jitter min (sec)" />
                 <flux:input wire:model="jitterMax" type="number" label="Jitter max (sec)" />
             </div>
-            <flux:button wire:click="advanceToReview" variant="primary">Review</flux:button>
+            <flux:button wire:click="advanceToTest" variant="primary">Test send</flux:button>
+        </div>
+
+    @elseif ($step === 'test')
+        <div class="space-y-4">
+            <p class="text-sm text-zinc-500">Send one test message to verify the format and connection.</p>
+            <flux:input wire:model="testPhone" label="Test phone (E.164)" placeholder="+201026361218" />
+            <flux:input wire:model="testName"  label="Test name" />
+            <flux:button wire:click="sendTest">Send test</flux:button>
+
+            @if ($testResult === true)
+                <p class="text-green-600">✅ Test message sent. Check WhatsApp.</p>
+                <flux:button wire:click="advanceToReview" variant="primary">Looks good — review</flux:button>
+            @elseif ($testResult === false)
+                <p class="text-red-600">❌ Test failed: {{ $testError }}</p>
+            @endif
         </div>
 
     @elseif ($step === 'review')
