@@ -386,10 +386,51 @@ class AiChat extends Component
         $conversations = $query->orderByDesc('last_message_at')->get()
             ->unique('contact_id');
 
+        // Pre-filter: on Facebook Messenger and Instagram Direct, Meta rejects
+        // any outbound sent to a contact whose last inbound is > 24h ago with
+        // error code 10 / subcode 2018278 ("outside the allowed time frame").
+        // The HUMAN_AGENT tag fallback in SendPlatformMessage requires prior
+        // Meta App Review approval, which the current app does NOT have, so
+        // both the standard send AND the fallback fail on stale contacts.
+        // Skipping them here means the AI report reflects reality instead of
+        // "sent to 98" when Meta silently rejected 96 downstream.
+        //
+        // WhatsApp (Wuzapi / QR gateway) uses a real WhatsApp Web session and
+        // does NOT enforce a 24h server-side window, so we do not filter it.
+        // Telegram and email have no window at all. Only Meta platforms get
+        // this pre-check.
+        $metaPlatforms = ['facebook', 'instagram'];
+        $now = now();
+        $eligible = [];
+        $skippedStale = 0;
+
+        foreach ($conversations as $conversation) {
+            if (! in_array($conversation->platform, $metaPlatforms, true)) {
+                $eligible[] = $conversation;
+                continue;
+            }
+
+            $lastInboundAt = Message::where('conversation_id', $conversation->id)
+                ->where('direction', 'inbound')
+                ->latest('id')
+                ->value('platform_sent_at')
+                ?? Message::where('conversation_id', $conversation->id)
+                    ->where('direction', 'inbound')
+                    ->latest('id')
+                    ->value('created_at');
+
+            if (! $lastInboundAt || \Carbon\Carbon::parse($lastInboundAt)->diffInHours($now) >= 24) {
+                $skippedStale++;
+                continue;
+            }
+
+            $eligible[] = $conversation;
+        }
+
         $sent = 0;
         $failed = 0;
 
-        foreach ($conversations as $conversation) {
+        foreach ($eligible as $conversation) {
             try {
                 $this->sendMessageToConversation($conversation, $text);
                 $sent++;
@@ -398,7 +439,16 @@ class AiChat extends Component
             }
         }
 
-        return "Sent message to {$sent} contacts." . ($failed > 0 ? " ({$failed} failed)" : '');
+        $parts = ["Queued message to {$sent} contacts."];
+        if ($skippedStale > 0) {
+            $parts[] = "Skipped {$skippedStale} on Messenger/Instagram whose last inbound is more than 24h old — Meta would have rejected those with 'outside the allowed time frame'. Ask them a fresh question first, or contact those contacts in a channel without a 24h window (WhatsApp / Telegram / email).";
+        }
+        if ($failed > 0) {
+            $parts[] = "{$failed} failed to queue.";
+        }
+        $parts[] = "Note: 'queued' means the send job was dispatched to our queue. Actual delivery is confirmed on the message row's platform_message_id — check the inbox for green checkmarks.";
+
+        return implode(' ', $parts);
     }
 
     protected function sendMessageToConversation(Conversation $conversation, string $text): string
