@@ -27,6 +27,10 @@ class Customers extends Component
     public string $passwordUserName = '';
     public string $newPassword = '';
 
+    public bool $showPagesModal = false;
+    public string $pagesModalTeamName = '';
+    public array $pagesModalPages = [];
+
     #[Computed]
     public function customers()
     {
@@ -112,6 +116,28 @@ class Customers extends Component
 
         $this->showPasswordModal = false;
         session()->flash('success', "Password reset for \"{$user->name}\".");
+    }
+
+    public function openPagesModal(int $teamId): void
+    {
+        $team = Team::find($teamId);
+        if (! $team) {
+            return;
+        }
+
+        $this->pagesModalTeamName = $team->name;
+        $this->pagesModalPages = Page::where('team_id', $team->id)
+            ->orderBy('platform')
+            ->orderBy('name')
+            ->get(['name', 'platform', 'is_active'])
+            ->map(fn ($p) => [
+                'name'      => $p->name,
+                'platform'  => $p->platform,
+                'is_active' => (bool) $p->is_active,
+            ])
+            ->all();
+
+        $this->showPagesModal = true;
     }
 
     public function deleteCustomer(int $teamId): void

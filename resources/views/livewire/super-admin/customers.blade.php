@@ -38,6 +38,14 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
+                            <flux:button
+                                wire:click="openPagesModal({{ $team->id }})"
+                                size="sm"
+                                icon="eye"
+                                class="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                            >
+                                {{ __('View Pages') }}
+                            </flux:button>
                             @if($team->owner)
                                 <flux:button wire:click="openPasswordModal({{ $team->owner->id }})" size="sm" variant="ghost" icon="key">
                                     {{ __('Reset Password') }}
@@ -78,6 +86,36 @@
             <div class="flex gap-2 justify-end">
                 <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
                 <flux:button wire:click="createCustomer" variant="primary">{{ __('Create Customer') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showPagesModal" class="md:w-[32rem]">
+        <div class="space-y-5">
+            <flux:heading size="lg">{{ __('Pages for') }} {{ $pagesModalTeamName }}</flux:heading>
+
+            @if(empty($pagesModalPages))
+                <flux:text class="text-zinc-500">{{ __('No pages connected yet.') }}</flux:text>
+            @else
+                <div class="divide-y divide-zinc-200 dark:divide-zinc-700 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    @foreach($pagesModalPages as $page)
+                        <div class="flex items-center justify-between gap-3 p-3">
+                            <div class="min-w-0">
+                                <flux:text class="font-medium text-zinc-900 truncate">{{ $page['name'] ?: __('(Unnamed page)') }}</flux:text>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <flux:badge color="blue" size="sm">{{ ucfirst($page['platform']) }}</flux:badge>
+                                @if(! $page['is_active'])
+                                    <flux:badge color="zinc" size="sm">{{ __('Inactive') }}</flux:badge>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="flex justify-end">
+                <flux:button wire:click="$set('showPagesModal', false)" variant="ghost">{{ __('Close') }}</flux:button>
             </div>
         </div>
     </flux:modal>
