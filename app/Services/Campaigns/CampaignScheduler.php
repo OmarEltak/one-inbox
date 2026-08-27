@@ -28,13 +28,12 @@ class CampaignScheduler
         $cursor = $now->copy();
 
         DB::transaction(function () use ($campaign, $identifiers, $channel, $min, $max, &$cursor) {
-            foreach ($identifiers as $index => $id) {
-                $email = $channel === 'email' ? $id : "placeholder-{$campaign->id}-{$index}@example.com";
+            foreach ($identifiers as $id) {
                 CampaignRecipient::create([
                     'campaign_id'  => $campaign->id,
                     'channel'      => $channel,
                     'phone'        => $channel === 'whatsapp' ? $id : null,
-                    'email'        => $email,
+                    'email'        => $channel === 'email'    ? $id : null,
                     'status'       => 'pending',
                     'attempts'     => 0,
                     'scheduled_at' => $cursor->copy(),
