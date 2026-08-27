@@ -17,6 +17,7 @@ class ContactImport extends Model
     protected $fillable = [
         'team_id',
         'user_id',
+        'channel',
         'filename',
         'original_name',
         'tag',

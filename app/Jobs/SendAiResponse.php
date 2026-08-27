@@ -59,6 +59,20 @@ class SendAiResponse implements ShouldQueue
 
     public function handle(AiProviderInterface $ai): void
     {
+        // Capture wall-clock at the very top so the burst-debounce pause AND
+        // the AI call BOTH get absorbed into the desired typing-delay budget
+        // (see remaining-sleep math further down). Without this at the top,
+        // the debounce would add to total wall clock instead of overlap.
+        $handleStartedAt = microtime(true);
+
+        // Burst-debounce window: pause briefly before doing anything. During
+        // this window, if the customer sent additional messages, the newer-
+        // inbound check below will catch them and bail — one AI call per
+        // burst instead of N (one per rapid-fire message). The 2s wait is
+        // absorbed by the desired typing delay so it's not extra wall time
+        // for the common non-burst path.
+        usleep(2_000_000);
+
         $conversation = Conversation::with(['page.team', 'page.aiConfig', 'contact'])->find($this->conversationId);
 
         if (! $conversation) {
@@ -174,14 +188,14 @@ class SendAiResponse implements ShouldQueue
             }
         }
 
-        // Track wall-clock so we can overlap the AI call with the "typing
-        // indicator" delay budget instead of stacking them. Concretely:
+        // $handleStartedAt is captured at the top of handle() so the burst-
+        // debounce sleep is included in elapsed time. Overlap semantics:
         //   old: wait 15s in queue, then call AI (10s), then send → 25s total
-        //   new: dispatch fires immediately, call AI (10s), then sleep the
-        //        REMAINING typing budget (max 0, 15-10=5s), then send → 15s total
-        // Slow-AI case is even better: if AI takes 20s, no extra sleep needed
-        // and total lag is 20s instead of the old 15+20=35s.
-        $handleStartedAt = microtime(true);
+        //   new: dispatch fires immediately, 2s debounce pause, call AI (10s),
+        //        then sleep the REMAINING typing budget (max 0, 15-12=3s),
+        //        then send → 15s total (unchanged for non-burst case).
+        // Slow-AI case: if AI takes 20s, no extra sleep and total lag = 22s
+        // (2s debounce + 20s AI) instead of old 15+20=35s.
         $desiredDelaySec = (int) ($aiConfig?->getRandomDelay() ?? 0);
 
         // NOTE: Vision-description injection lives in BuildsConversationPrompts::
