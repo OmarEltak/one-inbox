@@ -1,0 +1,18 @@
+[Unit]
+Description=One Inbox — campaigns queue worker
+After=network.target mysql.service
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/ot1-pro.com
+ExecStart=/usr/bin/php artisan queue:work --queue=campaigns --tries=3 --timeout=60 --sleep=5 --max-jobs=1000 --max-time=3600
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/one-inbox/queue-campaigns.log
+StandardError=append:/var/log/one-inbox/queue-campaigns.log
+
+[Install]
+WantedBy=multi-user.target
