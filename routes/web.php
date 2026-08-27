@@ -289,6 +289,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     // Campaigns
     Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.index');
     Route::get('campaigns/email/new', \App\Livewire\Campaigns\EmailWizard::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.email.new');
+    Route::get('campaigns/whatsapp/new', \App\Livewire\Campaigns\WhatsAppWizard::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.whatsapp.new');
     Route::get('campaigns/{campaign}', \App\Livewire\Campaigns\Show::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.show');
 
     // Content
