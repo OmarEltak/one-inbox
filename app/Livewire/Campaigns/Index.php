@@ -27,8 +27,21 @@ class Index extends Component
     public string $languageCode = 'en';
     public int $delaySeconds = 10;
 
-    /** WhatsApp Cloud API template category — drives Meta's per-message billing. */
+    /** WhatsApp Cloud API template category — retained for backward compatibility with
+     *  any existing Cloud-API-backed WhatsApp integrations. For the current Wuzapi
+     *  (personal WhatsApp Web session) path, the message is free text and this field
+     *  is ignored downstream. */
     public string $messageCategory = 'marketing';
+
+    /** 'now' (default — dispatch immediately on save) or 'schedule' (hold until
+     *  scheduled_at). Kept as string for radio-button binding. */
+    public string $sendMode = 'now';
+
+    /** ISO datetime string bound from an <input type="datetime-local">. When
+     *  sendMode = 'schedule', persisted to campaigns.scheduled_at; the campaign
+     *  stays in status='scheduled' until the DispatchScheduledCampaigns command
+     *  flips it to 'active' at the scheduled time. Capped to now + 30 days. */
+    public ?string $scheduledAt = null;
 
     #[Computed]
     public function campaigns()
@@ -131,11 +144,13 @@ class Index extends Component
 
     public function openCreateModal(): void
     {
-        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds', 'platform', 'messageCategory']);
+        $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds', 'platform', 'messageCategory', 'sendMode', 'scheduledAt']);
         $this->platform = 'facebook';
         $this->languageCode = 'en';
         $this->delaySeconds = 10;
         $this->messageCategory = 'marketing';
+        $this->sendMode = 'now';
+        $this->scheduledAt = null;
         $this->showModal = true;
         unset($this->audiencePhones, $this->whatsappCostEstimate);
     }
@@ -144,6 +159,10 @@ class Index extends Component
     {
         $team = Auth::user()->currentTeam;
 
+        // WhatsApp via Wuzapi is now the default path — the message is plain text
+        // (no template approval). We keep messageCategory available for Cloud-API
+        // integrations if the operator later flips a page to Cloud API, but it is
+        // not required at campaign-create time anymore.
         $rules = [
             'name'            => 'required|string|max:100',
             'platform'        => 'required|string|in:facebook,instagram,telegram,whatsapp',
@@ -155,14 +174,16 @@ class Index extends Component
                     ->where('platform', $this->platform)
                     ->where('is_active', true),
             ],
-            'messageTemplate' => 'required|string|max:2000',
+            'messageTemplate' => 'required|string|max:4096',
+            'sendMode'        => 'required|in:now,schedule',
+            'scheduledAt'     => [
+                Rule::requiredIf(fn () => $this->sendMode === 'schedule'),
+                'nullable',
+                'date',
+                'after:' . now()->addMinute()->toIso8601String(),
+                'before:' . now()->addDays(30)->toIso8601String(),
+            ],
         ];
-
-        if ($this->platform === 'whatsapp') {
-            $rules['messageTemplate'] = 'required|string|max:100';
-            $rules['languageCode']    = 'required|string|max:10';
-            $rules['messageCategory'] = 'required|string|in:marketing,utility,authentication,service';
-        }
 
         $this->validate($rules);
 
@@ -175,17 +196,19 @@ class Index extends Component
             $criteria['lead_status'] = $this->leadStatus;
         }
 
-        if ($this->platform === 'whatsapp') {
-            $criteria['language_code']    = $this->languageCode;
-            $criteria['message_category'] = $this->messageCategory;
-            // Snapshot the cost estimate at creation time so the campaign list
-            // can show "you'll be billed approximately $X by Meta" historically.
-            $est = $this->whatsappCostEstimate;
-            $criteria['cost_estimate_usd']  = $est['total_usd'];
-            $criteria['estimated_recipients'] = $est['recipient_count'];
+        // Snapshot the Meta 24h-window advisory into the criteria so ProcessCampaign
+        // knows the operator was told about it. Load-bearing for post-run reports:
+        // "we skipped N because Meta blocks stale contacts on this platform".
+        if (in_array($this->platform, ['facebook', 'instagram'], true)) {
+            $criteria['meta_24h_filter'] = true;
         }
 
-        Campaign::create([
+        $scheduledAt = null;
+        if ($this->sendMode === 'schedule' && $this->scheduledAt) {
+            $scheduledAt = \Carbon\Carbon::parse($this->scheduledAt);
+        }
+
+        $campaign = Campaign::create([
             'team_id'          => $team->id,
             'created_by'       => Auth::id(),
             'name'             => $this->name,
@@ -193,12 +216,18 @@ class Index extends Component
             'platform'         => $this->platform,
             'message_template' => $this->messageTemplate,
             'target_criteria'  => $criteria,
-            'status'           => 'draft',
+            'status'           => $scheduledAt ? 'scheduled' : 'draft',
+            'scheduled_at'     => $scheduledAt,
         ]);
 
         $this->showModal = false;
         unset($this->campaigns);
-        session()->flash('success', 'Campaign created.');
+        session()->flash(
+            'success',
+            $scheduledAt
+                ? "Campaign scheduled for {$scheduledAt->format('M j, Y g:ia')}."
+                : 'Campaign created — click Launch when ready.'
+        );
     }
 
     public function launch(int $id): void

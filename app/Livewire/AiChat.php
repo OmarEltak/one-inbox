@@ -249,6 +249,7 @@ class AiChat extends Component
         $minScore = $action['min_score'] ?? null;
         $status = $action['status'] ?? null;
         $pageId = $action['page_id'] ?? null;
+        $scheduledAtRaw = $action['scheduled_at'] ?? null;
 
         $query = Conversation::where('team_id', $teamId)
             ->where('status', '!=', 'archived')
@@ -268,9 +269,15 @@ class AiChat extends Component
 
         $count = $query->distinct('contact_id')->count('contact_id');
 
+        // Lookup page + platform so we can warn about the Meta 24h rule inline,
+        // before the operator confirms. If the page is on facebook or instagram
+        // and the operator hasn't been told about the window filter yet, showing
+        // it here beats surfacing it only after the send attempt.
+        $page = null;
         $pageName = null;
         if ($pageId) {
-            $pageName = Page::where('team_id', $teamId)->find($pageId)?->name;
+            $page = Page::where('team_id', $teamId)->find($pageId);
+            $pageName = $page?->name;
         }
 
         $filter = $pageName ? "page: {$pageName}" : 'all pages';
@@ -280,7 +287,30 @@ class AiChat extends Component
             $filter .= ", status: {$status}";
         }
 
-        return "Send bulk message to ~{$count} contacts ({$filter}): \"{$text}\"";
+        // Base sentence with scheduling annotation.
+        $verb = 'Send bulk message';
+        $when = 'now';
+        if ($scheduledAtRaw) {
+            try {
+                $scheduledAt = \Carbon\Carbon::parse($scheduledAtRaw);
+                $verb = 'Schedule bulk message';
+                $when = $scheduledAt->format('M j, Y g:ia');
+            } catch (\Throwable $e) {
+                // Fall back to unscheduled sentence; the executor will surface a
+                // proper error message during confirm.
+            }
+        }
+
+        $sentence = "{$verb} to ~{$count} contacts ({$filter}) [{$when}]: \"{$text}\"";
+
+        // Meta 24-hour window warning: show inline for Facebook / Instagram so
+        // the operator sees the caveat BEFORE approving. Non-Meta platforms have
+        // no window, so no warning needed.
+        if ($page && in_array($page->platform, ['facebook', 'instagram'], true)) {
+            $sentence .= "  ⚠ Meta only allows sending to contacts who replied within the last 24 hours on {$page->platform} — stale contacts will be automatically skipped when this fires.";
+        }
+
+        return $sentence;
     }
 
     protected function describeAiToggle(array $action, int $teamId, string $mode): string
@@ -359,12 +389,70 @@ class AiChat extends Component
         $text = $action['message'] ?? null;
         $minScore = $action['min_score'] ?? null;
         $status = $action['status'] ?? null;
+        $scheduledAtRaw = $action['scheduled_at'] ?? null;
 
         if (! $text) {
             return "Bulk message failed: missing message text.";
         }
 
         $pageId = $action['page_id'] ?? null;
+
+        // Scheduling path: if the AI provided a scheduled_at ISO datetime, create
+        // a Campaign row in status='scheduled' rather than dispatching now. The
+        // scheduler command (campaigns:dispatch-scheduled) flips it to active at
+        // the scheduled time and ProcessCampaign handles the send loop with the
+        // same Meta 24h filter applied at dispatch time.
+        if ($scheduledAtRaw) {
+            try {
+                $scheduledAt = \Carbon\Carbon::parse($scheduledAtRaw);
+            } catch (\Throwable $e) {
+                return "Bulk message failed: could not parse scheduled_at (expected ISO datetime like 2026-09-01T14:30:00Z). Got: {$scheduledAtRaw}";
+            }
+
+            if ($scheduledAt->lt(now()->addMinute())) {
+                return "Bulk message failed: scheduled_at must be at least 1 minute in the future.";
+            }
+            if ($scheduledAt->gt(now()->addDays(30))) {
+                return "Bulk message failed: scheduled_at must be within the next 30 days.";
+            }
+            if (! $pageId) {
+                return "Bulk message failed: scheduled bulk sends require a page_id (which page to send from).";
+            }
+
+            $page = Page::where('team_id', $teamId)->where('is_active', true)->find($pageId);
+            if (! $page) {
+                return "Bulk message failed: page_id {$pageId} not found or inactive on this team.";
+            }
+
+            $criteria = [
+                'page_id'       => $pageId,
+                'delay_seconds' => 5,
+            ];
+            if ($status) {
+                $criteria['lead_status'] = $status;
+            }
+            if (in_array($page->platform, ['facebook', 'instagram'], true)) {
+                $criteria['meta_24h_filter'] = true;
+            }
+
+            $campaign = \App\Models\Campaign::create([
+                'team_id'          => $teamId,
+                'created_by'       => \Illuminate\Support\Facades\Auth::id(),
+                'name'             => 'AI Chat scheduled — ' . now()->format('M j, Y g:ia'),
+                'type'             => 'promotion',
+                'platform'         => $page->platform,
+                'message_template' => $text,
+                'target_criteria'  => $criteria,
+                'status'           => 'scheduled',
+                'scheduled_at'     => $scheduledAt,
+            ]);
+
+            $when = $scheduledAt->format('M j, Y g:ia');
+            $windowNote = in_array($page->platform, ['facebook', 'instagram'], true)
+                ? " On Messenger/Instagram, Meta will only accept sends to contacts who have replied to this Page within 24 hours OF THE SCHEDULED TIME — stale contacts are filtered out then, not now."
+                : '';
+            return "Campaign scheduled: '{$campaign->name}' will send at {$when} on {$page->name} ({$page->platform}).{$windowNote}";
+        }
 
         $query = Conversation::where('team_id', $teamId)
             ->where('status', '!=', 'archived')
@@ -441,7 +529,7 @@ class AiChat extends Component
 
         $parts = ["Queued message to {$sent} contacts."];
         if ($skippedStale > 0) {
-            $parts[] = "Skipped {$skippedStale} on Messenger/Instagram whose last inbound is more than 24h old — Meta would have rejected those with 'outside the allowed time frame'. Ask them a fresh question first, or contact those contacts in a channel without a 24h window (WhatsApp / Telegram / email).";
+            $parts[] = "Skipped {$skippedStale} on Messenger/Instagram because Meta will not accept messages to contacts who have not replied within the last 24 hours — this is Meta's rule, not ours, and sends outside it come back with error 2018278 ('outside the allowed time frame'). WhatsApp / Telegram / email do not have this limit; broadcasting to those platforms reaches everyone.";
         }
         if ($failed > 0) {
             $parts[] = "{$failed} failed to queue.";

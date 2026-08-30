@@ -10,5 +10,6 @@ Artisan::command('inspire', function () {
 
 Schedule::command('emails:fetch')->everyTwoMinutes();
 Schedule::command('campaigns:dispatch-emails')->everyMinute()->withoutOverlapping();
+Schedule::command('campaigns:dispatch-scheduled')->everyMinute()->withoutOverlapping();
 Schedule::command('snapchat:fetch-messages')->everyTwoMinutes();
 Schedule::command('instagram:refresh-subscriptions')->monthly();

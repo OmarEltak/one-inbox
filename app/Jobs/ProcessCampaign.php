@@ -46,11 +46,14 @@ class ProcessCampaign implements ShouldQueue
 
         $platform = $campaign->platform ?? 'whatsapp';
 
-        if ($platform === 'whatsapp') {
-            $this->processWhatsApp($campaign, $page, $criteria, $whatsapp);
-        } else {
-            $this->processDirectMessage($campaign, $page, $criteria, $platform);
-        }
+        // Unified send path for every platform. Even WhatsApp goes through
+        // processDirectMessage now because we use Wuzapi (personal WA Web
+        // session) — SendPlatformMessage routes per-page to the correct
+        // gateway (Wuzapi for whatsapp, Meta Graph for facebook/instagram,
+        // Bot API for telegram, SMTP for email). The old processWhatsApp
+        // path called WhatsAppPlatform::sendTemplate which assumed the Meta
+        // Cloud API templates — not applicable to the Wuzapi setup.
+        $this->processDirectMessage($campaign, $page, $criteria, $platform);
     }
 
     protected function processDirectMessage(Campaign $campaign, Page $page, array $criteria, string $platform): void
@@ -182,6 +185,31 @@ class ProcessCampaign implements ShouldQueue
 
         if (! empty($criteria['lead_status'])) {
             $query->whereHas('contact', fn ($q) => $q->where('lead_status', $criteria['lead_status']));
+        }
+
+        // Meta 24-hour messaging window. Facebook Messenger + Instagram Direct
+        // reject any outbound to a contact whose last inbound is > 24h ago
+        // (error code 10 / subcode 2018278). We pre-filter here so campaigns
+        // only queue sends Meta will actually accept — matches the same rule
+        // the ai-chat send_bulk_message flow enforces, and prevents the
+        // silent-success bug where the UI reports "sent to N" while Meta
+        // rejects downstream. Not enforced for whatsapp (Wuzapi personal-
+        // session bypasses the API window), telegram, or email.
+        if (in_array($platform, ['facebook', 'instagram'], true)) {
+            $windowStart = now()->subHours(24);
+            $query->whereExists(function ($q) use ($windowStart) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                    ->from('messages')
+                    ->whereColumn('messages.conversation_id', 'conversations.id')
+                    ->where('messages.direction', 'inbound')
+                    ->where(function ($qq) use ($windowStart) {
+                        $qq->where('messages.platform_sent_at', '>=', $windowStart)
+                            ->orWhere(function ($qqq) use ($windowStart) {
+                                $qqq->whereNull('messages.platform_sent_at')
+                                    ->where('messages.created_at', '>=', $windowStart);
+                            });
+                    });
+            });
         }
 
         return $query;

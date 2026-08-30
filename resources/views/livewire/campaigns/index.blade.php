@@ -299,106 +299,64 @@
                 <flux:error name="pageId" />
             </flux:field>
 
-            {{-- WhatsApp template category — drives Meta's per-message billing --}}
+            {{-- WhatsApp is via Wuzapi (personal WhatsApp Web session), NOT the Meta
+                 Cloud API — no template approval, no template category, no per-message
+                 billing. Just a raw text broadcast, jittered to avoid WhatsApp's
+                 anti-spam heuristics. --}}
             @if($platform === 'whatsapp')
-                <flux:field>
-                    <flux:label>Template Category <flux:badge size="sm" color="yellow">Affects pricing</flux:badge></flux:label>
-                    <flux:select wire:model.live="messageCategory">
-                        <option value="marketing">Marketing — promotions, offers, announcements</option>
-                        <option value="utility">Utility — order updates, receipts, reminders</option>
-                        <option value="authentication">Authentication — login codes / OTP</option>
-                        <option value="service">Service — replies inside the customer's 24-hour window (free)</option>
-                    </flux:select>
-                    <flux:description class="text-white/50 text-xs">
-                        WhatsApp Cloud API requires a category for any message sent outside the 24-hour reply window.
-                        Choose the one that best matches your content; using the wrong one can get your template rejected by Meta.
-                    </flux:description>
-                </flux:field>
-
-                {{-- Live cost estimate --}}
-                @php $est = $this->whatsappCostEstimate; @endphp
-                <div class="rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-4 space-y-3">
+                <div class="rounded-xl border border-green-400/25 bg-green-400/5 p-4">
                     <div class="flex items-start gap-2">
-                        <flux:icon.exclamation-triangle class="size-5 text-yellow-400 mt-0.5 shrink-0" />
-                        <div class="text-xs text-yellow-200/80 leading-relaxed">
-                            <strong class="text-yellow-100">WhatsApp campaigns are billed by Meta, not by us.</strong>
-                            Meta charges your WhatsApp Business Account per delivered message based on the recipient's country and the template category.
-                            The estimate below is approximate — final billing comes from Meta directly.
-                            <a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" rel="noopener" class="underline hover:text-yellow-100">See Meta's official pricing →</a>
+                        <flux:icon.information-circle class="size-5 text-green-300 mt-0.5 shrink-0" />
+                        <div class="text-xs text-green-100/85 leading-relaxed">
+                            <strong class="text-green-50">WhatsApp broadcast via Wuzapi.</strong>
+                            We use your paired WhatsApp session directly — no template approval, no Meta billing, no
+                            24-hour reply window. To keep WhatsApp happy, we jitter between sends (below) and
+                            recommend personalising the message per contact when possible.
                         </div>
                     </div>
+                </div>
+            @endif
 
-                    @if($est['recipient_count'] === 0)
-                        <div class="text-sm text-white/50 text-center py-2">
-                            Pick a page above to see the audience size and an estimated cost.
+            {{-- Meta 24-hour messaging window banner — visible only for Facebook / Instagram.
+                 Meta rejects any outbound to a contact whose last inbound is > 24 hours ago
+                 (error code 10 / subcode 2018278). We pre-filter these at dispatch time so
+                 the operator does not think a send landed when Meta silently rejected it. --}}
+            @if(in_array($platform, ['facebook', 'instagram'], true))
+                <div class="rounded-xl border border-amber-400/30 bg-amber-400/5 p-4">
+                    <div class="flex items-start gap-2">
+                        <flux:icon.exclamation-triangle class="size-5 text-amber-300 mt-0.5 shrink-0" />
+                        <div class="text-xs text-amber-100/85 leading-relaxed space-y-1.5">
+                            <p>
+                                <strong class="text-amber-50">Meta only accepts messages to contacts who replied within the last 24 hours.</strong>
+                                Older contacts will be automatically skipped when this campaign runs. This is Meta's
+                                enforcement, not ours — sending to them anyway would return error 2018278 ("outside
+                                the allowed time frame") and could get the Page's messaging limited.
+                            </p>
+                            <p class="text-amber-100/70">
+                                Broadcast to older contacts on WhatsApp, Telegram, or email instead — those channels
+                                do not have a 24-hour window.
+                            </p>
                         </div>
-                    @else
-                        <div class="grid grid-cols-3 gap-3 pt-1">
-                            <div class="rounded-lg bg-black/20 p-3 text-center">
-                                <p class="text-[10px] uppercase tracking-wide text-white/40">Recipients</p>
-                                <p class="mt-1 font-bold text-white text-lg">{{ number_format($est['recipient_count']) }}</p>
-                            </div>
-                            <div class="rounded-lg bg-black/20 p-3 text-center">
-                                <p class="text-[10px] uppercase tracking-wide text-white/40">Category</p>
-                                <p class="mt-1 font-bold text-white text-sm capitalize">{{ $est['category'] }}</p>
-                            </div>
-                            <div class="rounded-lg bg-black/20 p-3 text-center">
-                                <p class="text-[10px] uppercase tracking-wide text-white/40">Estimated total</p>
-                                <p class="mt-1 font-bold text-yellow-200 text-lg">
-                                    @if($est['category'] === 'service')
-                                        FREE
-                                    @else
-                                        ${{ number_format($est['total_usd'], 2) }}
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-
-                        @if(! empty($est['breakdown']) && $est['category'] !== 'service')
-                            <div class="pt-1">
-                                <p class="text-[10px] uppercase tracking-wide text-white/40 mb-1.5">Breakdown by country</p>
-                                <div class="space-y-1 max-h-32 overflow-y-auto pr-1">
-                                    @foreach($est['breakdown'] as $iso => $row)
-                                        <div class="flex items-center justify-between text-xs text-white/60 px-2 py-1 rounded bg-black/15">
-                                            <span class="font-mono">
-                                                {{ $iso === '_UNKNOWN_' ? '🌐 Unknown country' : $iso }}
-                                                <span class="text-white/40 ml-1">({{ number_format($row['count']) }} × ${{ number_format($row['rate'], 4) }})</span>
-                                            </span>
-                                            <span class="font-mono text-white/80">${{ number_format($row['subtotal'], 2) }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @if($est['unknown_country'] > 0)
-                                    <p class="text-[11px] text-yellow-200/70 mt-1.5">
-                                        ⚠️ {{ $est['unknown_country'] }} contact{{ $est['unknown_country'] !== 1 ? 's' : '' }} couldn't be matched to a country — billed at the global default rate.
-                                    </p>
-                                @endif
-                            </div>
-                        @endif
-
-                        <p class="text-[10px] text-white/35 text-right">
-                            Rates verified {{ $est['rates_last_verified'] }} · Service replies are free regardless of country
-                        </p>
-                    @endif
+                    </div>
                 </div>
             @endif
 
             <flux:field>
-                <flux:label>
+                <flux:label>{{ __('Message') }}</flux:label>
+                <flux:textarea
+                    wire:model="messageTemplate"
+                    rows="4"
+                    placeholder="Write your broadcast message here…" />
+                <flux:description class="text-white/50 text-xs">
                     @if($platform === 'whatsapp')
-                        {{ __('WhatsApp Template Name') }}
+                        Plain text. Emojis and line breaks work. To reduce anti-spam risk, avoid sending byte-identical
+                        text to a large list — even a small variation (contact name, ordinal number) helps.
+                    @elseif($platform === 'telegram')
+                        Plain text or basic Markdown (Telegram Bot API). No length restriction beyond Telegram's ~4096 char cap.
                     @else
-                        {{ __('Message') }}
+                        Plain text up to 2000 characters (Meta's Messenger cap is 2000; Instagram is 1000).
                     @endif
-                </flux:label>
-                @if($platform === 'whatsapp')
-                    <flux:input wire:model="messageTemplate" placeholder="exact_template_name (must be approved in WhatsApp Business Manager)" />
-                    <flux:description class="text-white/50 text-xs">
-                        WhatsApp requires pre-approved templates for outbound campaigns. Submit yours in Business Manager and paste the approved template name here.
-                    </flux:description>
-                @else
-                    <flux:textarea wire:model="messageTemplate" rows="3" placeholder="Write your broadcast message here…" />
-                @endif
+                </flux:description>
                 <flux:error name="messageTemplate" />
             </flux:field>
 
@@ -423,6 +381,37 @@
                     <option value="10">{{ __('10 seconds (safe)') }}</option>
                     <option value="30">{{ __('30 seconds (very safe)') }}</option>
                 </flux:select>
+            </flux:field>
+
+            {{-- Scheduling: send now (default) OR at a specific date/time up to 30 days out.
+                 The scheduler command DispatchScheduledCampaigns picks these up when their
+                 scheduled_at reaches now(), flips status to 'active', and fires ProcessCampaign. --}}
+            <flux:field>
+                <flux:label>
+                    {{ __('When to send') }}
+                    <flux:badge size="sm" variant="outline">{{ __('Optional') }}</flux:badge>
+                </flux:label>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" wire:model.live="sendMode" value="now" class="cursor-pointer" />
+                        <span class="text-sm text-white/80">{{ __('Send now') }}</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer ml-4">
+                        <input type="radio" wire:model.live="sendMode" value="schedule" class="cursor-pointer" />
+                        <span class="text-sm text-white/80">{{ __('Schedule for later') }}</span>
+                    </label>
+                </div>
+                @if($sendMode === 'schedule')
+                    <flux:input
+                        type="datetime-local"
+                        wire:model="scheduledAt"
+                        :min="now()->addMinutes(2)->format('Y-m-d\TH:i')"
+                        :max="now()->addDays(30)->format('Y-m-d\TH:i')" />
+                    <flux:description class="text-white/50 text-xs">
+                        {{ __('Up to 30 days ahead. The campaign stays in Draft/Scheduled state until the scheduled time; the scheduler flips it to Active and starts sending.') }}
+                    </flux:description>
+                @endif
+                <flux:error name="scheduledAt" />
             </flux:field>
 
             <div class="flex justify-end gap-2 pt-2">
