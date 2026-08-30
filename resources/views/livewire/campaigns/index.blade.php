@@ -299,24 +299,6 @@
                 <flux:error name="pageId" />
             </flux:field>
 
-            {{-- WhatsApp is via Wuzapi (personal WhatsApp Web session), NOT the Meta
-                 Cloud API — no template approval, no template category, no per-message
-                 billing. Just a raw text broadcast, jittered to avoid WhatsApp's
-                 anti-spam heuristics. --}}
-            @if($platform === 'whatsapp')
-                <div class="rounded-xl border border-green-400/25 bg-green-400/5 p-4">
-                    <div class="flex items-start gap-2">
-                        <flux:icon.information-circle class="size-5 text-green-300 mt-0.5 shrink-0" />
-                        <div class="text-xs text-green-100/85 leading-relaxed">
-                            <strong class="text-green-50">WhatsApp broadcast via Wuzapi.</strong>
-                            We use your paired WhatsApp session directly — no template approval, no Meta billing, no
-                            24-hour reply window. To keep WhatsApp happy, we jitter between sends (below) and
-                            recommend personalising the message per contact when possible.
-                        </div>
-                    </div>
-                </div>
-            @endif
-
             {{-- Meta 24-hour messaging window banner — visible only for Facebook / Instagram.
                  Meta rejects any outbound to a contact whose last inbound is > 24 hours ago
                  (error code 10 / subcode 2018278). We pre-filter these at dispatch time so
@@ -394,11 +376,11 @@
                 <div class="flex items-center gap-2 mb-1.5">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="radio" wire:model.live="sendMode" value="now" class="cursor-pointer" />
-                        <span class="text-sm text-white/80">{{ __('Send now') }}</span>
+                        <span class="text-sm font-medium text-white">{{ __('Send now') }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer ml-4">
                         <input type="radio" wire:model.live="sendMode" value="schedule" class="cursor-pointer" />
-                        <span class="text-sm text-white/80">{{ __('Schedule for later') }}</span>
+                        <span class="text-sm font-medium text-white">{{ __('Schedule for later') }}</span>
                     </label>
                 </div>
                 @if($sendMode === 'schedule')
