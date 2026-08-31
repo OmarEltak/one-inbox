@@ -39,6 +39,17 @@ class AiConfig extends Component
     public array  $escalation_topics       = [];
     public int    $contact_ai_reply_cap    = 20;
 
+    // Comments — Phase A
+    public bool    $comment_enabled = false;
+    public ?string $comment_enabled_at = null;
+    public string  $comment_reply_mode = AiConfigModel::COMMENT_REPLY_OFF;
+    public array   $comment_reply_keywords = [];
+    public string  $comment_dm_mode = AiConfigModel::COMMENT_DM_OFF;
+    public array   $comment_dm_keywords = [];
+    public string  $comment_reply_instructions = '';
+    public string  $comment_scope = AiConfigModel::COMMENT_SCOPE_FUTURE_ONLY;
+    public int     $comment_max_replies_per_post_per_day = 20;
+
     // Toggle
     public bool $is_active = true;
 
@@ -96,6 +107,19 @@ class AiConfig extends Component
             $this->escalation_topics       = $config->escalation_topics ?? [];
             $this->contact_ai_reply_cap    = (int) ($config->contact_ai_reply_cap ?? 20);
             $this->is_active = $config->is_active ?? true;
+
+            $commentDefaults = AiConfigModel::defaultCommentSettings();
+            $comment = is_array($config->comment_settings) ? $config->comment_settings : $commentDefaults;
+
+            $this->comment_enabled                       = (bool) ($comment['enabled']                          ?? $commentDefaults['enabled']);
+            $this->comment_enabled_at                    = $comment['enabled_at']                               ?? $commentDefaults['enabled_at'];
+            $this->comment_reply_mode                    = (string) ($comment['reply_mode']                     ?? $commentDefaults['reply_mode']);
+            $this->comment_reply_keywords                = array_values((array) ($comment['reply_keywords']     ?? $commentDefaults['reply_keywords']));
+            $this->comment_dm_mode                       = (string) ($comment['dm_mode']                        ?? $commentDefaults['dm_mode']);
+            $this->comment_dm_keywords                   = array_values((array) ($comment['dm_keywords']        ?? $commentDefaults['dm_keywords']));
+            $this->comment_reply_instructions            = (string) ($comment['reply_instructions']             ?? $commentDefaults['reply_instructions']);
+            $this->comment_scope                         = (string) ($comment['scope']                          ?? $commentDefaults['scope']);
+            $this->comment_max_replies_per_post_per_day  = (int) ($comment['max_ai_replies_per_post_per_day']   ?? $commentDefaults['max_ai_replies_per_post_per_day']);
         } else {
             $this->hasConfig = false;
             $this->resetForm();
@@ -339,6 +363,17 @@ class AiConfig extends Component
         $this->escalation_topics       = [];
         $this->contact_ai_reply_cap    = 20;
         $this->is_active = true;
+
+        $commentDefaults = AiConfigModel::defaultCommentSettings();
+        $this->comment_enabled                       = $commentDefaults['enabled'];
+        $this->comment_enabled_at                    = $commentDefaults['enabled_at'];
+        $this->comment_reply_mode                    = $commentDefaults['reply_mode'];
+        $this->comment_reply_keywords                = $commentDefaults['reply_keywords'];
+        $this->comment_dm_mode                       = $commentDefaults['dm_mode'];
+        $this->comment_dm_keywords                   = $commentDefaults['dm_keywords'];
+        $this->comment_reply_instructions            = $commentDefaults['reply_instructions'];
+        $this->comment_scope                         = $commentDefaults['scope'];
+        $this->comment_max_replies_per_post_per_day  = $commentDefaults['max_ai_replies_per_post_per_day'];
     }
 
     protected function defaultWorkingHours(): array
