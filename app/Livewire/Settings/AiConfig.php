@@ -418,6 +418,16 @@ class AiConfig extends Component
 
     public function setTab(string $tab): void
     {
+        if ($tab === 'comments' && $this->selectedPageId !== null) {
+            $team = Auth::user()?->currentTeam;
+            $page = $team?->pages()->where('id', $this->selectedPageId)->first();
+            if (! $page || ! in_array($page->platform, ['facebook', 'instagram'], true)) {
+                $this->activeTab = 'sales_goal';
+
+                return;
+            }
+        }
+
         $this->activeTab = $tab;
     }
 

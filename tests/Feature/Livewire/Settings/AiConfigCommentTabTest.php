@@ -244,3 +244,21 @@ it('hides the Comments tab button for Telegram pages', function () {
     Livewire::test(AiConfigComponent::class)
         ->assertDontSeeHtml("setTab('comments')");
 });
+
+it('resets activeTab to sales_goal if comments is invoked for an unsupported platform', function () {
+    [$user] = makeUserWithPage('whatsapp');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->call('setTab', 'comments')
+        ->assertSet('activeTab', 'sales_goal');
+});
+
+it('accepts comments tab for supported platforms', function () {
+    [$user] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->call('setTab', 'comments')
+        ->assertSet('activeTab', 'comments');
+});
