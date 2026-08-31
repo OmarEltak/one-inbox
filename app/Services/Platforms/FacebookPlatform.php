@@ -45,7 +45,7 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id' => $this->appId,
                 'redirect_uri' => $redirectUri,
-                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement',
+                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -67,7 +67,7 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
@@ -336,7 +336,7 @@ class FacebookPlatform extends AbstractPlatform
                 'email' => $profile['email'] ?? null,
                 'access_token' => $longLivedToken,
                 'token_expires_at' => now()->addSeconds($expiresIn),
-                'scopes' => ['pages_messaging', 'pages_manage_metadata', 'pages_show_list', 'pages_read_engagement'],
+                'scopes' => ['pages_messaging', 'pages_manage_metadata', 'pages_show_list', 'pages_read_engagement', 'pages_manage_engagement'],
                 'is_active' => true,
                 'connected_at' => now(),
             ]
