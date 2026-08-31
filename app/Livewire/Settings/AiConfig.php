@@ -335,6 +335,28 @@ class AiConfig extends Component
         $this->escalation_topics[$topicIndex]['keywords'] = array_values($this->escalation_topics[$topicIndex]['keywords']);
     }
 
+    public function addCommentReplyKeyword(): void
+    {
+        $this->comment_reply_keywords[] = '';
+    }
+
+    public function removeCommentReplyKeyword(int $index): void
+    {
+        unset($this->comment_reply_keywords[$index]);
+        $this->comment_reply_keywords = array_values($this->comment_reply_keywords);
+    }
+
+    public function addCommentDmKeyword(): void
+    {
+        $this->comment_dm_keywords[] = '';
+    }
+
+    public function removeCommentDmKeyword(int $index): void
+    {
+        unset($this->comment_dm_keywords[$index]);
+        $this->comment_dm_keywords = array_values($this->comment_dm_keywords);
+    }
+
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;

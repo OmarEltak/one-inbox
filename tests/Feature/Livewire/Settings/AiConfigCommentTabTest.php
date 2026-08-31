@@ -77,3 +77,28 @@ it('hydrates comment settings from an existing config row', function () {
         ->assertSet('comment_scope', AiConfig::COMMENT_SCOPE_ALL_POSTS)
         ->assertSet('comment_max_replies_per_post_per_day', 50);
 });
+
+it('adds and removes comment reply keywords', function () {
+    [$user] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->call('addCommentReplyKeyword')
+        ->call('addCommentReplyKeyword')
+        ->assertSet('comment_reply_keywords', ['', ''])
+        ->set('comment_reply_keywords.0', 'price')
+        ->set('comment_reply_keywords.1', 'cost')
+        ->call('removeCommentReplyKeyword', 0)
+        ->assertSet('comment_reply_keywords', ['cost']);
+});
+
+it('adds and removes comment DM keywords', function () {
+    [$user] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->call('addCommentDmKeyword')
+        ->set('comment_dm_keywords.0', 'buy')
+        ->call('removeCommentDmKeyword', 0)
+        ->assertSet('comment_dm_keywords', []);
+});
