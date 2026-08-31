@@ -212,3 +212,35 @@ it('truncates reply instructions to 500 characters', function () {
     $settings = AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings;
     expect(mb_strlen($settings['reply_instructions']))->toBe(500);
 });
+
+it('renders the Comments tab button for Facebook pages', function () {
+    [$user] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->assertSeeHtml("setTab('comments')");
+});
+
+it('renders the Comments tab button for Instagram pages', function () {
+    [$user] = makeUserWithPage('instagram');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->assertSeeHtml("setTab('comments')");
+});
+
+it('hides the Comments tab button for WhatsApp pages', function () {
+    [$user] = makeUserWithPage('whatsapp');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->assertDontSeeHtml("setTab('comments')");
+});
+
+it('hides the Comments tab button for Telegram pages', function () {
+    [$user] = makeUserWithPage('telegram');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->assertDontSeeHtml("setTab('comments')");
+});
