@@ -1897,3 +1897,27 @@ Also: `EvolutionApiService` is a misleading class name — it was rewritten to c
 - `6bf0c93` — AI send must respect gateway_mode too
 
 *Session end: WhatsApp is production-ready on prod. Two paired phones tested end-to-end (inbound + outbound + AI reply). Zero send failures in the last 30+ minutes.*
+
+---
+
+## 2026-08-31 — Comments AI config Phase A shipped
+
+**PR:** #3 → merged squash as `459ae68` on main
+**Deploy:** GitHub Actions "Deploy to Production" succeeded first run
+**Prod verify:**
+- `git log --oneline -1` on prod → `459ae68 feat(ai): Comments AI config tab — phase A (config only)`
+- `php artisan migrate:status | grep comment_settings` → `Ran`
+- `curl -sS -o /dev/null -w "HTTP %{http_code}" -L https://ot1-pro.com/settings/ai/config` → HTTP 200
+
+**What shipped:** New nullable JSON column `comment_settings` on `ai_configs`. Dormant "Comments" tab on `/settings/ai/config` for Facebook + Instagram pages. Zero runtime behavior — feature activates only in Phase B when Meta App Review approves `pages_manage_engagement` + `instagram_manage_comments` and the ingestion + send pipeline lands.
+
+**Precursor:** HasFactory trait + factory classes for Team/Page/ConnectedAccount (test infra; same additions independently exist on the campaigns branch — git will resolve identically at that PR's merge).
+
+**Rollback (if needed within the hour):**
+```bash
+git revert -m 1 459ae68 && git push origin main
+# Migration undo, if the column becomes problematic:
+ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && sudo -u deploy XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan migrate:rollback --step=1'
+```
+
+**Next:** Phase B (comment webhook ingestion + Graph API reply/DM sending) blocked on Meta App Review completion for the two new permissions. Separate spec when ready.
