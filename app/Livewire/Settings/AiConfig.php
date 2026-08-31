@@ -148,6 +148,7 @@ class AiConfig extends Component
             'timezone' => 'required|string',
             'sales_goal_preset' => 'required|in:info_only,capture_data,booking,ecommerce,custom',
             'contact_ai_reply_cap' => 'required|integer|min:' . AiConfigModel::CONTACT_CAP_MIN . '|max:' . AiConfigModel::CONTACT_CAP_MAX,
+            'comment_max_replies_per_post_per_day' => 'required|integer',
         ]);
 
         // Defence-in-depth: clamp the cap server-side even if a client sends
@@ -186,6 +187,63 @@ class AiConfig extends Component
             $this->response_delay_max_seconds = $this->response_delay_min_seconds;
         }
 
+        // Pack comment settings. Invalid enums silently coerce to safe defaults so
+        // a tampered client can never produce an unreadable row for Phase B.
+        $existingComment = optional(AiConfigModel::where('page_id', $this->selectedPageId)->first())->comment_settings;
+        $wasEnabled = (bool) data_get($existingComment, 'enabled', false);
+        $priorStamp = data_get($existingComment, 'enabled_at');
+
+        $replyModeAllowed = [
+            AiConfigModel::COMMENT_REPLY_OFF,
+            AiConfigModel::COMMENT_REPLY_ALL,
+            AiConfigModel::COMMENT_REPLY_QUESTIONS_AND_COMPLAINTS,
+            AiConfigModel::COMMENT_REPLY_CUSTOM_KEYWORDS,
+        ];
+        $dmModeAllowed = [
+            AiConfigModel::COMMENT_DM_OFF,
+            AiConfigModel::COMMENT_DM_ALWAYS,
+            AiConfigModel::COMMENT_DM_ON_PURCHASE_INTENT,
+        ];
+        $scopeAllowed = [
+            AiConfigModel::COMMENT_SCOPE_FUTURE_ONLY,
+            AiConfigModel::COMMENT_SCOPE_ALL_POSTS,
+        ];
+
+        $commentReplyKeywords = array_values(array_filter(
+            array_map(fn ($k) => trim((string) $k), $this->comment_reply_keywords),
+            fn ($k) => $k !== '',
+        ));
+        $commentDmKeywords = array_values(array_filter(
+            array_map(fn ($k) => trim((string) $k), $this->comment_dm_keywords),
+            fn ($k) => $k !== '',
+        ));
+
+        $commentSettings = [
+            'enabled'                          => $this->comment_enabled,
+            'enabled_at'                       => ($this->comment_enabled && ! $wasEnabled)
+                ? now()->toIso8601String()
+                : $priorStamp,
+            'reply_mode'                       => in_array($this->comment_reply_mode, $replyModeAllowed, true)
+                ? $this->comment_reply_mode
+                : AiConfigModel::COMMENT_REPLY_OFF,
+            'reply_keywords'                   => $commentReplyKeywords,
+            'dm_mode'                          => in_array($this->comment_dm_mode, $dmModeAllowed, true)
+                ? $this->comment_dm_mode
+                : AiConfigModel::COMMENT_DM_OFF,
+            'dm_keywords'                      => $commentDmKeywords,
+            'reply_instructions'               => mb_substr((string) $this->comment_reply_instructions, 0, 500),
+            'scope'                            => in_array($this->comment_scope, $scopeAllowed, true)
+                ? $this->comment_scope
+                : AiConfigModel::COMMENT_SCOPE_FUTURE_ONLY,
+            'max_ai_replies_per_post_per_day'  => max(
+                AiConfigModel::COMMENT_MAX_REPLIES_PER_POST_MIN,
+                min(
+                    AiConfigModel::COMMENT_MAX_REPLIES_PER_POST_MAX,
+                    (int) $this->comment_max_replies_per_post_per_day,
+                ),
+            ),
+        ];
+
         $data = [
             'page_id' => $this->selectedPageId,
             'team_id' => $team->id,
@@ -207,6 +265,7 @@ class AiConfig extends Component
             'escalate_on_media'        => $this->escalate_on_media,
             'escalation_topics'        => $escalationTopics,
             'contact_ai_reply_cap'     => $this->contact_ai_reply_cap,
+            'comment_settings'         => $commentSettings,
             'is_active' => $this->is_active,
         ];
 

@@ -102,3 +102,113 @@ it('adds and removes comment DM keywords', function () {
         ->call('removeCommentDmKeyword', 0)
         ->assertSet('comment_dm_keywords', []);
 });
+
+it('persists comment settings and stamps enabled_at on first enable', function () {
+    [$user, $team, $page] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_enabled', true)
+        ->set('comment_reply_mode', AiConfig::COMMENT_REPLY_ALL)
+        ->set('comment_dm_mode', AiConfig::COMMENT_DM_ALWAYS)
+        ->set('comment_reply_instructions', 'keep it short')
+        ->set('comment_max_replies_per_post_per_day', 30)
+        ->call('saveConfig')
+        ->assertHasNoErrors();
+
+    $config = AiConfig::where('page_id', $page->id)->firstOrFail();
+    $settings = $config->comment_settings;
+
+    expect($settings['enabled'])->toBeTrue();
+    expect($settings['enabled_at'])->not->toBeNull();
+    expect($settings['reply_mode'])->toBe(AiConfig::COMMENT_REPLY_ALL);
+    expect($settings['dm_mode'])->toBe(AiConfig::COMMENT_DM_ALWAYS);
+    expect($settings['reply_instructions'])->toBe('keep it short');
+    expect($settings['max_ai_replies_per_post_per_day'])->toBe(30);
+});
+
+it('preserves enabled_at across subsequent saves', function () {
+    [$user, $team, $page] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    $component = Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_enabled', true)
+        ->call('saveConfig');
+
+    $firstStamp = AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings['enabled_at'];
+    expect($firstStamp)->not->toBeNull();
+
+    sleep(1);
+    $component->call('saveConfig');
+
+    $secondStamp = AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings['enabled_at'];
+    expect($secondStamp)->toBe($firstStamp);
+});
+
+it('clamps the per-post reply cap to the allowed range', function () {
+    [$user, $team, $page] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_max_replies_per_post_per_day', 999)
+        ->call('saveConfig');
+
+    expect(AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings['max_ai_replies_per_post_per_day'])
+        ->toBe(AiConfig::COMMENT_MAX_REPLIES_PER_POST_MAX);
+
+    Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_max_replies_per_post_per_day', 0)
+        ->call('saveConfig');
+
+    expect(AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings['max_ai_replies_per_post_per_day'])
+        ->toBe(AiConfig::COMMENT_MAX_REPLIES_PER_POST_MIN);
+});
+
+it('coerces unknown enum values to safe defaults', function () {
+    [$user, $team, $page] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_reply_mode', 'yolo')
+        ->set('comment_dm_mode', 'nope')
+        ->set('comment_scope', 'huh')
+        ->call('saveConfig');
+
+    $settings = AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings;
+    expect($settings['reply_mode'])->toBe(AiConfig::COMMENT_REPLY_OFF);
+    expect($settings['dm_mode'])->toBe(AiConfig::COMMENT_DM_OFF);
+    expect($settings['scope'])->toBe(AiConfig::COMMENT_SCOPE_FUTURE_ONLY);
+});
+
+it('trims and drops empty keywords', function () {
+    [$user, $team, $page] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_reply_keywords', ['  price  ', '', 'cost'])
+        ->set('comment_dm_keywords', [''])
+        ->call('saveConfig');
+
+    $settings = AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings;
+    expect($settings['reply_keywords'])->toBe(['price', 'cost']);
+    expect($settings['dm_keywords'])->toBe([]);
+});
+
+it('truncates reply instructions to 500 characters', function () {
+    [$user, $team, $page] = makeUserWithPage('facebook');
+    $this->actingAs($user);
+
+    Livewire::test(AiConfigComponent::class)
+        ->set('business_description', 'valid business description over ten chars')
+        ->set('comment_reply_instructions', str_repeat('a', 600))
+        ->call('saveConfig');
+
+    $settings = AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings;
+    expect(mb_strlen($settings['reply_instructions']))->toBe(500);
+});
