@@ -88,12 +88,16 @@
                         {{-- Tab strip. Splits the config into 4 focused areas so the form
                              doesn't feel like a wall of settings. --}}
                         @php
+                            $selectedPage = $pages->firstWhere('id', $selectedPageId);
                             $tabs = [
                                 'sales_goal' => ['label' => __('Sales Goal'),  'icon' => 'flag'],
                                 'knowledge'  => ['label' => __('Knowledge'),   'icon' => 'book-open'],
                                 'behavior'   => ['label' => __('Behavior'),    'icon' => 'sparkles'],
                                 'handoff'    => ['label' => __('Handoff'),     'icon' => 'user-group'],
                             ];
+                            if ($selectedPage && in_array($selectedPage->platform, ['facebook', 'instagram'], true)) {
+                                $tabs['comments'] = ['label' => __('Comments'), 'icon' => 'chat-bubble-oval-left-ellipsis'];
+                            }
                         @endphp
                         <div class="flex flex-wrap gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 p-1.5 bg-zinc-50 dark:bg-zinc-900/40">
                             @foreach($tabs as $tabKey => $tabMeta)
@@ -525,6 +529,209 @@
                                 </div>
                             </section>
                         @endif {{-- /Handoff tab --}}
+
+                        {{-- Tab: Comments (Facebook & Instagram only) --}}
+                        @if($activeTab === 'comments')
+                            {{-- Coming-soon banner: feature activates once Meta App Review
+                                 approves pages_manage_engagement + instagram_manage_comments. --}}
+                            <section class="rounded-lg border border-violet-200 bg-violet-50 p-4">
+                                <flux:heading size="sm" class="mb-1 text-violet-900">{{ __('Coming soon — save your settings now') }}</flux:heading>
+                                <flux:text size="sm" class="text-violet-900">{{ __('Comment features activate once Meta approves our Instagram & Facebook comment permissions (in App Review). Save your config here — it applies automatically the moment approval lands. Nothing you configure runs until then.') }}</flux:text>
+                            </section>
+
+                            {{-- Master switch --}}
+                            <div class="rounded-xl border-2 {{ $comment_enabled ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50' }} p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <flux:heading size="sm" class="text-zinc-900">
+                                            {{ __('Comment AI for this page:') }}
+                                            <span class="{{ $comment_enabled ? 'text-green-600' : 'text-zinc-500' }}">
+                                                {{ $comment_enabled ? __('Enabled') : __('Off') }}
+                                            </span>
+                                        </flux:heading>
+                                        <flux:text size="sm" class="mt-0.5 text-zinc-900">{{ __('Turn this on to let the AI reply to comments on your posts, and optionally DM the commenter.') }}</flux:text>
+                                    </div>
+                                    <flux:switch wire:model.live="comment_enabled" />
+                                </div>
+                            </div>
+
+                            @if($comment_enabled)
+                                {{-- Public reply mode --}}
+                                <section>
+                                    <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('When should the AI reply publicly?') }}</flux:heading>
+                                    <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('Choose which comments the AI should reply to in public, right under the post.') }}</flux:text>
+
+                                    @php
+                                        $replyModes = [
+                                            ['key' => \App\Models\AiConfig::COMMENT_REPLY_OFF,                      'title' => __('Off'),                          'desc' => __('AI never replies to comments publicly.')],
+                                            ['key' => \App\Models\AiConfig::COMMENT_REPLY_ALL,                      'title' => __('All comments'),                 'desc' => __('AI replies to every comment on your posts.')],
+                                            ['key' => \App\Models\AiConfig::COMMENT_REPLY_QUESTIONS_AND_COMPLAINTS, 'title' => __('Questions & complaints only'), 'desc' => __('Recommended: AI only replies when the comment asks something or expresses a problem.')],
+                                            ['key' => \App\Models\AiConfig::COMMENT_REPLY_CUSTOM_KEYWORDS,          'title' => __('Custom keywords'),              'desc' => __('AI only replies to comments containing keywords you list.')],
+                                        ];
+                                    @endphp
+                                    <div class="grid gap-3 md:grid-cols-2">
+                                        @foreach($replyModes as $mode)
+                                            <button
+                                                type="button"
+                                                wire:click="$set('comment_reply_mode', '{{ $mode['key'] }}')"
+                                                class="text-left p-4 rounded-xl border-2 transition-colors
+                                                    {{ $comment_reply_mode === $mode['key']
+                                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                                                        : 'border-violet-300 hover:border-violet-400' }}"
+                                            >
+                                                <div class="flex items-start justify-between gap-2 mb-1">
+                                                    <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $mode['title'] }}</span>
+                                                    @if($comment_reply_mode === $mode['key'])
+                                                        <flux:icon name="check-circle" class="w-5 h-5 text-blue-500 shrink-0" />
+                                                    @endif
+                                                </div>
+                                                <p class="text-xs text-zinc-900 leading-relaxed">{{ $mode['desc'] }}</p>
+                                            </button>
+                                        @endforeach
+                                    </div>
+
+                                    @if($comment_reply_mode === \App\Models\AiConfig::COMMENT_REPLY_CUSTOM_KEYWORDS)
+                                        <div class="mt-4">
+                                            <flux:text size="sm" class="mb-2 text-zinc-900">{{ __('Reply only when the comment contains any of these keywords:') }}</flux:text>
+                                            <div class="flex flex-wrap gap-2 mb-3">
+                                                @foreach($comment_reply_keywords as $index => $kw)
+                                                    <div wire:key="crk-{{ $index }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-white pl-3 pr-1 py-1">
+                                                        <flux:input wire:model.blur="comment_reply_keywords.{{ $index }}" size="xs" class="!w-32 !bg-transparent !p-0 !text-sm" />
+                                                        <button type="button" wire:click="removeCommentReplyKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                                            <flux:icon name="x-mark" class="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <flux:button wire:click="addCommentReplyKeyword" type="button" variant="outline" size="sm" icon="plus">
+                                                {{ __('Add keyword') }}
+                                            </flux:button>
+                                        </div>
+                                    @endif
+                                </section>
+
+                                {{-- DM behavior --}}
+                                <section>
+                                    <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Should the AI DM the commenter?') }}</flux:heading>
+                                    <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('The AI can open a private message with the person who commented. Meta allows one AI-sent DM per comment: 24 hours on Facebook, 7 days on Instagram. After that the customer must reply for the conversation to continue.') }}</flux:text>
+
+                                    @php
+                                        $dmModes = [
+                                            ['key' => \App\Models\AiConfig::COMMENT_DM_OFF,                'title' => __('Off'),                       'desc' => __('AI never DMs commenters. Public reply only.')],
+                                            ['key' => \App\Models\AiConfig::COMMENT_DM_ALWAYS,             'title' => __('Always DM after replying'),  'desc' => __('Every time the AI replies publicly, it also opens a DM with the commenter.')],
+                                            ['key' => \App\Models\AiConfig::COMMENT_DM_ON_PURCHASE_INTENT, 'title' => __('DM only on purchase intent'),'desc' => __('DM only when the comment contains a buying-intent keyword you list below.')],
+                                        ];
+                                    @endphp
+                                    <div class="grid gap-3 md:grid-cols-3">
+                                        @foreach($dmModes as $mode)
+                                            <button
+                                                type="button"
+                                                wire:click="$set('comment_dm_mode', '{{ $mode['key'] }}')"
+                                                class="text-left p-4 rounded-xl border-2 transition-colors
+                                                    {{ $comment_dm_mode === $mode['key']
+                                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                                                        : 'border-violet-300 hover:border-violet-400' }}"
+                                            >
+                                                <div class="flex items-start justify-between gap-2 mb-1">
+                                                    <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $mode['title'] }}</span>
+                                                    @if($comment_dm_mode === $mode['key'])
+                                                        <flux:icon name="check-circle" class="w-5 h-5 text-blue-500 shrink-0" />
+                                                    @endif
+                                                </div>
+                                                <p class="text-xs text-zinc-900 leading-relaxed">{{ $mode['desc'] }}</p>
+                                            </button>
+                                        @endforeach
+                                    </div>
+
+                                    @if($comment_dm_mode === \App\Models\AiConfig::COMMENT_DM_ON_PURCHASE_INTENT)
+                                        <div class="mt-4">
+                                            <flux:text size="sm" class="mb-2 text-zinc-900">{{ __('Purchase-intent keywords (comment must contain any of these to trigger a DM):') }}</flux:text>
+                                            <div class="flex flex-wrap gap-2 mb-3">
+                                                @foreach($comment_dm_keywords as $index => $kw)
+                                                    <div wire:key="cdk-{{ $index }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-white pl-3 pr-1 py-1">
+                                                        <flux:input wire:model.blur="comment_dm_keywords.{{ $index }}" size="xs" class="!w-32 !bg-transparent !p-0 !text-sm" />
+                                                        <button type="button" wire:click="removeCommentDmKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                                            <flux:icon name="x-mark" class="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <flux:button wire:click="addCommentDmKeyword" type="button" variant="outline" size="sm" icon="plus">
+                                                {{ __('Add keyword') }}
+                                            </flux:button>
+                                        </div>
+                                    @endif
+                                </section>
+
+                                {{-- Reply persona nudge --}}
+                                <section>
+                                    <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Reply style rules') }}</flux:heading>
+                                    <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('Optional. Custom rules for how the AI writes replies specifically on comments — shorter and more careful than DMs, since comments are public.') }}</flux:text>
+                                    <div x-data="{ count: $wire.entangle('comment_reply_instructions').length ?? 0 }" x-init="$watch('$wire.comment_reply_instructions', v => count = (v ?? '').length)">
+                                        <flux:textarea
+                                            wire:model="comment_reply_instructions"
+                                            placeholder="{{ __('e.g. Keep replies to 1–2 sentences. Always thank the commenter first. Never quote prices — invite them to DM.') }}"
+                                            rows="3"
+                                            maxlength="500"
+                                            class="text-zinc-900"
+                                        />
+                                        <div class="flex justify-end mt-1">
+                                            <p class="text-xs text-zinc-900" :class="count > 450 ? 'text-amber-500' : ''" x-text="count + ' / 500'"></p>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {{-- Scope --}}
+                                <section>
+                                    <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Which posts does this apply to?') }}</flux:heading>
+                                    <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('Choose whether the AI acts on comments from every post, or only from posts made after you enable this feature.') }}</flux:text>
+
+                                    @php
+                                        $scopes = [
+                                            ['key' => \App\Models\AiConfig::COMMENT_SCOPE_FUTURE_ONLY, 'title' => __('Future posts only'), 'desc' => __('Recommended: safer for existing viral posts with lots of comments.')],
+                                            ['key' => \App\Models\AiConfig::COMMENT_SCOPE_ALL_POSTS,   'title' => __('All posts'),          'desc' => __('Includes historical posts. Use with care on accounts with a big backlog.')],
+                                        ];
+                                    @endphp
+                                    <div class="grid gap-3 md:grid-cols-2">
+                                        @foreach($scopes as $scope)
+                                            <button
+                                                type="button"
+                                                wire:click="$set('comment_scope', '{{ $scope['key'] }}')"
+                                                class="text-left p-4 rounded-xl border-2 transition-colors
+                                                    {{ $comment_scope === $scope['key']
+                                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                                                        : 'border-violet-300 hover:border-violet-400' }}"
+                                            >
+                                                <div class="flex items-start justify-between gap-2 mb-1">
+                                                    <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $scope['title'] }}</span>
+                                                    @if($comment_scope === $scope['key'])
+                                                        <flux:icon name="check-circle" class="w-5 h-5 text-blue-500 shrink-0" />
+                                                    @endif
+                                                </div>
+                                                <p class="text-xs text-zinc-900 leading-relaxed">{{ $scope['desc'] }}</p>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </section>
+
+                                {{-- Rate limit --}}
+                                <section>
+                                    <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Per-post daily reply cap') }}</flux:heading>
+                                    <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('The most AI replies allowed on a single post in any 24-hour window. Prevents a viral post from draining your AI budget. Recommended: 20.') }}</flux:text>
+                                    <div class="max-w-xs">
+                                        <flux:input
+                                            wire:model="comment_max_replies_per_post_per_day"
+                                            type="number"
+                                            label="{{ __('Cap (1-100 replies/post/day)') }}"
+                                            min="{{ \App\Models\AiConfig::COMMENT_MAX_REPLIES_PER_POST_MIN }}"
+                                            max="{{ \App\Models\AiConfig::COMMENT_MAX_REPLIES_PER_POST_MAX }}"
+                                            class="text-zinc-900"
+                                        />
+                                        @error('comment_max_replies_per_post_per_day') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                                    </div>
+                                </section>
+                            @endif
+                        @endif {{-- /Comments tab --}}
 
                         {{-- Save --}}
                         <div class="flex items-center gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">

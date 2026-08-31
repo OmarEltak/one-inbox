@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -22,7 +23,7 @@ use Laravel\Cashier\Billable;
  */
 class Team extends Model
 {
-    use Billable;
+    use Billable, HasFactory;
 
     protected $attributes = [
         'ai_enabled' => false,
