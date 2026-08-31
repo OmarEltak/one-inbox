@@ -33,6 +33,23 @@ class AiConfig extends Model
     public const CONTACT_CAP_MIN =  5;
     public const CONTACT_CAP_MAX = 50;
 
+    // Comments — Phase A (config only; ingestion + sending unlock in Phase B
+    // once Meta App Review approves pages_manage_engagement + instagram_manage_comments).
+    public const COMMENT_REPLY_OFF                      = 'off';
+    public const COMMENT_REPLY_ALL                      = 'all';
+    public const COMMENT_REPLY_QUESTIONS_AND_COMPLAINTS = 'questions_and_complaints';
+    public const COMMENT_REPLY_CUSTOM_KEYWORDS          = 'custom_keywords';
+
+    public const COMMENT_DM_OFF                = 'off';
+    public const COMMENT_DM_ALWAYS             = 'always';
+    public const COMMENT_DM_ON_PURCHASE_INTENT = 'on_purchase_intent';
+
+    public const COMMENT_SCOPE_FUTURE_ONLY = 'future_posts_only';
+    public const COMMENT_SCOPE_ALL_POSTS   = 'all_posts';
+
+    public const COMMENT_MAX_REPLIES_PER_POST_MIN =   1;
+    public const COMMENT_MAX_REPLIES_PER_POST_MAX = 100;
+
     protected $fillable = [
         'page_id',
         'team_id',
@@ -56,6 +73,7 @@ class AiConfig extends Model
         'timezone',
         'escalation_rules',
         'sales_methodology',
+        'comment_settings',
         'is_active',
     ];
 
@@ -77,6 +95,7 @@ class AiConfig extends Model
             'is_active' => 'boolean',
             'response_delay_min_seconds' => 'integer',
             'response_delay_max_seconds' => 'integer',
+            'comment_settings' => 'array',
         ];
     }
 
@@ -132,6 +151,37 @@ class AiConfig extends Model
             ]),
             default => $shared,
         };
+    }
+
+    /**
+     * Safe defaults for the Comments tab. Every documented key is always present
+     * so downstream Phase B code can rely on shape without null-checking.
+     *
+     * @return array{
+     *     enabled: bool,
+     *     enabled_at: string|null,
+     *     reply_mode: string,
+     *     reply_keywords: array<int, string>,
+     *     dm_mode: string,
+     *     dm_keywords: array<int, string>,
+     *     reply_instructions: string,
+     *     scope: string,
+     *     max_ai_replies_per_post_per_day: int,
+     * }
+     */
+    public static function defaultCommentSettings(): array
+    {
+        return [
+            'enabled'                          => false,
+            'enabled_at'                       => null,
+            'reply_mode'                       => self::COMMENT_REPLY_OFF,
+            'reply_keywords'                   => [],
+            'dm_mode'                          => self::COMMENT_DM_OFF,
+            'dm_keywords'                      => [],
+            'reply_instructions'               => '',
+            'scope'                            => self::COMMENT_SCOPE_FUTURE_ONLY,
+            'max_ai_replies_per_post_per_day'  => 20,
+        ];
     }
 
     public function page(): BelongsTo
