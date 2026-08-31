@@ -25,13 +25,13 @@ class Index extends Component
 
     // Available labels with Flux-compatible colors
     public const LABELS = [
-        'hot'       => 'red',
-        'warm'      => 'orange',
-        'cold'      => 'blue',
-        'vip'       => 'yellow',
-        'new'       => 'green',
+        'hot' => 'red',
+        'warm' => 'orange',
+        'cold' => 'blue',
+        'vip' => 'yellow',
+        'new' => 'green',
         'follow-up' => 'purple',
-        'spam'      => 'zinc',
+        'spam' => 'zinc',
         'escalated' => 'red',
     ];
 
@@ -45,30 +45,39 @@ class Index extends Component
     public ?int $pageId = null;
 
     public ?int $selectedConversationId = null;
+
     public string $messageText = '';
 
     #[Validate('nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx')]
     public $attachment = null;
 
     public int $conversationLimit = 30;
+
     public bool $hasMoreConversations = false;
 
     public int $messageLimit = 30;
+
     public bool $hasOlderMessages = false;
+
     public bool $hasMoreImapEmails = false;
 
     // Email compose
-    public bool $showCompose    = false;
-    public string $composeTo      = '';
+    public bool $showCompose = false;
+
+    public string $composeTo = '';
+
     public string $composeSubject = '';
-    public string $composeBody    = '';
+
+    public string $composeBody = '';
 
     // Cached in mount() to avoid recomputing on every render
     public $teamMembers;
+
     public $quickReplies;
 
     // Lazy-loaded score history for the selected contact
     public array $scoreHistory = [];
+
     public ?int $scoreHistoryContactId = null;
 
     public function mount(): void
@@ -192,6 +201,9 @@ class Index extends Component
      * Count of spam-marked conversations for the current team. Drives the
      * conditional "Spam (N)" filter chip in the header — when the team has
      * no spam, the chip stays hidden so we don't advertise an empty view.
+     *
+     * Respects the current pageId filter: when viewing a specific page,
+     * only counts spam for that page. When viewing all pages, shows total.
      */
     #[Computed]
     public function spamCount(): int
@@ -204,10 +216,15 @@ class Index extends Component
 
         $activePageIds = $team->getActivePages()->pluck('id')->all();
 
-        return Conversation::where('team_id', $team->id)
+        $query = Conversation::where('team_id', $team->id)
             ->where('sales_stage', Conversation::STAGE_SPAM)
-            ->whereIn('page_id', $activePageIds)
-            ->count();
+            ->whereIn('page_id', $activePageIds);
+
+        if ($this->pageId) {
+            $query->where('page_id', $this->pageId);
+        }
+
+        return $query->count();
     }
 
     #[Computed]
@@ -285,20 +302,20 @@ class Index extends Component
         }
 
         match ($stage) {
-            Conversation::STAGE_ESCALATED => $conversation->escalate('manual_by_user_' . Auth::id()),
-            Conversation::STAGE_COMPLETED => $conversation->complete('manual_by_user_' . Auth::id()),
-            Conversation::STAGE_SPAM      => $conversation->update([
+            Conversation::STAGE_ESCALATED => $conversation->escalate('manual_by_user_'.Auth::id()),
+            Conversation::STAGE_COMPLETED => $conversation->complete('manual_by_user_'.Auth::id()),
+            Conversation::STAGE_SPAM => $conversation->update([
                 'sales_stage' => Conversation::STAGE_SPAM,
-                'ai_paused'   => true,
-                'metadata'    => array_merge($conversation->metadata ?? [], [
+                'ai_paused' => true,
+                'metadata' => array_merge($conversation->metadata ?? [], [
                     'marked_spam_by' => Auth::id(),
                     'marked_spam_at' => now()->toIso8601String(),
                 ]),
             ]),
             Conversation::STAGE_ACTIVE => $conversation->update([
                 'sales_stage' => Conversation::STAGE_ACTIVE,
-                'ai_paused'   => false,
-                'metadata'    => array_merge($conversation->metadata ?? [], [
+                'ai_paused' => false,
+                'metadata' => array_merge($conversation->metadata ?? [], [
                     'reactivated_by' => Auth::id(),
                     'reactivated_at' => now()->toIso8601String(),
                 ]),
@@ -331,7 +348,7 @@ class Index extends Component
     public function selectConversation(int $id): void
     {
         $this->selectedConversationId = $id;
-        $this->messageLimit           = 30;
+        $this->messageLimit = 30;
 
         $teamId = Auth::user()->currentTeam?->id;
         $conversation = Conversation::with('page')->where('team_id', $teamId)->find($id);
@@ -382,18 +399,18 @@ class Index extends Component
 
     public function openCompose(): void
     {
-        $this->composeTo      = '';
+        $this->composeTo = '';
         $this->composeSubject = '';
-        $this->composeBody    = '';
-        $this->showCompose    = true;
+        $this->composeBody = '';
+        $this->showCompose = true;
     }
 
     public function sendCompose(): void
     {
         $this->validate([
-            'composeTo'      => 'required|email',
+            'composeTo' => 'required|email',
             'composeSubject' => 'required|string|max:255',
-            'composeBody'    => 'required|string',
+            'composeBody' => 'required|string',
         ]);
 
         $page = \App\Models\Page::where('team_id', Auth::user()->currentTeam?->id)->find($this->pageId);
@@ -412,12 +429,12 @@ class Index extends Component
         $conversation = Conversation::firstOrCreate(
             ['page_id' => $page->id, 'platform_conversation_id' => strtolower($this->composeTo)],
             [
-                'team_id'    => $team->id,
+                'team_id' => $team->id,
                 'contact_id' => $contact->id,
-                'platform'   => 'email',
-                'status'     => 'open',
-                'metadata'   => [
-                    'subject'       => $this->composeSubject,
+                'platform' => 'email',
+                'status' => 'open',
+                'metadata' => [
+                    'subject' => $this->composeSubject,
                     'contact_email' => strtolower($this->composeTo),
                 ],
             ]
@@ -425,25 +442,25 @@ class Index extends Component
 
         $message = Message::create([
             'conversation_id' => $conversation->id,
-            'direction'       => 'outbound',
-            'sender_type'     => 'user',
-            'sender_id'       => Auth::id(),
-            'content_type'    => 'text',
-            'content'         => $this->composeBody,
+            'direction' => 'outbound',
+            'sender_type' => 'user',
+            'sender_id' => Auth::id(),
+            'content_type' => 'text',
+            'content' => $this->composeBody,
         ]);
 
         $conversation->update([
-            'last_message_at'      => now(),
+            'last_message_at' => now(),
             'last_message_preview' => Str::limit($this->composeBody, 100),
-            'status'               => 'open',
+            'status' => 'open',
         ]);
 
         SendPlatformMessage::dispatch($message->id);
 
-        $this->showCompose    = false;
-        $this->composeTo      = '';
+        $this->showCompose = false;
+        $this->composeTo = '';
         $this->composeSubject = '';
-        $this->composeBody    = '';
+        $this->composeBody = '';
 
         unset($this->conversations);
         $this->selectedConversationId = $conversation->id;
@@ -462,6 +479,7 @@ class Index extends Component
         // If DB still has more rows, just expand the window (instant)
         if ($totalInDb > $this->messageLimit) {
             $this->messageLimit += 30;
+
             return;
         }
 
@@ -477,9 +495,9 @@ class Index extends Component
 
     public function setFilter(string $filter): void
     {
-        $this->filter                   = $filter;
-        $this->selectedConversationId   = null;
-        $this->conversationLimit        = 30;
+        $this->filter = $filter;
+        $this->selectedConversationId = null;
+        $this->conversationLimit = 30;
     }
 
     public function setPage(?int $pageId): void
@@ -574,7 +592,7 @@ class Index extends Component
             $this->validate();
             $teamId = $conversation->team_id;
             $path = $this->attachment->store("chat-media/{$teamId}", 'public');
-            $mediaUrl = asset('storage/' . $path);
+            $mediaUrl = asset('storage/'.$path);
             $mime = $this->attachment->getMimeType();
             $mediaType = $mime;
             $contentType = str_starts_with($mime, 'image/') ? 'image' : 'file';
@@ -583,18 +601,18 @@ class Index extends Component
         // Store message locally
         $message = Message::create([
             'conversation_id' => $conversation->id,
-            'direction'       => 'outbound',
-            'sender_type'     => 'user',
-            'sender_id'       => Auth::id(),
-            'content_type'    => $contentType,
-            'content'         => $text ?: null,
-            'media_url'       => $mediaUrl,
-            'media_type'      => $mediaType,
+            'direction' => 'outbound',
+            'sender_type' => 'user',
+            'sender_id' => Auth::id(),
+            'content_type' => $contentType,
+            'content' => $text ?: null,
+            'media_url' => $mediaUrl,
+            'media_type' => $mediaType,
         ]);
 
         $preview = $text ?: ($contentType === 'image' ? '[Image]' : '[File]');
         $conversation->update([
-            'last_message_at'      => now(),
+            'last_message_at' => now(),
             'last_message_preview' => Str::limit($preview, 100),
         ]);
 
