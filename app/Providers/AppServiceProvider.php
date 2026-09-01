@@ -42,6 +42,20 @@ class AppServiceProvider extends ServiceProvider
                 default       => new GeminiProvider(),
             };
         });
+
+        // Transcription pipeline: Groq (fast, free tier) primary,
+        // whisper.cpp (self-hosted) fallback. Adjust ordering here — the
+        // router tries drivers in the array order given.
+        $this->app->singleton(\App\Services\Ai\TranscriptionRouter::class, function () {
+            $drivers = [];
+
+            if (config('services.groq.enabled') && config('services.groq.api_key')) {
+                $drivers[] = $this->app->make(\App\Services\Ai\Transcription\GroqDriver::class);
+            }
+            $drivers[] = $this->app->make(\App\Services\Ai\Transcription\WhisperCppDriver::class);
+
+            return new \App\Services\Ai\TranscriptionRouter($drivers);
+        });
     }
 
     /**
