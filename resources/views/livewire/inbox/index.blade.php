@@ -1,4 +1,3 @@
-<x-inbox.lightbox />
 <div class="flex h-full overflow-hidden"
      x-data="{
          aiLimitReached: false,
@@ -786,4 +785,9 @@
             </div>
         </div>
     </flux:modal>
+
+    {{-- Image lightbox modal. MUST live inside this Livewire root <div> —
+         Livewire requires exactly ONE root element. Placing this outside the
+         root breaks wire:click hydration (chat rows stop opening). --}}
+    <x-inbox.lightbox />
 </div>
