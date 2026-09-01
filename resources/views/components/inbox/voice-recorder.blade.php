@@ -18,7 +18,8 @@
 <div x-data="voiceRecorder({ onUploaded: {{ Js::from($onUploaded) }} })"
      x-ref="rec"
      wire:ignore
-     class="contents">
+     class="flex items-center"
+     :class="(recording || uploading) ? 'flex-1 self-end mb-0' : 'flex-shrink-0 self-end mb-1'">
 
     {{-- Idle: plain mic icon --}}
     <button type="button" x-show="!recording && !uploading"

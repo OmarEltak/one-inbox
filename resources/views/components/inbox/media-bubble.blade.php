@@ -25,10 +25,11 @@
 
 @elseif($kind === 'audio')
     <div class="max-w-xs">
-        <audio controls preload="metadata" class="w-full">
-            <source src="{{ $message->media_url }}" type="{{ $asset->mime_type }}">
-            Your browser does not support audio playback.
-        </audio>
+        <x-inbox.audio-player
+            :src="$message->media_url"
+            :mime="$asset->mime_type"
+            :sentAt="optional($message->platform_sent_at ?? $message->created_at)->format('g:i A')"
+        />
         @if($message->content && ! in_array($message->content, ['[voice note]', '[audio]', '[media unavailable]'], true))
             <p class="mt-1 text-xs italic text-zinc-500 dark:text-zinc-400">
                 <span class="font-semibold">Transcript:</span> {{ $message->content }}
