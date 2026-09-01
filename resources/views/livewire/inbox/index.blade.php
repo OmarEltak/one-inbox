@@ -787,8 +787,12 @@
         </div>
     </flux:modal>
 
-    {{-- Image lightbox modal. MUST live inside this Livewire root <div> —
-         Livewire requires exactly ONE root element. Placing this outside the
-         root breaks wire:click hydration (chat rows stop opening). --}}
-    <x-inbox.lightbox />
+    {{-- NOTE: <x-inbox.lightbox /> was removed here. It caused a real prod
+         outage: <flux:modal> above teleports to <body> at hydration, and
+         Alpine dragged the trailing lightbox <div> out with it, making the
+         lightbox a SIBLING of the main root <div>. Livewire then stamped
+         wire:id on the wrong element → every wire:click on chat rows died.
+         If we need image-enlarge later, put the lightbox in the top-level
+         layout (resources/views/components/layouts/app/*.blade.php), NOT
+         inside a Livewire component that has a Flux modal. --}}
 </div>
