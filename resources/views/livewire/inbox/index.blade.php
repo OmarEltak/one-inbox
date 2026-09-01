@@ -669,17 +669,8 @@
                         <flux:icon name="face-smile" class="h-5 w-5" />
                     </button>
 
-                    {{-- Voice recorder (hold-to-record → uploads → dispatches sendWithMedia) --}}
-                    <div class="flex-shrink-0 self-end mb-1">
-                        <x-inbox.voice-recorder :on-uploaded="'sendWithMedia'" />
-                    </div>
-
-                    {{-- Image picker (direct upload via /api/media/upload → sendWithMedia) --}}
-                    <label class="flex-shrink-0 self-end mb-1 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">
-                        <flux:icon name="photo" class="h-5 w-5" />
-                        <input type="file" accept="image/*" class="hidden"
-                            x-on:change="window.inboxUploadImage($event.target.files[0]).then(id => { if (id) $wire.sendWithMedia(id); $event.target.value = ''; })" />
-                    </label>
+                    {{-- Voice recorder — mic in idle state, full-width recording bar overlays via x-teleport --}}
+                    <x-inbox.voice-recorder :on-uploaded="'sendWithMedia'" />
 
                     {{-- Quick replies button --}}
                     @if($quickReplies->isNotEmpty())
