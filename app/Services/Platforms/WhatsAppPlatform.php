@@ -333,4 +333,67 @@ class WhatsAppPlatform extends AbstractPlatform
             kind: $kind,
         );
     }
+
+    public function uploadOutboundMedia(Page $page, \App\Models\MediaAsset $asset): string
+    {
+        $token = $page->connectedAccount?->access_token
+            ?? throw new \RuntimeException("Page {$page->id} has no WhatsApp connected account");
+
+        $absolutePath = app(\App\Services\Media\MediaStorage::class)->absolutePath($asset);
+
+        $response = Http::withToken($token)
+            ->timeout(30)
+            ->attach('file', file_get_contents($absolutePath), $asset->original_filename ?? basename($asset->path), [
+                'Content-Type' => $asset->mime_type,
+            ])
+            ->post("{$this->graphUrl}/{$page->platform_page_id}/media", [
+                'messaging_product' => 'whatsapp',
+                'type'              => $asset->mime_type,
+            ])
+            ->throw()
+            ->json();
+
+        return (string) ($response['id'] ?? throw new \RuntimeException('WA upload returned no id'));
+    }
+
+    public function sendMediaMessage(
+        Page $page,
+        string $recipientPlatformId,
+        \App\Models\MediaAsset $mediaAsset,
+        string $waMediaId,
+        ?string $caption = null,
+    ): string {
+        $token = $page->connectedAccount?->access_token
+            ?? throw new \RuntimeException("Page {$page->id} has no WhatsApp connected account");
+
+        $asset = $mediaAsset;
+
+        $typeKey = match ($asset->kind) {
+            'image'    => 'image',
+            'audio'    => 'audio',
+            'video'    => 'video',
+            'document' => 'document',
+            default    => throw new \InvalidArgumentException("Unsupported media kind: {$asset->kind}"),
+        };
+
+        $body = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type'    => 'individual',
+            'to'                => $recipientPlatformId,
+            'type'              => $typeKey,
+            $typeKey            => array_filter([
+                'id'      => $waMediaId,
+                'caption' => in_array($typeKey, ['image', 'video', 'document'], true) ? $caption : null,
+            ]),
+        ];
+
+        $response = Http::withToken($token)
+            ->timeout(30)
+            ->post("{$this->graphUrl}/{$page->platform_page_id}/messages", $body)
+            ->throw()
+            ->json();
+
+        return (string) ($response['messages'][0]['id']
+            ?? throw new \RuntimeException('WA send returned no message id'));
+    }
 }
