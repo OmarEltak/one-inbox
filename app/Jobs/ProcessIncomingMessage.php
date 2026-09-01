@@ -736,7 +736,14 @@ class ProcessIncomingMessage implements ShouldQueue
 
         if ($mediaKind !== null && $mediaDescriptor !== null && config('services.media.ingest_enabled')) {
             try {
-                $userToken = decrypt($page->page_access_token);
+                // Some pages store the Wuzapi user token encrypted, others plain
+                // (legacy rows from before the Eloquent cast landed). Try decrypt
+                // first, fall back to the raw column value so both paths work.
+                try {
+                    $userToken = decrypt($page->page_access_token);
+                } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                    $userToken = (string) $page->page_access_token;
+                }
                 $result = app(\App\Services\EvolutionApiService::class)
                     ->downloadMedia($userToken, $mediaKind, $mediaDescriptor);
 
