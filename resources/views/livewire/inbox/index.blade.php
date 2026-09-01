@@ -1,3 +1,4 @@
+<x-inbox.lightbox />
 <div class="flex h-full overflow-hidden"
      x-data="{
          aiLimitReached: false,
@@ -575,7 +576,9 @@
                                     <span class="text-xs opacity-70">{{ __('Sent from') }} {{ ucfirst($message->conversation->platform) }} {{ __('app') }}</span>
                                 </div>
                             @endif
-                            @if($message->media_url)
+                            @if($message->mediaAsset)
+                                <x-inbox.media-bubble :message="$message" />
+                            @elseif($message->media_url)
                                 @if($message->content_type === 'image' || str_starts_with($message->media_type ?? '', 'image/'))
                                     <img src="{{ $message->media_url }}" alt="Shared image" class="max-w-full rounded-lg mb-1 cursor-pointer" onclick="window.open(this.src, '_blank')" loading="lazy" />
                                 @elseif($message->content_type === 'video' || str_starts_with($message->media_type ?? '', 'video/'))
@@ -589,10 +592,12 @@
                                     </a>
                                 @endif
                             @endif
-                            @if($message->content)
-                                <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
-                            @elseif(! $message->media_url)
-                                <p class="text-sm italic opacity-60">📎 Media</p>
+                            @if(! $message->mediaAsset)
+                                @if($message->content)
+                                    <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                                @elseif(! $message->media_url)
+                                    <p class="text-sm italic opacity-60">📎 Media</p>
+                                @endif
                             @endif
                             <span class="text-xs opacity-60 mt-1 block">
                                 {{ ($message->platform_sent_at ?? $message->created_at)->format('M j, g:i A') }}
