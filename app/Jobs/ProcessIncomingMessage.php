@@ -712,6 +712,63 @@ class ProcessIncomingMessage implements ShouldQueue
         // messageBody.extendedTextMessage.text, messageBody.imageMessage.caption, etc.
         [$content, $contentType, $mediaUrl] = $this->extractWuzapiMessageContent($info['Type'] ?? null, $messageBody);
 
+        // Media ingest — Wuzapi's webhook only carries encrypted-media metadata.
+        // Fetch the actual bytes via /chat/downloadX so agents can play/see the
+        // media inline, and downstream AI can transcribe (audio) or describe (image).
+        $mediaAssetId = null;
+        $mediaType    = null;
+        $mediaKind    = null;
+        $mediaDescriptor = null;
+
+        if (! empty($messageBody['audioMessage'])) {
+            $mediaKind = 'audio';
+            $mediaDescriptor = $messageBody['audioMessage'];
+        } elseif (! empty($messageBody['imageMessage'])) {
+            $mediaKind = 'image';
+            $mediaDescriptor = $messageBody['imageMessage'];
+        } elseif (! empty($messageBody['videoMessage'])) {
+            $mediaKind = 'video';
+            $mediaDescriptor = $messageBody['videoMessage'];
+        } elseif (! empty($messageBody['documentMessage'])) {
+            $mediaKind = 'document';
+            $mediaDescriptor = $messageBody['documentMessage'];
+        }
+
+        if ($mediaKind !== null && $mediaDescriptor !== null && config('services.media.ingest_enabled')) {
+            try {
+                $userToken = decrypt($page->page_access_token);
+                $result = app(\App\Services\EvolutionApiService::class)
+                    ->downloadMedia($userToken, $mediaKind, $mediaDescriptor);
+
+                if ($result !== null) {
+                    [$bytes, $mime] = $result;
+                    $asset = app(\App\Services\Media\MediaStorage::class)->storeBytes(
+                        team: $page->team,
+                        bytes: $bytes,
+                        mimeType: $mime,
+                        kind: $mediaKind,
+                    );
+                    $mediaAssetId = $asset->id;
+                    $mediaType    = $asset->mime_type;
+                    $mediaUrl     = app(\App\Services\Media\MediaStorage::class)->streamUrl($asset);
+
+                    // Overwrite the [Audio]/[Image] placeholder so inbox previews
+                    // are consistent with the Cloud API path.
+                    $content = match ($mediaKind) {
+                        'image'    => $mediaDescriptor['caption']  ?? '[image]',
+                        'audio'    => '[voice note]',
+                        'video'    => $mediaDescriptor['caption']  ?? '[video]',
+                        'document' => $mediaDescriptor['fileName'] ?? '[document]',
+                    };
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Wuzapi media download failed', [
+                    'kind'  => $mediaKind,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $contact = $this->findOrCreateContact($page, 'whatsapp', $senderPhone, [
             'name'  => $senderName,
             'phone' => $senderPhone,
@@ -726,6 +783,8 @@ class ProcessIncomingMessage implements ShouldQueue
             'sender_id'           => $isFromMe ? null : $contact->id,
             'content_type'        => $contentType,
             'content'             => $content,
+            'media_asset_id'      => $mediaAssetId,
+            'media_type'          => $mediaType,
             'media_url'           => $mediaUrl,
             // Wuzapi emits Info.Timestamp as ISO 8601 with a +03:00 (or wherever the
             // container's TZ) offset. Carbon::parse preserves that offset — Eloquent
@@ -759,10 +818,19 @@ class ProcessIncomingMessage implements ShouldQueue
 
             $team = $page->team;
             if ($team->canDispatchAi()) {
-                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
-                // typing-delay AFTER the AI call so the API round-trip overlaps the
-                // "human is typing" budget instead of being stacked on top of it.
-                SendAiResponse::dispatch($conversation->id, $message->id);
+                if ($mediaAssetId !== null && $mediaKind === 'image' && config('services.ai_media.vision_enabled')) {
+                    \App\Jobs\DescribeImage::dispatch($message->id);
+                } elseif ($mediaAssetId !== null && $mediaKind === 'audio'
+                    && config('services.ai_media.transcription_enabled')
+                    && ($team->audio_transcription_enabled ?? true)
+                ) {
+                    \App\Jobs\TranscribeAudio::dispatch($message->id);
+                } else {
+                    // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+                    // typing-delay AFTER the AI call so the API round-trip overlaps the
+                    // "human is typing" budget instead of being stacked on top of it.
+                    SendAiResponse::dispatch($conversation->id, $message->id);
+                }
             }
         }
 

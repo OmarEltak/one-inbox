@@ -348,4 +348,74 @@ class EvolutionApiService
     {
         return ['token' => $userToken];
     }
+
+    /**
+     * Download inbound media (audio/image/video/document) via Wuzapi.
+     *
+     * Wuzapi's webhook payload only carries WhatsApp media metadata
+     * (URL, mediaKey, mimetype, directPath, ...). The actual bytes must be
+     * fetched via POST /chat/download{image|audio|video|document} with the
+     * message body descriptor. Response is a JSON envelope containing a
+     * `data:MIME;base64,...` data URI in `data.Data`.
+     *
+     * @param  string  $kind  one of 'image' | 'audio' | 'video' | 'document'
+     * @param  array   $mediaMessage  the imageMessage / audioMessage / … dict from the webhook
+     * @return array{0: string, 1: string}|null  [rawBytes, mimeType] or null on failure
+     */
+    public function downloadMedia(string $userToken, string $kind, array $mediaMessage): ?array
+    {
+        $endpoint = match ($kind) {
+            'image'    => '/chat/downloadimage',
+            'audio'    => '/chat/downloadaudio',
+            'video'    => '/chat/downloadvideo',
+            'document' => '/chat/downloaddocument',
+            default    => null,
+        };
+
+        if ($endpoint === null || $userToken === '') {
+            return null;
+        }
+
+        // Wuzapi expects PascalCase field names (URL/DirectPath/MediaKey/…). The
+        // webhook payload already uses PascalCase for these, so pass through.
+        try {
+            $resp = Http::withHeaders($this->userAuthHeaders($userToken))
+                ->timeout(30)
+                ->post("{$this->baseUrl}{$endpoint}", $mediaMessage);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi downloadMedia HTTP failure', [
+                'kind'  => $kind,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+
+        if (! $resp->successful()) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi downloadMedia non-2xx', [
+                'kind'   => $kind,
+                'status' => $resp->status(),
+                'body'   => substr($resp->body(), 0, 500),
+            ]);
+            return null;
+        }
+
+        $data = $resp->json('data.Data');
+        if (! is_string($data)) {
+            return null;
+        }
+
+        // "data:audio/ogg; codecs=opus;base64,AAAA..."
+        if (! preg_match('/^data:([^;]+)(;[^,]*)?;base64,(.+)$/s', $data, $m)) {
+            return null;
+        }
+
+        $mimeType = trim($m[1]);
+        $bytes    = base64_decode($m[3], true);
+
+        if ($bytes === false) {
+            return null;
+        }
+
+        return [$bytes, $mimeType];
+    }
 }
