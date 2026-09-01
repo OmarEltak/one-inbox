@@ -1,4 +1,3 @@
-<x-inbox.lightbox />
 <div class="flex h-full overflow-hidden"
      x-data="{
          aiLimitReached: false,
