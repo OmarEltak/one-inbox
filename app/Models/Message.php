@@ -17,6 +17,7 @@ class Message extends Model
         'content',
         'media_url',
         'media_type',
+        'media_asset_id',
         'reply_to_message_id',
         'ai_confidence',
         'metadata',
@@ -49,6 +50,11 @@ class Message extends Model
     public function sentByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    public function mediaAsset(): BelongsTo
+    {
+        return $this->belongsTo(MediaAsset::class);
     }
 
     public function isInbound(): bool

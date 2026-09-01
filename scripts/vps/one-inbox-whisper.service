@@ -1,0 +1,24 @@
+[Unit]
+Description=One Inbox — Whisper transcription worker
+After=network.target redis-server.service mysql.service
+Requires=redis-server.service
+
+[Service]
+Type=simple
+User=deploy
+Group=www-data
+WorkingDirectory=/var/www/ot1-pro.com
+ExecStart=/usr/bin/php artisan queue:work redis --queue=transcription --sleep=3 --tries=1 --max-time=3600 --timeout=90
+Restart=on-failure
+RestartSec=5
+Nice=10
+CPUQuota=80%
+MemoryMax=3G
+
+# So a wedged whisper.cpp child gets killed with the worker.
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
