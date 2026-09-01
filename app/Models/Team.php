@@ -45,7 +45,6 @@ class Team extends Model
         'ai_credits_limit',
         'settings',
         'ai_memory',
-        'audio_transcription_enabled',
     ];
 
     protected function casts(): array
@@ -57,7 +56,6 @@ class Team extends Model
             'ai_credits_used' => 'integer',
             'ai_credits_limit' => 'integer',
             'settings' => 'array',
-            'audio_transcription_enabled' => 'boolean',
         ];
     }
 

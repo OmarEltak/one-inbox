@@ -264,29 +264,4 @@ return [
         'form_label'      => env('GOOGLE_ADS_FORM_LABEL'),
     ],
 
-    'media' => [
-        'ingest_enabled'         => env('MEDIA_INGEST_ENABLED', true),
-        'signed_url_ttl_days'    => 7,
-        'max_upload_image_bytes' => 5 * 1024 * 1024,
-        'max_upload_audio_bytes' => 16 * 1024 * 1024,
-    ],
-
-    'ai_media' => [
-        'vision_enabled'        => env('VISION_ENABLED', true),
-        'transcription_enabled' => env('TRANSCRIPTION_ENABLED', true),
-    ],
-
-    'groq' => [
-        'enabled' => env('TRANSCRIPTION_GROQ_ENABLED', true),
-        'api_key' => env('GROQ_API_KEY'),
-        'model'   => env('GROQ_WHISPER_MODEL', 'whisper-large-v3'),
-        'timeout' => (int) env('GROQ_TIMEOUT_SECONDS', 5),
-    ],
-
-    'whisper_cpp' => [
-        'bin'     => env('WHISPER_CPP_BIN', '/usr/local/bin/whisper.cpp'),
-        'model'   => env('WHISPER_CPP_MODEL', '/opt/whisper-models/ggml-medium.bin'),
-        'threads' => (int) env('WHISPER_CPP_THREADS', 2),
-    ],
-
 ];

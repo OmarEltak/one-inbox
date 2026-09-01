@@ -629,65 +629,6 @@ class Index extends Component
         $this->attachment = null;
     }
 
-    /**
-     * Send an outbound message that references a MediaAsset (voice note / image
-     * uploaded via /api/media/upload). Creates a Message row with media_asset_id
-     * set so SendPlatformMessage can route through the platform media pipeline.
-     */
-    public function sendWithMedia(string $mediaAssetId): void
-    {
-        if (! $this->selectedConversationId) {
-            return;
-        }
-
-        $asset = \App\Models\MediaAsset::find($mediaAssetId);
-        abort_if($asset === null, 404);
-        abort_unless($asset->team_id === Auth::user()->currentTeam?->id, 403);
-
-        $conversation = Conversation::with('page')
-            ->where('team_id', Auth::user()->currentTeam?->id)
-            ->find($this->selectedConversationId);
-
-        if (! $conversation || ! $conversation->page) {
-            return;
-        }
-
-        $storage = app(\App\Services\Media\MediaStorage::class);
-
-        $message = Message::create([
-            'conversation_id' => $conversation->id,
-            'direction'       => 'outbound',
-            'sender_type'     => 'user',
-            'sender_id'       => Auth::id(),
-            'content_type'    => $asset->kind,
-            'content'         => null,
-            'media_asset_id'  => $asset->id,
-            'media_url'       => $storage->streamUrl($asset),
-            'media_type'      => $asset->mime_type,
-        ]);
-
-        $preview = match ($asset->kind) {
-            'image'    => '[Image]',
-            'audio'    => '[Voice note]',
-            'video'    => '[Video]',
-            'document' => '[Document]',
-            default    => '[Media]',
-        };
-
-        $conversation->update([
-            'last_message_at'      => now(),
-            'last_message_preview' => Str::limit($preview, 100),
-        ]);
-
-        if (! $conversation->ai_paused) {
-            $conversation->pauseAi();
-        }
-
-        SendPlatformMessage::dispatch($message->id);
-
-        $this->dispatch('message-sent');
-    }
-
     public function toggleAiPause(int $id): void
     {
         if (! Auth::user()->isHeadAdmin() && ! Auth::user()->hasPermission('ai-control')) {

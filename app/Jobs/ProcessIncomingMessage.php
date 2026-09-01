@@ -216,53 +216,6 @@ class ProcessIncomingMessage implements ShouldQueue
         $contact      = $this->findOrCreateContact($page, $platform, $contactExternalId, $senderData);
         $conversation = $this->findOrCreateConversation($page, $platform, $contactExternalId, $contact);
 
-        // Meta gives us a short-lived attachment URL. Download to our own
-        // storage so (a) it doesn't expire, (b) we have a MediaAsset for
-        // vision / transcription, (c) the inbox uses our signed URL.
-        $mediaAssetId = null;
-        $ownedMediaUrl = null;
-        $ownedMediaType = null;
-        $mediaKind = null;
-
-        $attachmentUrl  = $messageData['attachments'][0]['payload']['url'] ?? null;
-        $attachmentType = $messageData['attachments'][0]['type'] ?? null;
-
-        if ($attachmentUrl && $attachmentType && config('services.media.ingest_enabled')) {
-            $mediaKind = match ($attachmentType) {
-                'image'                       => 'image',
-                'audio'                       => 'audio',
-                'video'                       => 'video',
-                'file', 'document', 'fallback' => 'document',
-                default                       => null,
-            };
-
-            if ($mediaKind !== null) {
-                try {
-                    $bytes = \Illuminate\Support\Facades\Http::timeout(20)->get($attachmentUrl)->throw()->body();
-                    $mime  = match ($mediaKind) {
-                        'image' => 'image/jpeg',
-                        'audio' => 'audio/mp4',
-                        'video' => 'video/mp4',
-                        default => 'application/octet-stream',
-                    };
-                    $asset = app(\App\Services\Media\MediaStorage::class)->storeBytes(
-                        team: $page->team,
-                        bytes: $bytes,
-                        mimeType: $mime,
-                        kind: $mediaKind,
-                    );
-                    $mediaAssetId   = $asset->id;
-                    $ownedMediaType = $asset->mime_type;
-                    $ownedMediaUrl  = app(\App\Services\Media\MediaStorage::class)->streamUrl($asset);
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('Meta attachment download failed', [
-                        'platform' => $platform,
-                        'error'    => $e->getMessage(),
-                    ]);
-                }
-            }
-        }
-
         $message = Message::create([
             'conversation_id'     => $conversation->id,
             'platform_message_id' => $platformMessageId,
@@ -273,9 +226,8 @@ class ProcessIncomingMessage implements ShouldQueue
             'sender_id'           => $isEcho ? null : $contact->id,
             'content_type'        => $this->detectContentType($messageData),
             'content'             => $this->extractMessageContent($messageData),
-            'media_asset_id'      => $mediaAssetId,
-            'media_url'           => $ownedMediaUrl ?? ($messageData['attachments'][0]['payload']['url'] ?? null),
-            'media_type'          => $ownedMediaType ?? ($messageData['attachments'][0]['type'] ?? null),
+            'media_url'           => $messageData['attachments'][0]['payload']['url'] ?? null,
+            'media_type'          => $messageData['attachments'][0]['type'] ?? null,
             'platform_sent_at'    => isset($event['timestamp']) ? \Carbon\Carbon::createFromTimestampMs($event['timestamp']) : now(),
         ]);
 
@@ -298,20 +250,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
             $team = $page->team;
             if ($team->canDispatchAi()) {
-                // Route media to the right comprehension pipeline before AI reply.
-                if ($mediaAssetId !== null && $mediaKind === 'image' && config('services.ai_media.vision_enabled')) {
-                    \App\Jobs\DescribeImage::dispatch($message->id);
-                } elseif ($mediaAssetId !== null && $mediaKind === 'audio'
-                    && config('services.ai_media.transcription_enabled')
-                    && ($team->audio_transcription_enabled ?? true)
-                ) {
-                    \App\Jobs\TranscribeAudio::dispatch($message->id);
-                } else {
-                    // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
-                    // typing-delay AFTER the AI call so the API round-trip overlaps the
-                    // "human is typing" budget instead of being stacked on top of it.
-                    SendAiResponse::dispatch($conversation->id, $message->id);
-                }
+                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+                // typing-delay AFTER the AI call so the API round-trip overlaps the
+                // "human is typing" budget instead of being stacked on top of it.
+                SendAiResponse::dispatch($conversation->id, $message->id);
             }
         }
 
@@ -379,50 +321,6 @@ class ProcessIncomingMessage implements ShouldQueue
             default => null,
         };
 
-        // Media ingest — download + persist the binary for supported inbound types.
-        $mediaAssetId = null;
-        $mediaUrl     = null;
-        $mediaType    = null;
-
-        $mediaId = $waMessage['image']['id']
-            ?? $waMessage['audio']['id']
-            ?? $waMessage['video']['id']
-            ?? $waMessage['document']['id']
-            ?? null;
-
-        $mediaKind = match (true) {
-            isset($waMessage['image'])    => 'image',
-            isset($waMessage['audio'])    => 'audio',
-            isset($waMessage['video'])    => 'video',
-            isset($waMessage['document']) => 'document',
-            default                       => null,
-        };
-
-        if ($mediaId !== null && $mediaKind !== null && config('services.media.ingest_enabled')) {
-            try {
-                $platform = app(\App\Services\Platforms\WhatsAppPlatform::class);
-                $asset = $platform->downloadInboundMedia($page, $mediaId, $mediaKind);
-
-                $mediaAssetId = $asset->id;
-                $mediaType    = $asset->mime_type;
-                $mediaUrl     = app(\App\Services\Media\MediaStorage::class)->streamUrl($asset);
-
-                $content = match ($mediaKind) {
-                    'image'    => $waMessage['image']['caption']    ?? '[image]',
-                    'audio'    => '[voice note]',
-                    'video'    => $waMessage['video']['caption']    ?? '[video]',
-                    'document' => $waMessage['document']['filename'] ?? '[document]',
-                };
-            } catch (\Throwable $e) {
-                Log::error('WA media download failed', [
-                    'media_id' => $mediaId,
-                    'kind'     => $mediaKind,
-                    'error'    => $e->getMessage(),
-                ]);
-                $content = '[media unavailable]';
-            }
-        }
-
         $message = Message::create([
             'conversation_id' => $conversation->id,
             'platform_message_id' => $waMessage['id'] ?? null,
@@ -431,9 +329,6 @@ class ProcessIncomingMessage implements ShouldQueue
             'sender_id' => $contact->id,
             'content_type' => $waMessage['type'] ?? 'text',
             'content' => $content,
-            'media_asset_id' => $mediaAssetId,
-            'media_url' => $mediaUrl,
-            'media_type' => $mediaType,
             'platform_sent_at' => isset($waMessage['timestamp']) ? \Carbon\Carbon::createFromTimestamp($waMessage['timestamp']) : now(),
         ]);
 
@@ -448,18 +343,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            if ($mediaAssetId !== null && $mediaKind === 'image' && config('services.ai_media.vision_enabled')) {
-                \App\Jobs\DescribeImage::dispatch($message->id);
-            } elseif ($mediaAssetId !== null && $mediaKind === 'audio'
-                && config('services.ai_media.transcription_enabled')
-                && ($team->audio_transcription_enabled ?? true)) {
-                \App\Jobs\TranscribeAudio::dispatch($message->id);
-            } elseif ($mediaKind === null || ($mediaKind !== 'audio' && $mediaKind !== 'image')) {
-                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
-                // typing-delay AFTER the AI call so the API round-trip overlaps the
-                // "human is typing" budget instead of being stacked on top of it.
-                SendAiResponse::dispatch($conversation->id, $message->id);
-            }
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
@@ -847,72 +734,19 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $content = $telegramMessage['text'] ?? null;
         $contentType = 'text';
-        $telegramFileId = null;
-        $mediaKind = null;
-        $telegramMime = null;
 
         if (isset($telegramMessage['photo'])) {
             $contentType = 'image';
             $content = $telegramMessage['caption'] ?? '[Photo]';
-            // Telegram photos are an array of resolutions; pick the largest.
-            $photos = $telegramMessage['photo'];
-            $telegramFileId = end($photos)['file_id'] ?? null;
-            $mediaKind = 'image';
-            $telegramMime = 'image/jpeg';
         } elseif (isset($telegramMessage['document'])) {
             $contentType = 'file';
             $content = $telegramMessage['caption'] ?? '[Document]';
-            $telegramFileId = $telegramMessage['document']['file_id'] ?? null;
-            $mediaKind = 'document';
-            $telegramMime = $telegramMessage['document']['mime_type'] ?? 'application/octet-stream';
         } elseif (isset($telegramMessage['voice'])) {
             $contentType = 'audio';
             $content = '[Voice message]';
-            $telegramFileId = $telegramMessage['voice']['file_id'] ?? null;
-            $mediaKind = 'audio';
-            $telegramMime = $telegramMessage['voice']['mime_type'] ?? 'audio/ogg';
         } elseif (isset($telegramMessage['video'])) {
             $contentType = 'video';
             $content = $telegramMessage['caption'] ?? '[Video]';
-            $telegramFileId = $telegramMessage['video']['file_id'] ?? null;
-            $mediaKind = 'video';
-            $telegramMime = $telegramMessage['video']['mime_type'] ?? 'video/mp4';
-        }
-
-        // Telegram two-step: getFile → download from api.telegram.org/file/bot<token>/<path>.
-        $mediaAssetId = null;
-        $ownedMediaUrl = null;
-        $ownedMediaType = null;
-
-        if ($telegramFileId && $mediaKind && config('services.media.ingest_enabled') && $page->page_access_token) {
-            try {
-                $token = $page->page_access_token;
-                $fileMeta = \Illuminate\Support\Facades\Http::timeout(10)
-                    ->get("https://api.telegram.org/bot{$token}/getFile", ['file_id' => $telegramFileId])
-                    ->throw()->json();
-
-                $path = $fileMeta['result']['file_path'] ?? null;
-                if ($path) {
-                    $bytes = \Illuminate\Support\Facades\Http::timeout(30)
-                        ->get("https://api.telegram.org/file/bot{$token}/{$path}")
-                        ->throw()->body();
-
-                    $asset = app(\App\Services\Media\MediaStorage::class)->storeBytes(
-                        team: $page->team,
-                        bytes: $bytes,
-                        mimeType: $telegramMime,
-                        kind: $mediaKind,
-                    );
-                    $mediaAssetId   = $asset->id;
-                    $ownedMediaType = $asset->mime_type;
-                    $ownedMediaUrl  = app(\App\Services\Media\MediaStorage::class)->streamUrl($asset);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Telegram media download failed', [
-                    'file_id' => $telegramFileId,
-                    'error'   => $e->getMessage(),
-                ]);
-            }
         }
 
         $message = Message::create([
@@ -923,9 +757,6 @@ class ProcessIncomingMessage implements ShouldQueue
             'sender_id' => $contact->id,
             'content_type' => $contentType,
             'content' => $content,
-            'media_asset_id' => $mediaAssetId,
-            'media_url'      => $ownedMediaUrl,
-            'media_type'     => $ownedMediaType,
             'platform_sent_at' => isset($telegramMessage['date']) ? \Carbon\Carbon::createFromTimestamp($telegramMessage['date']) : now(),
         ]);
 
@@ -940,19 +771,10 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            if ($mediaAssetId !== null && $mediaKind === 'image' && config('services.ai_media.vision_enabled')) {
-                \App\Jobs\DescribeImage::dispatch($message->id);
-            } elseif ($mediaAssetId !== null && $mediaKind === 'audio'
-                && config('services.ai_media.transcription_enabled')
-                && ($team->audio_transcription_enabled ?? true)
-            ) {
-                \App\Jobs\TranscribeAudio::dispatch($message->id);
-            } else {
-                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
-                // typing-delay AFTER the AI call so the API round-trip overlaps the
-                // "human is typing" budget instead of being stacked on top of it.
-                SendAiResponse::dispatch($conversation->id, $message->id);
-            }
+            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+            // typing-delay AFTER the AI call so the API round-trip overlaps the
+            // "human is typing" budget instead of being stacked on top of it.
+            SendAiResponse::dispatch($conversation->id, $message->id);
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));

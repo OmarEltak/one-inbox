@@ -1,4 +1,3 @@
-<x-inbox.lightbox />
 <div class="flex h-full overflow-hidden"
      x-data="{
          aiLimitReached: false,
@@ -576,9 +575,7 @@
                                     <span class="text-xs opacity-70">{{ __('Sent from') }} {{ ucfirst($message->conversation->platform) }} {{ __('app') }}</span>
                                 </div>
                             @endif
-                            @if($message->mediaAsset)
-                                <x-inbox.media-bubble :message="$message" />
-                            @elseif($message->media_url)
+                            @if($message->media_url)
                                 @if($message->content_type === 'image' || str_starts_with($message->media_type ?? '', 'image/'))
                                     <img src="{{ $message->media_url }}" alt="Shared image" class="max-w-full rounded-lg mb-1 cursor-pointer" onclick="window.open(this.src, '_blank')" loading="lazy" />
                                 @elseif($message->content_type === 'video' || str_starts_with($message->media_type ?? '', 'video/'))
@@ -592,12 +589,10 @@
                                     </a>
                                 @endif
                             @endif
-                            @if(! $message->mediaAsset)
-                                @if($message->content)
-                                    <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
-                                @elseif(! $message->media_url)
-                                    <p class="text-sm italic opacity-60">📎 Media</p>
-                                @endif
+                            @if($message->content)
+                                <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                            @elseif(! $message->media_url)
+                                <p class="text-sm italic opacity-60">📎 Media</p>
                             @endif
                             <span class="text-xs opacity-60 mt-1 block">
                                 {{ ($message->platform_sent_at ?? $message->created_at)->format('M j, g:i A') }}
@@ -669,18 +664,6 @@
                     <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
                         <flux:icon name="face-smile" class="h-5 w-5" />
                     </button>
-
-                    {{-- Voice recorder (hold-to-record → uploads → dispatches sendWithMedia) --}}
-                    <div class="flex-shrink-0 self-end mb-1">
-                        <x-inbox.voice-recorder :on-uploaded="'sendWithMedia'" />
-                    </div>
-
-                    {{-- Image picker (direct upload via /api/media/upload → sendWithMedia) --}}
-                    <label class="flex-shrink-0 self-end mb-1 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">
-                        <flux:icon name="photo" class="h-5 w-5" />
-                        <input type="file" accept="image/*" class="hidden"
-                            x-on:change="window.inboxUploadImage($event.target.files[0]).then(id => { if (id) $wire.sendWithMedia(id); $event.target.value = ''; })" />
-                    </label>
 
                     {{-- Quick replies button --}}
                     @if($quickReplies->isNotEmpty())

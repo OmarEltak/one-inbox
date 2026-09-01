@@ -73,7 +73,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/campaigns/preview', \App\Http\Controllers\Api\CampaignPreviewController::class)
         ->name('campaigns.preview');
 });
-
-Route::post('/media/upload', \App\Http\Controllers\Api\MediaUploadController::class)
-    ->middleware('auth')
-    ->name('api.media.upload');
