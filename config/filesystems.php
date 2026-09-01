@@ -64,13 +64,20 @@ return [
             'driver'     => 'local',
             'root'       => storage_path('app/media'),
             'url'        => env('APP_URL').'/media',
-            // 'public' visibility → files 0644 / dirs 0755 so PHP-FPM (www-data)
-            // can serve them via MediaController. Access is still gated by signed
-            // URLs — visibility here controls filesystem perms, not URL access.
-            // 'private' produces 0600/0700 owned by the queue-worker user (deploy)
-            // which www-data can't read → MediaController::stream returns 404.
+            // File 0664 / dir 0775: BOTH the queue worker (deploy) and PHP-FPM
+            // (www-data) need to write here. deploy writes when inbound webhooks
+            // download media; www-data writes when the composer uploads via
+            // POST /api/media/upload. Group-writable + setgid on the dir tree
+            // (chmod g+s) so new subdirs inherit the www-data group.
+            // Access to the served files is gated by 7-day HMAC-signed URLs —
+            // filesystem perms only control who can write, not who can read
+            // via HTTP.
             'visibility' => 'public',
-            'throw'      => true,
+            'permissions' => [
+                'file' => ['public' => 0664, 'private' => 0640],
+                'dir'  => ['public' => 0775, 'private' => 0750],
+            ],
+            'throw' => true,
         ],
 
     ],

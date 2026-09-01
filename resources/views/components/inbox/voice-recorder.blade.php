@@ -15,9 +15,13 @@
     method with the returned MediaAsset ULID.
 --}}
 
+{{-- NOTE: no wire:ignore, no display:contents. Both broke rendering in
+     the composer flex row (Alpine failed to init OR Livewire elided the
+     button). Livewire may re-render this element during morphs — recording
+     state is lost then, but that's an acceptable tradeoff for the mic
+     actually appearing. --}}
 <div x-data="voiceRecorder({ onUploaded: {{ Js::from($onUploaded) }} })"
      x-ref="rec"
-     wire:ignore
      class="flex items-center"
      :class="(recording || uploading) ? 'flex-1 self-end mb-0' : 'flex-shrink-0 self-end mb-1'">
 

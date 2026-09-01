@@ -25,40 +25,52 @@ class MediaStorage
     ): MediaAsset {
         $checksum = hash('sha256', $bytes);
 
-        // Dedup within team.
-        $existing = MediaAsset::where('team_id', $team->id)
-            ->where('checksum_sha256', $checksum)
-            ->first();
+        // Dedup within team. Race-safe: wrap in a Cache lock so two concurrent
+        // workers can't both pass the "not exists" check and then both insert
+        // (which raced → duplicate-key exception on the (team_id, checksum)
+        // unique index, and the outer code turned that into '[media unavailable]').
+        $key = "media:store:{$team->id}:{$checksum}";
+        $lock = \Illuminate\Support\Facades\Cache::lock($key, 15);
 
-        if ($existing !== null) {
-            return $existing;
+        try {
+            $lock->block(5);
+
+            $existing = MediaAsset::where('team_id', $team->id)
+                ->where('checksum_sha256', $checksum)
+                ->first();
+
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            $extension = $this->extensionFor($mimeType, $originalFilename);
+            $ulid = (string) Str::ulid();
+            $path = sprintf(
+                '%d/%s/%s.%s',
+                $team->id,
+                now()->format('Y/m'),
+                $ulid,
+                $extension,
+            );
+
+            Storage::disk(self::DEFAULT_DISK)->put($path, $bytes);
+
+            return MediaAsset::create([
+                'id'                => $ulid,
+                'team_id'           => $team->id,
+                'disk'              => self::DEFAULT_DISK,
+                'path'              => $path,
+                'original_filename' => $originalFilename,
+                'mime_type'         => $mimeType,
+                'size_bytes'        => strlen($bytes),
+                'kind'              => $kind,
+                'duration_seconds'  => $durationSeconds,
+                'checksum_sha256'   => $checksum,
+                'metadata'          => $metadata,
+            ]);
+        } finally {
+            optional($lock)->release();
         }
-
-        $extension = $this->extensionFor($mimeType, $originalFilename);
-        $ulid = (string) Str::ulid();
-        $path = sprintf(
-            '%d/%s/%s.%s',
-            $team->id,
-            now()->format('Y/m'),
-            $ulid,
-            $extension,
-        );
-
-        Storage::disk(self::DEFAULT_DISK)->put($path, $bytes);
-
-        return MediaAsset::create([
-            'id'                => $ulid,
-            'team_id'           => $team->id,
-            'disk'              => self::DEFAULT_DISK,
-            'path'              => $path,
-            'original_filename' => $originalFilename,
-            'mime_type'         => $mimeType,
-            'size_bytes'        => strlen($bytes),
-            'kind'              => $kind,
-            'duration_seconds'  => $durationSeconds,
-            'checksum_sha256'   => $checksum,
-            'metadata'          => $metadata,
-        ]);
     }
 
     public function streamUrl(MediaAsset $asset): string

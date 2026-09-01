@@ -9,13 +9,16 @@ User=deploy
 Group=www-data
 WorkingDirectory=/var/www/ot1-pro.com
 ExecStart=/usr/bin/php artisan queue:work redis --queue=transcription --sleep=3 --tries=1 --max-time=3600 --timeout=90
-Restart=on-failure
+# `always`, not `on-failure`, because `php artisan queue:restart` (fired on
+# every deploy) makes this worker exit CLEANLY (status=0) after its current
+# job. `on-failure` treats that as intentional and does NOT restart it —
+# transcription silently dies for hours. `always` restarts on any exit.
+Restart=always
 RestartSec=5
 Nice=10
 CPUQuota=80%
 MemoryMax=3G
 
-# So a wedged whisper.cpp child gets killed with the worker.
 KillMode=mixed
 KillSignal=SIGTERM
 TimeoutStopSec=30
