@@ -44,6 +44,9 @@
 
                     <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.5 AI Interaction Data') }}</h3>
                     <p class="mt-2">{{ __('When you use our AI-powered auto-reply feature, message content is sent to our AI provider partners (such as Anthropic Claude) to generate responses. No message content is retained by these providers beyond the immediate API call, and none of it is used to train their models.') }}</p>
+
+                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.6 Voice Note Transcription') }}</h3>
+                    <p class="mt-2">{{ __('When your team enables AI voice-note handling, customer voice notes are sent to Groq (a US-based AI infrastructure provider) for speech-to-text transcription. The audio is transmitted over TLS, is not retained by Groq per their policies, and is used solely to produce a text transcript for the AI reply flow. If your team has disabled voice-note transcription in Settings, no audio ever leaves our servers.') }}</p>
                 </div>
 
                 <div>
