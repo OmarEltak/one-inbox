@@ -292,8 +292,8 @@ Schema changes are additive-only (new `media_assets` table + new nullable column
 - No new inbound ports.
 - Redis usage: minor (circuit breaker keys + per-team rate limit counters).
 
-## 14. Open items (nothing blocking implementation)
+## 14. Resolved decisions (previously open)
 
-- Confirm Groq's exact free-tier rate limit at time of implementation (their docs are the source of truth; my earlier "20-40 rpm" was from memory).
-- Decide voice-note UI polish: waveform vs plain HTML5 audio bar. Default: plain HTML5 for Phase 1, waveform (WaveSurfer.js) as post-launch polish if it feels needed.
-- Decide image lightbox library: use existing project-included one if any (grep during implementation), else vanilla CSS modal to avoid a dependency.
+- **Groq free-tier rate limit:** Documented as 20 req/min for Whisper large-v3 on the free tier (verify by reading `x-ratelimit-remaining-requests` response header at runtime — do NOT hardcode). The 429 handling in §7 already covers rate-limit exhaustion, so we don't need to pre-throttle — Groq will tell us when we've hit the ceiling, and we fall through to whisper.cpp. This means bursts >20 audio messages/min are naturally handled by the fallback chain, not by artificial client-side throttling.
+- **Voice-note UI:** Plain HTML5 `<audio controls>` for Phase 1. Matches WhatsApp Web's default UX (which is the mental model our agents already have), zero dependencies, works on every browser + mobile. Waveform visualization (WaveSurfer.js, ~30 KB gzipped) is explicitly deferred as a post-launch polish item — only revisit if agent feedback specifically asks for it.
+- **Image lightbox:** Vanilla CSS + Alpine.js modal (Alpine is already loaded by Livewire — zero new dependency). ~40 lines of code. Full-screen overlay on thumbnail click, ESC + backdrop-click to dismiss, no zoom/pan (agents can right-click → "Open in new tab" for that). Rejected: PhotoSwipe / GLightbox / Fancybox — all add 20+ KB and features we don't need.
