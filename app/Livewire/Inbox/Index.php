@@ -587,15 +587,35 @@ class Index extends Component
         $mediaUrl = null;
         $mediaType = null;
         $contentType = 'text';
+        $mediaAssetId = null;
 
         if ($hasAttachment) {
             $this->validate();
-            $teamId = $conversation->team_id;
-            $path = $this->attachment->store("chat-media/{$teamId}", 'public');
-            $mediaUrl = asset('storage/'.$path);
-            $mime = $this->attachment->getMimeType();
-            $mediaType = $mime;
+            $mime = $this->attachment->getMimeType() ?: 'application/octet-stream';
             $contentType = str_starts_with($mime, 'image/') ? 'image' : 'file';
+
+            // Route through MediaStorage (private disk + signed URLs) — do NOT
+            // store to storage/app/public/. The public disk is symlinked via
+            // storage:link and would be world-readable at
+            // https://ot1-pro.com/storage/chat-media/{team_id}/{file} — anyone
+            // with the link could pull the file, and the path exposes team_id.
+            $storage = app(\App\Services\Media\MediaStorage::class);
+            $kind = match (true) {
+                str_starts_with($mime, 'image/') => 'image',
+                str_starts_with($mime, 'audio/') => 'audio',
+                str_starts_with($mime, 'video/') => 'video',
+                default                          => 'document',
+            };
+            $asset = $storage->storeBytes(
+                team: $conversation->team,
+                bytes: file_get_contents($this->attachment->getRealPath()),
+                mimeType: $mime,
+                kind: $kind,
+                originalFilename: $this->attachment->getClientOriginalName(),
+            );
+            $mediaAssetId = $asset->id;
+            $mediaUrl     = $storage->streamUrl($asset); // 7-day HMAC-signed URL
+            $mediaType    = $asset->mime_type;
         }
 
         // Store message locally
@@ -606,6 +626,7 @@ class Index extends Component
             'sender_id' => Auth::id(),
             'content_type' => $contentType,
             'content' => $text ?: null,
+            'media_asset_id' => $mediaAssetId,
             'media_url' => $mediaUrl,
             'media_type' => $mediaType,
         ]);

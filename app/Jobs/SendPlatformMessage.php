@@ -332,16 +332,85 @@ class SendPlatformMessage implements ShouldQueue
     protected function sendViaEvolution($page, string $recipientId, Message $message): ?string
     {
         $instanceName   = $page->metadata['gateway_instance'] ?? $page->platform_page_id;
-        $instanceApiKey = $page->page_access_token; // decrypted by Eloquent cast
+
+        // page_access_token is stored plain on legacy rows and encrypted on newer
+        // ones — try decrypt first, fall back to raw. Same pattern as inbound
+        // media download (see ProcessIncomingMessage::processWuzapi).
+        try {
+            $instanceApiKey = decrypt($page->page_access_token);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            $instanceApiKey = (string) $page->page_access_token;
+        }
 
         $evolution = app(EvolutionApiService::class);
 
-        // Text-only for now; media send can be added to EvolutionApiService later
-        $text = $message->content ?? '';
-        if (empty($text) && $message->media_url) {
-            $text = $message->media_url; // fallback: send URL as text
+        // --- Media send path ---------------------------------------------------
+        // If the outbound message has an attached MediaAsset (agent uploaded via
+        // the composer), route through the correct Wuzapi /chat/send/{kind}
+        // endpoint. Never send the raw storage URL as text — that leaks the
+        // team_id-scoped path publicly and gives customers a link instead of an
+        // inline image.
+        if ($message->media_asset_id) {
+            $asset = \App\Models\MediaAsset::find($message->media_asset_id);
+            if ($asset) {
+                $absolutePath = app(\App\Services\Media\MediaStorage::class)->absolutePath($asset);
+                $mime         = $asset->mime_type;
+                $caption      = $message->content && ! in_array($message->content, ['[image]', '[voice note]', '[video]', '[document]'], true)
+                    ? $message->content : null;
+
+                $mediaMsgId = match ($asset->kind) {
+                    'image'    => $evolution->sendImage($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime, $caption),
+                    'audio'    => $evolution->sendAudio($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime),
+                    'video'    => $evolution->sendVideo($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime, $caption),
+                    'document' => $evolution->sendDocument($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime, $asset->original_filename),
+                    default    => null,
+                };
+
+                if (! $mediaMsgId) {
+                    throw new \RuntimeException("WhatsApp (Wuzapi) media send failed — instance '{$instanceName}' may be disconnected. Re-scan the QR code.");
+                }
+                return $mediaMsgId;
+            }
         }
 
+        // --- Legacy paperclip upload path -------------------------------------
+        // Agent used Livewire's <input wire:model="attachment"> which stores the
+        // file under storage/app/public/chat-media via storage:link. Same rule
+        // as above: read the bytes and send via the media endpoint, never as a
+        // URL. The URL fallback ('$text = $message->media_url;') that used to
+        // live here was a leak — a customer could copy the link, and anyone with
+        // that link could pull the file (no auth, exposes team_id in the path).
+        if ($message->media_url && str_contains($message->media_url, '/storage/chat-media/')) {
+            $relPath = ltrim(parse_url($message->media_url, PHP_URL_PATH) ?? '', '/');
+            $relPath = preg_replace('#^storage/#', '', $relPath); // storage:link prefix
+            $absolutePath = storage_path('app/public/' . $relPath);
+            $mime = $message->media_type
+                ?: (function_exists('mime_content_type') && is_file($absolutePath) ? mime_content_type($absolutePath) : 'application/octet-stream');
+            $caption = $message->content ?: null;
+
+            if (is_file($absolutePath)) {
+                $kind = str_starts_with($mime, 'image/') ? 'image'
+                      : (str_starts_with($mime, 'audio/') ? 'audio'
+                      : (str_starts_with($mime, 'video/') ? 'video' : 'document'));
+
+                $mediaMsgId = match ($kind) {
+                    'image'    => $evolution->sendImage($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime, $caption),
+                    'audio'    => $evolution->sendAudio($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime),
+                    'video'    => $evolution->sendVideo($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime, $caption),
+                    'document' => $evolution->sendDocument($instanceName, $instanceApiKey, $recipientId, $absolutePath, $mime, basename($absolutePath)),
+                };
+
+                if (! $mediaMsgId) {
+                    throw new \RuntimeException("WhatsApp (Wuzapi) media send failed — instance '{$instanceName}' may be disconnected. Re-scan the QR code.");
+                }
+                return $mediaMsgId;
+            }
+        }
+
+        // --- Text-only path (default) -----------------------------------------
+        $text = $message->content ?? '';
+        // NOTE: intentionally NO fallback to $message->media_url as text.
+        // That path used to leak private storage URLs to customers.
         $messageId = $evolution->sendText($instanceName, $instanceApiKey, $recipientId, $text);
 
         if (! $messageId) {

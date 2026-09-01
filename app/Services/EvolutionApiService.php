@@ -350,6 +350,104 @@ class EvolutionApiService
     }
 
     /**
+     * Send an image via Wuzapi. Bytes are passed as a data URI in the request
+     * body — Wuzapi handles encryption + upload + delivery to the recipient.
+     *
+     * @return string|null  platform message id on success, null on failure
+     */
+    public function sendImage(string $instanceName, string $userToken, string $to, string $absolutePath, string $mimeType, ?string $caption = null): ?string
+    {
+        return $this->sendMedia($instanceName, $userToken, $to, $absolutePath, $mimeType, $caption, 'image', 'Image');
+    }
+
+    public function sendAudio(string $instanceName, string $userToken, string $to, string $absolutePath, string $mimeType): ?string
+    {
+        return $this->sendMedia($instanceName, $userToken, $to, $absolutePath, $mimeType, null, 'audio', 'Audio');
+    }
+
+    public function sendVideo(string $instanceName, string $userToken, string $to, string $absolutePath, string $mimeType, ?string $caption = null): ?string
+    {
+        return $this->sendMedia($instanceName, $userToken, $to, $absolutePath, $mimeType, $caption, 'video', 'Video');
+    }
+
+    public function sendDocument(string $instanceName, string $userToken, string $to, string $absolutePath, string $mimeType, ?string $filename = null): ?string
+    {
+        // Wuzapi /chat/send/document takes a FileName field in addition to Document.
+        $bytes = @file_get_contents($absolutePath);
+        if ($bytes === false) {
+            return null;
+        }
+        $dataUri = 'data:' . $mimeType . ';base64,' . base64_encode($bytes);
+
+        try {
+            $resp = Http::withHeaders($this->userAuthHeaders($userToken))
+                ->timeout(60)
+                ->post("{$this->baseUrl}/chat/send/document", array_filter([
+                    'Phone'    => $to,
+                    'Document' => $dataUri,
+                    'FileName' => $filename,
+                ]));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi sendDocument HTTP failure', ['error' => $e->getMessage()]);
+            return null;
+        }
+
+        if (! $resp->successful()) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi sendDocument non-2xx', [
+                'status' => $resp->status(),
+                'body'   => substr($resp->body(), 0, 300),
+            ]);
+            return null;
+        }
+
+        return $resp->json('data.Id');
+    }
+
+    /**
+     * Shared implementation for image/audio/video. Wuzapi expects a data URI
+     * in the field named per its endpoint (Image, Audio, Video); the endpoint
+     * lives at /chat/send/{kind}.
+     */
+    private function sendMedia(string $instanceName, string $userToken, string $to, string $absolutePath, string $mimeType, ?string $caption, string $endpointKind, string $bodyField): ?string
+    {
+        $bytes = @file_get_contents($absolutePath);
+        if ($bytes === false) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi sendMedia: unreadable file', ['path' => $absolutePath]);
+            return null;
+        }
+
+        $dataUri = 'data:' . $mimeType . ';base64,' . base64_encode($bytes);
+
+        try {
+            $resp = Http::withHeaders($this->userAuthHeaders($userToken))
+                ->timeout(60)
+                ->post("{$this->baseUrl}/chat/send/{$endpointKind}", array_filter([
+                    'Phone'    => $to,
+                    $bodyField => $dataUri,
+                    'Caption'  => $caption,
+                ]));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi sendMedia HTTP failure', [
+                'kind'  => $endpointKind,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+
+        if (! $resp->successful()) {
+            \Illuminate\Support\Facades\Log::warning('Wuzapi sendMedia non-2xx', [
+                'kind'   => $endpointKind,
+                'status' => $resp->status(),
+                'body'   => substr($resp->body(), 0, 300),
+            ]);
+            return null;
+        }
+
+        // Wuzapi returns { code:200, data: { Id: "...", Timestamp: ... } }
+        return $resp->json('data.Id');
+    }
+
+    /**
      * Download inbound media (audio/image/video/document) via Wuzapi.
      *
      * Wuzapi's webhook payload only carries WhatsApp media metadata
