@@ -64,7 +64,12 @@ return [
             'driver'     => 'local',
             'root'       => storage_path('app/media'),
             'url'        => env('APP_URL').'/media',
-            'visibility' => 'private',
+            // 'public' visibility → files 0644 / dirs 0755 so PHP-FPM (www-data)
+            // can serve them via MediaController. Access is still gated by signed
+            // URLs — visibility here controls filesystem perms, not URL access.
+            // 'private' produces 0600/0700 owned by the queue-worker user (deploy)
+            // which www-data can't read → MediaController::stream returns 404.
+            'visibility' => 'public',
             'throw'      => true,
         ],
 
