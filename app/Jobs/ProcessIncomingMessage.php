@@ -321,6 +321,50 @@ class ProcessIncomingMessage implements ShouldQueue
             default => null,
         };
 
+        // Media ingest — download + persist the binary for supported inbound types.
+        $mediaAssetId = null;
+        $mediaUrl     = null;
+        $mediaType    = null;
+
+        $mediaId = $waMessage['image']['id']
+            ?? $waMessage['audio']['id']
+            ?? $waMessage['video']['id']
+            ?? $waMessage['document']['id']
+            ?? null;
+
+        $mediaKind = match (true) {
+            isset($waMessage['image'])    => 'image',
+            isset($waMessage['audio'])    => 'audio',
+            isset($waMessage['video'])    => 'video',
+            isset($waMessage['document']) => 'document',
+            default                       => null,
+        };
+
+        if ($mediaId !== null && $mediaKind !== null && config('services.media.ingest_enabled')) {
+            try {
+                $platform = app(\App\Services\Platforms\WhatsAppPlatform::class);
+                $asset = $platform->downloadInboundMedia($page, $mediaId, $mediaKind);
+
+                $mediaAssetId = $asset->id;
+                $mediaType    = $asset->mime_type;
+                $mediaUrl     = app(\App\Services\Media\MediaStorage::class)->streamUrl($asset);
+
+                $content = match ($mediaKind) {
+                    'image'    => $waMessage['image']['caption']    ?? '[image]',
+                    'audio'    => '[voice note]',
+                    'video'    => $waMessage['video']['caption']    ?? '[video]',
+                    'document' => $waMessage['document']['filename'] ?? '[document]',
+                };
+            } catch (\Throwable $e) {
+                Log::error('WA media download failed', [
+                    'media_id' => $mediaId,
+                    'kind'     => $mediaKind,
+                    'error'    => $e->getMessage(),
+                ]);
+                $content = '[media unavailable]';
+            }
+        }
+
         $message = Message::create([
             'conversation_id' => $conversation->id,
             'platform_message_id' => $waMessage['id'] ?? null,
@@ -329,6 +373,9 @@ class ProcessIncomingMessage implements ShouldQueue
             'sender_id' => $contact->id,
             'content_type' => $waMessage['type'] ?? 'text',
             'content' => $content,
+            'media_asset_id' => $mediaAssetId,
+            'media_url' => $mediaUrl,
+            'media_type' => $mediaType,
             'platform_sent_at' => isset($waMessage['timestamp']) ? \Carbon\Carbon::createFromTimestamp($waMessage['timestamp']) : now(),
         ]);
 
@@ -343,10 +390,18 @@ class ProcessIncomingMessage implements ShouldQueue
 
         $team = $page->team;
         if ($team->canDispatchAi()) {
-            // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
-            // typing-delay AFTER the AI call so the API round-trip overlaps the
-            // "human is typing" budget instead of being stacked on top of it.
-            SendAiResponse::dispatch($conversation->id, $message->id);
+            if ($mediaAssetId !== null && $mediaKind === 'image' && config('services.ai_media.vision_enabled')) {
+                \App\Jobs\DescribeImage::dispatch($message->id);
+            } elseif ($mediaAssetId !== null && $mediaKind === 'audio'
+                && config('services.ai_media.transcription_enabled')
+                && ($team->audio_transcription_enabled ?? true)) {
+                \App\Jobs\TranscribeAudio::dispatch($message->id);
+            } elseif ($mediaKind === null || ($mediaKind !== 'audio' && $mediaKind !== 'image')) {
+                // Dispatch WITHOUT ->delay(): SendAiResponse::handle() runs the
+                // typing-delay AFTER the AI call so the API round-trip overlaps the
+                // "human is typing" budget instead of being stacked on top of it.
+                SendAiResponse::dispatch($conversation->id, $message->id);
+            }
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
