@@ -342,8 +342,4 @@ Route::middleware(['auth'])->group(function () {
     })->name('teams.switch');
 });
 
-Route::get('/media/{ulid}', [\App\Http\Controllers\MediaController::class, 'stream'])
-    ->name('media.stream')
-    ->middleware('signed');
-
 require __DIR__.'/settings.php';

@@ -262,26 +262,6 @@ class SendPlatformMessage implements ShouldQueue
             return $this->sendViaEvolution($page, $recipientId, $message);
         }
 
-        // Media asset path (voice notes, images uploaded via /api/media/upload):
-        // two-step WA Cloud API pattern — POST /media (returns id) then reference the id
-        // in /messages. This is required for audio because WA rejects link-based audio,
-        // and preferred for images to avoid CDN reachability issues.
-        if ($message->media_asset_id !== null) {
-            $asset = \App\Models\MediaAsset::find($message->media_asset_id);
-            if ($asset !== null) {
-                /** @var \App\Services\Platforms\WhatsAppPlatform $platform */
-                $platform = app(\App\Services\Platforms\WhatsAppPlatform::class);
-                $waMediaId = $platform->uploadOutboundMedia($page, $asset);
-                return $platform->sendMediaMessage(
-                    page: $page,
-                    recipientPlatformId: $recipientId,
-                    mediaAsset: $asset,
-                    waMediaId: $waMediaId,
-                    caption: $message->content,
-                );
-            }
-        }
-
         // Meta Cloud API (standard WhatsApp Business API)
         $version = config('services.meta.graph_api_version', 'v21.0');
         $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";

@@ -184,20 +184,6 @@ class SendAiResponse implements ShouldQueue
         $handleStartedAt = microtime(true);
         $desiredDelaySec = (int) ($aiConfig?->getRandomDelay() ?? 0);
 
-        // If the trigger is an image with a cached vision description (see
-        // DescribeImage job), inject the description into the message content
-        // in-memory so the text-only AI provider can reason about the image.
-        // Not persisted — original body stays [image] / caption on disk.
-        $triggerMessage->loadMissing('mediaAsset');
-        if ($triggerMessage->mediaAsset
-            && $triggerMessage->mediaAsset->kind === 'image'
-            && ($desc = $triggerMessage->mediaAsset->metadata['ai_description'] ?? null)
-        ) {
-            $originalCaption = $triggerMessage->content;
-            $captionPart     = ($originalCaption && $originalCaption !== '[image]') ? "\n\nCustomer's caption: {$originalCaption}" : '';
-            $triggerMessage->content = "[Customer sent an image. Vision description: {$desc}]{$captionPart}";
-        }
-
         try {
             $responseText = $ai->generateResponse($conversation, $triggerMessage, $aiConfig);
 

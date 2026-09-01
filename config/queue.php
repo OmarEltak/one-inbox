@@ -1,10 +1,5 @@
 <?php
 
-// Named queues in use:
-//   urgent       — inbound message processing (existing)
-//   default      — outbound sends, AI replies, image description, ffmpeg conversion (existing)
-//   transcription — whisper.cpp jobs ONLY (isolated single-worker service)
-
 return [
 
     /*
