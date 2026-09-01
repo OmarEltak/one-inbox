@@ -301,4 +301,36 @@ class WhatsAppPlatform extends AbstractPlatform
         $account->pages()->where('platform', 'whatsapp')->update(['is_active' => false]);
         $account->update(['is_active' => false]);
     }
+
+    public function downloadInboundMedia(Page $page, string $mediaId, string $kind): \App\Models\MediaAsset
+    {
+        $token = $page->connectedAccount?->access_token
+            ?? throw new \RuntimeException("Page {$page->id} has no WhatsApp connected account");
+
+        // Step 1: resolve media metadata + short-lived CDN URL.
+        $meta = Http::withToken($token)
+            ->timeout(10)
+            ->retry(3, 500)
+            ->get("{$this->graphUrl}/{$mediaId}")
+            ->throw()
+            ->json();
+
+        // Step 2: download bytes from the CDN URL (still requires bearer token).
+        $bytes = Http::withToken($token)
+            ->timeout(30)
+            ->retry(3, 500)
+            ->get($meta['url'])
+            ->throw()
+            ->body();
+
+        /** @var \App\Services\Media\MediaStorage $storage */
+        $storage = app(\App\Services\Media\MediaStorage::class);
+
+        return $storage->storeBytes(
+            team: $page->team,
+            bytes: $bytes,
+            mimeType: $meta['mime_type'] ?? 'application/octet-stream',
+            kind: $kind,
+        );
+    }
 }
