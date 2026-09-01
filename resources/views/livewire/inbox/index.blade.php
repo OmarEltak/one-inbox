@@ -645,6 +645,7 @@
                           ...emojiPicker('messageText'),
                           showQuickReplies: false,
                           qrSearch: '',
+                          voiceActive: false,
                           quickReplies: @js($quickReplies->toArray()),
                           get filteredReplies() {
                               if (!this.qrSearch) return this.quickReplies;
@@ -657,24 +658,25 @@
                               this.qrSearch = '';
                           }
                       }"
+                      @voice-active="voiceActive = $event.detail.active"
                 >
                     <input type="file" wire:model="attachment" class="hidden" x-ref="fileInput"
                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
 
-                    <button type="button" @click="$refs.fileInput.click()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
+                    <button type="button" x-show="!voiceActive" @click="$refs.fileInput.click()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
                         <flux:icon name="paper-clip" class="h-5 w-5" />
                     </button>
 
-                    <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
+                    <button type="button" x-show="!voiceActive" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 self-end text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer p-1 mb-1">
                         <flux:icon name="face-smile" class="h-5 w-5" />
                     </button>
 
-                    {{-- Voice recorder — mic in idle state, full-width recording bar overlays via x-teleport --}}
+                    {{-- Voice recorder — mic (idle) or full-width recording pill (recording) inline --}}
                     <x-inbox.voice-recorder :on-uploaded="'sendWithMedia'" />
 
                     {{-- Quick replies button --}}
                     @if($quickReplies->isNotEmpty())
-                        <div class="relative flex-shrink-0 self-end mb-1" x-data>
+                        <div x-show="!voiceActive" class="relative flex-shrink-0 self-end mb-1" x-data>
                             <button type="button" @click="showQuickReplies = !showQuickReplies" class="p-1 text-zinc-400 hover:text-blue-500 cursor-pointer" title="Quick Replies">
                                 <flux:icon name="bolt" class="h-5 w-5" />
                             </button>
@@ -705,7 +707,7 @@
                         </div>
                     @endif
 
-                    <div class="flex-1"
+                    <div x-show="!voiceActive" class="flex-1"
                          x-ref="textInput"
                          wire:key="composer-textarea-wrapper"
                          x-data
@@ -735,7 +737,7 @@
                             x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                         />
                     </div>
-                    <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" class="self-stretch !h-auto" wire:loading.attr="disabled" />
+                    <flux:button x-show="!voiceActive" type="submit" variant="primary" size="sm" icon="paper-airplane" class="self-stretch !h-auto" wire:loading.attr="disabled" />
                 </form>
             </div>
         @else
