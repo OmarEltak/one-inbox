@@ -184,25 +184,12 @@ class SendAiResponse implements ShouldQueue
         $handleStartedAt = microtime(true);
         $desiredDelaySec = (int) ($aiConfig?->getRandomDelay() ?? 0);
 
-        // If the trigger is an image with a cached vision description (see
-        // DescribeImage job), inject the description into the message content
-        // in-memory so the text-only AI provider can reason about the image.
-        // Not persisted — original body stays [image] / caption on disk.
-        //
-        // The injection is bilingual (Arabic + English) because previous English-
-        // only prefixes were silently ignored by models responding in Arabic —
-        // AI treated the English "[Customer sent an image...]" as noise and
-        // replied "I don't see this image" to the Arabic caption. The Arabic
-        // marker "[صورة العميل]" is unmistakable to any locale-tuned model.
-        $triggerMessage->loadMissing('mediaAsset');
-        if ($triggerMessage->mediaAsset
-            && $triggerMessage->mediaAsset->kind === 'image'
-            && ($desc = trim($triggerMessage->mediaAsset->metadata['ai_description'] ?? ''))
-        ) {
-            $originalCaption = $triggerMessage->content;
-            $captionPart     = ($originalCaption && $originalCaption !== '[image]') ? "\n\nCaption / تعليق العميل: {$originalCaption}" : '';
-            $triggerMessage->content = "[صورة العميل | Customer sent an image]\nVision description (respond in the customer's language): {$desc}{$captionPart}";
-        }
+        // NOTE: Vision-description injection lives in BuildsConversationPrompts::
+        // buildConversationHistory. Every AI provider that uses that trait
+        // (NaraRouter, Gemini, Ollama) rebuilds history from DB and ignores the
+        // trigger-message argument — so in-memory mutation here was dead code
+        // for weeks. The trait now eager-loads mediaAsset and inlines the
+        // description in the history entry itself.
 
         try {
             $responseText = $ai->generateResponse($conversation, $triggerMessage, $aiConfig);

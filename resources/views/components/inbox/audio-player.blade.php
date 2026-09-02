@@ -1,16 +1,14 @@
 @props(['src', 'mime', 'sentAt' => null])
 
 {{--
-    Audio player that inherits its parent bubble's colors.
+    Audio player that inherits its parent bubble color.
 
-    - Round play/pause button in accent purple (contrasts with both the light
-      inbound bubble and the blue outbound bubble — no more invisible icons).
-    - Static "waveform" of 32 vertical bars whose heights are hashed from the
-      URL so each asset renders a stable, unique pattern.
-    - Progress fill in bright purple. Bars use currentColor (opacity 40) so
-      they inherit the bubble's text color for the unplayed portion.
-    - No own background — sits flush inside the message bubble, no ugly
-      nested pill.
+    - Play/pause is a neutral white/dark circle (no accent color at all). It
+      contrasts against both light-inbound and blue-outbound bubbles without
+      needing to know which side it's on.
+    - Waveform bars use bg-current opacity-40 for unplayed, opacity-100 for
+      played — so they pick up the bubble's text color naturally.
+    - No own background. Sits flush inside the bubble.
 --}}
 
 @php
@@ -31,9 +29,8 @@
         type="button"
         @click="toggle()"
         :aria-label="playing ? 'Pause' : 'Play'"
-        class="flex-shrink-0 grid place-items-center h-9 w-9 rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-sm cursor-pointer transition-colors"
+        class="flex-shrink-0 grid place-items-center h-9 w-9 rounded-full bg-white/90 hover:bg-white text-zinc-800 shadow-sm cursor-pointer transition-colors"
     >
-        {{-- Default (Alpine hasn't hydrated yet OR paused): show play triangle --}}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 translate-x-[1px]" x-show="!playing">
             <path d="M8 5v14l11-7z" />
         </svg>
@@ -53,7 +50,7 @@
                     <div
                         class="flex-1 rounded-full bg-current opacity-40"
                         style="height: {{ round($h * 100) }}%;"
-                        :class="progress > {{ $i / 32 }} ? '!bg-purple-500 !opacity-100' : ''"
+                        :class="progress > {{ $i / 32 }} ? '!opacity-100' : ''"
                     ></div>
                 @endforeach
             </div>
@@ -82,6 +79,7 @@ if (typeof window.audioPlayer === 'undefined') {
                 if (mime) this.audio.type = mime;
                 this.audio.src = src;
                 this.audio.preload = 'metadata';
+                this.audio.crossOrigin = 'anonymous';
 
                 this.audio.addEventListener('loadedmetadata', () => { this.duration = this.audio.duration || 0; });
                 this.audio.addEventListener('timeupdate', () => {
@@ -95,6 +93,7 @@ if (typeof window.audioPlayer === 'undefined') {
                     this.currentTime = this.duration;
                     this.progress = 1;
                 });
+                this.audio.addEventListener('error', (e) => console.error('audio error', e, this.audio.error));
             },
 
             toggle() {

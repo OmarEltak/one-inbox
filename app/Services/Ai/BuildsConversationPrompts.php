@@ -264,23 +264,46 @@ trait BuildsConversationPrompts
     protected function buildConversationHistory(Conversation $conversation, int $limit = 40): array
     {
         $messages = $conversation->messages()
+            ->with('mediaAsset') // eager-load so vision descriptions can be inlined
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get()
             ->reverse();
 
-        return $messages->map(fn (Message $msg) => [
-            'role'         => $msg->isInbound() ? 'user' : 'model',
-            'content'      => $msg->content ?? match ($msg->content_type) {
+        return $messages->map(function (Message $msg) {
+            $content = $msg->content ?? match ($msg->content_type) {
                 'image'    => '[Image]',
                 'reaction' => '[Reaction]',
                 'video'    => '[Video]',
                 'audio'    => '[Audio/Voice message]',
                 'file'     => '[Document/File]',
                 default    => '[Media]',
-            },
-            'media_url'    => $msg->media_url,
-            'content_type' => $msg->content_type,
-        ])->values()->all();
+            };
+
+            // Inject cached vision description for image messages so the AI
+            // can actually reason about what the customer sent. Without this,
+            // the model sees literal '[image]' text and answers 'I don't see
+            // any image.' Bilingual marker so Arabic-tuned + English-tuned
+            // models both recognise it.
+            if ($msg->mediaAsset && $msg->mediaAsset->kind === 'image') {
+                $desc = trim($msg->mediaAsset->metadata['ai_description'] ?? '');
+                if ($desc !== '') {
+                    $caption = ($content && ! in_array($content, ['[image]', '[Image]'], true))
+                        ? "\nCaption / تعليق: {$content}"
+                        : '';
+                    $content = "[صورة العميل | Customer image] Vision description (respond in the customer's language): {$desc}{$caption}";
+                }
+            }
+
+            // For audio messages, TranscribeAudio has already rewritten $msg->content
+            // to be the actual transcript — nothing extra to inject here.
+
+            return [
+                'role'         => $msg->isInbound() ? 'user' : 'model',
+                'content'      => $content,
+                'media_url'    => $msg->media_url,
+                'content_type' => $msg->content_type,
+            ];
+        })->values()->all();
     }
 }
