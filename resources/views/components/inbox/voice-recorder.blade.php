@@ -1,108 +1,192 @@
 @props(['onUploaded'])
 
 {{--
-    TEMPORARY minimal state. The stuck "Recording…" pill was removed per user
-    request — it left zombie instances across Livewire re-renders. When we
-    revisit voice recording UX, restore a two-state design here (mic idle →
-    recording overlay) with a proper cleanup hook (`Livewire.on('morph.updating', ...)`)
-    so state resets on every server round-trip.
+    Pure vanilla-JS voice recorder. Same reasoning as audio-player.blade.php:
+    Alpine's expression evaluator runs before inline scripts re-execute after a
+    Livewire morph, so `x-data="voiceRecorder(...)"` reliably explodes with
+    'voiceRecorder is not defined' the moment the composer re-renders. The
+    mic button then stays invisible because :class evaluates to undefined and
+    Alpine falls back to no classes (button has no visible color).
 
-    For now: single mic icon that starts recording on click, uploads on second
-    click, and shows a discreet "Sending…" while POST /api/media/upload runs.
+    Fix: no Alpine on this component. Plain <button> + data-attrs. A single
+    delegated click handler + MutationObserver, installed ONCE per page load
+    via a window flag, drives the recording lifecycle. State is stored per-
+    button on a dataset so morphs don't confuse two adjacent recorders.
 --}}
 
-<div x-data="voiceRecorder({ onUploaded: {{ Js::from($onUploaded) }} })"
-     class="flex-shrink-0 self-end mb-1">
-    <button
-        type="button"
-        @click="toggle()"
-        :title="recording ? 'Stop &amp; send' : (uploading ? 'Sending…' : 'Record voice note')"
-        class="p-1 cursor-pointer transition-colors"
-        :class="recording ? 'text-red-500 animate-pulse' : (uploading ? 'text-zinc-300' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300')"
-        :disabled="uploading"
-    >
+<div class="flex-shrink-0 self-end mb-1">
+    <button type="button"
+            data-vr-toggle
+            data-vr-uploaded="{{ $onUploaded }}"
+            data-vr-state="idle"
+            title="{{ __('Record voice note') }}"
+            class="p-1 cursor-pointer text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
+        {{-- Mic icon: rendered server-side by Flux so no Alpine binding.
+             The JS toggles color classes on state changes below. --}}
         <flux:icon.microphone class="h-5 w-5" />
     </button>
 </div>
 
 <script>
-if (typeof window.voiceRecorder === 'undefined') {
-    window.voiceRecorder = function ({ onUploaded }) {
-        return {
-            recording: false,
-            uploading: false,
-            mediaRecorder: null,
-            chunks: [],
-            stream: null,
+(function () {
+    if (window.__inboxVoiceRecorderInstalled) return;
+    window.__inboxVoiceRecorderInstalled = true;
 
-            toggle() {
-                if (this.uploading) return;
-                this.recording ? this.stop() : this.start();
-            },
+    // Per-button recording state, keyed by an auto-assigned id.
+    var state = new WeakMap();
 
-            async start() {
-                try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    this.mediaRecorder = new MediaRecorder(this.stream, { mimeType: 'audio/webm;codecs=opus' });
-                    this.chunks = [];
-                    this.recording = true;
+    function setState(btn, next) {
+        var s = state.get(btn) || {};
+        Object.assign(s, next);
+        state.set(btn, s);
+        applyVisualState(btn, s);
+    }
 
-                    this.mediaRecorder.ondataavailable = (e) => this.chunks.push(e.data);
-                    this.mediaRecorder.onstop = () => this.upload();
-                    this.mediaRecorder.start();
-                } catch (e) {
-                    console.error('Voice recorder start failed', e);
-                    alert('Microphone access denied.');
+    function applyVisualState(btn, s) {
+        btn.dataset.vrState = s.recording ? 'recording' : (s.uploading ? 'uploading' : 'idle');
+
+        // Reset all state classes first.
+        btn.classList.remove(
+            'text-zinc-400', 'hover:text-zinc-600', 'dark:hover:text-zinc-300',
+            'text-red-500', 'animate-pulse',
+            'text-zinc-300'
+        );
+
+        if (s.recording) {
+            btn.classList.add('text-red-500', 'animate-pulse');
+            btn.title = 'Stop & send';
+            btn.disabled = false;
+        } else if (s.uploading) {
+            btn.classList.add('text-zinc-300');
+            btn.title = 'Sending…';
+            btn.disabled = true;
+        } else {
+            btn.classList.add('text-zinc-400', 'hover:text-zinc-600', 'dark:hover:text-zinc-300');
+            btn.title = 'Record voice note';
+            btn.disabled = false;
+        }
+    }
+
+    function releaseStream(s) {
+        if (s.stream) {
+            s.stream.getTracks().forEach(function (t) { t.stop(); });
+            s.stream = null;
+        }
+    }
+
+    async function startRecording(btn) {
+        try {
+            var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            var mr = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+            var chunks = [];
+
+            mr.ondataavailable = function (e) { chunks.push(e.data); };
+            mr.onstop = function () { upload(btn, chunks); };
+
+            setState(btn, {
+                recording: true, uploading: false,
+                mediaRecorder: mr, stream: stream, chunks: chunks,
+            });
+            mr.start();
+        } catch (e) {
+            console.error('[voice-recorder] getUserMedia failed', e);
+            alert('Microphone access denied.');
+        }
+    }
+
+    function stopRecording(btn) {
+        var s = state.get(btn);
+        if (!s || !s.recording) return;
+        setState(btn, { recording: false });
+        if (s.mediaRecorder && s.mediaRecorder.state !== 'inactive') {
+            s.mediaRecorder.stop(); // fires onstop → upload()
+        }
+    }
+
+    async function upload(btn, chunks) {
+        var s = state.get(btn) || {};
+        releaseStream(s);
+
+        if (!chunks || chunks.length === 0) {
+            setState(btn, { uploading: false });
+            return;
+        }
+
+        setState(btn, { uploading: true });
+
+        try {
+            var blob = new Blob(chunks, { type: 'audio/webm' });
+            var form = new FormData();
+            form.append('file', blob, 'voice.webm');
+            form.append('kind', 'audio');
+
+            var csrf = document.querySelector('meta[name="csrf-token"]');
+            var headers = csrf ? { 'X-CSRF-TOKEN': csrf.content } : {};
+
+            var res = await fetch('/api/media/upload', {
+                method: 'POST',
+                body: form,
+                headers: headers,
+                credentials: 'same-origin',
+            });
+
+            if (!res.ok) {
+                alert('Voice note upload failed.');
+                return;
+            }
+
+            var asset = await res.json();
+            var wireMethod = btn.getAttribute('data-vr-uploaded') || 'sendWithMedia';
+
+            if (window.Livewire && typeof window.Livewire.dispatch === 'function') {
+                window.Livewire.dispatch(wireMethod, { mediaAssetId: asset.id });
+            } else {
+                console.error('[voice-recorder] Livewire not available');
+            }
+        } catch (e) {
+            console.error('[voice-recorder] upload failed', e);
+            alert('Voice note upload failed.');
+        } finally {
+            setState(btn, { uploading: false, chunks: [] });
+        }
+    }
+
+    // Delegated click — works for buttons that appear after page load.
+    document.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-vr-toggle]');
+        if (!btn) return;
+        ev.preventDefault();
+
+        var s = state.get(btn) || {};
+        if (s.uploading) return;
+        if (s.recording) {
+            stopRecording(btn);
+        } else {
+            startRecording(btn);
+        }
+    });
+
+    // Ensure any recorder buttons already on the page start in the visible
+    // idle state (in case classes got stripped by a previous Alpine failure).
+    function initButton(btn) {
+        if (btn.__vrInit) return;
+        btn.__vrInit = true;
+        applyVisualState(btn, {});
+    }
+
+    var mo = new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+            m.addedNodes.forEach(function (node) {
+                if (node.nodeType !== 1) return;
+                if (node.matches && node.matches('[data-vr-toggle]')) initButton(node);
+                if (node.querySelectorAll) {
+                    node.querySelectorAll('[data-vr-toggle]').forEach(initButton);
                 }
-            },
+            });
+        });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
 
-            stop() {
-                if (!this.recording) return;
-                this.recording = false;
-                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                    this.mediaRecorder.stop();
-                }
-            },
-
-            releaseStream() {
-                if (this.stream) {
-                    this.stream.getTracks().forEach(t => t.stop());
-                    this.stream = null;
-                }
-            },
-
-            async upload() {
-                this.releaseStream();
-                if (this.chunks.length === 0) return;
-
-                this.uploading = true;
-                try {
-                    const blob = new Blob(this.chunks, { type: 'audio/webm' });
-                    const form = new FormData();
-                    form.append('file', blob, 'voice.webm');
-                    form.append('kind', 'audio');
-
-                    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-                    const res = await fetch('/api/media/upload', {
-                        method: 'POST',
-                        body: form,
-                        headers: csrf ? { 'X-CSRF-TOKEN': csrf } : {},
-                        credentials: 'same-origin',
-                    });
-
-                    if (!res.ok) {
-                        alert('Voice note upload failed.');
-                        return;
-                    }
-
-                    const asset = await res.json();
-                    window.Livewire.dispatch(onUploaded, { mediaAssetId: asset.id });
-                } finally {
-                    this.uploading = false;
-                    this.chunks = [];
-                }
-            },
-        };
-    };
-}
+    document.querySelectorAll('[data-vr-toggle]').forEach(initButton);
+})();
 </script>
