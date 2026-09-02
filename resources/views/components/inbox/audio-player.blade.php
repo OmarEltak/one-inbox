@@ -1,14 +1,15 @@
 @props(['src', 'mime', 'sentAt' => null])
 
 {{--
-    Audio player that inherits its parent bubble color.
+    Audio player using an in-DOM <audio> element with an explicit <source>
+    so the browser handles Range requests + codec sniffing natively. Building
+    an Audio() object in JS and setting `.type` (not a real HTMLAudioElement
+    property) was silently causing playback to fail on WhatsApp's audio/mp4
+    voice notes — Chrome accepted the src but never decoded the stream.
 
-    - Play/pause is a neutral white/dark circle (no accent color at all). It
-      contrasts against both light-inbound and blue-outbound bubbles without
-      needing to know which side it's on.
-    - Waveform bars use bg-current opacity-40 for unplayed, opacity-100 for
-      played — so they pick up the bubble's text color naturally.
-    - No own background. Sits flush inside the bubble.
+    Also: BOTH play/pause SVGs used to flash simultaneously before Alpine
+    hydrated (each x-show only kicks in after init). Fixed by inverting the
+    logic — one SVG, x-cloak on the wrapper, icon path swapped reactively.
 --}}
 
 @php
@@ -21,21 +22,28 @@
 @endphp
 
 <div
-    x-data="audioPlayer({{ Js::from(['src' => $src, 'mime' => $mime]) }})"
-    x-init="init()"
+    x-data="audioPlayer()"
+    x-init="init($refs.audio)"
+    x-cloak
     class="flex items-center gap-3 py-1 min-w-[220px] max-w-[320px]"
 >
+    {{-- The actual <audio> element — hidden but fully functional. Browser
+         handles Range, codec sniffing, and playback natively. --}}
+    <audio x-ref="audio" preload="metadata" class="hidden">
+        <source src="{{ $src }}" @if($mime) type="{{ $mime }}" @endif />
+    </audio>
+
     <button
         type="button"
         @click="toggle()"
         :aria-label="playing ? 'Pause' : 'Play'"
         class="flex-shrink-0 grid place-items-center h-9 w-9 rounded-full bg-white/90 hover:bg-white text-zinc-800 shadow-sm cursor-pointer transition-colors"
     >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 translate-x-[1px]" x-show="!playing">
-            <path d="M8 5v14l11-7z" />
-        </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4" x-show="playing" x-cloak>
-            <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+        {{-- Single SVG whose path is swapped reactively. Avoids the "both
+             icons visible before Alpine hydrates" flash we saw with two
+             x-show'd SVGs. --}}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4" :class="playing ? '' : 'translate-x-[1px]'">
+            <path :d="playing ? 'M6 5h4v14H6zM14 5h4v14h-4z' : 'M8 5v14l11-7z'" />
         </svg>
     </button>
 
@@ -66,7 +74,7 @@
 
 <script>
 if (typeof window.audioPlayer === 'undefined') {
-    window.audioPlayer = function ({ src, mime }) {
+    window.audioPlayer = function () {
         return {
             audio: null,
             playing: false,
@@ -74,14 +82,19 @@ if (typeof window.audioPlayer === 'undefined') {
             currentTime: 0,
             progress: 0,
 
-            init() {
-                this.audio = new Audio();
-                if (mime) this.audio.type = mime;
-                this.audio.src = src;
-                this.audio.preload = 'metadata';
-                this.audio.crossOrigin = 'anonymous';
+            init(audioEl) {
+                this.audio = audioEl;
 
-                this.audio.addEventListener('loadedmetadata', () => { this.duration = this.audio.duration || 0; });
+                // Use the browser's own <audio> element — it handles Range
+                // requests, codec detection, and progressive download without
+                // any of the "silent failure" quirks the JS Audio() constructor
+                // exhibits on WhatsApp audio/mp4 voice notes.
+                this.audio.addEventListener('loadedmetadata', () => {
+                    this.duration = isFinite(this.audio.duration) ? this.audio.duration : 0;
+                });
+                this.audio.addEventListener('durationchange', () => {
+                    if (isFinite(this.audio.duration)) this.duration = this.audio.duration;
+                });
                 this.audio.addEventListener('timeupdate', () => {
                     this.currentTime = this.audio.currentTime;
                     this.progress = this.duration > 0 ? this.currentTime / this.duration : 0;
@@ -93,14 +106,20 @@ if (typeof window.audioPlayer === 'undefined') {
                     this.currentTime = this.duration;
                     this.progress = 1;
                 });
-                this.audio.addEventListener('error', (e) => console.error('audio error', e, this.audio.error));
+                this.audio.addEventListener('error', () => {
+                    console.error('[audio-player] error', this.audio.error, this.audio.currentSrc);
+                });
             },
 
             toggle() {
                 if (!this.audio) return;
                 if (this.audio.paused) {
+                    // Pause every other audio element on the page — WhatsApp behavior.
                     document.querySelectorAll('audio').forEach(a => { if (a !== this.audio) a.pause(); });
-                    this.audio.play().catch(e => console.error('audio play failed', e));
+                    const p = this.audio.play();
+                    if (p && typeof p.catch === 'function') {
+                        p.catch(e => console.error('[audio-player] play failed', e));
+                    }
                 } else {
                     this.audio.pause();
                 }
