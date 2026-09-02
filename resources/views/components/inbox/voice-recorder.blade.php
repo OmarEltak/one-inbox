@@ -27,6 +27,8 @@
     </button>
 </div>
 
+@push('scripts')
+@once
 <script>
 (function () {
     if (window.__inboxVoiceRecorderInstalled) return;
@@ -190,3 +192,5 @@
     document.querySelectorAll('[data-vr-toggle]').forEach(initButton);
 })();
 </script>
+@endonce
+@endpush

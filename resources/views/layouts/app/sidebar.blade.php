@@ -492,5 +492,12 @@
         </script>
         @endif
         @endauth
+
+        {{-- Inbox-scoped scripts (voice recorder, audio player). Pushed here
+             so they render in the layout on initial page load — inline
+             <script> tags inside Livewire-morphed components do NOT execute
+             (morphdom skips script content), so scripts have to live in a
+             non-morphed part of the DOM. --}}
+        @stack('scripts')
     </body>
 </html>

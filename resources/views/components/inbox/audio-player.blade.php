@@ -75,7 +75,11 @@
 
 {{-- Install the handler ONCE per page load. Guarded by a window flag so
      re-executions (Livewire morphs re-injecting this script tag) don't
-     stack multiple listeners. --}}
+     stack multiple listeners. Wrapped in @push('scripts')@once so it lands
+     in the layout on initial page render — Livewire's morphdom does NOT
+     execute inline scripts inside a re-morphed component. --}}
+@push('scripts')
+@once
 <script>
 (function () {
     if (window.__inboxAudioPlayerInstalled) return;
@@ -201,3 +205,5 @@
     document.querySelectorAll('.inbox-audio-player').forEach(wirePlayer);
 })();
 </script>
+@endonce
+@endpush
