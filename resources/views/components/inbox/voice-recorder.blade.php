@@ -27,8 +27,10 @@
     </button>
 </div>
 
-@push('scripts')
-@once
+{{-- Installer script lives in resources/views/layouts/app/sidebar.blade.php
+     (loaded once per authenticated page, immune to Livewire morphs).
+     Keeping this component script-free so we don't ship duplicate handlers. --}}
+@if(false)
 <script>
 (function () {
     if (window.__inboxVoiceRecorderInstalled) return;
@@ -192,5 +194,4 @@
     document.querySelectorAll('[data-vr-toggle]').forEach(initButton);
 })();
 </script>
-@endonce
-@endpush
+@endif

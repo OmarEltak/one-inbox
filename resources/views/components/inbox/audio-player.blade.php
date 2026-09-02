@@ -75,11 +75,11 @@
 
 {{-- Install the handler ONCE per page load. Guarded by a window flag so
      re-executions (Livewire morphs re-injecting this script tag) don't
-     stack multiple listeners. Wrapped in @push('scripts')@once so it lands
-     in the layout on initial page render — Livewire's morphdom does NOT
-     execute inline scripts inside a re-morphed component. --}}
-@push('scripts')
-@once
+     stack multiple listeners. Actual installer lives in
+     resources/views/layouts/app/sidebar.blade.php (loaded once per
+     authenticated page, immune to Livewire morphs). Local copy kept
+     behind @if(false) as documentation. --}}
+@if(false)
 <script>
 (function () {
     if (window.__inboxAudioPlayerInstalled) return;
@@ -205,5 +205,4 @@
     document.querySelectorAll('.inbox-audio-player').forEach(wirePlayer);
 })();
 </script>
-@endonce
-@endpush
+@endif

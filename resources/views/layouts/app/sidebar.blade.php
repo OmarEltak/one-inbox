@@ -493,11 +493,267 @@
         @endif
         @endauth
 
-        {{-- Inbox-scoped scripts (voice recorder, audio player). Pushed here
-             so they render in the layout on initial page load — inline
-             <script> tags inside Livewire-morphed components do NOT execute
-             (morphdom skips script content), so scripts have to live in a
-             non-morphed part of the DOM. --}}
-        @stack('scripts')
+        {{-- ============================================================
+             INBOX MEDIA HANDLERS (audio player + voice recorder)
+
+             Loaded on EVERY authenticated page — cheap (both IIFEs
+             immediately return if their window flag is set, they only
+             install listeners once).
+
+             They CAN'T live in the individual Blade components because
+             Livewire's morphdom preserves <script> tag contents but does
+             NOT execute them when the component re-renders. Result:
+             clicking a mic button did nothing because the installer IIFE
+             never ran on the initial page load (composer wasn't rendered
+             until a conversation was clicked, then it came in via morph).
+
+             Delegated click handlers + MutationObserver ensure new buttons
+             and players wired up by Livewire later are auto-attached.
+             ============================================================ --}}
+        @auth
+        <script>
+        // ---- audio player ------------------------------------------------
+        (function () {
+            if (window.__inboxAudioPlayerInstalled) return;
+            window.__inboxAudioPlayerInstalled = true;
+
+            function fmt(sec) {
+                if (!sec || !isFinite(sec)) return '0:00';
+                var m = Math.floor(sec / 60);
+                var s = Math.floor(sec % 60);
+                return m + ':' + (s < 10 ? '0' + s : s);
+            }
+
+            function playIcon(svg, playing) {
+                if (!svg) return;
+                var path = svg.querySelector('path');
+                if (!path) return;
+                if (playing) {
+                    path.setAttribute('d', 'M6 5h4v14H6zM14 5h4v14h-4z');
+                    svg.classList.remove('translate-x-[1px]');
+                } else {
+                    path.setAttribute('d', 'M8 5v14l11-7z');
+                    svg.classList.add('translate-x-[1px]');
+                }
+            }
+
+            function updateBars(playerEl, progress) {
+                var bars = playerEl.querySelectorAll('.ap-bar');
+                bars.forEach(function (bar, i) {
+                    var threshold = i / bars.length;
+                    if (progress > threshold) {
+                        bar.classList.remove('opacity-40');
+                        bar.classList.add('opacity-100');
+                    } else {
+                        bar.classList.remove('opacity-100');
+                        bar.classList.add('opacity-40');
+                    }
+                });
+            }
+
+            function wirePlayer(playerEl) {
+                if (playerEl.__apWired) return;
+                playerEl.__apWired = true;
+                var uid   = playerEl.getAttribute('data-player-id');
+                var audio = document.getElementById(uid + '-audio');
+                var icon  = document.getElementById(uid + '-icon');
+                var time  = document.getElementById(uid + '-time');
+                var track = document.getElementById(uid + '-track');
+                if (!audio) return;
+
+                audio.addEventListener('play',  function () { playIcon(icon, true); });
+                audio.addEventListener('pause', function () { playIcon(icon, false); });
+                audio.addEventListener('ended', function () {
+                    playIcon(icon, false);
+                    if (time) time.textContent = fmt(audio.duration);
+                    updateBars(playerEl, 1);
+                });
+                audio.addEventListener('loadedmetadata', function () {
+                    if (time && audio.paused) time.textContent = fmt(audio.duration);
+                });
+                audio.addEventListener('timeupdate', function () {
+                    if (time) time.textContent = fmt(audio.currentTime);
+                    var prog = audio.duration > 0 ? audio.currentTime / audio.duration : 0;
+                    updateBars(playerEl, prog);
+                });
+                if (track) {
+                    track.addEventListener('click', function (ev) {
+                        if (!audio.duration) return;
+                        var r = track.getBoundingClientRect();
+                        var ratio = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+                        audio.currentTime = ratio * audio.duration;
+                    });
+                }
+            }
+
+            document.addEventListener('click', function (ev) {
+                var btn = ev.target.closest('[data-ap-toggle]');
+                if (!btn) return;
+                ev.preventDefault();
+                var uid   = btn.getAttribute('data-ap-toggle');
+                var audio = document.getElementById(uid + '-audio');
+                if (!audio) return;
+                var playerEl = btn.closest('.inbox-audio-player');
+                if (playerEl) wirePlayer(playerEl);
+                if (audio.paused) {
+                    document.querySelectorAll('audio').forEach(function (a) {
+                        if (a !== audio) a.pause();
+                    });
+                    audio.play().catch(function (e) {
+                        console.error('[audio-player] play failed', e, audio.currentSrc);
+                    });
+                } else {
+                    audio.pause();
+                }
+            });
+
+            var mo = new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(function (node) {
+                        if (node.nodeType !== 1) return;
+                        if (node.matches && node.matches('.inbox-audio-player')) wirePlayer(node);
+                        if (node.querySelectorAll) node.querySelectorAll('.inbox-audio-player').forEach(wirePlayer);
+                    });
+                });
+            });
+            mo.observe(document.body, { childList: true, subtree: true });
+            document.querySelectorAll('.inbox-audio-player').forEach(wirePlayer);
+        })();
+
+        // ---- voice recorder ---------------------------------------------
+        (function () {
+            if (window.__inboxVoiceRecorderInstalled) return;
+            window.__inboxVoiceRecorderInstalled = true;
+
+            var state = new WeakMap();
+
+            function applyVisualState(btn, s) {
+                btn.dataset.vrState = s.recording ? 'recording' : (s.uploading ? 'uploading' : 'idle');
+                btn.classList.remove(
+                    'text-zinc-400', 'hover:text-zinc-600', 'dark:hover:text-zinc-300',
+                    'text-red-500', 'animate-pulse', 'text-zinc-300'
+                );
+                if (s.recording) {
+                    btn.classList.add('text-red-500', 'animate-pulse');
+                    btn.title = 'Stop & send';
+                    btn.disabled = false;
+                } else if (s.uploading) {
+                    btn.classList.add('text-zinc-300');
+                    btn.title = 'Sending…';
+                    btn.disabled = true;
+                } else {
+                    btn.classList.add('text-zinc-400', 'hover:text-zinc-600', 'dark:hover:text-zinc-300');
+                    btn.title = 'Record voice note';
+                    btn.disabled = false;
+                }
+            }
+
+            function setState(btn, next) {
+                var s = state.get(btn) || {};
+                Object.assign(s, next);
+                state.set(btn, s);
+                applyVisualState(btn, s);
+            }
+
+            function releaseStream(s) {
+                if (s.stream) {
+                    s.stream.getTracks().forEach(function (t) { t.stop(); });
+                    s.stream = null;
+                }
+            }
+
+            async function startRecording(btn) {
+                try {
+                    var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    var mr = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+                    var chunks = [];
+                    mr.ondataavailable = function (e) { chunks.push(e.data); };
+                    mr.onstop = function () { upload(btn, chunks); };
+                    setState(btn, {
+                        recording: true, uploading: false,
+                        mediaRecorder: mr, stream: stream, chunks: chunks,
+                    });
+                    mr.start();
+                } catch (e) {
+                    console.error('[voice-recorder] getUserMedia failed', e);
+                    alert('Microphone access denied.');
+                }
+            }
+
+            function stopRecording(btn) {
+                var s = state.get(btn);
+                if (!s || !s.recording) return;
+                setState(btn, { recording: false });
+                if (s.mediaRecorder && s.mediaRecorder.state !== 'inactive') {
+                    s.mediaRecorder.stop();
+                }
+            }
+
+            async function upload(btn, chunks) {
+                var s = state.get(btn) || {};
+                releaseStream(s);
+                if (!chunks || chunks.length === 0) {
+                    setState(btn, { uploading: false });
+                    return;
+                }
+                setState(btn, { uploading: true });
+                try {
+                    var blob = new Blob(chunks, { type: 'audio/webm' });
+                    var form = new FormData();
+                    form.append('file', blob, 'voice.webm');
+                    form.append('kind', 'audio');
+                    var csrf = document.querySelector('meta[name="csrf-token"]');
+                    var headers = csrf ? { 'X-CSRF-TOKEN': csrf.content } : {};
+                    var res = await fetch('/api/media/upload', {
+                        method: 'POST', body: form, headers: headers, credentials: 'same-origin',
+                    });
+                    if (!res.ok) {
+                        alert('Voice note upload failed.');
+                        return;
+                    }
+                    var asset = await res.json();
+                    var wireMethod = btn.getAttribute('data-vr-uploaded') || 'sendWithMedia';
+                    if (window.Livewire && typeof window.Livewire.dispatch === 'function') {
+                        window.Livewire.dispatch(wireMethod, { mediaAssetId: asset.id });
+                    } else {
+                        console.error('[voice-recorder] Livewire not available');
+                    }
+                } catch (e) {
+                    console.error('[voice-recorder] upload failed', e);
+                    alert('Voice note upload failed.');
+                } finally {
+                    setState(btn, { uploading: false, chunks: [] });
+                }
+            }
+
+            document.addEventListener('click', function (ev) {
+                var btn = ev.target.closest('[data-vr-toggle]');
+                if (!btn) return;
+                ev.preventDefault();
+                var s = state.get(btn) || {};
+                if (s.uploading) return;
+                if (s.recording) stopRecording(btn); else startRecording(btn);
+            });
+
+            function initButton(btn) {
+                if (btn.__vrInit) return;
+                btn.__vrInit = true;
+                applyVisualState(btn, {});
+            }
+
+            var mo = new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(function (node) {
+                        if (node.nodeType !== 1) return;
+                        if (node.matches && node.matches('[data-vr-toggle]')) initButton(node);
+                        if (node.querySelectorAll) node.querySelectorAll('[data-vr-toggle]').forEach(initButton);
+                    });
+                });
+            });
+            mo.observe(document.body, { childList: true, subtree: true });
+            document.querySelectorAll('[data-vr-toggle]').forEach(initButton);
+        })();
+        </script>
+        @endauth
     </body>
 </html>
