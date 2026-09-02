@@ -87,7 +87,12 @@ class FacebookPlatform extends AbstractPlatform
             // Re-subscribe the FB page to messaging webhook fields
             Http::withToken($fbPage->page_access_token)
                 ->post("{$this->graphUrl}/{$fbPage->platform_page_id}/subscribed_apps", [
-                    'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks',
+                    // message_echoes is required to receive webhooks for messages the page
+                    // sent natively (Business Suite, Facebook composer, Messenger mobile
+                    // app). Without it those messages never appear in our inbox — the
+                    // customer replies to a message we can't see. Existing pages must
+                    // re-subscribe (see FacebookPlatform::backfillEchoSubscription).
+                    'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
                 ]);
 
             if ($igPage) {
@@ -437,7 +442,12 @@ class FacebookPlatform extends AbstractPlatform
 
         $response = Http::withToken($token)
             ->post("{$this->graphUrl}/{$fbPageId}/subscribed_apps", [
-                'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks',
+                // message_echoes is required to receive webhooks for messages the page
+                    // sent natively (Business Suite, Facebook composer, Messenger mobile
+                    // app). Without it those messages never appear in our inbox — the
+                    // customer replies to a message we can't see. Existing pages must
+                    // re-subscribe (see FacebookPlatform::backfillEchoSubscription).
+                    'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
             ]);
 
         if ($response->failed()) {
@@ -467,7 +477,12 @@ class FacebookPlatform extends AbstractPlatform
     {
         $response = Http::withToken($page->page_access_token)
             ->post("{$this->graphUrl}/{$page->platform_page_id}/subscribed_apps", [
-                'subscribed_fields' => 'messages,message_deliveries,message_reads,messaging_postbacks',
+                // message_echoes is required to receive webhooks for messages the page
+                    // sent natively (Business Suite, Facebook composer, Messenger mobile
+                    // app). Without it those messages never appear in our inbox — the
+                    // customer replies to a message we can't see. Existing pages must
+                    // re-subscribe (see FacebookPlatform::backfillEchoSubscription).
+                    'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
             ]);
 
         if ($response->failed()) {
