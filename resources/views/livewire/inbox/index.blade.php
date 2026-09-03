@@ -57,10 +57,10 @@
                 <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm" :class="$filter !== 'escalated' ? '!text-zinc-900' : ''">{{ __('Escalated') }}</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'completed' ? '!text-zinc-900' : ''">{{ __('Done') }}</flux:badge>
                 @if($this->spamCount > 0 || $filter === 'spam')
-                    <flux:badge as="button" wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" :variant="$filter === 'spam' ? 'solid' : 'outline'" color="zinc" size="sm" :class="$filter !== 'spam' ? '!text-zinc-900 dark:!text-zinc-900' : ''">
+                    <button wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" class="inline-flex items-center gap-1 rounded-full text-xs px-2.5 py-0.5 font-medium transition-colors {{ $filter === 'spam' ? 'bg-zinc-700 dark:bg-zinc-600 text-white hover:bg-zinc-800' : 'border border-zinc-300 dark:border-zinc-600 !text-zinc-900 dark:!text-zinc-900 hover:bg-zinc-100' }}">
                         <flux:icon name="no-symbol" class="w-3 h-3" />
                         {{ __('Spam') }} ({{ $this->spamCount }})
-                    </flux:badge>
+                    </button>
                 @endif
 
                 {{-- Label filters — collapsed into a dropdown --}}
