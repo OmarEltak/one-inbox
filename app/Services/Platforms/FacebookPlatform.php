@@ -89,9 +89,25 @@ class FacebookPlatform extends AbstractPlatform
                 ->post("{$this->graphUrl}/{$fbPage->platform_page_id}/subscribed_apps", [
                     // message_echoes is required to receive webhooks for messages the page
                     // sent natively (Business Suite, Facebook composer, Messenger mobile
-                    // app). Without it those messages never appear in our inbox — the
+                    // app). WITHOUT IT those messages never appear in our inbox — the
                     // customer replies to a message we can't see. Existing pages must
                     // re-subscribe (see FacebookPlatform::backfillEchoSubscription).
+                    //
+                    // ⚠️  META HAS TWO SUBSCRIPTION LAYERS. Both must include
+                    //     message_echoes or Meta silently drops the webhook:
+                    //   1. PAGE-LEVEL — POST /{page-id}/subscribed_apps  (this line)
+                    //   2. APP-LEVEL  — POST /{app-id}/subscriptions
+                    //
+                    // The app-level subscription is configured out-of-band via the
+                    // Meta Developer Console → App → Messenger → Webhooks → Page
+                    // (or via a one-shot tinker call — see docs/ARCHITECTURE.md §17
+                    // for the exact snippet). It is NOT set from application code
+                    // because it applies to the whole app, not per-page.
+                    //
+                    // On 2026-09-03 we discovered page-level was set but app-level
+                    // was missing message_echoes → 42 real inbound messages received,
+                    // 0 echoes ever. Symptom exactly matches "user sends from
+                    // Business Suite, message never appears in OT1 inbox".
                     'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
                 ]);
 
