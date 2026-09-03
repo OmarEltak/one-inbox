@@ -57,7 +57,7 @@
                 <flux:badge as="button" wire:click="setFilter('escalated')" :variant="$filter === 'escalated' ? 'solid' : 'outline'" color="amber" size="sm" :class="$filter !== 'escalated' ? '!text-zinc-900' : ''">{{ __('Escalated') }}</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('completed')" :variant="$filter === 'completed' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'completed' ? '!text-zinc-900' : ''">{{ __('Done') }}</flux:badge>
                 @if($this->spamCount > 0 || $filter === 'spam')
-                    <flux:badge as="button" wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" :variant="$filter === 'spam' ? 'solid' : 'outline'" color="zinc" size="sm">
+                    <flux:badge as="button" wire:click="setFilter('{{ $filter === 'spam' ? 'all' : 'spam' }}')" :variant="$filter === 'spam' ? 'solid' : 'outline'" color="zinc" size="sm" :class="$filter !== 'spam' ? '!text-zinc-900 dark:!text-zinc-900' : ''">
                         <flux:icon name="no-symbol" class="w-3 h-3" />
                         {{ __('Spam') }} ({{ $this->spamCount }})
                     </flux:badge>
@@ -329,7 +329,7 @@
                     $stageBadge = match($stage) {
                         'escalated' => ['icon' => 'exclamation-triangle', 'label' => 'Escalated', 'cls' => 'bg-amber-100 dark:bg-amber-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-amber-200'],
                         'completed' => ['icon' => 'check-badge',          'label' => 'Completed', 'cls' => 'bg-blue-100 dark:bg-blue-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-blue-200'],
-                        'spam'      => ['icon' => 'no-symbol',            'label' => 'Spam',      'cls' => 'bg-zinc-200 dark:bg-zinc-800 !text-zinc-900 dark:!text-zinc-900 hover:bg-zinc-300'],
+                        'spam'      => ['icon' => 'no-symbol', 'label' => 'Spam', 'cls' => $stage === 'spam' ? 'bg-zinc-700 dark:bg-zinc-600 text-white hover:bg-zinc-800' : 'bg-zinc-200 dark:bg-zinc-800 !text-zinc-900 dark:!text-zinc-900 hover:bg-zinc-300'],
                         default     => ['icon' => 'chat-bubble-left-right','label' => 'Active',   'cls' => 'bg-emerald-100 dark:bg-emerald-900/30 !text-zinc-900 dark:!text-zinc-900 hover:bg-emerald-200'],
                     };
                 @endphp
