@@ -142,6 +142,22 @@ class Index extends Component
         return WhatsAppCloudPricing::estimate($this->audiencePhones, $this->messageCategory);
     }
 
+    public function goToWizard(): void
+    {
+        if ($this->platform === 'whatsapp') {
+            $this->redirect(route('campaigns.whatsapp.new'), navigate: true);
+            return;
+        }
+        if ($this->platform === 'email') {
+            if (\Illuminate\Support\Facades\Route::has('campaigns.email.new')) {
+                $this->redirect(route('campaigns.email.new'), navigate: true);
+                return;
+            }
+            // Fallback path (email wizard was mounted at this URL originally).
+            $this->redirect('/campaigns/email/new', navigate: true);
+        }
+    }
+
     public function openCreateModal(): void
     {
         $this->reset(['editingId', 'name', 'pageId', 'messageTemplate', 'leadStatus', 'languageCode', 'delaySeconds', 'platform', 'messageCategory', 'sendMode', 'scheduledAt']);
@@ -165,7 +181,7 @@ class Index extends Component
         // not required at campaign-create time anymore.
         $rules = [
             'name'            => 'required|string|max:100',
-            'platform'        => 'required|string|in:facebook,instagram,telegram,whatsapp',
+            'platform'        => 'required|string|in:facebook,instagram,telegram,whatsapp,email',
             'pageId'          => [
                 'required',
                 'integer',

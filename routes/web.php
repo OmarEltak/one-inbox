@@ -8,6 +8,9 @@ use App\Http\Controllers\BlogController;
 Route::get('auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
+// Health & Observability (external monitoring)
+Route::get('/health/metrics', \App\Http\Controllers\HealthMetricsController::class)->name('health.metrics');
+
 // Homepage: renders the AI Campaign Manager landing (was welcome.blade.php until 2026-07-09).
 // The old welcome view is preserved in resources/views/welcome.blade.php (content wrapped
 // in @if(false) as a reference/rollback point — DO NOT delete or rename).
@@ -289,6 +292,8 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     // Campaigns
     Route::get('campaigns', \App\Livewire\Campaigns\Index::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.index');
     Route::get('campaigns/email/new', \App\Livewire\Campaigns\EmailWizard::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.email.new');
+    Route::get('campaigns/whatsapp/new', \App\Livewire\Campaigns\WhatsAppWizard::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.whatsapp.new');
+    Route::post('campaigns/{campaign}/test-send', \App\Http\Controllers\CampaignTestSendController::class)->name('campaigns.test-send');
     Route::get('campaigns/{campaign}', \App\Livewire\Campaigns\Show::class)->middleware(['permission:connections', 'require.connection'])->name('campaigns.show');
 
     // Content

@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "chillerlan/php-qrcode": "*",
+        "giggsey/libphonenumber-for-php": "*",
         "laravel/cashier": "*",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",

@@ -258,6 +258,22 @@
                         <span class="text-sm font-medium">Telegram</span>
                     </button>
 
+                    {{-- Email --}}
+                    <button
+                        type="button"
+                        wire:click="$set('platform', 'email')"
+                        @class([
+                            'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
+                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'email',
+                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'email',
+                        ])
+                    >
+                        <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-sm font-medium">Email</span>
+                    </button>
+
                     {{-- WhatsApp --}}
                     <button
                         type="button"
@@ -298,6 +314,20 @@
                 @endif
                 <flux:error name="pageId" />
             </flux:field>
+
+            {{-- Bulk CSV upload entry point for cold-list channels (whatsapp, email).
+                 The inline modal fields below still work for existing-conversation blasts;
+                 this button opens the sibling wizard for uploading a fresh phone/email list. --}}
+            @if (in_array($platform, ['whatsapp', 'email'], true))
+                <div class="rounded border border-dashed border-zinc-300 p-4 space-y-2 bg-zinc-50 dark:bg-zinc-800">
+                    <p class="text-sm text-zinc-600 dark:text-zinc-300">
+                        This channel supports bulk CSV upload for cold outreach.
+                    </p>
+                    <flux:button wire:click="goToWizard" variant="primary" size="sm">
+                        Open upload wizard →
+                    </flux:button>
+                </div>
+            @endif
 
             {{-- Meta 24-hour messaging window banner — visible only for Facebook / Instagram.
                  Meta rejects any outbound to a contact whose last inbound is > 24 hours ago
