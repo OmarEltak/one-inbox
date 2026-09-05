@@ -1921,3 +1921,55 @@ ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && sudo -u deploy XDG_CONFIG_HOME
 ```
 
 **Next:** Phase B (comment webhook ingestion + Graph API reply/DM sending) blocked on Meta App Review completion for the two new permissions. Separate spec when ready.
+
+## 2026-09-05 - Tier D done: full word-count + H2 floor (still writing-only, NOT shipped)
+
+- **User decision:** floor of 1,200 EN / 900 AR (1,800-2,500 full pin deferred as not wanted).
+- **All 48 posts under floor expanded** across 7 sequential subagent waves (one file = must edit serially): 4,6,7,9,10,13,14,15,16,17,18,19,20,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60 (~3.7k words EN + ~3.9k AR).
+  - All subagents reused ONLY each post's own stated figures (AOV, %, EGP/SAR/AED) to avoid new contradictions; a few caught-and-fixed self-introduced clashes (P35 "dozens/month", P44 260 AED arithmetic, AE 48-hour clause) and kept the /90d vs /30d and sofa/fashion stories separate.
+  - Post 48 gained a 6th <h2> (5->8) => H2 <6 now 0 posts.
+- **Final audit (audit_blogs2.php), ALL GREEN:**
+  - WORD COUNTS EN: range 1201-1744 (>= 1200). AR: 1043-1226 (>= 900).
+  - H2 <6 (0 posts), EQUITY <3 (0 posts), Excerpt <35 (0), BANNED empty, DUP SLUGS none.
+  - MISSING CTA: 5,10,15,20,25 remains the KNOWN false positive (batch header folds into last post block; every post still ends with {{CTA}}).
+- **Everything above is in tasks/blogs-to-post.md (untracked). Nothing seeded, no commit, no push.** ~10.5k new words total across the whole doc (all 60 posts approx. 1k-1.7k).
+- **Next (when user decides to ship):** batch into seeders (posts 1-20 likely = the incoming batch 25 per the 4 new untracked seeder files already staged), follow the publishing-freeze rule in docs/seo-progress.md (impressions >=180/day), and native-Arabic proofread remains recommended before any AR post goes live.
+
+---
+
+## 2026-09-06 — Comments AI Phase B (Tasks 5-8) shipped + Meta wiring
+
+**PR:** #27 → merged squash as `6885287` on main
+**Hotfix:** `0885afc` — remove double-decrypt on `page_access_token` (`encrypted` cast auto-decrypts on read; existing sites have same latent bug but out of scope)
+
+**Meta browser session (Use Cases console):**
+- Added new use case "Manage everything on your page" (PAGES_API enum) inside `إدارة المحتوى` category
+- Enabled `pages_manage_engagement` → status `جاهز للاختبار` (Ready to Test) = Standard Access unlocked
+- Verified `instagram_manage_comments` already added; status `تم رفض مراجعة التطبيقات` (App Review Rejected) — Standard Access retained, same pattern as `pages_messaging` (6k successful calls under same status)
+
+**App-level Meta webhook subscriptions (via tinker on prod):**
+- `page` object: `messages,messaging_postbacks,messaging_optins,message_deliveries,message_reads,message_echoes,feed` — `feed` added
+- `instagram` object: `messages,message_edit,comments` — `comments` added
+- Both returned `{"success":true}`
+
+**Page-level backfill (via tinker on prod):**
+- FB page 11 (105577575011406): ✅ 200 success — comment webhooks will fire
+- FB page 17 (1202369876301509): ✅ 200 success — comment webhooks will fire
+- IG page 16 (17841429680280453): ❌ 401 Invalid OAuth token — needs re-OAuth (pre-existing token expiry)
+- IG page 22 (17841435059805096): ❌ 400 "Application does not have the capability" — connected via Business Login flow (`instagram_business_*` scopes), not FB Login flow (`instagram_manage_*` scopes). Needs re-connection via managed OAuth to unlock comment webhooks.
+
+**Test-ready:** Facebook pages 11 and 17.
+
+**Rollback (within the hour):**
+```bash
+git revert -m 1 6885287 && git push origin main
+# App-level subscription revert (removes feed/comments):
+ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && sudo -u deploy XDG_CONFIG_HOME=/tmp/tinker-home HOME=/tmp/tinker-home php artisan tinker --execute="..."'
+# (re-post subscriptions with original field lists per this journal entry)
+```
+
+**Follow-ups:**
+- Test comment on a live post on FB page 11 or 17 → observe AI reply within 30s
+- Reconnect IG pages via `/connections` if IG comment reply needed
+- Fix latent double-decrypt bug in the 9 other sites when someone touches those files (not now)
+- Submit App Review for `pages_manage_engagement` + `instagram_manage_comments` per `docs/meta-app-review/comments-permissions-submission.md` for future self-serve
