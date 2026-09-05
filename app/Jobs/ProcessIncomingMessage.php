@@ -85,13 +85,22 @@ class ProcessIncomingMessage implements ShouldQueue
     protected function processMetaMessenger(array $payload, string $platform, AiProviderInterface $ai): void
     {
         $entries = $payload['entry'] ?? [];
+        $commentParser = app(\App\Services\Comments\MetaCommentPayloadParser::class);
 
         foreach ($entries as $entry) {
-            $messaging = $entry['messaging'] ?? [];
+            $pageId = $entry['id'] ?? null;
 
-            foreach ($messaging as $event) {
-                if (isset($event['message'])) {
-                    $this->handleMetaMessage($event, $platform, $entry['id'], $ai);
+            foreach ($entry['messaging'] ?? [] as $event) {
+                if (isset($event['message']) && $pageId) {
+                    $this->handleMetaMessage($event, $platform, $pageId, $ai);
+                }
+            }
+
+            // Comments: entry.changes[].field='feed' (FB) or 'comments' (IG).
+            foreach ($entry['changes'] ?? [] as $change) {
+                $parsed = $commentParser->parse($change);
+                if ($parsed && $pageId) {
+                    \App\Jobs\IngestCommentJob::dispatch($parsed, (string) $pageId);
                 }
             }
         }

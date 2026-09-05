@@ -15,6 +15,23 @@ use Illuminate\Support\Facades\Log;
 
 class FacebookPlatform extends AbstractPlatform
 {
+    /**
+     * Page-level subscribed_fields for Facebook pages.
+     * `feed` = comment webhooks (item=comment). Kept as a single string so the
+     * four subscription call-sites in this class stay in lockstep — mismatched
+     * lists caused a real prod incident (see meta-webhook-two-layer-subscription skill).
+     *
+     * ⚠️ MUST ALSO BE ADDED APP-LEVEL via POST /{app-id}/subscriptions or Meta
+     * silently drops webhooks. See skill for the one-shot tinker call.
+     */
+    public const FB_SUBSCRIBED_FIELDS = 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks,feed';
+
+    /**
+     * Page-level subscribed_fields for Instagram Business pages.
+     * `comments` = comment webhooks. Same two-layer subscription rule applies.
+     */
+    public const IG_SUBSCRIBED_FIELDS = 'messages,comments';
+
     protected string $graphUrl;
     protected string $appId;
     protected string $appSecret;
@@ -108,7 +125,7 @@ class FacebookPlatform extends AbstractPlatform
                     // was missing message_echoes → 42 real inbound messages received,
                     // 0 echoes ever. Symptom exactly matches "user sends from
                     // Business Suite, message never appears in OT1 inbox".
-                    'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
+                    'subscribed_fields' => self::FB_SUBSCRIBED_FIELDS,
                 ]);
 
             if ($igPage) {
@@ -300,7 +317,7 @@ class FacebookPlatform extends AbstractPlatform
         $igbid = $page->platform_page_id;
 
         $response = Http::post("https://graph.instagram.com/{$version}/{$igbid}/subscribed_apps", [
-            'subscribed_fields' => 'messages',
+            'subscribed_fields' => self::IG_SUBSCRIBED_FIELDS,
             'access_token'      => $page->page_access_token,
         ]);
 
@@ -463,7 +480,7 @@ class FacebookPlatform extends AbstractPlatform
                     // app). Without it those messages never appear in our inbox — the
                     // customer replies to a message we can't see. Existing pages must
                     // re-subscribe (see FacebookPlatform::backfillEchoSubscription).
-                    'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
+                    'subscribed_fields' => self::FB_SUBSCRIBED_FIELDS,
             ]);
 
         if ($response->failed()) {
@@ -498,7 +515,7 @@ class FacebookPlatform extends AbstractPlatform
                     // app). Without it those messages never appear in our inbox — the
                     // customer replies to a message we can't see. Existing pages must
                     // re-subscribe (see FacebookPlatform::backfillEchoSubscription).
-                    'subscribed_fields' => 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks',
+                    'subscribed_fields' => self::FB_SUBSCRIBED_FIELDS,
             ]);
 
         if ($response->failed()) {
