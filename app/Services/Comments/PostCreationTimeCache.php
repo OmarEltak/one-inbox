@@ -40,7 +40,7 @@ class PostCreationTimeCache
         try {
             $response = Http::timeout(10)->get("https://graph.facebook.com/v21.0/{$platformPostId}", [
                 'fields'       => 'created_time',
-                'access_token' => decrypt($page->page_access_token),
+                'access_token' => $page->page_access_token,
             ]);
 
             if (! $response->successful()) {

@@ -119,7 +119,7 @@ class SendAiCommentReplyJob implements ShouldQueue
             "https://graph.facebook.com/v21.0/{$comment->platform_comment_id}/comments",
             [
                 'message'      => $reply,
-                'access_token' => decrypt($comment->page->page_access_token),
+                'access_token' => $comment->page->page_access_token,
             ]
         );
 
@@ -145,7 +145,7 @@ class SendAiCommentReplyJob implements ShouldQueue
             $body['messaging_type'] = 'RESPONSE';
         }
 
-        $token = decrypt($comment->page->page_access_token);
+        $token = $comment->page->page_access_token;
         $response = Http::timeout(15)->asJson()->post(
             "https://graph.facebook.com/v21.0/{$recipientContainerId}/messages?access_token=" . urlencode($token),
             $body
