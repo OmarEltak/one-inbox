@@ -181,3 +181,20 @@ chmod -R 775 /var/www/ot1-pro.com/storage /var/www/ot1-pro.com/bootstrap/cache
 ```
 
 **Preventive rule:** On any new VPS Laravel deployment, always set storage + bootstrap/cache to `owner:www-data` group with `775`. Add `chmod -R 775 storage bootstrap/cache` to the deploy script so it's enforced on every deploy. Also set `.env` to `600` immediately after upload.
+
+## 2026-09-06 — 60-post seeder shipping: generator + verification lessons
+
+**Symptom:** First generator run embedded the doc's `# Batch N` planning blocks into published content; regenerated seeders contained a doubled `{{CTA}}` with a stray `--` line; verification script kept breaking with PHP fatal errors.
+
+**Root causes (each found via raw-data probing, not guessing):**
+1. **Planning-block leak (posts 5,10,15,20,25):** `tasks/blogs-to-post.md` has `# Batch N — Target/Voice/Internal links/CTA` planning blocks BETWEEN post content and the next `## Post` header (lines 669, 1476, 2236, 3076, 3965). "Content = rest of block" extraction injects them after `{{CTA}}`. Fix: truncate content AT `{{CTA}}` (`/^\*\*Content:\*\*\n\n(.*?)\n\n\{\{CTA\}\}/sm`) and append the placeholder + `---` yourself. Never regex-extract "everything up to the next header" for publishing.
+2. **Missing `m` flag:** `/^\*\*Content:\*\*\n\n(.*?)\n\n\{\{CTA\}\}/s` silently failed on every block (no `m` → `^` anchored to string start, not line start), so EVERY post fell into the fallback branch which double-appended `{{CTA}}` + left `--`. Symptom showed up as content ending `{{CTA}}\n\n--\n\n{{CTA}}\n\n---`. PowerShell hides PHP warnings — always `php -l`, and if you see doubled markers, re-test the regex on the RAW source, not the generated output.
+3. **PowerShell `php -r` / SSH `--execute` quoting:** nested quotes inside `php -r "..."` and `ssh "..." tinker --execute=\"...\""` explode under PowerShell 5.1 (parse errors, `Missing type name after '['`). Write a `.php`/`.sh`/`.tinker` file with the Write tool, then `Get-Content -Raw | ssh ... "cat > /tmp/x.sh && bash /tmp/x.sh"`. For git on multiple checkouts: `main` lives in a real worktree at `C:\Users\NanoChip\Herd\one-inbox-main`; deploy is `push origin main`, so cherry-pick the seeder commit there rather than force-merge a feature branch.
+4. **Verifier PHP issues:** `($isArabic ? $arWc : $enWc)[] = $w;` → "Cannot use temporary expression in write context" (PHP forbids write to ternary target). Unused `$slugSeen = []`+write = same. `preg_replace('/-\s*$/m', ...)` on a `---` line deletes dashes from line ends — don't use dash-stripping to "clean" content.
+5. **Deploy on feature branches is a trap:** current branch was `feat/comments-ai-phase-b-continued`; commits on it don't trigger the auto-deploy. Anything meant for prod must land on `main` (via cherry-pick in the main worktree) or be merged.
+
+**Preventive rules:**
+- When generating code from a markdown doc that has planning metadata, ALWAYS truncate published content at the content's own end-marker (the CTA placeholder), then verify the generated files (not the doc) with the SAME audit that validated the doc.
+- Verify generated artifacts by parsing the generated source, and add `?`-free debuggable output (raw tail JSON) into the checker when a field looks wrong — don't assert from memory what the generated file "should" contain.
+- After ANY seeder/content batch ships, curl every published URL from the server itself and grep rendered HTML for the placeholder (must be 0 literal `{{CTA}}`).
+- Push path for this repo: work locallly → cherry-pick/move onto `main` → `git push origin main` → wait ~30s → verify prod `git log -1` shows your SHA before running db:seed.
