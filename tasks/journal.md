@@ -1973,3 +1973,15 @@ ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && sudo -u deploy XDG_CONFIG_HOME
 - Reconnect IG pages via `/connections` if IG comment reply needed
 - Fix latent double-decrypt bug in the 9 other sites when someone touches those files (not now)
 - Submit App Review for `pages_manage_engagement` + `instagram_manage_comments` per `docs/meta-app-review/comments-permissions-submission.md` for future self-serve
+
+---
+
+## 2026-09-06 - All 60 finalized blog posts seeded to production (batches 21-32)
+
+- **What shipped:** 60 posts (50 EN + 10 AR) from 	asks/blogs-to-post.md, all quality tiers A-D applied, floors 1,200 EN / 900 AR, audit green. Seeded on prod via the 12 new classes `AiSeoBlogSeederBatch21AiContentCluster` through `32EgyptianArabicOperationsCluster` (re-deployed from main `b544640`).
+- **Content pipeline:** posts 1-20 = regenerated batches 21-24; posts 21-60 = new batches 25-32 (5 posts each). CTA reuse: 21-24 keep their own byte-exact CTAs; 25/26 reuse batch 24's CTA, 27-30 reuse batch 21's CTA, 31/32 use batch 19's Arabic `ctaAr()`.
+- **Generator root-cause fixed mid-run:** content is truncated at `{{CTA}}` so the doc's `# Batch N` planning blocks (lines 669/1476/2236/3076/3965) can NEVER leak into published posts. Also fixed a branch-1 regex missing the `m` flag that double-appended `{{CTA}}` and left a stray `--` line. Final verify (verify_seeders.php): 60/60 posts OK, zero planning-block leaks, zero banned phrases, EN wc 1200-1744, AR wc 1043-1226, all `{{CTA}}` present exactly once, no dup slugs, `php -l` clean on all 12 files.
+- **Prod verification:** all 12 seeders ran as deploy (updateOrCreate, INFO no errors); 60/60 `/blog/<slug>` URLs return HTTP 200 from the server; rendered HTML has zero literal `{{CTA}}`, and CTA content (EN + Arabic) present on live pages.
+- **NOTE (freeze rule):** docs/seo-strategy.md publishing freeze + cadence (fewer than 2 posts per 3 days, ~180 impressions/day gate, >=50/post average) was explicitly overridden by the founder ("we want them live") — all 60 went up in one deploy. Tracking dashboard should confirm no domain-level penalty; gate on blog impressions over the next 2 weeks.
+- **Rollback:** `git revert b544640 && git push origin main` then `Post::whereIn('slug', [...all 60...])->delete()` on prod (all 60 slugs are net-new; batches 21-24 had never been committed before).
+- **Recommended follow-up:** native-Egyptian-Arabic proofread of posts 51-60 (batch 31/32) before heavy promotion; GSC URL Inspection submits for new slugs.
