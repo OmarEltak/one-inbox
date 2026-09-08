@@ -49,11 +49,18 @@ class MetaCommentPayloadParser
             return null;
         }
 
+        // Meta sets parent_id == post_id for TOP-LEVEL comments in the feed
+        // webhook payload — it's the "conversation root," not an actual parent
+        // comment. Only treat it as a real parent comment when it differs from
+        // post_id (i.e. this is a genuine reply to another comment).
+        $rawParent = isset($value['parent_id']) ? (string) $value['parent_id'] : null;
+        $parentCommentId = ($rawParent !== null && $rawParent !== (string) $postId) ? $rawParent : null;
+
         return [
             'platform'              => 'facebook',
             'platform_comment_id'   => (string) $commentId,
             'platform_post_id'      => (string) $postId,
-            'parent_comment_id'     => isset($value['parent_id']) ? (string) $value['parent_id'] : null,
+            'parent_comment_id'     => $parentCommentId,
             'commenter_platform_id' => (string) $from['id'],
             'commenter_name'        => (string) ($from['name'] ?? 'Unknown'),
             'text'                  => (string) $message,
