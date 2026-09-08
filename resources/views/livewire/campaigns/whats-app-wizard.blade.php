@@ -1,10 +1,10 @@
 <div class="max-w-3xl mx-auto py-8 px-4">
     {{-- Page heading — dark, bold, with WhatsApp-green accent on the platform word. --}}
     <div class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 class="text-3xl font-bold tracking-tight text-zinc-900">
             New <span class="text-[#25D366]">WhatsApp</span> Campaign
         </h1>
-        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p class="mt-2 text-sm text-zinc-500">
             Upload a contact list, compose your message, test one send, then launch.
         </p>
     </div>
@@ -14,16 +14,16 @@
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-6">
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                    <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                    <h2 class="text-lg font-semibold text-zinc-900">
                         Upload contact list
                     </h2>
-                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    <p class="mt-1 text-sm text-zinc-500">
                         CSV or Excel (.xlsx), up to 10 MB and 50,000 rows.
                     </p>
                 </div>
                 <a href="/samples/whatsapp-campaign-contacts.csv"
                    download
-                   class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
+                   class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
                     </svg>
@@ -57,10 +57,10 @@
                                 </svg>
                             </div>
                             <div class="text-center">
-                                <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                <p class="text-sm font-medium text-zinc-900">
                                     Click to choose a file
                                 </p>
-                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                <p class="mt-0.5 text-xs text-zinc-500">
                                     .csv or .xlsx up to 10 MB
                                 </p>
                             </div>
@@ -83,7 +83,7 @@
                                 </svg>
                             </div>
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                <p class="truncate text-sm font-medium text-zinc-900">
                                     {{ $file?->getClientOriginalName() ?? $originalName ?? 'file selected' }}
                                 </p>
                                 <p class="text-xs text-emerald-700 dark:text-emerald-400">
@@ -93,7 +93,7 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <label for="wa-wizard-file"
-                                   class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer transition">
+                                   class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer transition">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M4 4l7 7M20 20l-7-7" />
                                 </svg>
@@ -123,13 +123,13 @@
 
             {{-- Phone-format guide — non-negotiable knowledge before uploading. --}}
             <div class="rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-700 p-4">
-                <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                <h3 class="text-sm font-semibold text-zinc-900 mb-2">
                     Phone number format
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div>
                         <p class="font-medium text-emerald-700 dark:text-emerald-400 mb-1">✓ Accepted shapes</p>
-                        <ul class="space-y-0.5 text-zinc-600 dark:text-zinc-300 font-mono">
+                        <ul class="space-y-0.5 text-zinc-600 font-mono">
                             <li><code>+201099887766</code> (E.164, always safe)</li>
                             <li><code>+20 10 9988 7766</code> (spaces ok)</li>
                             <li><code>+20-10-9988-7766</code> (dashes ok)</li>
@@ -138,7 +138,7 @@
                     </div>
                     <div>
                         <p class="font-medium text-red-600 dark:text-red-400 mb-1">✗ Rejected</p>
-                        <ul class="space-y-0.5 text-zinc-600 dark:text-zinc-300 font-mono">
+                        <ul class="space-y-0.5 text-zinc-600 font-mono">
                             <li>Empty rows</li>
                             <li>Numbers under 7 digits</li>
                             <li>Text that isn't a phone (<code>not-a-number</code>)</li>
@@ -146,7 +146,7 @@
                         </ul>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+                <p class="mt-3 text-xs text-zinc-500">
                     <strong>Country code:</strong> not required in the file if you set a default country in the next step. E.164 numbers (starting with <code>+</code>) always win over the default.
                 </p>
             </div>
@@ -161,8 +161,8 @@
     {{-- Step 2 — Map columns --}}
     @elseif ($step === 'map')
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
-            <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Map columns</h2>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+            <h2 class="text-lg font-semibold text-zinc-900">Map columns</h2>
+            <p class="text-sm text-zinc-500">
                 Tell us which column has the phone number and which has the name.
             </p>
 
@@ -225,8 +225,8 @@
     {{-- Step 4 — Test send --}}
     @elseif ($step === 'test')
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
-            <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Test send</h2>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+            <h2 class="text-lg font-semibold text-zinc-900">Test send</h2>
+            <p class="text-sm text-zinc-500">
                 Send one message to verify the format and connection before launching.
             </p>
 
@@ -262,8 +262,8 @@
     {{-- Step 5 — Review --}}
     @elseif ($step === 'review')
         <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
-            <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Ready to launch</h2>
-            <p class="text-zinc-700 dark:text-zinc-300">
+            <h2 class="text-lg font-semibold text-zinc-900">Ready to launch</h2>
+            <p class="text-zinc-700">
                 Sending to <strong>{{ $importedCount }}</strong> recipient{{ $importedCount === 1 ? '' : 's' }} with
                 <strong>{{ $jitterMin }}–{{ $jitterMax }}s</strong> jitter between messages.
             </p>
