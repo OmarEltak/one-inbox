@@ -2004,3 +2004,23 @@ ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && sudo -u deploy XDG_CONFIG_HOME
 
 **Meta scope reference for future edits to FacebookPlatform::FB_SUBSCRIBED_FIELDS or OAuth scope strings:**
 Any scope added to the OAuth URL MUST also be checked in the FLfB config. Any scope removed from the URL should either stay in the config (safe, unused) or be unchecked (transparency alignment). Never add a deprecated scope like `pages_read_user_content` — Meta pruned it from the catalog; requesting it fails.
+
+---
+
+## 2026-09-08 (later) — OAuth Round 2: revert cc3cfc0, add proper error handling
+
+**Symptom:** After `cc3cfc0` (re-adding `pages_manage_engagement` based on a false-positive test), Omar's real OAuth attempt failed with the same `Invalid Scopes: pages_read_user_content` error page from Meta. Nginx access log confirmed Meta returned `?error_code=100&error_message=Invalid+Scopes%3A+pages_read_user_content...` — the exact same failure as the 2026-09-05 incident.
+
+**Why my earlier browser test was misleading:** I tested the OAuth URL via Chrome logged in as "Ot-Pro Bot" — an app admin. Meta shows admins a lightweight consent screen ("Continue as X? App will receive your name and profile picture.") that never displays or validates the requested scopes. Only NON-admin real-user flows exercise scope validation. My "healthy consent screen" observation was a false positive.
+
+**Two commits shipped:**
+1. `f692bda` — `git revert cc3cfc0`. Removes `pages_manage_engagement` from all 3 OAuth scope lists again. Tests restored to `not->toContain` assertions.
+2. `6ae1c87` — `ConnectionController::facebookCallback` now handles Meta's actual failure param names (`error_code` + `error_message`), plus a graceful null-code fallback. Previously fell through into `exchangeFacebookCode(null)` TypeError. Meta's actual message is now surfaced to the user's flash-error and logged with the full query.
+
+**Investigation deferred to next session:** why the FLfB config change alone didn't unlock `pages_manage_engagement`. Options to try, in order of least invasive:
+- Wait 30+ min after FLfB config save for Meta propagation, then re-test with a non-admin user in incognito
+- Uncheck `pages_manage_engagement` in the FLfB config (opposite direction — maybe Meta's engine reads config as authoritative override, not merge)
+- Click the "Requirements" (المتطلبات) link on each Use Case permission row to see the dep tree — `pages_manage_engagement` may declare `pages_read_user_content` as a legacy dep that Meta still enforces
+- Remove the "Manage everything on your page" (PAGES_API) Use Case I added 2026-09-06 — may have implicitly added the deprecated scope to an app-level requirement list
+
+**Concurrent Claude session note:** Another Claude session was actively shipping WhatsApp campaigns hotfixes (PR #29, #30, #31, #32) during this window. My changes touched only `FacebookPlatform.php` and `ConnectionController.php` — no overlap. Both sessions' commits interleaved on main without conflicts.
