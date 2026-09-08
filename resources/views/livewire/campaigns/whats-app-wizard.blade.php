@@ -208,7 +208,7 @@
                 @endforeach
             </flux:select>
 
-            <flux:textarea wire:model="body" label="Message" rows="6" placeholder="Hi {{ '{{name}}' }}, we have something for you…" />
+            <flux:textarea wire:model="body" label="Message" rows="6" placeholder="Hi @{{name}}, we have something for you…" />
 
             <div class="grid grid-cols-2 gap-3">
                 <flux:input wire:model="jitterMin" type="number" label="Jitter min (sec)" />
