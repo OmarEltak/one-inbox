@@ -11,7 +11,7 @@
 
     {{-- Step 1 — Upload --}}
     @if ($step === 'upload')
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-6">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-6">
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <h2 class="text-lg font-semibold text-zinc-900">
@@ -23,7 +23,7 @@
                 </div>
                 <a href="/samples/whatsapp-campaign-contacts.csv"
                    download
-                   class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
+                   class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
                     </svg>
@@ -48,7 +48,7 @@
                     <label for="wa-wizard-file"
                            wire:loading.class="border-blue-400 bg-blue-50 dark:bg-blue-900/20 animate-pulse"
                            wire:target="file"
-                           class="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-900/30 px-6 py-10 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 transition">
+                           class="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50/50/30 px-6 py-10 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 transition">
                         <div wire:loading.remove wire:target="file" class="flex flex-col items-center gap-3">
                             <div class="rounded-full bg-emerald-100 dark:bg-emerald-900/40 p-3">
                                 <svg class="h-6 w-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -93,7 +93,7 @@
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                             <label for="wa-wizard-file"
-                                   class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer transition">
+                                   class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 cursor-pointer transition">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M4 4l7 7M20 20l-7-7" />
                                 </svg>
@@ -101,7 +101,7 @@
                             </label>
                             <button type="button"
                                     wire:click="removeFile"
-                                    class="inline-flex items-center gap-1.5 rounded-md border border-red-200 dark:border-red-800 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                                    class="inline-flex items-center gap-1.5 rounded-md border border-red-200 dark:border-red-800 bg-white px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -122,7 +122,7 @@
             </div>
 
             {{-- Phone-format guide — non-negotiable knowledge before uploading. --}}
-            <div class="rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-700 p-4">
+            <div class="rounded-xl bg-zinc-50/40 border border-zinc-200 p-4">
                 <h3 class="text-sm font-semibold text-zinc-900 mb-2">
                     Phone number format
                 </h3>
@@ -160,7 +160,7 @@
 
     {{-- Step 2 — Map columns --}}
     @elseif ($step === 'map')
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
             <h2 class="text-lg font-semibold text-zinc-900">Map columns</h2>
             <p class="text-sm text-zinc-500">
                 Tell us which column has the phone number and which has the name.
@@ -190,7 +190,7 @@
 
     {{-- Step 3 — Compose --}}
     @elseif ($step === 'compose')
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
             <div class="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-3 py-2">
                 <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -224,7 +224,7 @@
 
     {{-- Step 4 — Test send --}}
     @elseif ($step === 'test')
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
             <h2 class="text-lg font-semibold text-zinc-900">Test send</h2>
             <p class="text-sm text-zinc-500">
                 Send one message to verify the format and connection before launching.
@@ -261,7 +261,7 @@
 
     {{-- Step 5 — Review --}}
     @elseif ($step === 'review')
-        <div class="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-6 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
             <h2 class="text-lg font-semibold text-zinc-900">Ready to launch</h2>
             <p class="text-zinc-700">
                 Sending to <strong>{{ $importedCount }}</strong> recipient{{ $importedCount === 1 ? '' : 's' }} with
