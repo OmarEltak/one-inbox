@@ -1976,12 +1976,31 @@ ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && sudo -u deploy XDG_CONFIG_HOME
 
 ---
 
-## 2026-09-06 - All 60 finalized blog posts seeded to production (batches 21-32)
+## 2026-09-08 — OAuth "Invalid Scopes" fix + FLfB config alignment
 
-- **What shipped:** 60 posts (50 EN + 10 AR) from 	asks/blogs-to-post.md, all quality tiers A-D applied, floors 1,200 EN / 900 AR, audit green. Seeded on prod via the 12 new classes `AiSeoBlogSeederBatch21AiContentCluster` through `32EgyptianArabicOperationsCluster` (re-deployed from main `b544640`).
-- **Content pipeline:** posts 1-20 = regenerated batches 21-24; posts 21-60 = new batches 25-32 (5 posts each). CTA reuse: 21-24 keep their own byte-exact CTAs; 25/26 reuse batch 24's CTA, 27-30 reuse batch 21's CTA, 31/32 use batch 19's Arabic `ctaAr()`.
-- **Generator root-cause fixed mid-run:** content is truncated at `{{CTA}}` so the doc's `# Batch N` planning blocks (lines 669/1476/2236/3076/3965) can NEVER leak into published posts. Also fixed a branch-1 regex missing the `m` flag that double-appended `{{CTA}}` and left a stray `--` line. Final verify (verify_seeders.php): 60/60 posts OK, zero planning-block leaks, zero banned phrases, EN wc 1200-1744, AR wc 1043-1226, all `{{CTA}}` present exactly once, no dup slugs, `php -l` clean on all 12 files.
-- **Prod verification:** all 12 seeders ran as deploy (updateOrCreate, INFO no errors); 60/60 `/blog/<slug>` URLs return HTTP 200 from the server; rendered HTML has zero literal `{{CTA}}`, and CTA content (EN + Arabic) present on live pages.
-- **NOTE (freeze rule):** docs/seo-strategy.md publishing freeze + cadence (fewer than 2 posts per 3 days, ~180 impressions/day gate, >=50/post average) was explicitly overridden by the founder ("we want them live") � all 60 went up in one deploy. Tracking dashboard should confirm no domain-level penalty; gate on blog impressions over the next 2 weeks.
-- **Rollback:** `git revert b544640 && git push origin main` then `Post::whereIn('slug', [...all 60...])->delete()` on prod (all 60 slugs are net-new; batches 21-24 had never been committed before).
-- **Recommended follow-up:** native-Egyptian-Arabic proofread of posts 51-60 (batch 31/32) before heavy promotion; GSC URL Inspection submits for new slugs.
+**Symptom:** All new page connections on `/connections` broke with Meta's "This content is not available now — Invalid Scopes: pages_read_user_content" error page. Started immediately after 2026-09-05 Phase B deploy that added `pages_manage_engagement` to OAuth URL.
+
+**Root cause (via evidence-first-diagnosis):**
+- Meta's error text misleadingly named the deprecated ancestor scope `pages_read_user_content` — that scope was NOT in our code, NOT in any use case, NOT even in the FLfB config's permission catalog (Meta pruned it 2020-11-02).
+- Actual cause: `pages_manage_engagement` was in the OAuth URL but NOT in the Facebook Login for Business config's checked permission list at developers.facebook.com/apps/1469090344742803/business-login/configurations. Meta rejects any OAuth requesting a scope missing from the FLfB config; the rejection text emits the deprecated ancestor rather than the actual missing modern scope. Meta OAuth misfeature.
+
+**Timeline:**
+1. `ea12a17` (2026-09-07) — hotfix: removed `pages_manage_engagement` from OAuth URLs. Restored customer connections in ~2 min but disabled Phase B comment reply's Graph API permission.
+2. Meta browser fix (2026-09-08): opened FLfB config `896835833159946` (name "One Inbox Messaging") → Permissions step → checked 5 additional scopes: `pages_manage_engagement`, `pages_utility_messaging` (future feature Omar planned), `pages_read_engagement`, `instagram_basic`, `instagram_manage_comments`. Now 9 scopes checked total. Saved.
+3. Verified OAuth URL with `pages_manage_engagement` returns healthy "Continue as ..." consent screen instead of error page.
+4. `cc3cfc0` — re-added `pages_manage_engagement` to all 3 OAuth scope lists in `FacebookPlatform.php`. Tests updated to assert presence. Deployed.
+
+**Verified:**
+- `curl -s https://ot1-pro.com/settings/ai/config` → HTTP 200 (page renders)
+- Prod tinker: `(new FacebookPlatform())->getConnectUrl()` includes `pages_manage_engagement`
+- Manual OAuth URL fetch in browser → Meta consent screen, no error
+
+**Follow-ups:**
+- Phase B comment reply Graph API POST will now succeed for pages OAuth'd from 2026-09-08 onward.
+- Existing 2 FB pages (11, 17) OAuth'd before need re-connect to grant the new `pages_manage_engagement`. Their consent scopes are cached from earlier grants.
+- IG pages 16, 22 still have pre-existing token/scope issues from earlier journal entry — separate fix.
+
+**Rollback:** `git revert cc3cfc0 && git push origin main`. Also uncheck the 5 scopes in the FLfB config to fully revert Meta-side state.
+
+**Meta scope reference for future edits to FacebookPlatform::FB_SUBSCRIBED_FIELDS or OAuth scope strings:**
+Any scope added to the OAuth URL MUST also be checked in the FLfB config. Any scope removed from the URL should either stay in the config (safe, unused) or be unchecked (transparency alignment). Never add a deprecated scope like `pages_read_user_content` — Meta pruned it from the catalog; requesting it fails.
