@@ -75,6 +75,19 @@ it('returns null when FB verb is not add', function () {
     expect($parsed)->toBeNull();
 });
 
+it('treats parent_id == post_id as top-level (Meta uses post as root for top-level comments)', function () {
+    $parsed = (new MetaCommentPayloadParser())->parse([
+        'field' => 'feed',
+        'value' => [
+            'item' => 'comment', 'verb' => 'add',
+            'comment_id' => 'c1', 'post_id' => 'p1',
+            'parent_id' => 'p1', // Meta emits this shape for top-level comments
+            'from' => ['id' => 'u1', 'name' => 'x'], 'message' => 'hi',
+        ],
+    ]);
+    expect($parsed['parent_comment_id'])->toBeNull();
+});
+
 it('extracts parent_id when FB comment is a reply', function () {
     $parsed = (new MetaCommentPayloadParser())->parse([
         'field' => 'feed',
