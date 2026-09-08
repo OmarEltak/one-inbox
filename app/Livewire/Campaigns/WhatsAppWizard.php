@@ -52,6 +52,13 @@ class WhatsAppWizard extends Component
     public ?bool  $testResult = null;
     public ?string $testError = null;
 
+    /** Clear the pending upload so the operator can swap files without leaving the step. */
+    public function removeFile(): void
+    {
+        $this->reset(['file', 'storedPath', 'originalName', 'extension', 'detectedHeaders', 'previewRows']);
+        $this->resetValidation('file');
+    }
+
     public function mount(): void
     {
         $team = Auth::user()?->currentTeam;
