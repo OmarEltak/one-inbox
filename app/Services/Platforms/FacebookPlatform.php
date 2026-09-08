@@ -62,11 +62,12 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id' => $this->appId,
                 'redirect_uri' => $redirectUri,
-                // pages_manage_engagement re-added 2026-09-08 after fixing the FLfB config
-                // on developers.facebook.com — the scope must be in the config's checked
-                // permission list, otherwise Meta rejects with a misleading
-                // "Invalid Scopes: pages_read_user_content" error (see 2026-09-07 hotfix).
-                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement',
+                // pages_manage_engagement removed on 2026-09-07 — it triggered Meta to
+                // match a Facebook Login for Business config that includes the deprecated
+                // pages_read_user_content scope, and Meta rejected the whole request with
+                // "Invalid Scopes: pages_read_user_content". Re-add ONLY after the FLfB
+                // config on the Meta Dev Console is cleaned of pages_read_user_content.
+                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -88,8 +89,8 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
-                // pages_manage_engagement re-added 2026-09-08 — see getConnectUrl() note.
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                // pages_manage_engagement removed on 2026-09-07 — see getConnectUrl() note.
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
@@ -379,7 +380,7 @@ class FacebookPlatform extends AbstractPlatform
                 'email' => $profile['email'] ?? null,
                 'access_token' => $longLivedToken,
                 'token_expires_at' => now()->addSeconds($expiresIn),
-                'scopes' => ['pages_messaging', 'pages_manage_metadata', 'pages_show_list', 'pages_read_engagement', 'pages_manage_engagement'],
+                'scopes' => ['pages_messaging', 'pages_manage_metadata', 'pages_show_list', 'pages_read_engagement'],
                 'is_active' => true,
                 'connected_at' => now(),
             ]
