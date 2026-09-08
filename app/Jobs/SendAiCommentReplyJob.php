@@ -57,40 +57,65 @@ class SendAiCommentReplyJob implements ShouldQueue
             return;
         }
 
-        // Public reply via Graph API.
+        // Public reply and DM are INDEPENDENT best-effort sends.
+        // Public reply currently blocked at Standard Access for many apps by Meta's
+        // deprecated pages_read_user_content requirement on POST /{comment_id}/comments
+        // (see 2026-09-08 journal). DM via pages_messaging works today. Neither
+        // should block the other — a public failure must not abort a possible DM.
+        $comment->reply_text = $reply;
+
         $graphResp = $this->postPublicReply($comment, $reply);
-        if (! $graphResp['ok']) {
-            $comment->update([
-                'decision'        => Comment::DECISION_ERROR_GRAPH_API,
-                'decision_reason' => 'public reply Graph API returned non-2xx',
-                'reply_text'      => $reply,
-                'graph_error'     => $graphResp['error'] ?? null,
+        $publicOk = $graphResp['ok'];
+        if ($publicOk) {
+            $comment->graph_reply_id = $graphResp['id'];
+        } else {
+            // Store the public-reply error but keep going. Retry only on true 5xx/429.
+            $comment->graph_error = $graphResp['error'] ?? null;
+            Log::warning('SendAiCommentReplyJob: public reply failed', [
+                'comment_id' => $comment->id,
+                'status'     => $graphResp['status'],
+                'error'      => $graphResp['error'] ?? null,
             ]);
             if ($graphResp['status'] >= 500 || $graphResp['status'] === 429) {
+                // Save partial state before retrying so we don't lose the reply text.
+                $comment->decision = Comment::DECISION_ERROR_GRAPH_API;
+                $comment->decision_reason = 'public reply retryable Graph failure';
+                $comment->save();
                 throw new \RuntimeException("Retryable Graph failure: {$graphResp['status']}");
             }
-            return;
         }
 
-        $comment->fill([
-            'decision'       => Comment::DECISION_REPLIED,
-            'reply_text'     => $reply,
-            'graph_reply_id' => $graphResp['id'],
-        ]);
-
+        // DM path — independent of public reply outcome.
+        $dmOk = false;
         $dmMode = $settings['dm_mode'] ?? AiConfig::COMMENT_DM_OFF;
         if ($this->shouldDm($dmMode, $settings, $comment->text)) {
             $dmResp = $this->sendDm($comment, $reply);
             if ($dmResp['ok']) {
+                $dmOk = true;
                 $comment->dm_sent_at = now();
                 $comment->dm_graph_message_id = $dmResp['message_id'];
             } else {
-                $comment->graph_error = $dmResp['error'] ?? null;
-                Log::warning('SendAiCommentReplyJob: DM failed but public reply succeeded', [
+                // Merge DM error alongside any earlier public-reply error.
+                $existing = $comment->graph_error ?? [];
+                $comment->graph_error = ['public' => $existing, 'dm' => $dmResp['error'] ?? null];
+                Log::warning('SendAiCommentReplyJob: DM failed', [
                     'comment_id' => $comment->id,
                     'status'     => $dmResp['status'],
                 ]);
             }
+        }
+
+        // Final decision reflects what actually succeeded.
+        $comment->decision = match (true) {
+            $publicOk && $dmOk  => Comment::DECISION_REPLIED,   // both succeeded — replied covers it
+            $publicOk           => Comment::DECISION_REPLIED,   // public only
+            $dmOk               => Comment::DECISION_DM_ONLY,   // DM only (public blocked/skipped)
+            default             => Comment::DECISION_ERROR_GRAPH_API,
+        };
+        if (! $publicOk && $dmOk) {
+            $comment->decision_reason = 'public reply blocked, DM delivered';
+        } elseif (! $publicOk && ! $dmOk) {
+            $comment->decision_reason = 'both public reply and DM failed';
         }
 
         $comment->save();

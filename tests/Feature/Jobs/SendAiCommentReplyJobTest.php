@@ -130,6 +130,35 @@ it('skips DM when dm_mode=on_purchase_intent and no keyword match', function () 
     expect($comment->fresh()->dm_sent_at)->toBeNull();
 });
 
+it('stores decision=dm_only when public reply is blocked but DM succeeds', function () {
+    // Real scenario: Meta blocks POST /{comment_id}/comments with the deprecated-scope
+    // catch-22 (#200 pages_read_user_content), but the DM endpoint works.
+    Http::fake([
+        'graph.facebook.com/v21.0/*/comments' => Http::response([
+            'error' => [
+                'code' => 200,
+                'type' => 'OAuthException',
+                'message' => '(#200) The permission(s) pages_read_user_content are not available.',
+            ],
+        ], 400),
+        'graph.facebook.com/v21.0/*/messages*' => Http::response(['message_id' => 'M_DM_1'], 200),
+    ]);
+    $ai = Mockery::mock(AiProviderInterface::class);
+    $ai->shouldReceive('generateText')->once()->andReturn('check your DM!');
+    $comment = makeCommentForSend([
+        'dm_mode' => AiConfig::COMMENT_DM_ALWAYS,
+    ]);
+
+    (new SendAiCommentReplyJob($comment->id))->handle($ai);
+
+    $comment->refresh();
+    expect($comment->decision)->toBe(Comment::DECISION_DM_ONLY);
+    expect($comment->dm_sent_at)->not->toBeNull();
+    expect($comment->dm_graph_message_id)->toBe('M_DM_1');
+    expect($comment->reply_text)->toBe('check your DM!');
+    expect($comment->graph_reply_id)->toBeNull();
+});
+
 it('respects canDispatchAi and stores error_ai when team cannot dispatch', function () {
     $comment = makeCommentForSend();
     $comment->page->team->update(['ai_enabled' => false]);
