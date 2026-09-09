@@ -153,7 +153,7 @@ it('clamps the per-post reply cap to the allowed range', function () {
 
     Livewire::test(AiConfigComponent::class)
         ->set('business_description', 'valid business description over ten chars')
-        ->set('comment_max_replies_per_post_per_day', 999)
+        ->set('comment_max_replies_per_post_per_day', 9999) // above the 1000 cap
         ->call('saveConfig');
 
     expect(AiConfig::where('page_id', $page->id)->firstOrFail()->comment_settings['max_ai_replies_per_post_per_day'])

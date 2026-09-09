@@ -47,8 +47,14 @@ class AiConfig extends Model
     public const COMMENT_SCOPE_FUTURE_ONLY = 'future_posts_only';
     public const COMMENT_SCOPE_ALL_POSTS   = 'all_posts';
 
-    public const COMMENT_MAX_REPLIES_PER_POST_MIN =   1;
-    public const COMMENT_MAX_REPLIES_PER_POST_MAX = 100;
+    public const COMMENT_MAX_REPLIES_PER_POST_MIN =    1;
+    public const COMMENT_MAX_REPLIES_PER_POST_MAX = 1000;
+
+    // Independent cap on DMs sent to the SAME commenter across all posts, per day.
+    // A commenter who spams N comments on N posts should not get N DMs — they'd
+    // perceive the page as spammy. Default 2 (one warm DM + one follow-up).
+    public const COMMENT_DM_MAX_PER_COMMENTER_MIN =  1;
+    public const COMMENT_DM_MAX_PER_COMMENTER_MAX = 10;
 
     protected $fillable = [
         'page_id',
@@ -181,6 +187,7 @@ class AiConfig extends Model
             'reply_instructions'               => '',
             'scope'                            => self::COMMENT_SCOPE_FUTURE_ONLY,
             'max_ai_replies_per_post_per_day'  => 20,
+            'max_dms_per_commenter_per_day'    => 2,
         ];
     }
 

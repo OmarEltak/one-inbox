@@ -17,6 +17,7 @@ it('exposes safe default comment settings', function () {
         'reply_instructions'               => '',
         'scope'                            => AiConfig::COMMENT_SCOPE_FUTURE_ONLY,
         'max_ai_replies_per_post_per_day'  => 20,
+        'max_dms_per_commenter_per_day'    => 2,
     ]);
 });
 
@@ -45,5 +46,7 @@ it('exposes the expected constants', function () {
     expect(AiConfig::COMMENT_SCOPE_ALL_POSTS)->toBe('all_posts');
 
     expect(AiConfig::COMMENT_MAX_REPLIES_PER_POST_MIN)->toBe(1);
-    expect(AiConfig::COMMENT_MAX_REPLIES_PER_POST_MAX)->toBe(100);
+    expect(AiConfig::COMMENT_MAX_REPLIES_PER_POST_MAX)->toBe(1000);
+    expect(AiConfig::COMMENT_DM_MAX_PER_COMMENTER_MIN)->toBe(1);
+    expect(AiConfig::COMMENT_DM_MAX_PER_COMMENTER_MAX)->toBe(10);
 });

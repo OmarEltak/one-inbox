@@ -49,6 +49,7 @@ class AiConfig extends Component
     public string  $comment_reply_instructions = '';
     public string  $comment_scope = AiConfigModel::COMMENT_SCOPE_FUTURE_ONLY;
     public int     $comment_max_replies_per_post_per_day = 20;
+    public int     $comment_max_dms_per_commenter_per_day = 2;
 
     // Toggle
     public bool $is_active = true;
@@ -120,6 +121,7 @@ class AiConfig extends Component
             $this->comment_reply_instructions            = (string) ($comment['reply_instructions']             ?? $commentDefaults['reply_instructions']);
             $this->comment_scope                         = (string) ($comment['scope']                          ?? $commentDefaults['scope']);
             $this->comment_max_replies_per_post_per_day  = (int) ($comment['max_ai_replies_per_post_per_day']   ?? $commentDefaults['max_ai_replies_per_post_per_day']);
+            $this->comment_max_dms_per_commenter_per_day = (int) ($comment['max_dms_per_commenter_per_day']    ?? $commentDefaults['max_dms_per_commenter_per_day']);
         } else {
             $this->hasConfig = false;
             $this->resetForm();
@@ -148,7 +150,8 @@ class AiConfig extends Component
             'timezone' => 'required|string',
             'sales_goal_preset' => 'required|in:info_only,capture_data,booking,ecommerce,custom',
             'contact_ai_reply_cap' => 'required|integer|min:' . AiConfigModel::CONTACT_CAP_MIN . '|max:' . AiConfigModel::CONTACT_CAP_MAX,
-            'comment_max_replies_per_post_per_day' => 'required|integer',
+            'comment_max_replies_per_post_per_day'  => 'required|integer',
+            'comment_max_dms_per_commenter_per_day' => 'required|integer',
         ]);
 
         // Defence-in-depth: clamp the cap server-side even if a client sends
@@ -240,6 +243,13 @@ class AiConfig extends Component
                 min(
                     AiConfigModel::COMMENT_MAX_REPLIES_PER_POST_MAX,
                     (int) $this->comment_max_replies_per_post_per_day,
+                ),
+            ),
+            'max_dms_per_commenter_per_day'    => max(
+                AiConfigModel::COMMENT_DM_MAX_PER_COMMENTER_MIN,
+                min(
+                    AiConfigModel::COMMENT_DM_MAX_PER_COMMENTER_MAX,
+                    (int) $this->comment_max_dms_per_commenter_per_day,
                 ),
             ),
         ];
@@ -465,6 +475,7 @@ class AiConfig extends Component
         $this->comment_reply_instructions            = $commentDefaults['reply_instructions'];
         $this->comment_scope                         = $commentDefaults['scope'];
         $this->comment_max_replies_per_post_per_day  = $commentDefaults['max_ai_replies_per_post_per_day'];
+        $this->comment_max_dms_per_commenter_per_day = $commentDefaults['max_dms_per_commenter_per_day'];
     }
 
     protected function defaultWorkingHours(): array
