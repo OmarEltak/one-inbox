@@ -15,12 +15,21 @@
         {{-- beforeunload warning: fires ONLY when the Livewire $dirty flag is true.
              Covers browser navigation (typing a URL, clicking a real <a href>,
              closing the tab). In-page wire:click navigations are protected by
-             wire:confirm on the sidebar + tab buttons below. --}}
+             wire:confirm on the sidebar + tab buttons below.
+
+             wire:ignore.self stops Livewire's morphdom from re-processing this
+             wrapper on every round-trip. Without it, Alpine's x-init re-fires
+             every request, stacking $watch handlers until the renderer freezes.
+             Guard flags on window ensure the effect runs at most once per tab. --}}
         <div
+            wire:ignore.self
             x-data="{}"
             x-init="
                 window.__configDirty = @js($dirty);
-                $watch('$wire.dirty', v => window.__configDirty = v);
+                if (! window.__configWatcherWired) {
+                    window.__configWatcherWired = true;
+                    $watch('$wire.dirty', v => window.__configDirty = v);
+                }
                 if (! window.__configBeforeUnloadWired) {
                     window.__configBeforeUnloadWired = true;
                     window.addEventListener('beforeunload', function (e) {
