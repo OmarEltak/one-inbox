@@ -532,13 +532,6 @@
 
                         {{-- Tab: Comments (Facebook & Instagram only) --}}
                         @if($activeTab === 'comments')
-                            {{-- Coming-soon banner: feature activates once Meta App Review
-                                 approves pages_manage_engagement + instagram_manage_comments. --}}
-                            <section class="rounded-lg border border-violet-200 bg-violet-50 p-4">
-                                <flux:heading size="sm" class="mb-1 text-violet-900">{{ __('Coming soon — save your settings now') }}</flux:heading>
-                                <flux:text size="sm" class="text-violet-900">{{ __('Comment features activate once Meta approves our Instagram & Facebook comment permissions (in App Review). Save your config here — it applies automatically the moment approval lands. Nothing you configure runs until then.') }}</flux:text>
-                            </section>
-
                             {{-- Master switch --}}
                             <div class="rounded-xl border-2 {{ $comment_enabled ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50' }} p-4">
                                 <div class="flex items-center justify-between">
