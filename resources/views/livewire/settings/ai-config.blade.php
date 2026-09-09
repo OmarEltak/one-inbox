@@ -532,6 +532,14 @@
 
                         {{-- Tab: Comments (Facebook & Instagram only) --}}
                         @if($activeTab === 'comments')
+                            {{-- Honest state banner: DM is live, public reply pending Meta.
+                                 Update this when App Review lands or Meta changes the permission
+                                 dependency for POST /{comment_id}/comments. --}}
+                            <section class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                                <flux:heading size="sm" class="mb-1 text-amber-900">{{ __('Public replies currently DM-only') }}</flux:heading>
+                                <flux:text size="sm" class="text-amber-900">{{ __('The AI sends a private DM to every commenter (this works today via the pages_messaging permission you granted). Publishing a reply under the comment itself is temporarily blocked by Meta pending our App Review approval of pages_manage_engagement. Once approved, both channels activate automatically — no re-configuration needed.') }}</flux:text>
+                            </section>
+
                             {{-- Master switch --}}
                             <div class="rounded-xl border-2 {{ $comment_enabled ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50' }} p-4">
                                 <div class="flex items-center justify-between">
