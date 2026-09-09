@@ -295,10 +295,28 @@ class ProcessIncomingMessage implements ShouldQueue
         ]);
 
         if ($isEcho) {
-            // Native-app reply by the operator counts as a human touch — pause AI on this thread
-            // so it doesn't talk over them.
-            if (method_exists($conversation, 'pauseAi') && ! $conversation->ai_paused) {
-                $conversation->pauseAi();
+            // Meta echoes ALL outbound messages back to us — including ones we sent
+            // ourselves via the Graph API (SendAiResponse, SendAiCommentReplyJob's
+            // DMs, etc.). Only NATIVE-APP echoes (Business Suite, Messenger mobile,
+            // Facebook composer) should pause AI — those represent a human taking
+            // over the thread. Our own API sends should NOT pause AI, or every
+            // AI-initiated DM would leave the conversation stuck paused (as it did
+            // with the Phase B comment→DM flow on 2026-09-08).
+            //
+            // Meta's echo payload carries `app_id` = the app that sent the message.
+            // Match it against our app to distinguish self-echo from native-app.
+            $echoAppId = $messageData['app_id'] ?? null;
+            $ourAppId = config('services.meta.app_id');
+            $ourIgAppId = config('services.meta.instagram_app_id');
+            $isSelfEcho = $echoAppId !== null && (
+                (string) $echoAppId === (string) $ourAppId
+                || (string) $echoAppId === (string) $ourIgAppId
+            );
+
+            if (! $isSelfEcho) {
+                if (method_exists($conversation, 'pauseAi') && ! $conversation->ai_paused) {
+                    $conversation->pauseAi();
+                }
             }
         } else {
             $conversation->incrementUnread();
