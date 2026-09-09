@@ -244,8 +244,10 @@ class SendAiCommentReplyJob implements ShouldQueue
         // Pull the last 5 inbound (customer-authored) messages across ANY of this
         // contact's conversations with this specific page. Direction=inbound means
         // the customer wrote it (mirrors the naming in SendAiResponse).
-        return Message::where('page_id', $comment->page_id)
-            ->whereHas('conversation', fn ($q) => $q->where('contact_id', $link->contact_id))
+        // page_id lives on the conversation, not on messages — join through it.
+        return Message::whereHas('conversation', fn ($q) => $q
+                ->where('contact_id', $link->contact_id)
+                ->where('page_id', $comment->page_id))
             ->where('direction', 'inbound')
             ->latest('id')
             ->limit(5)
