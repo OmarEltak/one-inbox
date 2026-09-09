@@ -2024,3 +2024,35 @@ Any scope added to the OAuth URL MUST also be checked in the FLfB config. Any sc
 - Remove the "Manage everything on your page" (PAGES_API) Use Case I added 2026-09-06 — may have implicitly added the deprecated scope to an app-level requirement list
 
 **Concurrent Claude session note:** Another Claude session was actively shipping WhatsApp campaigns hotfixes (PR #29, #30, #31, #32) during this window. My changes touched only `FacebookPlatform.php` and `ConnectionController.php` — no overlap. Both sessions' commits interleaved on main without conflicts.
+
+---
+
+## 2026-09-09 — Phase B production readout: A, B, C all shipped
+
+Real-usage feedback from Omar (posted comments on Brandk to test end-to-end):
+
+**A. DM content bug + expanded scope** — `f03ce55`
+- Bug: `reply_instructions` ("always reply with check your Dm") was leaking into the DM text — customer saw "check your DM!" INSIDE their DM.
+- Root cause: single Nara call generated text used for both public and DM channels. `reply_instructions` is meant for public replies only.
+- Fix: split into two independent Nara calls: `buildPublicReplyPrompt` (uses `reply_instructions`) and `buildDmPrompt` (uses conversation history for language + tone match, explicitly forbids "check your DM" phrasing).
+- Also: language cascade for DM — mirror commenter's prior conversation with the page, else detect from comment text, else fall back to `AiConfig.language`.
+- Also: raised `COMMENT_MAX_REPLIES_PER_POST_MAX` from 100 to 1000 (viral posts).
+- Also: new `max_dms_per_commenter_per_day` config (default 2, 1-10) — one chatty person on N posts should not get N DMs. Enforced via Redis counter keyed by `(page_id, commenter_id, YYYY-MM-DD)`.
+- Blade adds the DM cap input, updates reply cap label to "1-1000".
+
+**B. AI-paused-after-DM bug** — `e2a2d9a`
+- Bug: every AI-initiated DM (Phase B comment→DM, but ALSO existing SendAiResponse DMs) instantly paused AI on the conversation.
+- Root cause: `ProcessIncomingMessage` treats ALL Meta echoes (`is_echo=true`) as "native-app operator taking over" and pauses AI. Meta echoes our OWN Graph API sends back to us, so every AI send was self-triggering the pause.
+- Fix: distinguish self-echo from native-app echo via Meta's `app_id` field in the echo payload. Self-echoes (app_id matches ours) do NOT pause. Native-app echoes still pause as before.
+- Impact scope: 24 conversations paused in the last day by this bug were auto-unpaused after deploy.
+
+**C. Meta public-reply block (Phase B partial ship acknowledgement)** — `b4e100c`
+- Meta's `POST /{comment_id}/comments` endpoint currently rejects with `#200 pages_read_user_content required` — the deprecated ancestor scope. Modern replacement `pages_manage_engagement` doesn't satisfy Meta's own validator.
+- Cannot be code-fixed. Needs App Review approval for `pages_manage_engagement` at Advanced Access.
+- Interim: Comments tab now shows a truthful amber banner explaining DM is live but public replies pending App Review.
+- Draft submission ready at `docs/meta-app-review/comments-permissions-submission.md`.
+- Omar's next action: submit at developers.facebook.com/apps/1469090344742803 → App Review → Permissions and Features. Use the draft text verbatim.
+
+**Verified live-fire:**
+- Real comment payload replayed → `IngestCommentJob` → `SendAiCommentReplyJob` → 200 from `/messages` endpoint → Meta returned `message_id m_Qch3W...` → Omar confirmed receiving the DM in Messenger.
+- Second replay hit `#10900 "Activity already replied to"` — Meta's one-DM-per-comment enforcement working as designed.
