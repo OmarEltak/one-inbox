@@ -715,12 +715,29 @@
                                         <flux:input
                                             wire:model="comment_max_replies_per_post_per_day"
                                             type="number"
-                                            label="{{ __('Cap (1-100 replies/post/day)') }}"
+                                            label="{{ __('Cap (1-1000 replies/post/day)') }}"
                                             min="{{ \App\Models\AiConfig::COMMENT_MAX_REPLIES_PER_POST_MIN }}"
                                             max="{{ \App\Models\AiConfig::COMMENT_MAX_REPLIES_PER_POST_MAX }}"
                                             class="text-zinc-900"
                                         />
                                         @error('comment_max_replies_per_post_per_day') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
+                                    </div>
+                                </section>
+
+                                {{-- Per-commenter DM cap --}}
+                                <section>
+                                    <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Per-commenter daily DM cap') }}</flux:heading>
+                                    <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('The most DMs the AI will send to the SAME commenter across all your posts in one day. Meta allows only one AI-initiated DM per comment; this cap protects the same person from getting too many DMs if they comment on multiple posts. Public replies are counted separately (see above). Recommended: 2.') }}</flux:text>
+                                    <div class="max-w-xs">
+                                        <flux:input
+                                            wire:model="comment_max_dms_per_commenter_per_day"
+                                            type="number"
+                                            label="{{ __('Cap (1-10 DMs/commenter/day)') }}"
+                                            min="{{ \App\Models\AiConfig::COMMENT_DM_MAX_PER_COMMENTER_MIN }}"
+                                            max="{{ \App\Models\AiConfig::COMMENT_DM_MAX_PER_COMMENTER_MAX }}"
+                                            class="text-zinc-900"
+                                        />
+                                        @error('comment_max_dms_per_commenter_per_day') <p class="text-red-500 text-sm mt-1">{{ $message }}</p> @enderror
                                     </div>
                                 </section>
                             @endif
