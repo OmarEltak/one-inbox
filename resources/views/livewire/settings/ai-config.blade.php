@@ -56,7 +56,7 @@
                     @foreach($pages as $page)
                         <button
                             wire:click="selectPage({{ $page->id }})"
-                            wire:confirm="{{ $selectedPageId === $page->id ? '' : $unsavedConfirm }}"
+                            @if($dirty && $selectedPageId !== $page->id) wire:confirm="{{ $unsavedConfirm }}" @endif
                             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all
                                 {{ $selectedPageId === $page->id
                                     ? 'bg-white text-violet-700 border-2 border-violet-700 shadow-lg ring-4 ring-violet-200 scale-[1.02] font-bold'
@@ -141,7 +141,7 @@
                                 <button
                                     type="button"
                                     wire:click="setTab('{{ $tabKey }}')"
-                                    wire:confirm="{{ $activeTab === $tabKey ? '' : $unsavedConfirm }}"
+                                    @if($dirty && $activeTab !== $tabKey) wire:confirm="{{ $unsavedConfirm }}" @endif
                                     class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors
                                         {{ $activeTab === $tabKey
                                             ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white'
