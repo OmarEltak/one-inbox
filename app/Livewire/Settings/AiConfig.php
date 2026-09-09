@@ -54,6 +54,11 @@ class AiConfig extends Component
     // Toggle
     public bool $is_active = true;
 
+    // Dirty flag: true when the user has changed any tracked field since last save.
+    // Consumed by the Blade wire:confirm attribute on page/tab buttons to prevent
+    // silent data loss, and by the beforeunload script to warn on browser navigation.
+    public bool $dirty = false;
+
     // UI state
     public bool   $hasConfig = false;
     public string $activeTab = 'sales_goal'; // sales_goal | knowledge | behavior | handoff | advanced
@@ -86,6 +91,13 @@ class AiConfig extends Component
 
         $this->selectedPageId = $pageId;
         $config = $page->aiConfig;
+
+        // Bug fix: if the previous page had Comments tab active but this new page
+        // doesn't support comments (whatsapp / telegram / email), reset to Sales
+        // Goal so the user isn't editing a hidden tab's fields.
+        if ($this->activeTab === 'comments' && ! in_array($page->platform, ['facebook', 'instagram'], true)) {
+            $this->activeTab = 'sales_goal';
+        }
 
         if ($config) {
             $this->hasConfig = true;
@@ -285,7 +297,52 @@ class AiConfig extends Component
         );
 
         $this->hasConfig = true;
+        $this->dirty = false;
+        $this->advanceWizard($page);
         $this->dispatch('config-saved');
+    }
+
+    /**
+     * After a successful save, auto-advance to the next tab so the user is
+     * guided through the config in order: Sales Goal → Knowledge → Behavior →
+     * Handoff → Comments (only on FB/IG pages). Stays on the final tab.
+     */
+    protected function advanceWizard(\App\Models\Page $page): void
+    {
+        $order = ['sales_goal', 'knowledge', 'behavior', 'handoff'];
+        if (in_array($page->platform, ['facebook', 'instagram'], true)) {
+            $order[] = 'comments';
+        }
+        $currentIndex = array_search($this->activeTab, $order, true);
+        if ($currentIndex !== false && isset($order[$currentIndex + 1])) {
+            $this->activeTab = $order[$currentIndex + 1];
+        }
+    }
+
+    /**
+     * Livewire fires this after any prop is written from the frontend. Flip the
+     * dirty flag when the user touches a config field. Excludes navigation
+     * props (activeTab, selectedPageId, dirty itself) — those don't count.
+     */
+    public function updated(string $name): void
+    {
+        static $trackable = [
+            'business_description', 'additional_instructions', 'product_catalog', 'pricing_info', 'faq',
+            'tone', 'language', 'response_delay_min_seconds', 'response_delay_max_seconds',
+            'working_hours', 'is_24_7', 'timezone',
+            'sales_goal_preset', 'required_capture_fields', 'escalation_keywords', 'escalate_on_media',
+            'escalation_topics', 'contact_ai_reply_cap', 'is_active',
+            'comment_enabled', 'comment_reply_mode', 'comment_reply_keywords',
+            'comment_dm_mode', 'comment_dm_keywords', 'comment_reply_instructions',
+            'comment_scope', 'comment_max_replies_per_post_per_day',
+            'comment_max_dms_per_commenter_per_day',
+        ];
+        foreach ($trackable as $prop) {
+            if ($name === $prop || str_starts_with($name, $prop . '.')) {
+                $this->dirty = true;
+                return;
+            }
+        }
     }
 
     // --- Array field management ---

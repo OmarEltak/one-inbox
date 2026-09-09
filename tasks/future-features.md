@@ -74,4 +74,26 @@ For completeness, Meta gives businesses three official ways to message a user > 
 
 ---
 
+## AI-assisted AI Config setup wizard
+
+**Where:** `/settings/ai/config` — a new entry point on the Sales Goal tab (or top-of-page banner) that says "Let the AI set this up for you." Clicking it opens a chat panel.
+
+**Why it matters:** The current 5-tab config (Sales Goal, Knowledge, Behavior, Handoff, Comments) is intimidating for a new customer with no idea what "sales_goal_preset" or "reply_instructions" even means. First-time setup takes 15-30 min of typing and copy-paste from the customer's own head. AI interview + auto-fill collapses that to a 5-min conversation.
+
+**Rough shape:**
+1. Chat UI (existing `AiChat` component can be reused as scaffolding) with a "config-fill" system prompt.
+2. AI asks in the customer's language: "What's your business?" → "What products or services do you sell?" → "What's your typical price range?" → "What's your tone with customers (friendly / formal / casual)?" → "What times are you actively available?" → "Any words that mean 'human take over now'?"
+3. AI collects answers into a structured intermediate object.
+4. AI shows the customer a preview: "Here's what I'm going to fill in — okay to apply?"
+5. On confirm, the Livewire `AiConfig` component receives a `hydrateFromAi(array $filled)` call that sets all the props, marks `$dirty = true`, does NOT save.
+6. Customer lands on Sales Goal tab with fields pre-populated, can adjust, then Save Changes triggers the normal wizard flow (Save → Knowledge → Save → Behavior → …).
+
+**Cost:** one Nara conversation (10-20 turns, ~$0.01-$0.05 per session). Saves customer-support time answering "how do I fill this in?".
+
+**Prerequisites:** the wizard-flow save advance from `2026-09-09` change is already the foundation — this feature just prepends an optional intake step.
+
+**Blocked on:** nothing structural. Nice to wait until Meta App Review lands (comments) so we don't collect answers for a feature we can't deliver.
+
+---
+
 ## (add future items below this line)
