@@ -249,8 +249,8 @@ class SendAiCommentReplyJob implements ShouldQueue
             ->where('direction', 'inbound')
             ->latest('id')
             ->limit(5)
-            ->pluck('body')
-            ->filter(fn ($b) => is_string($b) && $b !== '')
+            ->pluck('content')
+            ->filter(fn ($c) => is_string($c) && $c !== '')
             ->values()
             ->all();
     }
