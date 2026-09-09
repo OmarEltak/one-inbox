@@ -42,14 +42,30 @@ class ConnectionController extends Controller
      */
     public function facebookCallback(Request $request, FacebookPlatform $facebook)
     {
-        if ($request->has('error')) {
+        // Meta uses TWO different param name pairs depending on failure type:
+        //   - User cancel / permission decline: ?error=access_denied&error_reason=...
+        //   - Scope validation failure:         ?error_code=100&error_message=...
+        // Check both so we never fall through to the OAuth exchange with a null code.
+        if ($request->has('error') || $request->has('error_code')) {
+            $metaMessage = $request->input('error_message') ?? $request->input('error_description');
             Log::warning('Facebook OAuth error', [
-                'error' => $request->input('error'),
-                'reason' => $request->input('error_reason'),
+                'error'         => $request->input('error'),
+                'error_code'    => $request->input('error_code'),
+                'error_reason'  => $request->input('error_reason'),
+                'error_message' => $metaMessage,
+                'query'         => $request->query(),
             ]);
 
             return redirect()->route('connections.index')
-                ->with('error', 'Facebook connection was cancelled or failed.');
+                ->with('error', 'Facebook connection failed: ' . ($metaMessage ?: 'user cancelled or permissions denied'));
+        }
+
+        if (! $request->filled('code')) {
+            Log::warning('Facebook OAuth callback missing code (no error param either)', [
+                'query' => $request->query(),
+            ]);
+            return redirect()->route('connections.index')
+                ->with('error', 'Facebook connection failed: Meta returned an empty response. Please try again.');
         }
 
         try {

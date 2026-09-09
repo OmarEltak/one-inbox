@@ -12,6 +12,33 @@
             </flux:button>
         </div>
     @else
+        {{-- beforeunload warning: fires ONLY when the Livewire $dirty flag is true.
+             Covers browser navigation (typing a URL, clicking a real <a href>,
+             closing the tab). In-page wire:click navigations are protected by
+             wire:confirm on the sidebar + tab buttons below. --}}
+        <div
+            x-data="{}"
+            x-init="
+                window.__configDirty = @js($dirty);
+                $watch('$wire.dirty', v => window.__configDirty = v);
+                if (! window.__configBeforeUnloadWired) {
+                    window.__configBeforeUnloadWired = true;
+                    window.addEventListener('beforeunload', function (e) {
+                        if (window.__configDirty) {
+                            e.preventDefault();
+                            e.returnValue = '';
+                        }
+                    });
+                }
+            "
+        ></div>
+
+        @php
+            // Dynamic confirm message — empty string means Livewire skips the
+            // prompt entirely (clean state, no interruption).
+            $unsavedConfirm = $dirty ? __('You have unsaved changes. Discard them and switch?') : '';
+        @endphp
+
         <div class="grid gap-6 md:[grid-template-columns:16rem_1fr] grid-cols-1 min-w-0">
             {{-- Left: Page Selector --}}
             <div>
@@ -20,10 +47,11 @@
                     @foreach($pages as $page)
                         <button
                             wire:click="selectPage({{ $page->id }})"
-                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors
+                            wire:confirm="{{ $selectedPageId === $page->id ? '' : $unsavedConfirm }}"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all
                                 {{ $selectedPageId === $page->id
-                                    ? 'bg-violet-700 text-white ring-2 ring-violet-300'
-                                    : 'bg-violet-600 text-white hover:bg-violet-700' }}"
+                                    ? 'bg-white text-violet-700 border-2 border-violet-700 shadow-lg ring-4 ring-violet-200 scale-[1.02] font-bold'
+                                    : 'bg-violet-600 text-white border-2 border-transparent hover:bg-violet-700 hover:border-violet-400' }}"
                         >
                             <flux:icon
                                 :name="match($page->platform) {
@@ -104,6 +132,7 @@
                                 <button
                                     type="button"
                                     wire:click="setTab('{{ $tabKey }}')"
+                                    wire:confirm="{{ $activeTab === $tabKey ? '' : $unsavedConfirm }}"
                                     class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors
                                         {{ $activeTab === $tabKey
                                             ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white'
