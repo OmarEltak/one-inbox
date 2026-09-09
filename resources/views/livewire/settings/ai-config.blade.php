@@ -12,24 +12,26 @@
             </flux:button>
         </div>
     @else
-        {{-- beforeunload warning: fires ONLY when the Livewire $dirty flag is true.
-             Covers browser navigation (typing a URL, clicking a real <a href>,
-             closing the tab). In-page wire:click navigations are protected by
-             wire:confirm on the sidebar + tab buttons below.
+        {{-- Client-side dirty tracking via Alpine. Livewire's wire:model uses
+             deferred sync by default in v3 (server-side $dirty only flips on the
+             NEXT wire:click round-trip), which is too late to guard the click
+             that discards changes. Alpine flips instantly on any input event
+             and provides the guard client-side. Server-side $dirty on the
+             component is still updated as a fallback (via updated() hook) but
+             no longer load-bearing for this UX.
 
-             wire:ignore.self stops Livewire's morphdom from re-processing this
-             wrapper on every round-trip. Without it, Alpine's x-init re-fires
-             every request, stacking $watch handlers until the renderer freezes.
-             Guard flags on window ensure the effect runs at most once per tab. --}}
+             Guards:
+               - beforeunload for browser-level navigation (URL change, close tab, etc.)
+               - @click.capture on every page + tab button for in-page navigation
+               - resets to clean when Livewire dispatches 'config-saved' (after save)
+        --}}
+        @php
+            $unsavedConfirm = __('You have unsaved changes. Discard them and switch?');
+        @endphp
+
         <div
-            wire:ignore.self
-            x-data="{}"
+            x-data="{ dirty: false }"
             x-init="
-                window.__configDirty = @js($dirty);
-                if (! window.__configWatcherWired) {
-                    window.__configWatcherWired = true;
-                    $watch('$wire.dirty', v => window.__configDirty = v);
-                }
                 if (! window.__configBeforeUnloadWired) {
                     window.__configBeforeUnloadWired = true;
                     window.addEventListener('beforeunload', function (e) {
@@ -39,16 +41,13 @@
                         }
                     });
                 }
+                $watch('dirty', v => window.__configDirty = v);
             "
-        ></div>
-
-        @php
-            // Dynamic confirm message — empty string means Livewire skips the
-            // prompt entirely (clean state, no interruption).
-            $unsavedConfirm = $dirty ? __('You have unsaved changes. Discard them and switch?') : '';
-        @endphp
-
-        <div class="grid gap-6 md:[grid-template-columns:16rem_1fr] grid-cols-1 min-w-0">
+            @input.capture="dirty = true"
+            @change.capture="dirty = true"
+            @config-saved.window="dirty = false; window.__configDirty = false"
+            class="grid gap-6 md:[grid-template-columns:16rem_1fr] grid-cols-1 min-w-0"
+        >
             {{-- Left: Page Selector --}}
             <div>
                 <flux:heading size="sm" class="mb-3">{{ __('Pages') }}</flux:heading>
@@ -56,7 +55,7 @@
                     @foreach($pages as $page)
                         <button
                             wire:click="selectPage({{ $page->id }})"
-                            @if($dirty && $selectedPageId !== $page->id) wire:confirm="{{ $unsavedConfirm }}" @endif
+                            @click.capture="if ({{ $selectedPageId === $page->id ? 'false' : 'true' }} && dirty && ! confirm(@js($unsavedConfirm))) { $event.stopImmediatePropagation(); }"
                             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all
                                 {{ $selectedPageId === $page->id
                                     ? 'bg-white text-violet-700 border-2 border-violet-700 shadow-lg ring-4 ring-violet-200 scale-[1.02] font-bold'
@@ -141,7 +140,7 @@
                                 <button
                                     type="button"
                                     wire:click="setTab('{{ $tabKey }}')"
-                                    @if($dirty && $activeTab !== $tabKey) wire:confirm="{{ $unsavedConfirm }}" @endif
+                                    @click.capture="if ({{ $activeTab === $tabKey ? 'false' : 'true' }} && dirty && ! confirm(@js($unsavedConfirm))) { $event.stopImmediatePropagation(); }"
                                     class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors
                                         {{ $activeTab === $tabKey
                                             ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-white'
