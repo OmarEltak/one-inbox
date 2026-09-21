@@ -567,8 +567,11 @@ class Index extends Component
      * broken for real customers until App Review lands Advanced Access on every
      * required permission. Super-admins are exempt so they can still smoke-test
      * OAuth end-to-end from their own account without flipping the env var.
+     *
+     * Not decorated with #[Computed] because it's consumed exclusively via
+     * view-data (see render() below), which is how the Blade file already
+     * receives $metaVerified per the pin-#1 comment on that variable.
      */
-    #[Computed]
     public function usesConciergeFlow(): bool
     {
         if (auth()->user()?->is_super_admin) {
@@ -588,7 +591,6 @@ class Index extends Component
      * timestamp difference. Runs once per render, not memoised across requests
      * because the volume is tiny at current scale.
      */
-    #[Computed]
     public function medianConciergeTurnaroundMinutes(): ?int
     {
         $rows = OnboardingRequest::query()
@@ -636,8 +638,8 @@ class Index extends Component
 
         return view('livewire.connections.index', [
             'metaVerified'      => (bool) config('services.meta.app_verified') || auth()->user()?->is_super_admin,
-            'usesConciergeFlow' => $this->usesConciergeFlow,
-            'conciergeMedianMinutes' => $this->medianConciergeTurnaroundMinutes,
+            'usesConciergeFlow' => $this->usesConciergeFlow(),
+            'conciergeMedianMinutes' => $this->medianConciergeTurnaroundMinutes(),
             'facebookPages'     => $pages->where('platform', 'facebook'),
             'facebookAccounts'  => $accts->where('platform', 'facebook'),
             'fbRejected'        => $rejects['facebook'] ?? null,
