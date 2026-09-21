@@ -49,6 +49,12 @@ class CreateNewUser implements CreatesNewUsers
                 'payload' => ['method' => 'email'],
             ]);
 
+            // Phase A onboarding: send new signups to the "Meet Your AI" playground
+            // instead of straight to /dashboard. Fortify honors the `url.intended`
+            // session key when its default RegisterResponse builds the redirect.
+            // See tasks/onboarding-activation-plan.md → Phase A → Route flow.
+            Session::put('url.intended', route('onboarding.meet-your-ai'));
+
             return $user;
         });
     }
