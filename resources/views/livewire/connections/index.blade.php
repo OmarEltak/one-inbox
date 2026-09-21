@@ -83,22 +83,68 @@
     </div>
     @endif
 
-    {{-- $metaVerified is passed in from Connections\Index::render() (view data) — see the note there. --}}
-    @unless($metaVerified)
-        <div class="mb-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-            <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM9.401 19.5h5.198a2.25 2.25 0 002.026-3.247L13.426 4.252a2.25 2.25 0 00-3.852 0L4.974 16.253A2.25 2.25 0 007 19.5h2.401z" /></svg>
-                <div class="text-sm">
-                    <p class="font-medium text-amber-800">{{ __('Facebook & Instagram are on managed onboarding') }}</p>
-                    <p class="text-amber-700 mt-1">
-                        {{ __('While our Meta app is being reviewed, we connect FB/IG pages on your behalf. Add') }}
-                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-amber-900">{{ __('our account') }}</a>
-                        {{ __('as an admin to your page (with basic control), then click "Request connection" below. Our admin will accept your Page invitation on Facebook and finish the setup — usually within a few hours during business hours (9am–9pm Cairo). Telegram, Email, Slack and Discord are self-serve as usual.') }}
+    {{--
+        Concierge hero card (Facebook / Instagram).
+
+        $usesConciergeFlow is passed in from Connections\Index::render() and is
+        config-driven per CLAUDE.md pin #1 — do NOT default it to false here to
+        "restore the OAuth button" for regular customers. Direct OAuth is
+        silently broken until Meta App Review lands Advanced Access on every
+        required permission. Super-admins bypass this flag inside the computed
+        property so they can still smoke-test OAuth end-to-end.
+    --}}
+    @if($usesConciergeFlow)
+        <div class="mb-2 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 p-5 shadow-sm"
+             x-data="{ showDetails: false }">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 size-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
+                    <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-white/90">
+                        {{ __('We connect Facebook & Instagram for you — usually within :n min.', ['n' => $conciergeMedianMinutes ?? 10]) }}
                     </p>
+                    <p class="mt-1 text-sm text-white/70 leading-relaxed">
+                        {{ __('Our team personally verifies every page before it goes live. It\'s how we keep the platform clean for early customers — and it\'s free with any plan.') }}
+                        {{ __('Send us your page details and we\'ll take it from there.') }}
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                        <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" icon="paper-airplane">
+                            {{ __('Request Facebook connection') }}
+                        </flux:button>
+                        <flux:button wire:click="openRequestForm('instagram')" variant="ghost" size="sm">
+                            {{ __('Or request Instagram') }}
+                        </flux:button>
+                        <button type="button" @click="showDetails = ! showDetails"
+                                class="text-xs font-medium text-white/60 hover:text-white/90 underline underline-offset-2">
+                            <span x-show="!showDetails">{{ __('How long does it take?') }}</span>
+                            <span x-show="showDetails" x-cloak>{{ __('Hide details') }}</span>
+                        </button>
+                    </div>
+                    <div x-show="showDetails" x-cloak x-transition
+                         class="mt-3 rounded-lg bg-white/5 border border-white/10 p-3 text-xs text-white/70 leading-relaxed space-y-2">
+                        @if($conciergeMedianMinutes !== null)
+                            <p>
+                                <strong class="text-white/90">{{ __('Median turnaround so far:') }}</strong>
+                                {{ trans_choice('{1} :n minute|[2,*] :n minutes', $conciergeMedianMinutes, ['n' => $conciergeMedianMinutes]) }}.
+                                {{ __('Business hours are 9am–9pm Cairo; outside that window we finish the next morning.') }}
+                            </p>
+                        @else
+                            <p>{{ __('Usually under 10 minutes during business hours (9am–9pm Cairo). Outside that window we finish the next morning — we\'ll email you the moment your page is live.') }}</p>
+                        @endif
+                        <p>
+                            {{ __('Add') }}
+                            <a href="https://www.facebook.com/omarEltak88/" target="_blank"
+                               class="underline font-medium text-white hover:text-white/80">{{ __('our Facebook account') }}</a>
+                            {{ __('as an admin on your page (Basic control is enough), then submit the form. That\'s all we need to finish the handoff on our side.') }}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-    @endunless
+    @endif
 
     {{-- Available Platforms --}}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -166,6 +212,13 @@
                     <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="primary" size="sm" class="w-full">
                         {{ $facebookAccounts->isNotEmpty() ? __('Add Another Account') : __('Connect with Facebook') }}
                     </flux:button>
+                    {{-- Secondary path even after App Review lands: some customers can't OAuth from
+                         a shared work laptop or want us to double-check permissions. Keep the
+                         concierge escape hatch as a small link, not a button. --}}
+                    <button type="button" wire:click="openRequestForm('facebook')"
+                            class="mt-2 w-full text-center text-xs text-white/50 hover:text-white/80 underline underline-offset-2 cursor-pointer">
+                        {{ __('Or request concierge connection') }}
+                    </button>
                 @elseif(isset($this->openOnboardingByPlatform['facebook']))
                     @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
                     <div class="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs">
@@ -248,6 +301,11 @@
                     <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? __('Add Direct (IG Login)') : __('Connect Direct (IG Login)') }}
                     </flux:button>
+                    {{-- Same concierge escape hatch as Facebook — see rationale above. --}}
+                    <button type="button" wire:click="openRequestForm('instagram')"
+                            class="w-full text-center text-xs text-white/50 hover:text-white/80 underline underline-offset-2 cursor-pointer">
+                        {{ __('Or request concierge connection') }}
+                    </button>
                 @elseif(isset($this->openOnboardingByPlatform['instagram']))
                     @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
                     <div class="rounded-lg bg-purple-50 border border-purple-200 p-3 text-xs">
