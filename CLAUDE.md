@@ -29,7 +29,7 @@
 
 6. **Flux 2.x modals use `Flux::modal('name')->show()`, NOT `$this->dispatch('open-modal', name: 'X')`.** The dispatch silently no-ops. This bit us on the onboarding request modal. See ARCHITECTURE §14.
 
-7. **NaraRouter failover chain resets to sonnet every 6h from FIRST fallback, not per success.** `markActiveModel()` preserves `reset_at` — do NOT refresh it on every successful call, or we'd never return to sonnet. See ARCHITECTURE §4.
+7. **NaraRouter has TWO chains (text + vision), each with its own 5h reset window from FIRST fallback.** `markActiveModel($kind, ...)` preserves `reset_at` per chain — do NOT refresh it on every successful call, or the chain never returns to its head. Cache keys are `nararouter:failover_state:text` and `:vision` — do NOT collapse them into one shared key (text success would poison vision's start pointer). Both chains exhausted → 30-min global cooldown at `nararouter:cooldown_until` that short-circuits future calls in µs; `SendAiResponse` reads this and releases the job with delay + jitter (bounded by `$tries = 2`). See ARCHITECTURE §4 and skills `nararouter-ops` + `nararouter-two-chain`.
 
 8. **`Team::hasAnyConnection()` checks `is_active` pages**, not `ConnectedAccount` rows. Some platforms (WhatsApp QR, Telegram, Email) don't create a `ConnectedAccount`. See ARCHITECTURE §15.
 

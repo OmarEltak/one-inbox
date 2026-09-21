@@ -17,6 +17,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -311,15 +312,39 @@ class SendAiResponse implements ShouldQueue
             broadcast(new AiLimitReached($team->id));
             return;
         } catch (AiAllProvidersUnavailable $e) {
-            // Every model in the failover chain returned 5xx. This is a
-            // provider-side outage — the customer's message stays in the
-            // inbox unanswered, and the operator gets a banner saying
-            // "AI temporarily unavailable, please contact us". We pause on
-            // a SHORT window (15 min) because outages usually recover fast;
-            // when the window expires the AI resumes automatically.
-            Log::error("AI all providers unavailable for team {$team->id}", ['error' => $e->getMessage()]);
-            $team->markAiUpstreamPaused(new \DateInterval('PT15M'), 'outage');
-            broadcast(new AiLimitReached($team->id));
+            // Both NaraRouter chains × keys returned 5xx OR the global cooldown
+            // is currently active. Two-part response:
+            //   (a) release-with-delay the job so it retries when cooldown ends
+            //       — bounded by $tries=2 so a persistent outage doesn't queue
+            //       up forever. The existing "human replied since trigger" gate
+            //       at the top of handle() naturally skips if a moderator took
+            //       over during the wait.
+            //   (b) on FIRST attempt only, also stamp the team-wide
+            //       markAiUpstreamPaused(15m) so the customer-facing banner
+            //       fires. Don't re-stamp on requeue attempts (that would keep
+            //       extending the banner window every 30 min).
+            Log::error("AI all providers unavailable for team {$team->id}", [
+                'error'    => $e->getMessage(),
+                'attempts' => $this->attempts(),
+            ]);
+
+            if ($this->attempts() === 1) {
+                $team->markAiUpstreamPaused(new \DateInterval('PT15M'), 'outage');
+                broadcast(new AiLimitReached($team->id));
+            }
+
+            $cooldownUntil = (int) Cache::get('nararouter:cooldown_until', 0);
+            if ($cooldownUntil > time() && $this->attempts() < $this->tries) {
+                // Release for the remaining cooldown + a short random jitter to
+                // avoid all queued jobs waking up at exactly the same second.
+                $delay = ($cooldownUntil - time()) + random_int(10, 60);
+                $this->release($delay);
+                return;
+            }
+
+            // No cooldown set (shouldn't happen — dispatch() sets it before
+            // throwing) or already exhausted our retry budget. Give up
+            // silently; Laravel moves the job to failed_jobs after $tries.
             return;
         } catch (\Throwable $e) {
             Log::error("AI response failed for conversation {$this->conversationId}", [

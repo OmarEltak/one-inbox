@@ -98,28 +98,37 @@ return [
         'model'    => env('OLLAMA_MODEL', 'qwen2.5:7b'),
     ],
 
-    // NaraRouter — OpenAI-compatible chat completions router. Nara's Free plan
-    // gives access to a curated model set with per-model quota weights (0.05x
-    // ... 3x). Chain order: best available quality → mistral-large as the
-    // reliable final safety net (verified to never disconnect from Nara).
+    // NaraRouter — OpenAI-compatible chat completions router. Two independent
+    // model chains (TEXT + VISION) each with per-chain key rotation and
+    // per-chain reset window. Cross-chain fallback: text-exhausted → vision
+    // chain (with same key rotation); vision-exhausted → text chain (image
+    // dropped, system prompt annotated). Both chains exhausted → global
+    // 30-minute cooldown that short-circuits future calls in µs so a sustained
+    // outage doesn't hammer the workers.
     //
     // Multi-key: NARAROUTER_API_KEY is primary, NARAROUTER_API_KEY_SECONDARY
-    // is optional. When primary hits 401/402/429 (auth/quota/rate limit) we
-    // rotate to secondary for the SAME model attempt. Both exhausted for one
-    // model → cascade to next model, restart key rotation. Both exhausted for
-    // every model in the chain → email alert to NARAROUTER_ALERT_EMAIL.
+    // is optional. Within a chain: 401/402/403/429 → rotate to next key on
+    // same model; 404/5xx/timeout → cascade to next model, restart key rotation.
+    // Full chain × keys exhausted → try secondary chain. Both chains exhausted
+    // → email alert + set global cooldown.
     'nararouter' => [
-        'api_key'           => env('NARAROUTER_API_KEY'),                                          // primary (BC)
-        'api_key_secondary' => env('NARAROUTER_API_KEY_SECONDARY'),                                // optional 2nd account
-        'base_url'          => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
-        'model'             => env('NARAROUTER_MODEL', 'agnes-2.5-flash'),
-        'scoring_model'     => env('NARAROUTER_SCORING_MODEL', 'ox-alpha-bynara'),                 // 0.05x weight — near-zero quota drain for background scoring/analysis
-        'fallback_models'   => env(
-            'NARAROUTER_FALLBACK_MODELS',
-            'agnes-2.5-flash,agnes-2.0-flash,nemotron-3-ultra,qwen-3.8-max-free,deepseek-v4-flash,mistral-large'
+        'api_key'                 => env('NARAROUTER_API_KEY'),                                    // primary key (Nara account 1)
+        'api_key_secondary'       => env('NARAROUTER_API_KEY_SECONDARY'),                          // optional 2nd account
+        'base_url'                => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
+        'model'                   => env('NARAROUTER_MODEL', 'nemotron-3-ultra-free'),             // text-chain primary (used as the "hint" model)
+        'scoring_model'           => env('NARAROUTER_SCORING_MODEL', 'nemotron-3-ultra-free'),     // background scoring — cheapest reliable free model
+        'text_models'             => env(
+            'NARAROUTER_TEXT_MODELS',
+            'nemotron-3-ultra-free,nemotron-3-super-free,nemotron-3.5-lightning-free,agnes-2.5-flash'
         ),
-        'reset_hours'       => (int) env('NARAROUTER_RESET_HOURS', 5),                             // return to head-of-chain every N hours from FIRST fallback
-        'alert_email'       => env('NARAROUTER_ALERT_EMAIL', 'omareltak7@gmail.com'),              // notified when every (model × key) attempt failed
+        'vision_models'           => env(
+            'NARAROUTER_VISION_MODELS',
+            'agnes-2.5-flash,nex-n2.5-pro,ling-3.0-flash-vl-free'
+        ),
+        'fallback_models'         => env('NARAROUTER_FALLBACK_MODELS'),                            // DEPRECATED — kept as read-only BC fallback for text_models
+        'reset_hours'             => (int) env('NARAROUTER_RESET_HOURS', 5),                       // return to head-of-chain every N hours from FIRST fallback
+        'alert_email'             => env('NARAROUTER_ALERT_EMAIL', 'omareltak7@gmail.com'),        // notified when every (chain × key) attempt failed
+        'exhaustion_cooldown_min' => (int) env('NARAROUTER_EXHAUSTION_COOLDOWN_MIN', 30),          // global cooldown after both chains × both keys exhausted
     ],
 
     /*

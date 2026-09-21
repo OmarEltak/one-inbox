@@ -125,50 +125,81 @@ Plus one **de facto** method not on the interface but required in practice: `cha
 
 ---
 
-## 4. NaraRouter Failover Chain + 6h Reset Window
+## 4. NaraRouter Two-Chain Failover + 5h Reset + 30-min Global Cooldown (updated 2026-09-21)
 
-### The chain
+### The two chains
+NaraRouter runs **two independent model chains** (text + vision), each with its own reset window, key rotation, and cached active-model pointer. Message-kind detection at dispatch time decides which chain runs first; the other chain is the cross-fallback.
+
 Env-configurable, comma-separated:
 ```
-NARAROUTER_FALLBACK_MODELS=claude-sonnet-4.5,mistral-medium-3-5,mistral-large,claude-haiku-4.5
+NARAROUTER_TEXT_MODELS=nemotron-3-ultra-free,nemotron-3-super-free,nemotron-3.5-lightning-free,agnes-2.5-flash
+NARAROUTER_VISION_MODELS=agnes-2.5-flash,nex-n2.5-pro,ling-3.0-flash-vl-free
 ```
-Default in `config/services.php`. Names must **exactly** match NaraRouter's aliases — verify via `GET /v1/models` before adjusting.
+
+Names must **exactly** match Nara's aliases (probe `GET /v1/models` before adjusting — the runbook has the command). The legacy `NARAROUTER_FALLBACK_MODELS` is still read as a BC fallback for `text_models` when the new env var is unset.
 
 ### The mechanism
-`NaraRouterProvider::callChat` doesn't use `$this->model` directly. It calls `currentModel()`, which reads from `Cache::get('nararouter:failover_state')` and defaults to the head of the chain (sonnet).
+`NaraRouterProvider::generateResponse` inspects the incoming `Message` via `detectMessageKind()`:
+- `content_type != 'text'` OR `media_url`/`media_type` present → **vision** chain
+- otherwise → **text** chain
 
-On each request:
-1. Try `currentModel()`
-2. On HTTP 2xx: `markActiveModel($tryModel)` — cache the winning model, **preserving the reset_at timestamp**
-3. On HTTP 429: throw `AiQuotaExhausted` (account-level block — no other model will help)
-4. On HTTP 400/401/403: return `''` (client-side; no model swap will help)
-5. On HTTP 404 or 5xx: cascade to next model in chain
-6. If entire chain fails: throw `AiAllProvidersUnavailable`
+Then `dispatch($kind, ...)` runs the following:
 
-### The 6h reset window
-The cache key stores `['model' => ..., 'reset_at' => timestamp]`. Successful calls **do NOT extend `reset_at`** — only the first fallback event opens the window. This ensures we always return to sonnet at most 6h after we first fell back, regardless of how successful the fallback was.
+1. **Global cooldown gate.** If `Cache::get('nararouter:cooldown_until') > time()`, throw `AiAllProvidersUnavailable` immediately (µs, zero HTTP). `SendAiResponse` reads the same key to compute `$this->release($secondsRemaining + jitter)`.
+2. **Primary chain (kind).** Iterate `runChain($kind, ...)`:
+   - Start at `currentModel($kind)` (cached last-successful), fall through the chain to the end
+   - For each model, iterate keys starting at `currentKeyIndex($kind)`
+   - 200 → `markActiveModel($kind, ...)` + `markActiveKey($kind, ...)` + return reply
+   - 400 → return `''` (payload bug, retrying makes it worse)
+   - 401/402/403/429 → next key, same model
+   - 404/5xx/timeout → next model, restart key rotation
+   - Full chain exhausted → return `['status' => 'exhausted', ...]`
+3. **Secondary chain (other kind).** If primary exhausted, run the other chain with the same iteration logic. Vision→text cross-fallback adds a system-prompt note so the text model politely asks the customer to describe the image.
+4. **Both exhausted.** Set `nararouter:cooldown_until = now + 30min`, send rate-limited alert email (1/hour), throw `AiAllProvidersUnavailable`.
 
-`markActiveModel()` preserves the existing `reset_at` if present, only opening a fresh 6h window if none exists.
+### The 5h reset window (per chain)
+Each chain's cache key stores `['model' => ..., 'reset_at' => timestamp]`. Successful calls **do NOT extend `reset_at`** — only the first fallback event opens the window. This ensures each chain returns to its head at most 5h after we first fell back on that chain, regardless of how successful the fallback was.
+
+`markActiveModel()` preserves the existing `reset_at` if present, only opening a fresh 5h window if none exists. Same rule for `markActiveKey()`.
+
+**Cache keys (per chain, do NOT share):**
+- `nararouter:failover_state:text` — text chain active model + reset_at
+- `nararouter:failover_state:vision` — vision chain active model + reset_at
+- `nararouter:active_key_state:text` — text chain active key index + reset_at
+- `nararouter:active_key_state:vision` — vision chain active key index + reset_at
+- `nararouter:cooldown_until` — global cooldown Unix timestamp (single key, both chains share)
+- `nararouter:alert_sent:{hourBucket}` — email rate-limit lock
+
+### The 30-min global cooldown
+When both chains × both keys are exhausted, we set `cooldown_until = now + NARAROUTER_EXHAUSTION_COOLDOWN_MIN`. Reasons:
+- **Server load protection.** During a sustained Nara outage, every queued message would otherwise trigger 15-30s of pointless curl cascade. The µs cache check short-circuits that.
+- **`SendAiResponse` release-with-delay.** The job's catch block reads `cooldown_until`, computes remaining seconds + jitter, and `$this->release($delay)`. Bounded by `$tries = 2` — a persistent outage causes at most one requeue, then Laravel moves the job to `failed_jobs`.
+- **Existing "human replied since trigger" gate at line 130** of `SendAiResponse::handle()` naturally skips the AI reply if a moderator intervened during the wait. No manual cancellation bookkeeping needed.
 
 ### Role-alternation invariant (load-bearing)
-Anthropic's Messages API — which NaraRouter proxies via OpenAI-compat — requires `user` and `assistant` turns to **strictly alternate** in the message list. Two consecutive `assistant` turns (or two consecutive `user` turns) return an HTTP 400 with body `"The model rejected this request … a parameter is invalid."` Per rule (4) above we do NOT cascade on 400, so this violation cascades to a hard failure across the whole chain and the user sees "temporarily unavailable (API error)."
+Anthropic's Messages API — which NaraRouter proxies via OpenAI-compat — requires `user` and `assistant` turns to **strictly alternate**. Two consecutive `assistant` turns (or two consecutive `user` turns) return HTTP 400. Per the 400-rule above we do NOT cascade on 400, so violation cascades to a hard failure and the customer sees "temporarily unavailable (API error)."
 
 Two real code paths violate this without a guard:
-1. `AiChat::confirmAction()` appends a second `assistant` "Done: …" turn immediately after the AI's response turn — breaking alternation on the very next admin message.
-2. On the customer path, any conversation where two outbound messages (AI + human agent, or two AI in a row) or two inbound messages land back-to-back produces the same violation.
+1. `AiChat::confirmAction()` appends a second `assistant` "Done: …" turn immediately after the AI's response turn.
+2. On the customer path, any conversation where two outbound messages (AI + human agent, or two AI in a row) or two inbound messages land back-to-back.
 
-**`NaraRouterProvider::coalesceRoles()` is the single choke-point guard.** `callChat` calls it before assembling the outgoing payload, so all four call sites (`generateResponse`, `scoreMessage`, `generateText`, `chatWithAdmin`) are covered. It merges consecutive same-role turns with `\n\n`, drops empty content, and normalizes the legacy `model` role (Gemini heritage) to `assistant`.
+**`NaraRouterProvider::coalesceRoles()` is the single choke-point guard.** `dispatch()` calls it before assembling the outgoing payload, so all call sites (`generateResponse`, `scoreMessage`, `generateText`, `chatWithAdmin`, `analyzeConversation`) are covered. It merges consecutive same-role turns with `\n\n`, drops empty content, and normalizes the legacy `model` role (Gemini heritage) to `assistant`.
 
 ### Do NOT
-- Change `markActiveModel()` to extend `reset_at` on every success — this would break the reset-to-sonnet-every-6h behavior.
-- Add "retry sonnet first every N minutes" logic. Cascade is one-shot per request; probing wastes latency.
-- Cascade on 400/401/403 — those are client-side issues that will fail identically on every model.
-- Remove or bypass `coalesceRoles()` in `callChat`, or "simplify" it back to a direct role-mapping loop. That reintroduces the strict-alternation 400 (see the section above). Unit tests in `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php` pin the invariant.
+- Share cache keys between chains. Suffix them (`:text` / `:vision`) so text success doesn't poison vision's starting point.
+- Change `markActiveModel()` to extend `reset_at` on every success — breaks the return-to-head-of-chain reset behavior.
+- Set `NARAROUTER_EXHAUSTION_COOLDOWN_MIN` below 1 or above 240 (4h). Low values defeat the load protection; high values delay recovery long after Nara is back.
+- Cascade on 400/401/403 — those are auth/payload issues that fail identically on every model.
+- Remove `coalesceRoles()` or "simplify" it back to a direct role-mapping loop. Unit tests in `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php` + `NaraRouterTwoChainTest.php` pin the invariants.
+- Queue the exhaustion alert email — the queue may be part of the outage. `Mail::raw()` is synchronous on purpose.
 
 ### Files
 - `app/Services/Ai/NaraRouterProvider.php`
-- `app/Exceptions/AiQuotaExhausted.php`
+- `app/Jobs/SendAiResponse.php` (catch block reads cooldown, releases with delay)
 - `app/Exceptions/AiAllProvidersUnavailable.php`
+- `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php`
+- `tests/Unit/Services/Ai/NaraRouterTwoChainTest.php`
+- Skills: `.claude/skills/nararouter-ops/`, `.claude/skills/nararouter-two-chain/`, `.claude/skills/update-nararouter-models/`
 
 ---
 
