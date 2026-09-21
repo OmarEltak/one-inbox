@@ -1,5 +1,8 @@
 phone,name
-+201099887766,Contact One
-+201234567890,Contact Two
-+971501234567,Contact Three
-+966555555555,Contact Four
++201099887766,Ali (Egypt, E.164 — always safe)
++20 10 9988 7767,Sara (Egypt, spaces ok)
++20-10-9988-7768,Hassan (Egypt, dashes ok)
+01099887769,Layla (Egypt, local — needs default country)
++971501234567,Fatima (UAE)
++966555555555,Khalid (Saudi Arabia)
++441234567890,James (United Kingdom)
