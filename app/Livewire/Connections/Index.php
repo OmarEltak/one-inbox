@@ -558,6 +558,66 @@ class Index extends Component
         Flux::modal('onboarding-request')->close();
     }
 
+    /**
+     * True when the customer-facing FB/IG flow should be routed through the
+     * concierge (managed onboarding) path rather than direct OAuth.
+     *
+     * Bound to config('services.meta.app_verified') per CLAUDE.md pin #1 — Meta
+     * rejects unverified apps at the OAuth callback, so direct OAuth is silently
+     * broken for real customers until App Review lands Advanced Access on every
+     * required permission. Super-admins are exempt so they can still smoke-test
+     * OAuth end-to-end from their own account without flipping the env var.
+     */
+    #[Computed]
+    public function usesConciergeFlow(): bool
+    {
+        if (auth()->user()?->is_super_admin) {
+            return false;
+        }
+
+        return ! (bool) config('services.meta.app_verified');
+    }
+
+    /**
+     * Median turnaround (in whole minutes) across every OnboardingRequest we've
+     * ever COMPLETED — used to display an honest "usually within N minutes"
+     * signal on the concierge hero card. Returns null when there are zero
+     * completed requests so the view can fall back to generic copy.
+     *
+     * Cheap: single query, no eager loads, capped to the completed-at
+     * timestamp difference. Runs once per render, not memoised across requests
+     * because the volume is tiny at current scale.
+     */
+    #[Computed]
+    public function medianConciergeTurnaroundMinutes(): ?int
+    {
+        $rows = OnboardingRequest::query()
+            ->where('status', OnboardingRequest::STATUS_COMPLETED)
+            ->whereNotNull('completed_at')
+            ->get(['created_at', 'completed_at']);
+
+        if ($rows->isEmpty()) {
+            return null;
+        }
+
+        $durations = $rows
+            ->map(fn ($row) => max(0, $row->completed_at->diffInSeconds($row->created_at)))
+            ->sort()
+            ->values();
+
+        $count = $durations->count();
+        $mid   = intdiv($count, 2);
+
+        $medianSeconds = $count % 2 === 1
+            ? $durations[$mid]
+            : (int) round(($durations[$mid - 1] + $durations[$mid]) / 2);
+
+        // Round to the nearest whole minute, but never report "0 min" —
+        // even a lightning-fast handoff realistically takes at least a minute
+        // of human attention, so floor to 1 to keep the copy honest.
+        return max(1, (int) round($medianSeconds / 60));
+    }
+
     public function render()
     {
         // metaVerified is a config-driven flag (NOT a Livewire property — see CLAUDE.md §1).
@@ -576,6 +636,8 @@ class Index extends Component
 
         return view('livewire.connections.index', [
             'metaVerified'      => (bool) config('services.meta.app_verified') || auth()->user()?->is_super_admin,
+            'usesConciergeFlow' => $this->usesConciergeFlow,
+            'conciergeMedianMinutes' => $this->medianConciergeTurnaroundMinutes,
             'facebookPages'     => $pages->where('platform', 'facebook'),
             'facebookAccounts'  => $accts->where('platform', 'facebook'),
             'fbRejected'        => $rejects['facebook'] ?? null,
