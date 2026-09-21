@@ -96,7 +96,7 @@ it('returns null median turnaround when there are zero completed requests', func
 
     expect($component->instance()->medianConciergeTurnaroundMinutes())->toBeNull();
 
-    $component->assertSee('usually under 10 min during business hours');
+    $component->assertSee('Usually under 10 minutes during business hours');
 });
 
 it('computes the median turnaround from completed OnboardingRequests', function () {
