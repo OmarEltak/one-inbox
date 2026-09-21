@@ -264,8 +264,8 @@
                 wire:model="body"
                 label="Message"
                 rows="6"
-                description="Use {{ '{{name}}' }} to insert the contact's name and {{ '{{phone}}' }} for their phone. Max 2,000 characters."
-                placeholder="Hi {{ '{{name}}' }}, we have something for you…" />
+                description="Use @{{name}} to insert the contact's name and @{{phone}} for their phone. Max 2,000 characters."
+                placeholder="Hi @{{name}}, we have something for you…" />
 
             <div class="grid grid-cols-2 gap-3">
                 <flux:input wire:model="jitterMin" type="number" label="Wait between messages — min (sec)" min="15" max="600" />
