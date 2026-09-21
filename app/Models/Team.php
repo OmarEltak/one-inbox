@@ -47,6 +47,8 @@ class Team extends Model
         'ai_memory',
         'audio_transcription_enabled',
         'features',
+        'onboarding_completed_at',
+        'business_type',
     ];
 
     protected function casts(): array
@@ -60,6 +62,7 @@ class Team extends Model
             'settings' => 'array',
             'audio_transcription_enabled' => 'boolean',
             'features' => 'array',
+            'onboarding_completed_at' => 'datetime',
         ];
     }
 

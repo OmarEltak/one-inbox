@@ -260,6 +260,18 @@ TXT;
     ]);
 })->name('llms');
 
+// Onboarding — Phase A "Meet Your AI" playground.
+// Sits OUTSIDE the require.connection group because the whole point of Phase A
+// is to give the user AI value BEFORE they connect a page (CLAUDE.md pin #1 —
+// managed onboarding is real, self-serve FB/IG OAuth still dead-ends). Also
+// intentionally uses `auth` + `team` only (no `verified`) so unverified new
+// signups land here immediately without hitting the email-verification wall
+// first. Fortify still sends the verification email in parallel.
+Route::middleware(['auth', 'team', 'throttle:60,1'])->group(function () {
+    Route::get('onboarding/meet-your-ai', \App\Livewire\Onboarding\MeetYourAi::class)
+        ->name('onboarding.meet-your-ai');
+});
+
 Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function () {
     Route::get('dashboard', \App\Livewire\Dashboard::class)->middleware('permission:dashboard')->name('dashboard');
 
