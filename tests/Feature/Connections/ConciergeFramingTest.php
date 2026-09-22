@@ -9,8 +9,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
-
 /**
  * Concierge framing tests — pins the behaviour described in
  * tasks/onboarding-activation-plan.md Phase B and CLAUDE.md pin #1.

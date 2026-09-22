@@ -16,8 +16,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
-
 function makeBillingUser(): array
 {
     $user = User::factory()->create();

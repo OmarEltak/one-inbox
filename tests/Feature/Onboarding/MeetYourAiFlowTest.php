@@ -10,8 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
-
 // Phase A end-to-end: signed-in user walks all 4 steps of "Meet Your AI".
 // Asserts AiConfig-equivalent seed persisted on the team AND that the AI
 // produces at least one reply in the fake customer chat.
