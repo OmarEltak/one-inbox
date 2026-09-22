@@ -96,9 +96,11 @@ it('marks onboarding complete only when the user picks a CTA', function () {
 
     $this->actingAs($user);
 
+    // Phase D reroutes teams without a trial/plan to pick-your-plan first.
+    // A fresh factory-made team hits that branch, so assert the D-integrated target.
     Livewire::test(MeetYourAi::class)
         ->call('completeAndConnect')
-        ->assertRedirect(route('connections.index'));
+        ->assertRedirect(route('onboarding.pick-your-plan'));
 
     expect($team->fresh()->onboarding_completed_at)->not->toBeNull();
 });

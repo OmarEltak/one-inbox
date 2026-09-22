@@ -603,7 +603,7 @@ class Index extends Component
         }
 
         $durations = $rows
-            ->map(fn ($row) => max(0, $row->completed_at->diffInSeconds($row->created_at)))
+            ->map(fn ($row) => (int) abs($row->completed_at->diffInSeconds($row->created_at)))
             ->sort()
             ->values();
 

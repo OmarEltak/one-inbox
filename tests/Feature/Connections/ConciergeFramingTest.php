@@ -104,8 +104,10 @@ it('computes the median turnaround from completed OnboardingRequests', function 
     $this->actingAs($user);
 
     // Three completed requests: 5 min, 10 min, 30 min → median 10 min.
+    // Bypass Eloquent so timestamps aren't rewritten to now() at persist time
+    // (created_at isn't in $fillable, so create() would clobber our value).
     foreach ([5, 10, 30] as $minutes) {
-        OnboardingRequest::create([
+        \Illuminate\Support\Facades\DB::table('onboarding_requests')->insert([
             'team_id'              => $team->id,
             'requested_by_user_id' => $user->id,
             'platform'             => 'facebook',
