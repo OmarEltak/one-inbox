@@ -270,6 +270,11 @@ TXT;
 Route::middleware(['auth', 'team', 'throttle:60,1'])->group(function () {
     Route::get('onboarding/meet-your-ai', \App\Livewire\Onboarding\MeetYourAi::class)
         ->name('onboarding.meet-your-ai');
+    // Phase D — trust-based plan trial picker. Shown once, after Phase A
+    // completion, before /inbox. Guarded by plan_trial_started_at being null
+    // so refreshing the URL never re-charges the trial clock.
+    Route::get('onboarding/pick-your-plan', \App\Livewire\Onboarding\PickYourPlan::class)
+        ->name('onboarding.pick-your-plan');
 });
 
 Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function () {
@@ -338,6 +343,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('subscriptions', \App\Livewire\SuperAdmin\Subscriptions::class)->name('subscriptions');
         Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
         Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
+        Route::get('billing', \App\Livewire\SuperAdmin\Billing::class)->name('billing');
 
         // Blog admin
         Route::get('blog', \App\Livewire\SuperAdmin\Blog\Index::class)->name('blog.index');

@@ -54,6 +54,9 @@ class Team extends Model
         'nudge_2_sent_at',
         'nudge_3_sent_at',
         'nudge_4_sent_at',
+        'plan_status',
+        'plan_trial_started_at',
+        'plan_payment_due_at',
     ];
 
     protected function casts(): array
@@ -73,6 +76,8 @@ class Team extends Model
             'nudge_2_sent_at' => 'datetime',
             'nudge_3_sent_at' => 'datetime',
             'nudge_4_sent_at' => 'datetime',
+            'plan_trial_started_at' => 'datetime',
+            'plan_payment_due_at' => 'datetime',
         ];
     }
 
@@ -166,7 +171,70 @@ class Team extends Model
         return $this->isAiEnabled()
             && ! $this->isSubscriptionExpired()
             && \App\Http\Middleware\EnforcePlanLimits::hasAiCredits($this)
-            && ! $this->isAiUpstreamLimited();
+            && ! $this->isAiUpstreamLimited()
+            && $this->planStatusAllowsDispatch();
+    }
+
+    /**
+     * Plan lifecycle gate composed INTO canDispatchAi() per CLAUDE.md pin #4.
+     * The whole point of this method living on the model is that every dispatch
+     * site (12+ of them) already calls canDispatchAi() — do NOT re-check
+     * plan_status elsewhere or the states will drift.
+     *
+     * Rules (see App\Services\Billing\PlanLifecycle for the state machine):
+     *   trial            → allow (paying with attention, not money yet)
+     *   pending_payment  → allow (invoice sent; grace period)
+     *   paid             → allow
+     *   overdue          → SOFT-throttle to OVERDUE_DAILY_MESSAGE_CAP per UTC day.
+     *                      NEVER a hard block — cost of blocking a real customer
+     *                      over a billing lag is much higher than the cost of a
+     *                      few extra AI responses to a slow-paying account.
+     *   cancelled        → block (super-admin action; explicit shutdown)
+     *   null/legacy      → allow (grandfathered accounts pre-Phase-D)
+     */
+    protected function planStatusAllowsDispatch(): bool
+    {
+        return match ($this->plan_status) {
+            \App\Services\Billing\PlanLifecycle::STATUS_CANCELLED => false,
+            \App\Services\Billing\PlanLifecycle::STATUS_OVERDUE => $this->overdueAiSentToday()
+                < \App\Services\Billing\PlanLifecycle::OVERDUE_DAILY_MESSAGE_CAP,
+            default => true,
+        };
+    }
+
+    /**
+     * How many AI messages have we sent today (UTC) while this team was overdue?
+     * Cache-backed so we don't need a new column or a Message aggregate query in
+     * the hot dispatch path. Incremented by recordOverdueAiSent() from
+     * SendAiResponse after a successful send.
+     */
+    public function overdueAiSentToday(): int
+    {
+        return (int) Cache::get($this->overdueAiCounterKey(), 0);
+    }
+
+    /**
+     * Increment the daily overdue-throttle counter. Called from the AI dispatch
+     * success path (SendAiResponse) — a no-op unless the team is currently
+     * flagged overdue. TTL is 26h so we never hold state past the next UTC day.
+     */
+    public function recordOverdueAiSent(): void
+    {
+        if ($this->plan_status !== \App\Services\Billing\PlanLifecycle::STATUS_OVERDUE) {
+            return;
+        }
+        Cache::increment($this->overdueAiCounterKey());
+        // Ensure the TTL is set on the very first increment of the day.
+        Cache::put(
+            $this->overdueAiCounterKey(),
+            Cache::get($this->overdueAiCounterKey(), 1),
+            new \DateInterval('PT26H'),
+        );
+    }
+
+    protected function overdueAiCounterKey(): string
+    {
+        return "team.{$this->id}.overdue_ai_count." . now()->utc()->toDateString();
     }
 
     /**

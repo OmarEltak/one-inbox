@@ -27,3 +27,11 @@ Schedule::job(new \App\Jobs\SendOnboardingNudge())
     ->dailyAt('09:00')
     ->name('onboarding-nudges')
     ->withoutOverlapping();
+
+// Phase D — trial lifecycle. Runs once per day at 09:00 UTC. Walks all teams
+// on the trial state machine and transitions / emails as appropriate.
+// Idempotent: safe to run twice on the same day (per-team+event cache guard).
+Schedule::job(new \App\Jobs\TrialExpiryCheck())
+    ->dailyAt('09:00')
+    ->name('trial-expiry-check')
+    ->withoutOverlapping();

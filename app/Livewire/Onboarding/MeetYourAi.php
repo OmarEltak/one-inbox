@@ -360,7 +360,7 @@ class MeetYourAi extends Component
     {
         $this->markComplete();
         $this->dispatch('heron-event', name: 'onboarding_completed', payload: ['next' => 'connections']);
-        $this->redirect(route('connections.index', absolute: false), navigate: true);
+        $this->redirect($this->nextRouteAfterCompletion('connections.index'), navigate: true);
     }
 
     /**
@@ -370,7 +370,25 @@ class MeetYourAi extends Component
     {
         $this->markComplete();
         $this->dispatch('heron-event', name: 'onboarding_completed', payload: ['next' => 'ai-config']);
-        $this->redirect(route('settings.ai.config', absolute: false), navigate: true);
+        $this->redirect($this->nextRouteAfterCompletion('settings.ai.config'), navigate: true);
+    }
+
+    /**
+     * Phase D — after Meet-Your-AI completes, route through Pick-Your-Plan first
+     * (unless the team has already picked, in which case honour the CTA the
+     * user clicked). Once the trial clock has started we never re-show the
+     * picker, so refreshing the URL is safe.
+     */
+    protected function nextRouteAfterCompletion(string $intendedRoute): string
+    {
+        $team = \Illuminate\Support\Facades\Auth::user()?->currentTeam;
+        if ($team && $team->plan_trial_started_at === null
+            && $team->plan_status !== \App\Services\Billing\PlanLifecycle::STATUS_PAID
+            && $team->plan_status !== \App\Services\Billing\PlanLifecycle::STATUS_CANCELLED
+        ) {
+            return route('onboarding.pick-your-plan', absolute: false);
+        }
+        return route($intendedRoute, absolute: false);
     }
 
     /**
