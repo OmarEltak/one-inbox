@@ -554,6 +554,14 @@ class Index extends Component
             'platform' => $this->requestPlatform,
         ]);
 
+        // Phase E funnel event — aliased alongside the legacy name above so
+        // the existing HeronSignal dashboard keeps working while the funnel
+        // migrates to the plan's canonical vocabulary.
+        $this->dispatch('heron-event', name: 'connection_requested', payload: [
+            'platform' => $this->requestPlatform,
+            'team_id'  => $team->id,
+        ]);
+
         session()->flash('success', 'Request submitted. Our admin will accept your Page invitation on Facebook and finish the setup — usually within a few hours during business hours (9am–9pm Cairo). We will email you the moment it is live.');
         Flux::modal('onboarding-request')->close();
     }

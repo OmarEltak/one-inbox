@@ -344,6 +344,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('page-assignments', \App\Livewire\SuperAdmin\PageAssignments::class)->name('page-assignments');
         Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
         Route::get('billing', \App\Livewire\SuperAdmin\Billing::class)->name('billing');
+        Route::get('analytics', \App\Livewire\SuperAdmin\Analytics::class)->name('analytics');
 
         // Blog admin
         Route::get('blog', \App\Livewire\SuperAdmin\Blog\Index::class)->name('blog.index');

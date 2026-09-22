@@ -125,6 +125,16 @@ class OnboardingRequests extends Component
 
         unset($this->selectedPageByRequest[$requestId]);
 
+        // Phase E funnel event — fires on the super-admin browser session
+        // (not the customer's), which is fine for telemetry: HeronSignal
+        // just needs the event to hit, not to be attributed to the target
+        // team's user. Payload carries the target team id for slicing.
+        $this->dispatch('heron-event', name: 'connection_completed', payload: [
+            'team_id'  => $targetTeam->id,
+            'page_id'  => $page->id,
+            'platform' => $page->platform,
+        ]);
+
         session()->flash('success', "Assigned \"{$page->name}\" to {$targetTeam->name} and completed request #{$req->id}.");
     }
 

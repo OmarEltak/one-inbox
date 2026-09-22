@@ -303,6 +303,25 @@ class SendAiResponse implements ShouldQueue
 
             // Broadcast real-time update
             broadcast(AiResponseSent::fromMessage($aiMessage, $conversation));
+
+            // Phase E — Onboarding funnel activation flag. Once-per-team gate:
+            // we stamp settings.first_ai_reply_at the FIRST time this team's
+            // AI replies to a real customer. OnboardingFunnel reads this
+            // column directly. Guarded so re-firing on every AI reply is cheap
+            // (single JSON compare) and idempotent.
+            $settings = $team->settings ?? [];
+            if (empty($settings['first_ai_reply_at'])) {
+                $settings['first_ai_reply_at'] = now()->toIso8601String();
+                $team->forceFill(['settings' => $settings])->save();
+                Log::info('onboarding.first_ai_reply_sent', [
+                    'team_id'         => $team->id,
+                    'conversation_id' => $conversation->id,
+                    'message_id'      => $aiMessage->id,
+                ]);
+                // NOTE: no `heron-event` dispatch here — queued jobs have no
+                // browser session. HeronSignal funnel is DB-driven via the
+                // OnboardingFunnel service reading settings.first_ai_reply_at.
+            }
         } catch (AiQuotaExhausted $e) {
             // Upstream provider is out of tokens for the day / rate limited.
             // Pause AI for this team so we stop hammering the provider, and
