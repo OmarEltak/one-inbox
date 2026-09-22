@@ -1,4 +1,15 @@
-<div class="max-w-3xl mx-auto py-8 px-4">
+<div class="wa-wizard max-w-3xl mx-auto py-8 px-4">
+    {{-- Scope-only override: the app forces <html class="dark"> even though the
+         chrome is light-themed, so Flux's <ui-label>/<ui-description> resolve
+         to white and become invisible on our bg-white cards. This narrow scope
+         (.wa-wizard) puts them back to zinc without touching global styles. --}}
+    <style>
+        .wa-wizard ui-label,
+        .wa-wizard [data-flux-label] { color: rgb(24 24 27) !important; }
+        .wa-wizard ui-description,
+        .wa-wizard [data-flux-description] { color: rgb(82 82 91) !important; }
+    </style>
+
     {{-- Heading --}}
     <div class="mb-6">
         <h1 class="text-3xl font-bold tracking-tight text-zinc-900">
