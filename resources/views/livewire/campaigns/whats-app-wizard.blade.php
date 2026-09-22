@@ -7,7 +7,7 @@
         .wa-wizard ui-label,
         .wa-wizard [data-flux-label] { color: rgb(24 24 27) !important; }
         .wa-wizard ui-description,
-        .wa-wizard [data-flux-description] { color: rgb(82 82 91) !important; }
+        .wa-wizard [data-flux-description] { color: rgb(63 63 70) !important; } /* zinc-700 */
     </style>
 
     {{-- Heading --}}
@@ -34,10 +34,10 @@
             @endphp
             <li class="flex items-center gap-2 min-w-0">
                 <span @class([
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold',
-                    'bg-emerald-600 text-white'                => $isDone,
-                    'bg-emerald-600 text-white ring-4 ring-emerald-100' => $isCurrent,
-                    'bg-zinc-200 text-zinc-600'                => ! $isDone && ! $isCurrent,
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+                    'bg-emerald-600 text-white shadow-sm'                        => $isDone,
+                    'bg-emerald-600 text-white ring-4 ring-emerald-200 shadow-md' => $isCurrent,
+                    'bg-white border-2 border-zinc-400 text-zinc-700'            => ! $isDone && ! $isCurrent,
                 ])>
                     @if ($isDone)
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -46,14 +46,18 @@
                     @endif
                 </span>
                 <span @class([
-                    'truncate',
-                    'text-zinc-900'  => $isCurrent,
-                    'text-zinc-700'  => $isDone,
-                    'text-zinc-500'  => ! $isDone && ! $isCurrent,
+                    'truncate font-semibold',
+                    'text-zinc-900' => $isCurrent,
+                    'text-zinc-800' => $isDone,
+                    'text-zinc-700' => ! $isDone && ! $isCurrent,
                 ])>{{ $label }}</span>
             </li>
             @if ($i < count($labels) - 1)
-                <li class="flex-1 h-px bg-zinc-200"></li>
+                <li @class([
+                    'flex-1 h-0.5 rounded',
+                    'bg-emerald-500' => $i < $currentForUi || $current === 5,
+                    'bg-zinc-300'    => ! ($i < $currentForUi || $current === 5),
+                ])></li>
             @endif
         @endforeach
     </ol>
@@ -98,8 +102,8 @@
                                 </svg>
                             </div>
                             <div class="text-center">
-                                <p class="text-sm font-semibold text-zinc-900">Click to choose a file</p>
-                                <p class="mt-0.5 text-xs text-zinc-600">.csv or .xlsx up to 10 MB</p>
+                                <p class="text-base font-semibold text-zinc-900">Click to choose a file</p>
+                                <p class="mt-1 text-sm text-zinc-700">.csv or .xlsx up to 10 MB</p>
                             </div>
                         </div>
                         <div wire:loading wire:target="file" class="flex items-center gap-2 text-sm font-medium text-blue-700">
