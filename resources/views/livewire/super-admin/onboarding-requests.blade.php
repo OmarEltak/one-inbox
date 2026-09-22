@@ -98,9 +98,12 @@
                             · completed {{ $req->completed_at?->diffForHumans() }}
                         </div>
                     @elseif($req->status === 'rejected')
-                        <div class="text-sm text-red-700 dark:text-red-400">
-                            ✗ Rejected: {{ $req->admin_notes }}
-                            · {{ $req->completed_at?->diffForHumans() }}
+                        <div class="text-sm text-red-700 dark:text-red-400 flex items-center gap-2 flex-wrap">
+                            <span>✗ Rejected: {{ $req->admin_notes }}
+                            · {{ $req->completed_at?->diffForHumans() }}</span>
+                            @if($req->requestedBy?->email)
+                                <a href="mailto:{{ $req->requestedBy->email }}?subject=About%20your%20OT1-Pro%20connection%20request" class="text-xs text-blue-600 hover:underline">Reply</a>
+                            @endif
                         </div>
                     @elseif($req->isOpen())
                         <div class="pt-3 border-t border-zinc-200 dark:border-zinc-700 space-y-3">
