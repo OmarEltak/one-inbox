@@ -19,10 +19,13 @@ class Show extends Component
 
     public string $filter = 'all';
 
-    public function mount(int $campaign): void
+    public function mount(Campaign $campaign): void
     {
+        // Route model-binds {campaign} → Campaign, but we still enforce team
+        // ownership here so a signed-in user can't guess another team's id.
         $team = Auth::user()->currentTeam;
-        $this->campaign = Campaign::where('team_id', $team->id)->findOrFail($campaign);
+        abort_unless($team && $campaign->team_id === $team->id, 404);
+        $this->campaign = $campaign;
     }
 
     /**
