@@ -372,6 +372,13 @@
                  own feature instead of placeholder UI. --}}
             <flux:spacer />
 
+            {{-- Onboarding progress pill (Phase C). Renders nothing when
+                 the team is 100% complete. Lives here so it appears on
+                 every authenticated page's top bar. --}}
+            @if($team)
+                <x-onboarding.progress-pill :team="$team" />
+            @endif
+
             {{-- Notification bell --}}
             <div class="relative">
                 <button class="relative p-2 rounded-xl text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer bg-zinc-100">

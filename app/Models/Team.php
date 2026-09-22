@@ -49,6 +49,11 @@ class Team extends Model
         'features',
         'onboarding_completed_at',
         'business_type',
+        'disable_onboarding_nudges',
+        'nudge_1_sent_at',
+        'nudge_2_sent_at',
+        'nudge_3_sent_at',
+        'nudge_4_sent_at',
     ];
 
     protected function casts(): array
@@ -63,6 +68,11 @@ class Team extends Model
             'audio_transcription_enabled' => 'boolean',
             'features' => 'array',
             'onboarding_completed_at' => 'datetime',
+            'disable_onboarding_nudges' => 'boolean',
+            'nudge_1_sent_at' => 'datetime',
+            'nudge_2_sent_at' => 'datetime',
+            'nudge_3_sent_at' => 'datetime',
+            'nudge_4_sent_at' => 'datetime',
         ];
     }
 
