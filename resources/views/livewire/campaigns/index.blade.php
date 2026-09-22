@@ -75,11 +75,16 @@
                     'whatsapp'  => 'text-emerald-700',
                 ];
                 $platformColor = $platformColors[$campaignPlatform] ?? 'text-zinc-700';
-                $statusColor = match($campaign->status) {
-                    'active'    => 'yellow',
-                    'completed' => 'green',
-                    'paused'    => 'orange',
-                    default     => 'zinc',
+                // Status pill classes — explicit Tailwind so we don't inherit
+                // Flux's dark-mode defaults (which render Active as yellow bg + white text).
+                $statusPill = match($campaign->status) {
+                    'active'    => 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                    'scheduled' => 'bg-blue-100 text-blue-800 border-blue-300',
+                    'completed' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                    'paused'    => 'bg-orange-100 text-orange-800 border-orange-300',
+                    'draft'     => 'bg-zinc-100 text-zinc-800 border-zinc-300',
+                    'failed'    => 'bg-red-100 text-red-800 border-red-300',
+                    default     => 'bg-zinc-100 text-zinc-800 border-zinc-300',
                 };
             @endphp
             <div
@@ -90,7 +95,9 @@
                     <div class="min-w-0 flex-1 space-y-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-semibold text-zinc-900">{{ $campaign->name }}</span>
-                            <flux:badge size="sm" color="{{ $statusColor }}">{{ ucfirst($campaign->status) }}</flux:badge>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border {{ $statusPill }}">
+                                {{ ucfirst($campaign->status) }}
+                            </span>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 border border-zinc-300 {{ $platformColor }}">
                                 {{ $platformLabel }}
                             </span>
