@@ -2,11 +2,11 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">{{ __('Campaigns') }}</h1>
-            <p class="mt-1 text-sm text-white/40">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
+            <p class="mt-1 text-sm text-zinc-700">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('campaigns.email.new') }}" wire:navigate
-               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all bg-white/[0.06] hover:bg-white/[0.10]">
+               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-800 transition-all bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -30,31 +30,31 @@
     @php
         $allCampaigns = $this->campaigns;
         $statChips = [
-            ['label' => 'Total', 'value' => $allCampaigns->count(), 'color' => 'text-white/80'],
-            ['label' => 'Active', 'value' => $allCampaigns->where('status', 'active')->count(), 'color' => 'text-yellow-400'],
-            ['label' => 'Scheduled', 'value' => $allCampaigns->where('status', 'scheduled')->count(), 'color' => 'text-blue-400'],
-            ['label' => 'Total Sent', 'value' => number_format($allCampaigns->sum('sent_count')), 'color' => 'text-green-400'],
-            ['label' => 'Completed', 'value' => $allCampaigns->where('status', 'completed')->count(), 'color' => 'text-[#8b5cf6]'],
-            ['label' => 'Draft', 'value' => $allCampaigns->where('status', 'draft')->count(), 'color' => 'text-white/40'],
+            ['label' => 'Total', 'value' => $allCampaigns->count(), 'color' => 'text-zinc-900'],
+            ['label' => 'Active', 'value' => $allCampaigns->where('status', 'active')->count(), 'color' => 'text-yellow-600'],
+            ['label' => 'Scheduled', 'value' => $allCampaigns->where('status', 'scheduled')->count(), 'color' => 'text-blue-600'],
+            ['label' => 'Total Sent', 'value' => number_format($allCampaigns->sum('sent_count')), 'color' => 'text-emerald-700'],
+            ['label' => 'Completed', 'value' => $allCampaigns->where('status', 'completed')->count(), 'color' => 'text-violet-700'],
+            ['label' => 'Draft', 'value' => $allCampaigns->where('status', 'draft')->count(), 'color' => 'text-zinc-700'],
         ];
     @endphp
     <div class="grid grid-cols-3 lg:grid-cols-6 gap-3">
         @foreach($statChips as $chip)
             <div class="aio-card rounded-2xl p-4 text-center">
                 <p class="text-xl font-bold {{ $chip['color'] }}">{{ $chip['value'] }}</p>
-                <p class="text-xs text-white/35 mt-1">{{ $chip['label'] }}</p>
+                <p class="text-xs text-zinc-700 mt-1">{{ $chip['label'] }}</p>
             </div>
         @endforeach
     </div>
 
     {{-- Tab Filter Bar --}}
-    <div class="flex gap-0 border-b pb-0" style="border-color: rgba(255,255,255,0.07);">
+    <div class="flex gap-0 border-b pb-0" style="border-color: #e4e4e7;">
         @foreach(['all' => __('All'), 'active' => __('Active'), 'scheduled' => __('Scheduled'), 'draft' => __('Draft'), 'completed' => __('Completed'), 'paused' => __('Paused')] as $key => $label)
             <button
                 @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
-                    ? 'border-b-2 text-[#C27AFF]'
-                    : 'text-white/35 hover:text-white/60'"
+                    ? 'border-b-2 text-violet-700'
+                    : 'text-zinc-700 hover:text-zinc-800'"
                 :style="tab === '{{ $key }}' ? 'border-color: #7C3AED;' : ''"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px"
             >{{ $label }}</button>
@@ -69,12 +69,12 @@
                 $campaignPlatform = $campaign->platform ?? 'whatsapp';
                 $platformLabel    = ucfirst($campaignPlatform);
                 $platformColors   = [
-                    'facebook'  => 'text-blue-400',
-                    'instagram' => 'text-pink-400',
-                    'telegram'  => 'text-sky-400',
-                    'whatsapp'  => 'text-green-400',
+                    'facebook'  => 'text-blue-600',
+                    'instagram' => 'text-pink-700',
+                    'telegram'  => 'text-sky-700',
+                    'whatsapp'  => 'text-emerald-700',
                 ];
-                $platformColor = $platformColors[$campaignPlatform] ?? 'text-white/50';
+                $platformColor = $platformColors[$campaignPlatform] ?? 'text-zinc-700';
                 $statusColor = match($campaign->status) {
                     'active'    => 'yellow',
                     'completed' => 'green',
@@ -89,21 +89,21 @@
                 <div class="flex items-start justify-between gap-4">
                     <div class="min-w-0 flex-1 space-y-1">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-semibold text-white/80">{{ $campaign->name }}</span>
+                            <span class="font-semibold text-zinc-900">{{ $campaign->name }}</span>
                             <flux:badge size="sm" color="{{ $statusColor }}">{{ ucfirst($campaign->status) }}</flux:badge>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/5 border border-white/10 {{ $platformColor }}">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 border border-zinc-300 {{ $platformColor }}">
                                 {{ $platformLabel }}
                             </span>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-4 text-xs text-white/40">
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-zinc-700">
                             @if($campaignPlatform === 'whatsapp')
                                 <span class="font-mono">Template: {{ $campaign->message_template }}</span>
                                 @if(! empty($criteria['message_category']))
                                     <span class="capitalize">Category: {{ $criteria['message_category'] }}</span>
                                 @endif
                                 @if(isset($criteria['cost_estimate_usd']) && $criteria['cost_estimate_usd'] > 0)
-                                    <span class="text-yellow-200/80">
+                                    <span class="text-yellow-800">
                                         Est. Meta cost: ${{ number_format($criteria['cost_estimate_usd'], 2) }}
                                         @if(! empty($criteria['estimated_recipients']))
                                             ({{ number_format($criteria['estimated_recipients']) }} recipients)
@@ -130,19 +130,19 @@
                                     : 0;
                             @endphp
                             <div class="pt-2 space-y-2">
-                                <div class="flex items-center justify-between text-xs text-white/40">
+                                <div class="flex items-center justify-between text-xs text-zinc-700">
                                     <span>{{ number_format($campaign->sent_count) }} / {{ number_format($campaign->total_contacts) }} sent</span>
                                     <span>{{ $progress }}%</span>
                                 </div>
-                                <div class="h-1.5 rounded-full overflow-hidden" style="background: rgba(255,255,255,0.07);">
+                                <div class="h-1.5 rounded-full overflow-hidden" style="background: #e4e4e7;">
                                     <div class="h-full rounded-full transition-all duration-300"
                                          style="width: {{ $progress }}%; background: {{ $campaign->status === 'active' ? 'linear-gradient(90deg, #7C3AED, #06B6D4)' : ($campaign->status === 'completed' ? '#00D492' : '#6B7280') }};">
                                     </div>
                                 </div>
-                                <div class="flex gap-4 text-xs text-white/40">
-                                    <span><span class="text-white/60 font-medium">{{ number_format($campaign->reply_count) }}</span> replies</span>
+                                <div class="flex gap-4 text-xs text-zinc-700">
+                                    <span><span class="text-zinc-800 font-medium">{{ number_format($campaign->reply_count) }}</span> replies</span>
                                     @if($replyRate > 0)
-                                        <span><span class="text-green-400 font-medium">{{ $replyRate }}%</span> reply rate</span>
+                                        <span><span class="text-emerald-700 font-medium">{{ $replyRate }}%</span> reply rate</span>
                                     @endif
                                     @if(!empty($criteria['delay_seconds']))
                                         <span>{{ $criteria['delay_seconds'] }}s delay</span>
@@ -153,10 +153,11 @@
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0">
-                        @if($campaignPlatform === 'email')
-                            <a href="{{ route('campaigns.show', $campaign->id) }}" wire:navigate
-                               class="px-3 py-1.5 rounded-lg text-xs text-white/70 bg-white/[0.06] hover:bg-white/[0.10]">{{ __('View') }}</a>
-                        @endif
+                        <a href="{{ route('campaigns.show', $campaign->id) }}" wire:navigate
+                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">
+                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            {{ __('View') }}
+                        </a>
                         @if($campaign->status === 'active')
                             <flux:button
                                 size="sm"
@@ -191,9 +192,9 @@
             </div>
         @empty
             <div class="rounded-2xl p-10 text-center" style="border: 1px dashed rgba(124,58,237,0.2); background: rgba(124,58,237,0.03);">
-                <flux:icon.paper-airplane class="mx-auto size-10 text-white/40" />
-                <p class="mt-3 font-semibold text-white/80">{{ __('No campaigns yet') }}</p>
-                <p class="mt-1 text-sm text-white/40">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
+                <flux:icon.paper-airplane class="mx-auto size-10 text-zinc-700" />
+                <p class="mt-3 font-semibold text-zinc-900">{{ __('No campaigns yet') }}</p>
+                <p class="mt-1 text-sm text-zinc-700">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
                 <div class="mt-4">
                     <flux:button icon="plus" wire:click="openCreateModal">{{ __('New Campaign') }}</flux:button>
                 </div>
@@ -216,8 +217,8 @@
                         wire:click="$set('platform', 'facebook')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'facebook',
-                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'facebook',
+                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'facebook',
+                            'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'facebook',
                         ])
                     >
                         <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -232,8 +233,8 @@
                         wire:click="$set('platform', 'instagram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'instagram',
-                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'instagram',
+                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'instagram',
+                            'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'instagram',
                         ])
                     >
                         <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -248,8 +249,8 @@
                         wire:click="$set('platform', 'telegram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'telegram',
-                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'telegram',
+                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'telegram',
+                            'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'telegram',
                         ])
                     >
                         <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -264,8 +265,8 @@
                         wire:click="$set('platform', 'email')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'email',
-                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'email',
+                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'email',
+                            'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'email',
                         ])
                     >
                         <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -280,8 +281,8 @@
                         wire:click="$set('platform', 'whatsapp')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-[#7C3AED]/10 text-white' => $platform === 'whatsapp',
-                            'border-white/10 bg-white/3 text-white/50 hover:border-white/20 hover:text-white/70' => $platform !== 'whatsapp',
+                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'whatsapp',
+                            'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'whatsapp',
                         ])
                     >
                         <svg class="size-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -307,7 +308,7 @@
                     @endforeach
                 </flux:select>
                 @if($this->pagesForPlatform->isEmpty())
-                    <flux:description class="text-yellow-400/70">
+                    <flux:description class="text-yellow-600/70">
                         No active {{ ucfirst($platform) }} pages found.
                         <a href="{{ route('connections.index') }}" class="underline" wire:navigate>Connect one first.</a>
                     </flux:description>
@@ -334,17 +335,17 @@
                  (error code 10 / subcode 2018278). We pre-filter these at dispatch time so
                  the operator does not think a send landed when Meta silently rejected it. --}}
             @if(in_array($platform, ['facebook', 'instagram'], true))
-                <div class="rounded-xl border border-amber-400/30 bg-amber-400/5 p-4">
+                <div class="rounded-xl border border-amber-300 bg-amber-50 p-4">
                     <div class="flex items-start gap-2">
-                        <flux:icon.exclamation-triangle class="size-5 text-amber-300 mt-0.5 shrink-0" />
-                        <div class="text-xs text-amber-100/85 leading-relaxed space-y-1.5">
+                        <flux:icon.exclamation-triangle class="size-5 text-amber-700 mt-0.5 shrink-0" />
+                        <div class="text-xs text-amber-900 leading-relaxed space-y-1.5">
                             <p>
-                                <strong class="text-amber-50">Meta only accepts messages to contacts who replied within the last 24 hours.</strong>
+                                <strong class="text-amber-900 font-semibold">Meta only accepts messages to contacts who replied within the last 24 hours.</strong>
                                 Older contacts will be automatically skipped when this campaign runs. This is Meta's
                                 enforcement, not ours — sending to them anyway would return error 2018278 ("outside
                                 the allowed time frame") and could get the Page's messaging limited.
                             </p>
-                            <p class="text-amber-100/70">
+                            <p class="text-amber-800">
                                 Broadcast to older contacts on WhatsApp, Telegram, or email instead — those channels
                                 do not have a 24-hour window.
                             </p>
@@ -359,7 +360,7 @@
                     wire:model="messageTemplate"
                     rows="4"
                     placeholder="Write your broadcast message here…" />
-                <flux:description class="text-white/50 text-xs">
+                <flux:description class="text-zinc-700 text-xs">
                     @if($platform === 'whatsapp')
                         Plain text. Emojis and line breaks work. To reduce anti-spam risk, avoid sending byte-identical
                         text to a large list — even a small variation (contact name, ordinal number) helps.
@@ -406,11 +407,11 @@
                 <div class="flex items-center gap-2 mb-1.5">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="radio" wire:model.live="sendMode" value="now" class="cursor-pointer" />
-                        <span class="text-sm font-medium text-white">{{ __('Send now') }}</span>
+                        <span class="text-sm font-medium text-zinc-900">{{ __('Send now') }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer ml-4">
                         <input type="radio" wire:model.live="sendMode" value="schedule" class="cursor-pointer" />
-                        <span class="text-sm font-medium text-white">{{ __('Schedule for later') }}</span>
+                        <span class="text-sm font-medium text-zinc-900">{{ __('Schedule for later') }}</span>
                     </label>
                 </div>
                 @if($sendMode === 'schedule')
@@ -419,7 +420,7 @@
                         wire:model="scheduledAt"
                         :min="now()->addMinutes(2)->format('Y-m-d\TH:i')"
                         :max="now()->addDays(30)->format('Y-m-d\TH:i')" />
-                    <flux:description class="text-white/50 text-xs">
+                    <flux:description class="text-zinc-700 text-xs">
                         {{ __('Up to 30 days ahead. The campaign stays in Draft/Scheduled state until the scheduled time; the scheduler flips it to Active and starts sending.') }}
                     </flux:description>
                 @endif
