@@ -14,8 +14,10 @@ test('new users can register', function () {
         'password_confirmation' => 'password',
     ]);
 
+    // Phase A wires new signups to the Meet-Your-AI onboarding wizard
+    // instead of the raw dashboard so the first minute has real payoff.
     $response->assertSessionHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('onboarding.meet-your-ai', absolute: false));
 
     $this->assertAuthenticated();
 });
