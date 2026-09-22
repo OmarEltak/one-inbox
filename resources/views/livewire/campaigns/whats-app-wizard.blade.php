@@ -4,10 +4,42 @@
          to white and become invisible on our bg-white cards. This narrow scope
          (.wa-wizard) puts them back to zinc without touching global styles. --}}
     <style>
+        /* Labels: zinc-900 semibold */
         .wa-wizard ui-label,
-        .wa-wizard [data-flux-label] { color: rgb(24 24 27) !important; }
+        .wa-wizard [data-flux-label] {
+            color: rgb(24 24 27) !important;
+            font-weight: 600 !important;
+        }
+        /* Descriptions: zinc-800 (was invisible white) */
         .wa-wizard ui-description,
-        .wa-wizard [data-flux-description] { color: rgb(63 63 70) !important; } /* zinc-700 */
+        .wa-wizard [data-flux-description] {
+            color: rgb(39 39 42) !important;
+        }
+        /* Input fields — Flux ships border white-at-10%-opacity in dark mode.
+           Force zinc-400 border, white bg, zinc-900 text so fields are
+           OBVIOUSLY interactive on our white cards. */
+        .wa-wizard [data-flux-control] {
+            background-color: rgb(255 255 255) !important;
+            border: 1px solid rgb(161 161 170) !important; /* zinc-400 */
+            color: rgb(24 24 27) !important;                /* zinc-900 */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04) !important;
+        }
+        .wa-wizard [data-flux-control]::placeholder {
+            color: rgb(113 113 122) !important; /* zinc-500 — visible but clearly placeholder */
+        }
+        .wa-wizard [data-flux-control]:hover:not(:focus) {
+            border-color: rgb(113 113 122) !important; /* zinc-500 */
+        }
+        .wa-wizard [data-flux-control]:focus,
+        .wa-wizard [data-flux-control]:focus-visible {
+            border-color: rgb(5 150 105) !important;                    /* emerald-600 */
+            box-shadow: 0 0 0 3px rgb(167 243 208) !important;           /* emerald-200 ring */
+            outline: none !important;
+        }
+        /* Select dropdown listbox items readable */
+        .wa-wizard [data-flux-select-option] {
+            color: rgb(24 24 27) !important;
+        }
     </style>
 
     {{-- Heading --}}
@@ -15,7 +47,7 @@
         <h1 class="text-3xl font-bold tracking-tight text-zinc-900">
             New <span class="text-[#25D366]">WhatsApp</span> Campaign
         </h1>
-        <p class="mt-2 text-sm text-zinc-700">
+        <p class="mt-2 text-sm text-zinc-800">
             Upload a contact list, compose your message, test one send, then launch.
         </p>
     </div>
@@ -37,7 +69,7 @@
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold',
                     'bg-emerald-600 text-white shadow-sm'                        => $isDone,
                     'bg-emerald-600 text-white ring-4 ring-emerald-200 shadow-md' => $isCurrent,
-                    'bg-white border-2 border-zinc-400 text-zinc-700'            => ! $isDone && ! $isCurrent,
+                    'bg-white border-2 border-zinc-400 text-zinc-800'            => ! $isDone && ! $isCurrent,
                 ])>
                     @if ($isDone)
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -49,7 +81,7 @@
                     'truncate font-semibold',
                     'text-zinc-900' => $isCurrent,
                     'text-zinc-800' => $isDone,
-                    'text-zinc-700' => ! $isDone && ! $isCurrent,
+                    'text-zinc-800' => ! $isDone && ! $isCurrent,
                 ])>{{ $label }}</span>
             </li>
             @if ($i < count($labels) - 1)
@@ -68,7 +100,7 @@
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <h2 class="text-lg font-semibold text-zinc-900">Upload contact list</h2>
-                    <p class="mt-1 text-sm text-zinc-700">
+                    <p class="mt-1 text-sm text-zinc-800">
                         CSV or Excel (.xlsx), up to 10 MB and 50,000 rows.
                     </p>
                 </div>
@@ -103,7 +135,7 @@
                             </div>
                             <div class="text-center">
                                 <p class="text-base font-semibold text-zinc-900">Click to choose a file</p>
-                                <p class="mt-1 text-sm text-zinc-700">.csv or .xlsx up to 10 MB</p>
+                                <p class="mt-1 text-sm text-zinc-800">.csv or .xlsx up to 10 MB</p>
                             </div>
                         </div>
                         <div wire:loading wire:target="file" class="flex items-center gap-2 text-sm font-medium text-blue-700">
@@ -177,7 +209,7 @@
                         </ul>
                     </div>
                 </div>
-                <p class="mt-3 text-xs text-zinc-700">
+                <p class="mt-3 text-xs text-zinc-800">
                     <strong class="text-zinc-900">Excel tip:</strong>
                     format the phone column as <em>Text</em> before saving, or Excel will silently mangle long numbers into scientific notation and we'll reject the row.
                 </p>
@@ -195,7 +227,7 @@
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
             <div>
                 <h2 class="text-lg font-semibold text-zinc-900">Map your columns</h2>
-                <p class="mt-1 text-sm text-zinc-700">
+                <p class="mt-1 text-sm text-zinc-800">
                     Point us to the phone column and (optionally) the name column. Pick the default country for any local-format numbers.
                 </p>
             </div>
@@ -223,7 +255,7 @@
             </flux:select>
 
             {{-- Compact reminder so users don't have to backtrack to step 1. --}}
-            <div class="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2 text-xs text-zinc-700">
+            <div class="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2 text-xs text-zinc-800">
                 <strong class="text-zinc-900">Reminder:</strong>
                 E.164 numbers (starting with <code class="font-mono">+</code>) are always safe. Rows we can't parse (empty, too short, or Excel scientific notation like <code class="font-mono">2.011E+11</code>) are counted separately and shown next.
             </div>
@@ -249,7 +281,7 @@
                     'border-amber-200 bg-amber-50' => $skippedCount > 0,
                     'border-zinc-200 bg-zinc-50'   => $skippedCount === 0,
                 ])>
-                    <p @class(['text-xs font-medium', 'text-amber-800' => $skippedCount > 0, 'text-zinc-700' => $skippedCount === 0])>Duplicates skipped</p>
+                    <p @class(['text-xs font-medium', 'text-amber-800' => $skippedCount > 0, 'text-zinc-800' => $skippedCount === 0])>Duplicates skipped</p>
                     <p @class(['text-xl font-bold', 'text-amber-900' => $skippedCount > 0, 'text-zinc-900' => $skippedCount === 0])>{{ $skippedCount }}</p>
                 </div>
                 <div @class([
@@ -257,7 +289,7 @@
                     'border-red-200 bg-red-50'   => $invalidCount > 0,
                     'border-zinc-200 bg-zinc-50' => $invalidCount === 0,
                 ])>
-                    <p @class(['text-xs font-medium', 'text-red-800' => $invalidCount > 0, 'text-zinc-700' => $invalidCount === 0])>Invalid rows</p>
+                    <p @class(['text-xs font-medium', 'text-red-800' => $invalidCount > 0, 'text-zinc-800' => $invalidCount === 0])>Invalid rows</p>
                     <p @class(['text-xl font-bold', 'text-red-900' => $invalidCount > 0, 'text-zinc-900' => $invalidCount === 0])>{{ $invalidCount }}</p>
                 </div>
             </div>
@@ -286,7 +318,7 @@
                 <flux:input wire:model="jitterMin" type="number" label="Wait between messages — min (sec)" min="15" max="600" />
                 <flux:input wire:model="jitterMax" type="number" label="Wait between messages — max (sec)" min="15" max="600" />
             </div>
-            <p class="text-xs text-zinc-700 -mt-2">
+            <p class="text-xs text-zinc-800 -mt-2">
                 A random pause between {{ $jitterMin }}–{{ $jitterMax }} seconds is added between each message. Higher values are safer against WhatsApp rate-limiting.
             </p>
 
@@ -303,7 +335,7 @@
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
             <div>
                 <h2 class="text-lg font-semibold text-zinc-900">Send one test message</h2>
-                <p class="mt-1 text-sm text-zinc-700">
+                <p class="mt-1 text-sm text-zinc-800">
                     Verify the format and your WhatsApp connection before launching to {{ $importedCount }} contact{{ $importedCount === 1 ? '' : 's' }}. Use a real WhatsApp number in <strong>+E.164 format</strong> (e.g. <code class="font-mono text-zinc-800">+201099887766</code>).
                 </p>
             </div>
