@@ -4,8 +4,13 @@ namespace App\Providers;
 
 use App\Contracts\AiProviderInterface;
 use App\Mail\WelcomeEmail;
+use App\Models\AiConfig;
+use App\Models\Message;
+use App\Models\Page;
 use App\Models\Post;
+use App\Models\Team;
 use App\Observers\PostObserver;
+use App\Observers\ProgressCacheObserver;
 use App\Services\Ai\GeminiProvider;
 use App\Services\Ai\NaraRouterProvider;
 use App\Services\Ai\OllamaProvider;
@@ -87,6 +92,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Post::observe(PostObserver::class);
+
+        // Phase C — flush ProgressService cache when anything that affects
+        // the onboarding checklist changes. Centralized here so dispatch
+        // sites don't need to remember to invalidate.
+        $progressObserver = $this->app->make(ProgressCacheObserver::class);
+        Team::updated(fn (Team $team) => $progressObserver->teamSaved($team));
+        Page::created(fn (Page $page) => $progressObserver->pageSaved($page));
+        Page::deleted(fn (Page $page) => $progressObserver->pageDeleted($page));
+        AiConfig::updated(fn (AiConfig $config) => $progressObserver->aiConfigSaved($config));
+        Message::created(fn (Message $message) => $progressObserver->messageCreated($message));
     }
 
     /**

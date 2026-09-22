@@ -363,4 +363,10 @@ Route::get('/media/{ulid}', [\App\Http\Controllers\MediaController::class, 'stre
     ->name('media.stream')
     ->middleware('signed');
 
+// Phase C — one-click unsubscribe for onboarding nudge emails. Public, no
+// login required, protected by a 30-day signed URL macro.
+Route::get('/onboarding/nudges/unsubscribe/{team}', \App\Http\Controllers\OnboardingNudgeUnsubscribeController::class)
+    ->name('onboarding.nudges.unsubscribe')
+    ->middleware('signed');
+
 require __DIR__.'/settings.php';

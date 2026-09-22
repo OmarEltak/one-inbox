@@ -20,3 +20,10 @@ Schedule::command('campaigns:dispatch-recipients')
     ->runInBackground();
 Schedule::command('snapchat:fetch-messages')->everyTwoMinutes();
 Schedule::command('instagram:refresh-subscriptions')->monthly();
+
+// Phase C — onboarding nudge sweep. Runs once a day; the job itself is
+// idempotent per (team, stage) so a duplicate run within 24h is a no-op.
+Schedule::job(new \App\Jobs\SendOnboardingNudge())
+    ->dailyAt('09:00')
+    ->name('onboarding-nudges')
+    ->withoutOverlapping();

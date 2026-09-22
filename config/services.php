@@ -298,4 +298,11 @@ return [
         'threads' => (int) env('WHISPER_CPP_THREADS', 2),
     ],
 
+    // Phase C — global kill switch for onboarding nudge emails. Set
+    // ONBOARDING_NUDGES_ENABLED=false in prod .env to halt the whole
+    // sweep (per-team kill switch is teams.disable_onboarding_nudges).
+    'onboarding_nudges' => [
+        'enabled' => (bool) env('ONBOARDING_NUDGES_ENABLED', true),
+    ],
+
 ];

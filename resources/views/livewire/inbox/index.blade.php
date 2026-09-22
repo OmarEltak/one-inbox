@@ -166,13 +166,30 @@
                     </div>
                 </button>
             @empty
-                <div class="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <flux:icon name="inbox" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mb-3" />
-                    <flux:heading size="sm" class="text-zinc-500">{{ __('No conversations yet') }}</flux:heading>
-                    <flux:text size="sm" class="text-zinc-400 mt-1">
-                        {{ __('Connect your social accounts to start receiving messages.') }}
-                    </flux:text>
-                </div>
+                {{-- Phase C: when onboarding isn't 100% complete, show the
+                     next-step panel instead of the generic empty state. This
+                     is a pure static Blade component — see
+                     .claude/skills/inbox-composer-safety (failure modes
+                     1, 2, 4, 5, 6 all avoided). --}}
+                @php
+                    $__nsTeam = auth()->user()?->currentTeam;
+                    $__nsPercent = $__nsTeam
+                        ? app(\App\Services\Onboarding\ProgressService::class)->percentComplete($__nsTeam)
+                        : 100;
+                @endphp
+                @if($__nsTeam && $__nsPercent < 100)
+                    <div class="flex flex-col items-center justify-center h-full py-6">
+                        <x-onboarding.next-step-panel :team="$__nsTeam" />
+                    </div>
+                @else
+                    <div class="flex flex-col items-center justify-center h-full p-6 text-center">
+                        <flux:icon name="inbox" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mb-3" />
+                        <flux:heading size="sm" class="text-zinc-500">{{ __('No conversations yet') }}</flux:heading>
+                        <flux:text size="sm" class="text-zinc-400 mt-1">
+                            {{ __('Connect your social accounts to start receiving messages.') }}
+                        </flux:text>
+                    </div>
+                @endif
             @endforelse
 
             @if($hasMoreConversations)
