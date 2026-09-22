@@ -1,28 +1,56 @@
 <div class="p-6 max-w-6xl mx-auto space-y-6" wire:poll.10s>
-    <div class="flex items-center justify-between">
-        <div>
-            <a href="{{ route('campaigns.index') }}" wire:navigate class="text-xs text-white/40 hover:text-white">← {{ __('Campaigns') }}</a>
-            <h1 class="text-2xl font-bold text-white mt-1">{{ $campaign->name }}</h1>
-            <p class="text-sm text-white/40">
-                {{ ucfirst($campaign->platform ?? 'email') }} ·
-                {{ __('Sender') }}: {{ optional($campaign->senderPage)->name ?? '—' }} ·
-                {{ __('Status') }}:
-                <span class="font-semibold
-                    @if($campaign->status === 'active') text-yellow-400
-                    @elseif($campaign->status === 'completed') text-green-400
-                    @elseif($campaign->status === 'paused') text-orange-400
-                    @elseif($campaign->status === 'failed') text-red-400
-                    @else text-white/60 @endif">{{ ucfirst($campaign->status) }}</span>
+    @php
+        $isWhatsapp = ($campaign->platform ?? 'email') === 'whatsapp';
+        $identifierColumn = $isWhatsapp ? __('Phone') : __('Email');
+        $statusPill = match($campaign->status) {
+            'active'    => 'text-yellow-700 bg-yellow-50 border-yellow-200',
+            'completed' => 'text-emerald-700 bg-emerald-50 border-emerald-200',
+            'paused'    => 'text-orange-700 bg-orange-50 border-orange-200',
+            'failed'    => 'text-red-700 bg-red-50 border-red-200',
+            'scheduled' => 'text-blue-700 bg-blue-50 border-blue-200',
+            default     => 'text-zinc-700 bg-zinc-100 border-zinc-200',
+        };
+    @endphp
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="min-w-0">
+            <a href="{{ route('campaigns.index') }}" wire:navigate
+               class="inline-flex items-center gap-1 text-xs font-medium text-zinc-700 hover:text-zinc-900">
+                ← {{ __('Campaigns') }}
+            </a>
+            <h1 class="text-2xl font-bold text-zinc-900 mt-1 truncate">{{ $campaign->name }}</h1>
+            <p class="mt-1 text-sm text-zinc-700 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>{{ ucfirst($campaign->platform ?? 'email') }}</span>
+                <span class="text-zinc-400">·</span>
+                <span>{{ __('Sender') }}: <strong class="text-zinc-900">{{ optional($campaign->senderPage)->name ?? '—' }}</strong></span>
+                <span class="text-zinc-400">·</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border {{ $statusPill }}">
+                    {{ ucfirst($campaign->status) }}
+                </span>
             </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 shrink-0">
             @if($campaign->status === 'active')
-                <button wire:click="pause" class="px-4 py-2 rounded-xl text-sm text-orange-300 bg-orange-500/15">{{ __('Pause') }}</button>
+                <button wire:click="pause"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-orange-800 bg-orange-50 border border-orange-200 hover:bg-orange-100">
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {{ __('Pause') }}
+                </button>
             @elseif($campaign->status === 'paused')
-                <button wire:click="resume" class="px-4 py-2 rounded-xl text-sm text-green-300 bg-green-500/15">{{ __('Resume') }}</button>
+                <button wire:click="resume"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100">
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {{ __('Resume') }}
+                </button>
             @endif
             @if($this->counts['failed'] > 0)
-                <button wire:click="retryFailed" class="px-4 py-2 rounded-xl text-sm text-white/80 bg-white/[0.06]">{{ __('Retry failed') }}</button>
+                <button wire:click="retryFailed"
+                        wire:confirm="{{ __('Requeue :n failed recipients?', ['n' => $this->counts['failed']]) }}"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-zinc-800 bg-zinc-100 border border-zinc-200 hover:bg-zinc-200">
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    {{ __('Retry :n failed', ['n' => $this->counts['failed']]) }}
+                </button>
             @endif
         </div>
     </div>
@@ -31,89 +59,135 @@
     @php $c = $this->counts; @endphp
     <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
         @foreach([
-            ['Total', $c['total'], 'text-white'],
-            ['Pending', $c['pending'], 'text-white/60'],
-            ['Sent', $c['sent'], 'text-green-400'],
-            ['Opened', $c['opened'], 'text-[#C27AFF]'],
-            ['Failed', $c['failed'], 'text-red-400'],
-            ['Unsub.', $c['unsubscribed'], 'text-orange-400'],
-        ] as [$label, $value, $color])
-            <div class="aio-card rounded-2xl p-4 text-center">
-                <p class="text-xl font-bold {{ $color }}">{{ number_format($value) }}</p>
-                <p class="text-xs text-white/40 mt-1">{{ $label }}</p>
+            ['Total',    $c['total'],        'text-zinc-900',    'bg-white  border-zinc-200'],
+            ['Pending',  $c['pending'],      'text-zinc-700',    'bg-zinc-50 border-zinc-200'],
+            ['Sent',     $c['sent'],         'text-emerald-700', 'bg-emerald-50 border-emerald-200'],
+            ['Opened',   $c['opened'],       'text-violet-700',  'bg-violet-50 border-violet-200'],
+            ['Failed',   $c['failed'],       'text-red-700',     'bg-red-50 border-red-200'],
+            ['Unsub.',   $c['unsubscribed'], 'text-orange-700',  'bg-orange-50 border-orange-200'],
+        ] as [$label, $value, $color, $bgBorder])
+            <div class="rounded-xl p-4 text-center border {{ $bgBorder }}">
+                <p class="text-2xl font-bold {{ $color }}">{{ number_format($value) }}</p>
+                <p class="text-xs font-medium text-zinc-700 mt-1">{{ $label }}</p>
             </div>
         @endforeach
     </div>
 
     {{-- Progress bar --}}
     @if($c['total'] > 0)
-        @php $pct = (int) round((($c['sent'] + $c['failed'] + $c['unsubscribed']) / $c['total']) * 100); @endphp
+        @php
+            $completed = $c['sent'] + $c['failed'] + $c['unsubscribed'];
+            $pct = (int) round(($completed / $c['total']) * 100);
+            $successRate = $c['sent'] > 0 && ($c['sent'] + $c['failed']) > 0
+                ? round(($c['sent'] / ($c['sent'] + $c['failed'])) * 100, 1)
+                : null;
+        @endphp
         <div>
-            <div class="flex justify-between text-xs text-white/50 mb-1">
-                <span>{{ __('Progress') }}</span>
-                <span>{{ $pct }}%</span>
+            <div class="flex justify-between items-baseline text-xs mb-1">
+                <div class="flex items-center gap-3">
+                    <span class="font-semibold text-zinc-900">{{ __('Progress') }}</span>
+                    <span class="text-zinc-700">
+                        {{ number_format($completed) }} / {{ number_format($c['total']) }}
+                    </span>
+                    @if($successRate !== null)
+                        <span class="text-zinc-700">·</span>
+                        <span class="text-zinc-700">
+                            <strong class="{{ $successRate >= 95 ? 'text-emerald-700' : ($successRate >= 80 ? 'text-yellow-700' : 'text-red-700') }}">{{ $successRate }}%</strong> {{ __('success rate') }}
+                        </span>
+                    @endif
+                </div>
+                <span class="font-semibold text-zinc-900">{{ $pct }}%</span>
             </div>
-            <div class="h-2 rounded-full bg-white/[0.05] overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-[#7C3AED] to-[#C27AFF]" style="width: {{ $pct }}%"></div>
+            <div class="h-2 rounded-full bg-zinc-200 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-violet-600 to-violet-400 transition-all duration-500"
+                     style="width: {{ $pct }}%"></div>
             </div>
         </div>
     @endif
 
     {{-- Filter tabs --}}
-    <div class="flex gap-0 border-b" style="border-color: rgba(255,255,255,0.07);">
-        @foreach(['all' => __('All'), 'pending' => __('Pending'), 'sent' => __('Sent'), 'opened' => __('Opened'), 'failed' => __('Failed'), 'unsubscribed' => __('Unsubscribed')] as $key => $label)
+    @php
+        $tabs = $isWhatsapp
+            ? ['all' => __('All'), 'pending' => __('Pending'), 'sent' => __('Sent'), 'failed' => __('Failed')]
+            : ['all' => __('All'), 'pending' => __('Pending'), 'sent' => __('Sent'), 'opened' => __('Opened'), 'failed' => __('Failed'), 'unsubscribed' => __('Unsubscribed')];
+    @endphp
+    <div class="flex gap-0 border-b border-zinc-200 overflow-x-auto">
+        @foreach($tabs as $key => $label)
+            @php
+                $count = $c[$key] ?? null;
+            @endphp
             <button wire:click="$set('filter', '{{ $key }}')"
-                    class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px
-                           {{ $filter === $key ? 'border-b-2 text-[#C27AFF]' : 'text-white/35 hover:text-white/60' }}"
-                    @if($filter === $key) style="border-color: #7C3AED;" @endif>
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold transition-colors cursor-pointer -mb-px whitespace-nowrap
+                           {{ $filter === $key ? 'border-b-2 border-violet-600 text-violet-700' : 'text-zinc-700 hover:text-zinc-900' }}">
                 {{ $label }}
+                @if($count !== null && $key !== 'all')
+                    <span class="inline-flex items-center justify-center min-w-[20px] px-1.5 h-5 rounded-full text-[10px] font-bold
+                                 {{ $filter === $key ? 'bg-violet-100 text-violet-800' : 'bg-zinc-100 text-zinc-700' }}">
+                        {{ number_format($count) }}
+                    </span>
+                @endif
             </button>
         @endforeach
     </div>
 
     {{-- Recipients table --}}
-    <div class="aio-card rounded-2xl overflow-hidden">
-        <table class="min-w-full text-sm">
-            <thead class="bg-white/[0.03]">
-                <tr class="text-left text-xs text-white/50">
-                    <th class="px-4 py-2.5">{{ __('Email') }}</th>
-                    <th class="px-4 py-2.5">{{ __('Name') }}</th>
-                    <th class="px-4 py-2.5">{{ __('Status') }}</th>
-                    <th class="px-4 py-2.5">{{ __('Attempts') }}</th>
-                    <th class="px-4 py-2.5">{{ __('Scheduled') }}</th>
-                    <th class="px-4 py-2.5">{{ __('Sent') }}</th>
-                    <th class="px-4 py-2.5">{{ __('Error') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($recipients as $r)
-                    <tr class="border-t border-white/[0.04]">
-                        <td class="px-4 py-2 text-white/80">{{ $r->email }}</td>
-                        <td class="px-4 py-2 text-white/60">{{ $r->name ?? '—' }}</td>
-                        <td class="px-4 py-2">
-                            <span class="px-2 py-0.5 rounded-md text-xs font-semibold
-                                @switch($r->status)
-                                    @case('sent') bg-green-500/15 text-green-300 @break
-                                    @case('opened') bg-purple-500/15 text-purple-300 @break
-                                    @case('pending') bg-white/[0.06] text-white/60 @break
-                                    @case('sending') bg-yellow-500/15 text-yellow-300 @break
-                                    @case('failed') bg-red-500/15 text-red-300 @break
-                                    @case('unsubscribed') bg-orange-500/15 text-orange-300 @break
-                                    @default bg-white/[0.06] text-white/60
-                                @endswitch">
-                                {{ $r->status }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-2 text-white/50">{{ $r->attempts }}</td>
-                        <td class="px-4 py-2 text-white/50">{{ optional($r->scheduled_at)->diffForHumans() ?? '—' }}</td>
-                        <td class="px-4 py-2 text-white/50">{{ optional($r->sent_at)->diffForHumans() ?? '—' }}</td>
-                        <td class="px-4 py-2 text-red-300/80 text-xs">{{ \Illuminate\Support\Str::limit($r->last_error ?? '', 60) }}</td>
+    <div class="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-zinc-50 border-b border-zinc-200">
+                    <tr class="text-left text-xs font-semibold text-zinc-700 uppercase tracking-wide">
+                        <th class="px-4 py-3">{{ $identifierColumn }}</th>
+                        <th class="px-4 py-3">{{ __('Name') }}</th>
+                        <th class="px-4 py-3">{{ __('Status') }}</th>
+                        <th class="px-4 py-3 text-center">{{ __('Attempts') }}</th>
+                        <th class="px-4 py-3">{{ __('Scheduled') }}</th>
+                        <th class="px-4 py-3">{{ __('Sent') }}</th>
+                        <th class="px-4 py-3">{{ __('Error') }}</th>
                     </tr>
-                @empty
-                    <tr><td colspan="7" class="px-4 py-6 text-center text-white/40">{{ __('No recipients in this view.') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    @forelse($recipients as $r)
+                        @php
+                            $statusClass = match($r->status) {
+                                'sent'         => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                                'opened'       => 'bg-violet-50 text-violet-800 border-violet-200',
+                                'pending'      => 'bg-zinc-50 text-zinc-700 border-zinc-200',
+                                'queued'       => 'bg-blue-50 text-blue-800 border-blue-200',
+                                'sending'      => 'bg-yellow-50 text-yellow-800 border-yellow-200',
+                                'failed'       => 'bg-red-50 text-red-800 border-red-200',
+                                'unsubscribed' => 'bg-orange-50 text-orange-800 border-orange-200',
+                                default        => 'bg-zinc-50 text-zinc-700 border-zinc-200',
+                            };
+                        @endphp
+                        <tr class="hover:bg-zinc-50">
+                            <td class="px-4 py-2.5 font-mono text-zinc-900">
+                                {{ $isWhatsapp ? $r->phone : $r->email }}
+                            </td>
+                            <td class="px-4 py-2.5 text-zinc-800">{{ $r->name ?? '—' }}</td>
+                            <td class="px-4 py-2.5">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border {{ $statusClass }}">
+                                    {{ $r->status }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2.5 text-center text-zinc-700">{{ $r->attempts }}</td>
+                            <td class="px-4 py-2.5 text-zinc-700">{{ optional($r->scheduled_at)->diffForHumans() ?? '—' }}</td>
+                            <td class="px-4 py-2.5 text-zinc-700">{{ optional($r->sent_at)->diffForHumans() ?? '—' }}</td>
+                            <td class="px-4 py-2.5 text-red-700 text-xs">
+                                @if($r->last_error)
+                                    <span title="{{ $r->last_error }}">{{ \Illuminate\Support\Str::limit($r->last_error, 60) }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-zinc-700">
+                                {{ __('No recipients in this view.') }}
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div>{{ $recipients->links() }}</div>
