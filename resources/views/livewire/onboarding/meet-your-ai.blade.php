@@ -295,7 +295,7 @@
                     </flux:button>
                     <flux:button
                         wire:click="completeAndTweak"
-                        variant="ghost"
+                        variant="outline"
                         class="w-full"
                         data-test="cta-tweak"
                     >
