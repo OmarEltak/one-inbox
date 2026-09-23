@@ -3,7 +3,7 @@
         {{-- Headline. This copy is the whole point of the page — do NOT weaken. --}}
         <div class="text-center max-w-3xl mx-auto">
             <span class="inline-flex items-center rounded-full bg-indigo-100 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                {{ __('One more step — pick a plan') }}
+                {{ __('One more step: pick a plan') }}
             </span>
             <h1 class="mt-6 text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
                 {{ __('Try any plan free for 14 days.') }}

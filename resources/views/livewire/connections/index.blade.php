@@ -94,50 +94,58 @@
         property so they can still smoke-test OAuth end-to-end.
     --}}
     @if($usesConciergeFlow)
-        <div class="mb-2 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-fuchsia-500/10 p-5 shadow-sm"
+        {{--
+            Committed color strategy: solid indigo→violet gradient carries the surface
+            so white-on-color text is fully legible. The prior version used 10% opacity
+            over the page's white background, which rendered the copy near-invisible.
+        --}}
+        <div class="mb-2 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-5 shadow-md"
              x-data="{ showDetails: false }">
             <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 size-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
-                    <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <div class="flex-shrink-0 size-11 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center">
+                    <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-white/90">
-                        {{ __('We connect Facebook & Instagram for you — usually within :n min.', ['n' => $conciergeMedianMinutes ?? 10]) }}
+                    <p class="text-base font-semibold text-white">
+                        {{ __('We connect Facebook and Instagram for you, usually within :n min.', ['n' => $conciergeMedianMinutes ?? 10]) }}
                     </p>
-                    <p class="mt-1 text-sm text-white/70 leading-relaxed">
-                        {{ __('Our team personally verifies every page before it goes live. It\'s how we keep the platform clean for early customers — and it\'s free with any plan.') }}
+                    <p class="mt-1.5 text-sm text-white/85 leading-relaxed">
+                        {{ __('Our team personally verifies every page before it goes live. It\'s how we keep the platform clean for early customers, free with any plan.') }}
                         {{ __('Send us your page details and we\'ll take it from there.') }}
                     </p>
-                    <div class="mt-3 flex flex-wrap items-center gap-3">
-                        <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" icon="paper-airplane">
+                    <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <button type="button" wire:click="openRequestForm('facebook')"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm hover:bg-white/95 transition">
+                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
                             {{ __('Request Facebook connection') }}
-                        </flux:button>
-                        <flux:button wire:click="openRequestForm('instagram')" variant="ghost" size="sm">
+                        </button>
+                        <button type="button" wire:click="openRequestForm('instagram')"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-white/15 ring-1 ring-white/30 px-3 py-2 text-sm font-semibold text-white hover:bg-white/25 transition">
                             {{ __('Or request Instagram') }}
-                        </flux:button>
+                        </button>
                         <button type="button" @click="showDetails = ! showDetails"
-                                class="text-xs font-medium text-white/60 hover:text-white/90 underline underline-offset-2">
+                                class="ml-1 text-xs font-medium text-white/80 hover:text-white underline underline-offset-2">
                             <span x-show="!showDetails">{{ __('How long does it take?') }}</span>
                             <span x-show="showDetails" x-cloak>{{ __('Hide details') }}</span>
                         </button>
                     </div>
                     <div x-show="showDetails" x-cloak x-transition
-                         class="mt-3 rounded-lg bg-white/5 border border-white/10 p-3 text-xs text-white/70 leading-relaxed space-y-2">
+                         class="mt-3 rounded-lg bg-white/10 ring-1 ring-white/20 p-3 text-xs text-white/90 leading-relaxed space-y-2">
                         @if($conciergeMedianMinutes !== null)
                             <p>
-                                <strong class="text-white/90">{{ __('Median turnaround so far:') }}</strong>
+                                <strong class="text-white">{{ __('Median turnaround so far:') }}</strong>
                                 {{ trans_choice('{1} :n minute|[2,*] :n minutes', $conciergeMedianMinutes, ['n' => $conciergeMedianMinutes]) }}.
-                                {{ __('Business hours are 9am–9pm Cairo; outside that window we finish the next morning.') }}
+                                {{ __('Business hours are 9am to 9pm Cairo; outside that window we finish the next morning.') }}
                             </p>
                         @else
-                            <p>{{ __('Usually under 10 minutes during business hours (9am–9pm Cairo). Outside that window we finish the next morning — we\'ll email you the moment your page is live.') }}</p>
+                            <p>{{ __('Usually under 10 minutes during business hours (9am to 9pm Cairo). Outside that window we finish the next morning, we\'ll email you the moment your page is live.') }}</p>
                         @endif
                         <p>
                             {{ __('Add') }}
                             <a href="https://www.facebook.com/omarEltak88/" target="_blank"
-                               class="underline font-medium text-white hover:text-white/80">{{ __('our Facebook account') }}</a>
+                               class="underline font-semibold text-white hover:text-white/90">{{ __('our Facebook account') }}</a>
                             {{ __('as an admin on your page (Basic control is enough), then submit the form. That\'s all we need to finish the handoff on our side.') }}
                         </p>
                     </div>
