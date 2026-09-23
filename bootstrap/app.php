@@ -30,6 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\SetCurrentTeam::class,
+            // Must run AFTER SetCurrentTeam so currentTeam is populated when we
+            // check onboarding_completed_at. Redirects any authed customer with
+            // incomplete onboarding to /onboarding/meet-your-ai (per allowlist
+            // inside the middleware itself).
+            \App\Http\Middleware\RequireOnboarding::class,
         ]);
 
         // The locale cookie carries a public value (`en` | `ar`). Encrypting

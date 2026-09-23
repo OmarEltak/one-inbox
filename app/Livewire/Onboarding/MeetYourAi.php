@@ -431,6 +431,45 @@ class MeetYourAi extends Component
         return AiSeedComposer::presetQuestionsFor($this->businessType ?: 'other');
     }
 
+    /**
+     * Human-readable label for the currently-picked business type. Used by the
+     * step-2 breadcrumb so the user can see what they picked and jump back.
+     */
+    public function getBusinessTypeLabelProperty(): string
+    {
+        foreach ($this->businessTypeOptions() as $opt) {
+            if ($opt['id'] === $this->businessType) {
+                return $opt['label'];
+            }
+        }
+        return 'Other';
+    }
+
+    /**
+     * Jump back to step 1 (business type picker). Called from the breadcrumb
+     * on step 2. We reset questionIndex so the user starts fresh if they pick
+     * a different type, but keep their existing q1/q2/q3 answers so they don't
+     * have to retype them if they change their mind and pick the same type.
+     */
+    public function backToStep1(): void
+    {
+        $this->step = 1;
+        $this->questionIndex = 1;
+    }
+
+    /**
+     * Jump back to a specific question within step 2. The Blade uses this
+     * from the collapsed answer cards.
+     */
+    public function editQuestion(int $index): void
+    {
+        if ($index < 1 || $index > 3) {
+            return;
+        }
+        $this->step = 2;
+        $this->questionIndex = $index;
+    }
+
     public function render()
     {
         return view('livewire.onboarding.meet-your-ai', [

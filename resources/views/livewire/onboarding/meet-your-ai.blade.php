@@ -24,24 +24,16 @@
     @chat-updated.window="scrollChatToBottom()"
 >
     <div class="mx-auto max-w-3xl">
-        {{-- Header + step counter + skip --}}
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <flux:heading size="xl" class="!text-zinc-900">
-                    {{ __('Meet your AI') }}
-                </flux:heading>
-                <flux:text class="mt-1 !text-zinc-600">
-                    {{ __('Step :current of :total', ['current' => $step, 'total' => $totalSteps]) }}
-                </flux:text>
-            </div>
-            <button
-                type="button"
-                wire:click="skip"
-                wire:confirm="{{ __('Skip the AI setup? You can come back to this from Settings.') }}"
-                class="text-sm text-zinc-500 hover:text-zinc-800 underline underline-offset-4"
-            >
-                {{ __('Skip for now') }}
-            </button>
+        {{-- Header + step counter. Skip removed intentionally: onboarding is
+             mandatory now, enforced by the RequireOnboarding middleware. Users
+             who don't finish this hit the wizard every time they log in. --}}
+        <div class="mb-6">
+            <flux:heading size="xl" class="!text-zinc-900">
+                {{ __('Meet your AI') }}
+            </flux:heading>
+            <flux:text class="mt-1 !text-zinc-600">
+                {{ __('Step :current of :total', ['current' => $step, 'total' => $totalSteps]) }}
+            </flux:text>
         </div>
 
         {{-- Progress bar --}}
@@ -69,7 +61,7 @@
                         <button
                             type="button"
                             wire:click="pickBusinessType('{{ $opt['id'] }}')"
-                            class="group relative flex flex-col items-start gap-2 p-5 rounded-xl border-2 border-zinc-200 bg-white hover:border-violet-500 hover:shadow-lg text-left transition-all"
+                            class="group relative flex flex-col items-start gap-2 p-5 rounded-xl border-2 border-zinc-200 bg-white hover:border-violet-500 hover:shadow-lg text-left transition-all cursor-pointer"
                             data-test="business-type-{{ $opt['id'] }}"
                         >
                             <div class="size-10 rounded-lg bg-violet-100 flex items-center justify-center group-hover:bg-violet-200">
@@ -88,6 +80,19 @@
              ═══════════════════════════════════════════════════════════════ --}}
         @if($step === 2)
             <div class="space-y-6">
+                {{-- Editable business type crumb (jumps back to step 1) --}}
+                <button
+                    type="button"
+                    wire:click="backToStep1"
+                    class="inline-flex items-center gap-2 text-xs text-zinc-500 hover:text-violet-700 cursor-pointer"
+                    data-test="edit-business-type"
+                >
+                    <svg class="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    {{ __('Business type:') }}
+                    <span class="font-semibold text-violet-700">{{ __($this->businessTypeLabel) }}</span>
+                    <span class="underline underline-offset-2">{{ __('change') }}</span>
+                </button>
+
                 {{-- Q1 --}}
                 @if($questionIndex >= 1)
                     <div class="flex gap-3">
@@ -105,12 +110,20 @@
                                 />
                                 @error('q1Offer') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                                 <div class="flex justify-end mt-3">
-                                    <flux:button variant="primary" wire:click="submitQuestion" data-test="q1-continue">
+                                    <flux:button variant="primary" wire:click="submitQuestion" class="cursor-pointer" data-test="q1-continue">
                                         {{ __('Continue') }}
                                     </flux:button>
                                 </div>
                             @else
-                                <div class="text-zinc-700 text-sm whitespace-pre-wrap">{{ $q1Offer }}</div>
+                                <button
+                                    type="button"
+                                    wire:click="editQuestion(1)"
+                                    class="w-full text-left group cursor-pointer"
+                                    data-test="edit-q1"
+                                >
+                                    <div class="text-zinc-700 text-sm whitespace-pre-wrap">{{ $q1Offer }}</div>
+                                    <div class="mt-1.5 text-xs text-zinc-400 group-hover:text-violet-700 underline underline-offset-2">{{ __('Edit') }}</div>
+                                </button>
                             @endif
                         </div>
                     </div>
@@ -135,7 +148,7 @@
                                         <button
                                             type="button"
                                             wire:click="useSuggestedQuestion(@js($q))"
-                                            class="px-3 py-1.5 rounded-full text-xs bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition"
+                                            class="px-3 py-1.5 rounded-full text-xs bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition cursor-pointer"
                                         >
                                             {{ $q }}
                                         </button>
@@ -143,12 +156,20 @@
                                 </div>
                                 @error('q2TopQuestion') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                                 <div class="flex justify-end mt-3">
-                                    <flux:button variant="primary" wire:click="submitQuestion" data-test="q2-continue">
+                                    <flux:button variant="primary" wire:click="submitQuestion" class="cursor-pointer" data-test="q2-continue">
                                         {{ __('Continue') }}
                                     </flux:button>
                                 </div>
                             @else
-                                <div class="text-zinc-700 text-sm whitespace-pre-wrap">{{ $q2TopQuestion }}</div>
+                                <button
+                                    type="button"
+                                    wire:click="editQuestion(2)"
+                                    class="w-full text-left group cursor-pointer"
+                                    data-test="edit-q2"
+                                >
+                                    <div class="text-zinc-700 text-sm whitespace-pre-wrap">{{ $q2TopQuestion }}</div>
+                                    <div class="mt-1.5 text-xs text-zinc-400 group-hover:text-violet-700 underline underline-offset-2">{{ __('Edit') }}</div>
+                                </button>
                             @endif
                         </div>
                     </div>
@@ -167,7 +188,7 @@
                                     <button
                                         type="button"
                                         wire:click="$set('q3Tone', '{{ $key }}')"
-                                        class="px-3 py-2 rounded-lg text-sm border-2 transition
+                                        class="px-3 py-2 rounded-lg text-sm border-2 transition cursor-pointer
                                             {{ $q3Tone === $key ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-zinc-700 border-zinc-200 hover:border-violet-300' }}"
                                         data-test="tone-{{ $key }}"
                                     >
@@ -184,7 +205,7 @@
                                 @error('q3CustomTone') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                             @endif
                             <div class="flex justify-end mt-3">
-                                <flux:button variant="primary" wire:click="submitQuestion" data-test="q3-continue">
+                                <flux:button variant="primary" wire:click="submitQuestion" class="cursor-pointer" data-test="q3-continue">
                                     {{ __('Generate my AI') }}
                                 </flux:button>
                             </div>

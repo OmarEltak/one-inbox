@@ -105,19 +105,20 @@ it('marks onboarding complete only when the user picks a CTA', function () {
     expect($team->fresh()->onboarding_completed_at)->not->toBeNull();
 });
 
-it('keeps onboarding_completed_at NULL when user skips', function () {
+it('skip() still records the skip flag but the UI no longer exposes it', function () {
+    // Skip was removed from the UI on 2026-09-23 (mandate: onboarding is
+    // required, enforced by RequireOnboarding middleware). The Livewire
+    // method stays for programmatic use (e.g. super-admin unblocks) but
+    // regular customers can't reach it. We keep the settings flag so nudge
+    // emails can distinguish "never touched" from "actively skipped".
     [$user, $team] = makeMeetAiUser();
 
     $this->actingAs($user);
 
-    Livewire::test(MeetYourAi::class)
-        ->call('skip')
-        ->assertRedirect(route('dashboard'));
+    Livewire::test(MeetYourAi::class)->call('skip');
 
     $team->refresh();
     expect($team->onboarding_completed_at)->toBeNull();
-    // But we DO record the skip so nudge emails can distinguish "never touched"
-    // from "actively skipped".
     expect($team->settings['onboarding_skipped_at'] ?? null)->not->toBeNull();
 });
 

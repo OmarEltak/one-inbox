@@ -111,7 +111,7 @@
                     <p class="text-base font-semibold text-white">
                         {{ __('We connect Facebook and Instagram for you, usually within :n min.', ['n' => $conciergeMedianMinutes ?? 10]) }}
                     </p>
-                    <p class="mt-1.5 text-sm text-white/85 leading-relaxed">
+                    <p class="mt-1.5 text-sm text-white leading-relaxed">
                         {{ __('Our team personally verifies every page before it goes live. It\'s how we keep the platform clean for early customers, free with any plan.') }}
                         {{ __('Send us your page details and we\'ll take it from there.') }}
                     </p>
@@ -126,13 +126,13 @@
                             {{ __('Or request Instagram') }}
                         </button>
                         <button type="button" @click="showDetails = ! showDetails"
-                                class="ml-1 text-xs font-medium text-white/80 hover:text-white underline underline-offset-2">
+                                class="ml-1 text-xs font-semibold text-white hover:text-white/90 underline underline-offset-2 cursor-pointer">
                             <span x-show="!showDetails">{{ __('How long does it take?') }}</span>
                             <span x-show="showDetails" x-cloak>{{ __('Hide details') }}</span>
                         </button>
                     </div>
                     <div x-show="showDetails" x-cloak x-transition
-                         class="mt-3 rounded-lg bg-white/10 ring-1 ring-white/20 p-3 text-xs text-white/90 leading-relaxed space-y-2">
+                         class="mt-3 rounded-lg bg-white/15 ring-1 ring-white/30 p-3 text-xs text-white leading-relaxed space-y-2">
                         @if($conciergeMedianMinutes !== null)
                             <p>
                                 <strong class="text-white">{{ __('Median turnaround so far:') }}</strong>
