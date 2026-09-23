@@ -44,9 +44,15 @@ class RequireOnboarding
     /**
      * Path prefixes that never redirect (Livewire's internal update endpoint,
      * webhooks, health, etc). Match on request path.
+     *
+     * NOTE: Laravel Livewire's endpoint is `livewire-<hash>/update` (asset
+     * versioning suffix), not the plain `livewire/`. We match on the `livewire`
+     * prefix without the trailing slash so both patterns pass through. Without
+     * this fix the wizard hits an infinite redirect loop because its own
+     * wire:click POSTs get bounced back to the wizard route.
      */
     protected array $allowlistPathPrefixes = [
-        'livewire/',
+        'livewire',
         'api/',
         '_ignition/',
         'health/',
