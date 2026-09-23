@@ -9,9 +9,11 @@ use App\Models\Contact;
 use App\Models\Page;
 use App\Services\Campaigns\CampaignScheduler;
 use App\Services\Campaigns\PhoneContactImporter;
+use App\Services\Campaigns\SupportedCountries;
 use App\Services\Email\SpreadsheetParser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -20,6 +22,9 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 class WhatsAppWizard extends Component
 {
     use WithFileUploads;
+
+    /** Ordered step machine — kept as a const so the Blade indicator and back() share one source of truth. */
+    public const STEPS = ['upload', 'map', 'compose', 'test', 'review', 'launched'];
 
     public string $step = 'upload';
     public $file = null;
@@ -45,6 +50,8 @@ class WhatsAppWizard extends Component
     public ?int $importId = null;
     public ?string $importTag = null;
     public int $importedCount = 0;
+    public int $skippedCount  = 0;
+    public int $invalidCount  = 0;
     public ?int $createdCampaignId = null;
 
     public string $testPhone = '';
@@ -59,6 +66,25 @@ class WhatsAppWizard extends Component
         $this->resetValidation('file');
     }
 
+    /** Go back one step. Safe: never advances, never mutates DB rows. */
+    public function back(): void
+    {
+        $idx = array_search($this->step, self::STEPS, true);
+        if ($idx === false || $idx === 0) {
+            return;
+        }
+        // From 'launched' we don't offer back — the campaign is real.
+        if ($this->step === 'launched') {
+            return;
+        }
+        $this->step = self::STEPS[$idx - 1];
+        // Coming back from test wipes the last test result — old feedback would be misleading.
+        if ($this->step === 'compose') {
+            $this->testResult = null;
+            $this->testError = null;
+        }
+    }
+
     public function mount(): void
     {
         $team = Auth::user()?->currentTeam;
@@ -71,7 +97,9 @@ class WhatsAppWizard extends Component
             ->where('is_active', true)
             ->first();
         $this->senderPageId = $first?->id;
-        $this->defaultCountry = config('campaigns.default_country', 'EG');
+
+        $configured = strtoupper((string) config('campaigns.default_country', 'EG'));
+        $this->defaultCountry = SupportedCountries::has($configured) ? $configured : 'EG';
     }
 
     #[Computed]
@@ -81,6 +109,19 @@ class WhatsAppWizard extends Component
             ->where('platform', 'whatsapp')
             ->where('is_active', true)
             ->get();
+    }
+
+    #[Computed]
+    public function countries(): array
+    {
+        return SupportedCountries::LIST;
+    }
+
+    #[Computed]
+    public function stepIndex(): int
+    {
+        $i = array_search($this->step, self::STEPS, true);
+        return $i === false ? 0 : (int) $i;
     }
 
     public function advanceToMap(): void
@@ -105,9 +146,10 @@ class WhatsAppWizard extends Component
 
     public function advanceToCompose(): void
     {
+        $supported = array_column(SupportedCountries::LIST, 'iso2');
         $this->validate([
             'phoneColumn'    => 'required|string',
-            'defaultCountry' => 'required|string|size:2',
+            'defaultCountry' => ['required', 'string', 'size:2', Rule::in($supported)],
         ]);
 
         $absolute = Storage::path($this->storedPath);
@@ -129,6 +171,8 @@ class WhatsAppWizard extends Component
 
         $this->importId = $result->importId;
         $this->importedCount = $result->importedRows;
+        $this->skippedCount  = $result->skippedRows;
+        $this->invalidCount  = $result->invalidRows;
         $this->importTag = 'imported:' . pathinfo($this->originalName ?? $this->storedPath, PATHINFO_FILENAME);
         $this->step = 'compose';
     }

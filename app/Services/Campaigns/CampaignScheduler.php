@@ -6,6 +6,7 @@ namespace App\Services\Campaigns;
 
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
+use App\Models\Contact;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -27,13 +28,29 @@ class CampaignScheduler
         $max = max($min, (int) ($campaign->jitter_max_seconds ?? 60));
         $cursor = $now->copy();
 
-        DB::transaction(function () use ($campaign, $identifiers, $channel, $min, $max, &$cursor) {
+        // Bulk-lookup names from Contacts so recipient.name is populated for the
+        // {{name}} template substitution in SendCampaignWhatsAppJob::renderBody.
+        // One query beats per-recipient lookups at send-time.
+        $nameByIdentifier = [];
+        if (! empty($identifiers)) {
+            $contactColumn = $channel === 'whatsapp' ? 'phone' : 'email';
+            $nameByIdentifier = Contact::query()
+                ->where('team_id', $campaign->team_id)
+                ->whereIn($contactColumn, $identifiers)
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->pluck('name', $contactColumn)
+                ->all();
+        }
+
+        DB::transaction(function () use ($campaign, $identifiers, $channel, $min, $max, &$cursor, $nameByIdentifier) {
             foreach ($identifiers as $id) {
                 CampaignRecipient::create([
                     'campaign_id'  => $campaign->id,
                     'channel'      => $channel,
                     'phone'        => $channel === 'whatsapp' ? $id : null,
                     'email'        => $channel === 'email'    ? $id : null,
+                    'name'         => $nameByIdentifier[$id] ?? null,
                     'status'       => 'pending',
                     'attempts'     => 0,
                     'scheduled_at' => $cursor->copy(),

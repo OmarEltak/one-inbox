@@ -6,6 +6,7 @@ namespace App\Services\Wuzapi;
 
 use App\Models\Page;
 use App\Services\EvolutionApiService;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Throwable;
 
 /**
@@ -23,9 +24,20 @@ class WhatsAppSender
     public function send(Page $page, string $toE164, string $body): SendResult
     {
         try {
-            $token = decrypt($page->page_access_token);
+            // page_access_token is stored plain on legacy WhatsApp QR rows and
+            // encrypted on newer ones. Same try/decrypt-then-plain fallback the
+            // existing send paths use (see SendPlatformMessage::sendViaEvolution
+            // and ProcessIncomingMessage::processWuzapi).
+            try {
+                $token = decrypt($page->page_access_token);
+            } catch (DecryptException) {
+                $token = (string) $page->page_access_token;
+            }
+
+            $instanceName = $page->metadata['gateway_instance'] ?? (string) $page->platform_page_id;
+
             $id = $this->wuzapi->sendText(
-                (string) $page->platform_page_id,
+                $instanceName,
                 (string) $token,
                 ltrim($toE164, '+'),
                 $body,

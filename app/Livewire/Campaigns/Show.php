@@ -19,26 +19,39 @@ class Show extends Component
 
     public string $filter = 'all';
 
-    public function mount(int $campaign): void
+    public function mount(Campaign $campaign): void
     {
+        // Route model-binds {campaign} → Campaign, but we still enforce team
+        // ownership here so a signed-in user can't guess another team's id.
         $team = Auth::user()->currentTeam;
-        $this->campaign = Campaign::where('team_id', $team->id)->findOrFail($campaign);
+        abort_unless($team && $campaign->team_id === $team->id, 404);
+        $this->campaign = $campaign;
     }
 
+    /**
+     * One GROUP BY query instead of 6 separate COUNTs — matters at 50k-row
+     * campaigns on a small VPS. Uses the (campaign_id, status) composite index.
+     */
     #[Computed]
     public function counts(): array
     {
-        $base = CampaignRecipient::where('campaign_id', $this->campaign->id);
+        $rows = CampaignRecipient::query()
+            ->selectRaw('status, COUNT(*) as n')
+            ->where('campaign_id', $this->campaign->id)
+            ->groupBy('status')
+            ->pluck('n', 'status');
+
+        $get = fn(string $s) => (int) ($rows[$s] ?? 0);
+        $sent   = $get(CampaignRecipient::STATUS_SENT);
+        $opened = $get(CampaignRecipient::STATUS_OPENED);
+
         return [
-            'total'        => (clone $base)->count(),
-            'pending'      => (clone $base)->where('status', CampaignRecipient::STATUS_PENDING)->count(),
-            'sent'         => (clone $base)->whereIn('status', [
-                CampaignRecipient::STATUS_SENT,
-                CampaignRecipient::STATUS_OPENED,
-            ])->count(),
-            'opened'       => (clone $base)->where('status', CampaignRecipient::STATUS_OPENED)->count(),
-            'failed'       => (clone $base)->where('status', CampaignRecipient::STATUS_FAILED)->count(),
-            'unsubscribed' => (clone $base)->where('status', CampaignRecipient::STATUS_UNSUBSCRIBED)->count(),
+            'total'        => (int) $rows->sum(),
+            'pending'      => $get(CampaignRecipient::STATUS_PENDING) + $get('queued') + $get('sending'),
+            'sent'         => $sent + $opened, // opened implies sent
+            'opened'       => $opened,
+            'failed'       => $get(CampaignRecipient::STATUS_FAILED),
+            'unsubscribed' => $get(CampaignRecipient::STATUS_UNSUBSCRIBED),
         ];
     }
 
