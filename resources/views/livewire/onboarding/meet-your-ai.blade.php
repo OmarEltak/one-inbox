@@ -102,12 +102,16 @@
                                 {{ __('What do you sell or offer?') }}
                             </div>
                             @if($questionIndex === 1)
-                                <flux:textarea
+                                {{-- Hand-rolled textarea: flux:textarea renders typed text as zinc-500
+                                     which is unreadable on white. Force zinc-900 + violet focus ring
+                                     for parity with step 4's customer input. --}}
+                                <textarea
                                     wire:model="q1Offer"
                                     rows="3"
-                                    :placeholder="__('e.g. Handmade leather bags shipped worldwide')"
+                                    placeholder="{{ __('e.g. Handmade leather bags shipped worldwide') }}"
                                     autofocus
-                                />
+                                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition resize-y"
+                                ></textarea>
                                 @error('q1Offer') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                                 <div class="flex justify-end mt-3">
                                     <flux:button variant="primary" wire:click="submitQuestion" class="cursor-pointer" data-test="q1-continue">
@@ -138,11 +142,12 @@
                                 {{ __('What\'s the #1 question customers ask you?') }}
                             </div>
                             @if($questionIndex === 2)
-                                <flux:textarea
+                                <textarea
                                     wire:model="q2TopQuestion"
                                     rows="2"
-                                    :placeholder="__('Pick a suggestion or write your own')"
-                                />
+                                    placeholder="{{ __('Pick a suggestion or write your own') }}"
+                                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition resize-y"
+                                ></textarea>
                                 <div class="flex flex-wrap gap-2 mt-3">
                                     @foreach($suggestedQuestions as $q)
                                         <button
@@ -197,11 +202,12 @@
                                 @endforeach
                             </div>
                             @if($q3Tone === 'my_own')
-                                <flux:textarea
+                                <textarea
                                     wire:model="q3CustomTone"
                                     rows="2"
-                                    :placeholder="__('e.g. warm but no-nonsense, uses local Egyptian slang')"
-                                />
+                                    placeholder="{{ __('e.g. warm but no-nonsense, uses local Egyptian slang') }}"
+                                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition resize-y"
+                                ></textarea>
                                 @error('q3CustomTone') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                             @endif
                             <div class="flex justify-end mt-3">
