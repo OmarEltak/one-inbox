@@ -256,23 +256,21 @@
                 >
                     @foreach($chatMessages as $msg)
                         @if($msg['role'] === 'user')
-                            <div class="flex justify-end">
-                                <div class="max-w-[75%] rounded-2xl rounded-br-sm bg-violet-600 text-white px-4 py-2 text-sm whitespace-pre-wrap">
-                                    {{ $msg['content'] }}
-                                </div>
+                            {{-- inline-block on the bubble so it shrinks to content width; text-left forces
+                                 natural reading alignment regardless of bubble width. --}}
+                            <div class="text-right">
+                                <div class="inline-block max-w-[75%] text-left rounded-2xl rounded-br-md bg-violet-600 text-white px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $msg['content'] }}</div>
                             </div>
                         @else
-                            <div class="flex justify-start">
-                                <div class="max-w-[75%] rounded-2xl rounded-bl-sm bg-zinc-100 text-zinc-900 px-4 py-2 text-sm whitespace-pre-wrap">
-                                    {{ $msg['content'] }}
-                                </div>
+                            <div class="text-left">
+                                <div class="inline-block max-w-[75%] text-left rounded-2xl rounded-bl-md bg-zinc-100 text-zinc-900 px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $msg['content'] }}</div>
                             </div>
                         @endif
                     @endforeach
 
                     @if($isAiTyping)
-                        <div class="flex justify-start">
-                            <div class="rounded-2xl rounded-bl-sm bg-zinc-100 text-zinc-500 px-4 py-2 text-sm flex gap-1 items-center">
+                        <div class="text-left">
+                            <div class="inline-flex rounded-2xl rounded-bl-md bg-zinc-100 px-3.5 py-2.5 gap-1 items-center">
                                 <span class="size-1.5 rounded-full bg-zinc-400 animate-bounce" style="animation-delay: 0ms"></span>
                                 <span class="size-1.5 rounded-full bg-zinc-400 animate-bounce" style="animation-delay: 150ms"></span>
                                 <span class="size-1.5 rounded-full bg-zinc-400 animate-bounce" style="animation-delay: 300ms"></span>
@@ -288,14 +286,19 @@
                 @endif
 
                 @if($canSendMoreTurns)
+                    {{-- Hand-rolled input instead of flux:input so we can force a visible border at rest
+                         (Flux's default only draws on focus, per user feedback 2026-09-23) and a solid
+                         zinc-900 text color instead of the near-invisible zinc-500 default. --}}
                     <form wire:submit.prevent="sendCustomerMessage" class="flex gap-2">
-                        <flux:input
+                        <input
+                            type="text"
                             wire:model="customerInput"
-                            :placeholder="__('Reply as the customer…')"
-                            class="flex-1"
+                            placeholder="{{ __('Reply as the customer…') }}"
+                            class="flex-1 rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
                             data-test="customer-input"
+                            @if($isAiTyping) disabled @endif
                         />
-                        <flux:button type="submit" variant="primary" data-test="customer-send" :disabled="$isAiTyping">
+                        <flux:button type="submit" variant="primary" class="cursor-pointer" data-test="customer-send" :disabled="$isAiTyping">
                             {{ __('Send') }}
                         </flux:button>
                     </form>

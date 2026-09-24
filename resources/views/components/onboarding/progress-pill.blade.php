@@ -13,11 +13,13 @@
     // not a permanent chrome element. Also hide if we somehow can't compute.
     if ($percent >= 100 || $next === null) return;
 
-    // Bucket colouring — matches acceptance-criteria visual regression test
-    // fixtures (0 / 40 / 80 / 100).
-    $ring = $percent < 40 ? 'ring-amber-300 bg-amber-50 text-amber-800'
-          : ($percent < 80 ? 'ring-blue-300  bg-blue-50  text-blue-800'
-          : 'ring-emerald-300 bg-emerald-50 text-emerald-800');
+    // Single-hue violet across all progress buckets so the chrome pill matches
+    // the wizard's primary color (violet-600). Weight steps up with progress so
+    // users still feel the pill "warming" as they complete steps, without
+    // introducing amber/blue/emerald that fight the app's violet identity.
+    $ring = $percent < 40 ? 'ring-violet-200 bg-violet-50 text-violet-700'
+          : ($percent < 80 ? 'ring-violet-300 bg-violet-100 text-violet-800'
+          : 'ring-violet-400 bg-violet-100 text-violet-900');
 @endphp
 
 <a href="{{ $next['url'] }}"
