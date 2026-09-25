@@ -82,7 +82,7 @@
     @else
         <div class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
             <table class="w-full text-sm">
-                <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-xs uppercase tracking-wide text-zinc-500">
+                <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-xs uppercase tracking-wide text-zinc-700 dark:text-zinc-200">
                     <tr>
                         <th class="px-4 py-3 w-10">
                             @php $allSelected = count($selected) > 0 && count($selected) === $this->teams->count(); @endphp
@@ -132,10 +132,10 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $team->name }}</div>
-                                <div class="text-xs text-zinc-500 mt-0.5">
+                                <div class="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">
                                     {{ $team->owner?->name ?? '—' }}
                                     @if($team->owner?->email)
-                                        · <span class="text-zinc-400">{{ $team->owner->email }}</span>
+                                        · <span class="text-zinc-600 dark:text-zinc-400">{{ $team->owner->email }}</span>
                                     @endif
                                 </div>
                                 @if($pendingPaymentId)
@@ -146,11 +146,12 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-md bg-{{ $planColor }}-100 dark:bg-{{ $planColor }}-900/30 px-2 py-0.5 text-xs font-medium text-zinc-900 capitalize">
+                                {{-- Explicit dark: text color so the pill isn't dark-on-dark. --}}
+                                <span class="inline-flex items-center rounded-md bg-{{ $planColor }}-100 dark:bg-{{ $planColor }}-900/40 px-2 py-0.5 text-xs font-medium text-{{ $planColor }}-900 dark:text-{{ $planColor }}-100 ring-1 ring-{{ $planColor }}-200 dark:ring-{{ $planColor }}-800/50 capitalize">
                                     {{ $plan }}
                                 </span>
                                 @if($team->billing_cycle)
-                                    <div class="text-xs text-zinc-500 mt-1">{{ $team->billing_cycle }}</div>
+                                    <div class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">{{ $team->billing_cycle }}</div>
                                 @endif
                                 @if($team->subscription_status === 'past_due')
                                     <div class="text-xs text-red-600 dark:text-red-400 mt-1">past due</div>
