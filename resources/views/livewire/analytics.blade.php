@@ -1,4 +1,7 @@
 <div>
+    {{-- Top-of-page indeterminate progress bar during ANY Livewire request (period switch, chip toggle). --}}
+    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-violet-500 animate-pulse"></div>
+
     @if(! $data)
         <div class="flex flex-col items-center justify-center py-20 text-center">
             <svg class="mb-4 size-16 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,8 +35,17 @@
             {{-- Header with period selector --}}
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-zinc-900">{{ __('Analytics') }}</h1>
-                    <p class="mt-1 text-sm text-white/40">{{ __('AI performance and sales insights') }}</p>
+                    <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{{ __('Analytics') }}</h1>
+                    <div class="mt-1 flex items-center gap-3">
+                        <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('AI performance and sales insights') }}</p>
+                        <span wire:loading class="inline-flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
+                            <svg class="size-3.5 animate-spin text-violet-500 dark:text-violet-400" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/>
+                                <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                            {{ __('Recomputing…') }}
+                        </span>
+                    </div>
                 </div>
                 <div class="flex gap-0.5 rounded-xl p-1 bg-zinc-100 border border-zinc-200">
                     @foreach(['7' => '7d', '14' => '14d', '30' => '30d', '90' => '90d'] as $value => $label)
@@ -83,6 +95,13 @@
                     @endforeach
                 </div>
             @endif
+
+            {{-- Metric region fades while any period/selection change is in flight so
+                 the user sees "these are being recomputed" rather than stale numbers.
+                 wire:target lists the interactions that recompute all metrics. --}}
+            <div wire:loading.class="opacity-50 pointer-events-none"
+                 wire:target="period,selectedPageIds,togglePage,selectAllPages,$set"
+                 class="space-y-6 transition-opacity duration-150">
 
             {{-- Top Row: Key Metrics --}}
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -469,6 +488,8 @@
                     </div>
                 </div>
             </div>
+
+            </div> {{-- /wire:loading fade wrapper --}}
         </div>
     @endif
 </div>

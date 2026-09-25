@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\Contact;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Analytics dashboard.
@@ -24,9 +27,19 @@ use Livewire\Component;
  *
  * Users can further narrow the view with the page chip selector — the
  * default selection is every active page.
+ *
+ * Perf (2026-09-25): copies the super-admin analytics pattern (commit 8e2b198).
+ * Every metric is cache-wrapped INDIVIDUALLY with try/catch → a single failing
+ * query returns an empty fallback instead of 500-ing the whole dashboard. Cache
+ * keys are versioned (v2) so this deploy invalidates prior monolithic entries.
  */
 class Analytics extends Component
 {
+    /** Windowed metrics — dashboard is read-only, staleness ≤5 min is fine. */
+    private const CACHE_TTL_WINDOWED = 300;
+    /** All-time / team-lifetime metrics (contact funnels, etc.). */
+    private const CACHE_TTL_ALL_TIME = 1800;
+
     public string $period = '30'; // days
 
     /**
@@ -88,12 +101,47 @@ class Analytics extends Component
         $this->selectedPageIds = $this->activePages->pluck('id')->all();
     }
 
+    /**
+     * Build a stable cache key for a metric. Selection is hashed so cache is
+     * per team + period + selected pages combination.
+     */
+    private function cacheKey(string $section, int $teamId, array $pageIds, ?int $period = null): string
+    {
+        $selectionKey = md5(implode(',', $pageIds));
+        $windowKey = $period !== null ? ":{$period}" : '';
+
+        return "analytics:{$teamId}:{$section}{$windowKey}:{$selectionKey}:v2";
+    }
+
+    /**
+     * Cache-wrap with a graceful failure fallback. Any exception (timeout, missing
+     * table, DB blip) returns the fallback so the whole page doesn't 500.
+     */
+    private function remember(string $section, int $teamId, array $pageIds, int $ttl, callable $callback, mixed $fallback, ?int $period = null): mixed
+    {
+        return Cache::remember(
+            $this->cacheKey($section, $teamId, $pageIds, $period),
+            $ttl,
+            function () use ($callback, $fallback, $section) {
+                try {
+                    return $callback();
+                } catch (Throwable $e) {
+                    report($e);
+                    if (is_array($fallback)) {
+                        return $fallback + ['__error' => true, '__section' => $section];
+                    }
+                    return $fallback;
+                }
+            }
+        );
+    }
+
     public function render()
     {
-        $team = Auth::user()->currentTeam;
+        $team = Auth::user()?->currentTeam;
 
         if (! $team) {
-            return view('livewire.analytics', ['data' => null, 'activePages' => collect()])
+            return view('livewire.analytics', ['data' => null, 'activePages' => collect(), 'noConnections' => false])
                 ->layout('layouts.app', ['title' => 'Analytics']);
         }
 
@@ -105,8 +153,6 @@ class Analytics extends Component
         $pageIds = array_values(array_intersect($this->selectedPageIds, $activeIds));
 
         if (empty($pageIds)) {
-            // No active connections at all → no data to aggregate. The sidebar
-            // gate normally prevents reaching this route, but render defensively.
             return view('livewire.analytics', [
                 'data' => null,
                 'activePages' => $activePages,
@@ -118,22 +164,63 @@ class Analytics extends Component
         $period = (int) $this->period;
         $since = now()->subDays($period)->startOfDay();
 
-        // Cache key includes the selection so switching pages doesn't serve stale aggregates.
-        $selectionKey = md5(implode(',', $pageIds));
-        $cacheKey = "analytics.{$teamId}.{$period}.{$selectionKey}";
+        // Each metric is cached INDEPENDENTLY with try/catch — one slow/failing
+        // query no longer 500s the whole page.
+        $data = [
+            'aiVsHuman' => $this->remember(
+                'ai_vs_human', $teamId, $pageIds, self::CACHE_TTL_WINDOWED,
+                fn () => $this->getAiVsHumanBreakdown($teamId, $since, $pageIds),
+                ['ai' => 0, 'human' => 0, 'total' => 0, 'ai_percent' => 0],
+                $period,
+            ),
+            'responseTime' => $this->remember(
+                'response_time', $teamId, $pageIds, self::CACHE_TTL_WINDOWED,
+                fn () => $this->getResponseTimes($teamId, $since, $pageIds),
+                ['ai_avg' => null, 'human_avg' => null, 'ai_count' => 0, 'human_count' => 0],
+                $period,
+            ),
+            'conversationVolume' => $this->remember(
+                'conversation_volume', $teamId, $pageIds, self::CACHE_TTL_WINDOWED,
+                fn () => $this->getConversationVolume($teamId, $since, $pageIds),
+                ['total' => 0, 'by_status' => [], 'ai_paused' => 0],
+                $period,
+            ),
+            'leadDistribution' => $this->remember(
+                'lead_distribution', $teamId, $pageIds, self::CACHE_TTL_ALL_TIME,
+                fn () => $this->getLeadDistribution($teamId, $pageIds),
+                [],
+            ),
+            'platformPerformance' => $this->remember(
+                'platform_performance', $teamId, $pageIds, self::CACHE_TTL_WINDOWED,
+                fn () => $this->getPlatformPerformance($teamId, $since, $pageIds),
+                [],
+                $period,
+            ),
+            'topObjections' => $this->remember(
+                'top_objections', $teamId, $pageIds, self::CACHE_TTL_WINDOWED,
+                fn () => $this->getTopObjections($teamId, $since, $pageIds),
+                [],
+                $period,
+            ),
+            'conversionFunnel' => $this->remember(
+                'conversion_funnel', $teamId, $pageIds, self::CACHE_TTL_ALL_TIME,
+                fn () => $this->getConversionFunnel($teamId, $pageIds),
+                ['stages' => ['new' => 0, 'cold' => 0, 'warm' => 0, 'hot' => 0, 'converted' => 0, 'lost' => 0], 'total' => 0, 'conversion_rate' => 0],
+            ),
+            'dailyMessages' => $this->remember(
+                'daily_messages', $teamId, $pageIds, self::CACHE_TTL_WINDOWED,
+                fn () => $this->getDailyMessages($teamId, $since, $pageIds),
+                [],
+                $period,
+            ),
+        ];
 
-        $data = Cache::remember($cacheKey, 1800, function () use ($teamId, $since, $pageIds) {
-            return [
-                'aiVsHuman' => $this->getAiVsHumanBreakdown($teamId, $since, $pageIds),
-                'responseTime' => $this->getResponseTimes($teamId, $since, $pageIds),
-                'conversationVolume' => $this->getConversationVolume($teamId, $since, $pageIds),
-                'leadDistribution' => $this->getLeadDistribution($teamId, $pageIds),
-                'platformPerformance' => $this->getPlatformPerformance($teamId, $since, $pageIds),
-                'topObjections' => $this->getTopObjections($teamId, $since, $pageIds),
-                'conversionFunnel' => $this->getConversionFunnel($teamId, $pageIds),
-                'dailyMessages' => $this->getDailyMessages($teamId, $since, $pageIds),
-            ];
-        });
+        // Strip internal error markers from array-shaped payloads before templating.
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                unset($data[$key]['__error'], $data[$key]['__section']);
+            }
+        }
 
         return view('livewire.analytics', [
             'data' => $data,
@@ -213,11 +300,9 @@ class Analytics extends Component
 
     protected function getConversationVolume(int $teamId, $since, array $pageIds): array
     {
-        $total = Conversation::where('team_id', $teamId)
-            ->whereIn('page_id', $pageIds)
-            ->where('created_at', '>=', $since)->count();
-
-        $byStatus = Conversation::where('team_id', $teamId)
+        // Collapse 3 queries into 2: single grouped scan for total + by_status, plus
+        // one all-time query for ai_paused (has no time window).
+        $windowed = Conversation::where('team_id', $teamId)
             ->whereIn('page_id', $pageIds)
             ->where('created_at', '>=', $since)
             ->selectRaw('status, count(*) as total')
@@ -225,13 +310,15 @@ class Analytics extends Component
             ->pluck('total', 'status')
             ->all();
 
+        $total = array_sum($windowed);
+
         $aiPaused = Conversation::where('team_id', $teamId)
             ->whereIn('page_id', $pageIds)
             ->where('ai_paused', true)->count();
 
         return [
             'total' => $total,
-            'by_status' => $byStatus,
+            'by_status' => $windowed,
             'ai_paused' => $aiPaused,
         ];
     }
