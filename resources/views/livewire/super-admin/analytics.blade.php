@@ -5,6 +5,19 @@
     $teams = $this->teamsTable;
     $daily = $this->messagesDaily;
     $platforms = $this->platformMix;
+    $activationRate = $this->activationRate;
+    $ttfar = $this->timeToFirstAiReply;
+    $bizFunnel = $this->businessTypeFunnel;
+    $retention = $this->retention7d;
+    $aiHealth = $this->aiDispatchHealth;
+
+    $fmtSeconds = function (?int $s): string {
+        if ($s === null) return '—';
+        if ($s < 60) return $s . 's';
+        if ($s < 3600) return round($s / 60) . 'm';
+        if ($s < 86400) return round($s / 3600, 1) . 'h';
+        return round($s / 86400, 1) . 'd';
+    };
 
     $healthStyles = [
         'active'          => ['label' => 'Active',          'class' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'],
@@ -36,13 +49,23 @@
 @endphp
 
 <div class="p-6 space-y-8">
+    {{-- Top-of-page indeterminate progress bar during ANY Livewire request --}}
+    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-indigo-500 animate-pulse"></div>
+
     <div class="flex items-center justify-between">
         <div>
             <flux:heading size="xl" class="text-zinc-900 dark:text-zinc-50">Analytics</flux:heading>
             <flux:text class="mt-1 text-zinc-600 dark:text-zinc-400">
-                Product usage across all customer teams. Cached 15&nbsp;min &middot;
+                Product usage across all customer teams. Cached 5&nbsp;min (windowed) / 30&nbsp;min (all-time) &middot;
                 <a href="?refresh=1" class="underline hover:text-zinc-900 dark:hover:text-zinc-200">refresh now</a>
             </flux:text>
+        </div>
+        <div wire:loading class="flex items-center gap-2 text-xs text-zinc-500">
+            <svg class="w-4 h-4 animate-spin text-indigo-500 dark:text-indigo-400" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/>
+                <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            Recomputing…
         </div>
     </div>
 
@@ -81,6 +104,95 @@
             <div class="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{{ $kpis['teams_inbound_7d'] }}</div>
             <div class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">the "really using it" number</div>
         </div>
+    </div>
+
+    {{-- HEALTH METRICS ROW --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- Activation rate --}}
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 bg-white dark:bg-zinc-900">
+            <div class="text-xs uppercase tracking-wide text-zinc-500">Activation rate (24h)</div>
+            @if($activationRate['has_data'])
+                <div class="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{{ $activationRate['pct'] }}%</div>
+                <div class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    {{ $activationRate['activated'] }} of {{ $activationRate['eligible'] }} teams onboarded within 24h
+                </div>
+            @else
+                <div class="mt-1 text-3xl font-semibold text-zinc-400 dark:text-zinc-600">—</div>
+                <div class="mt-2 text-sm text-zinc-500">No data yet</div>
+            @endif
+        </div>
+
+        {{-- Time to first AI reply --}}
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 bg-white dark:bg-zinc-900">
+            <div class="text-xs uppercase tracking-wide text-zinc-500">Median TTFAR</div>
+            @if($ttfar['has_data'])
+                <div class="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{{ $fmtSeconds($ttfar['median_seconds']) }}</div>
+                <div class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    Signup → first AI reply (n={{ $ttfar['sample_size'] }})
+                </div>
+            @else
+                <div class="mt-1 text-3xl font-semibold text-zinc-400 dark:text-zinc-600">—</div>
+                <div class="mt-2 text-sm text-zinc-500">No AI replies yet</div>
+            @endif
+        </div>
+
+        {{-- 7-day retention --}}
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 bg-white dark:bg-zinc-900">
+            <div class="text-xs uppercase tracking-wide text-zinc-500">7-day retention</div>
+            @if($retention['has_data'])
+                <div class="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">{{ $retention['pct'] }}%</div>
+                <div class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    {{ $retention['retained'] }} of {{ $retention['cohort'] }} (signed up 7–30d ago) still messaging
+                </div>
+            @else
+                <div class="mt-1 text-3xl font-semibold text-zinc-400 dark:text-zinc-600">—</div>
+                <div class="mt-2 text-sm text-zinc-500">Cohort empty</div>
+            @endif
+        </div>
+
+        {{-- AI dispatch health --}}
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 bg-white dark:bg-zinc-900">
+            <div class="text-xs uppercase tracking-wide text-zinc-500">AI dispatch health</div>
+            @if($aiHealth['has_data'])
+                <div class="mt-1 text-3xl font-semibold {{ $aiHealth['pct'] >= 80 ? 'text-emerald-600 dark:text-emerald-400' : ($aiHealth['pct'] >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">{{ $aiHealth['pct'] }}%</div>
+                <div class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    {{ $aiHealth['dispatchable'] }} of {{ $aiHealth['total'] }} teams can dispatch AI now
+                </div>
+            @else
+                <div class="mt-1 text-3xl font-semibold text-zinc-400 dark:text-zinc-600">—</div>
+                <div class="mt-2 text-sm text-zinc-500">No teams</div>
+            @endif
+        </div>
+    </div>
+
+    {{-- BUSINESS TYPE FUNNEL --}}
+    <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-6 bg-white dark:bg-zinc-900">
+        <div class="mb-4">
+            <flux:heading size="lg" class="text-zinc-900 dark:text-zinc-50">Activation by business type (top 5)</flux:heading>
+            <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                Onboarding completion rate broken down by industry — reveals which verticals convert.
+            </flux:text>
+        </div>
+        @if(!$bizFunnel['has_data'] || count($bizFunnel['rows']) === 0)
+            <div class="text-sm text-zinc-500 dark:text-zinc-400 py-4 text-center">No business type data yet.</div>
+        @else
+            <div class="space-y-3">
+                @foreach($bizFunnel['rows'] as $r)
+                    <div>
+                        <div class="flex items-center justify-between text-sm mb-1">
+                            <div class="capitalize text-zinc-800 dark:text-zinc-200">{{ str_replace('_', ' ', $r['business_type']) }}</div>
+                            <div class="text-zinc-600 dark:text-zinc-400 tabular-nums">
+                                <span class="font-semibold text-zinc-900 dark:text-zinc-50">{{ $r['completed'] }}</span>
+                                / {{ $r['total'] }} · {{ $r['pct'] }}%
+                            </div>
+                        </div>
+                        <div class="h-3 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded" style="width: {{ $r['pct'] }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </div>
 
     {{-- ACTIVATION FUNNEL --}}
@@ -261,7 +373,7 @@
                 </flux:select>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" wire:loading.class="opacity-50 pointer-events-none" wire:target="sort">
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-200 dark:border-zinc-700">

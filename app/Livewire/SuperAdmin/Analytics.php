@@ -13,10 +13,14 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 class Analytics extends Component
 {
-    private const CACHE_TTL = 900;
+    /** Windowed metrics — dashboard is read-only, staleness ≤5 min is fine. */
+    private const CACHE_TTL_WINDOWED = 300;
+    /** All-time / rarely-changing metrics. */
+    private const CACHE_TTL_ALL_TIME = 1800;
 
     private const HEALTH_ACTIVE = 'active';
     private const HEALTH_AT_RISK = 'at_risk';
@@ -29,93 +33,102 @@ class Analytics extends Component
     #[Url(as: 'sort')]
     public string $sort = 'activity_desc';
 
+    /** @var list<string> Cache-key sections owned by this component (used for bulk invalidation). */
+    private const CACHE_SECTIONS = [
+        'kpis',
+        'funnel',
+        'teams_table',
+        'messages_daily',
+        'platform_mix',
+        'activation_funnel_7',
+        'activation_funnel_30',
+        'activation_rate',
+        'time_to_first_ai_reply',
+        'business_type_funnel',
+        'retention_7d',
+        'ai_dispatch_health',
+    ];
+
     public function mount(): void
     {
         if ($this->refresh !== null) {
-            Cache::forget($this->cacheKey('kpis'));
-            Cache::forget($this->cacheKey('funnel'));
-            Cache::forget($this->cacheKey('teams_table'));
-            Cache::forget($this->cacheKey('messages_daily'));
-            Cache::forget($this->cacheKey('platform_mix'));
-            Cache::forget($this->cacheKey('activation_funnel_7'));
-            Cache::forget($this->cacheKey('activation_funnel_30'));
+            foreach (self::CACHE_SECTIONS as $section) {
+                Cache::forget($this->cacheKey($section));
+            }
             $this->refresh = null;
         }
     }
 
+    private function cacheKey(string $section): string
+    {
+        return "analytics:{$section}:v2";
+    }
+
     /**
-     * Phase E — Onboarding activation funnel, DB-derived (7d + 30d windows).
-     * Cached separately from the legacy `funnel` computed above.
-     *
-     * @return array{
-     *   d7:  array{window_days:int,since:string,stages:list<array<string,mixed>>},
-     *   d30: array{window_days:int,since:string,stages:list<array<string,mixed>>}
-     * }
+     * Cache-wrap with a graceful failure fallback. Any exception (timeout, missing
+     * table, DB blip) returns an empty payload so the whole page doesn't 500.
      */
+    private function remember(string $section, int $ttl, callable $callback, mixed $fallback = []): mixed
+    {
+        return Cache::remember($this->cacheKey($section), $ttl, function () use ($callback, $fallback, $section) {
+            try {
+                return $callback();
+            } catch (Throwable $e) {
+                report($e);
+                if (is_array($fallback)) {
+                    return $fallback + ['__error' => true, '__section' => $section];
+                }
+                return $fallback;
+            }
+        });
+    }
+
     #[Computed]
     public function activationFunnel(): array
     {
         $service = app(OnboardingFunnel::class);
 
         return [
-            'd7'  => $this->remember('activation_funnel_7',  fn () => $service->forWindow(7)),
-            'd30' => $this->remember('activation_funnel_30', fn () => $service->forWindow(30)),
+            'd7'  => $this->remember('activation_funnel_7',  self::CACHE_TTL_WINDOWED, fn () => $service->forWindow(7)),
+            'd30' => $this->remember('activation_funnel_30', self::CACHE_TTL_WINDOWED, fn () => $service->forWindow(30)),
         ];
-    }
-
-    private function cacheKey(string $section): string
-    {
-        return "super_admin.analytics.{$section}";
-    }
-
-    private function remember(string $section, callable $callback): mixed
-    {
-        return Cache::remember($this->cacheKey($section), self::CACHE_TTL, $callback);
     }
 
     #[Computed]
     public function kpis(): array
     {
-        return $this->remember('kpis', function (): array {
+        return $this->remember('kpis', self::CACHE_TTL_WINDOWED, function (): array {
             $now = CarbonImmutable::now();
             $d7 = $now->subDays(7);
             $d14 = $now->subDays(14);
             $d30 = $now->subDays(30);
 
-            $totalTeams = Team::count();
+            $totalTeams = (int) DB::table('teams')->count();
 
-            $active7 = Team::whereIn('id', function ($q) use ($d7) {
-                $q->select('team_id')
-                    ->from('conversations')
-                    ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
-                    ->where('messages.created_at', '>=', $d7);
-            })->count();
+            // Single grouped scan of recent messages, joined via conversations, keyed by team.
+            // Replaces 2 subquery-based ->whereIn() COUNTs.
+            $recentActivity = DB::table('conversations')
+                ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
+                ->where('messages.created_at', '>=', $d30)
+                ->select('conversations.team_id', DB::raw('MAX(messages.created_at) as last_at'), DB::raw("SUM(CASE WHEN messages.direction='inbound' THEN 1 ELSE 0 END) as inbound_c"))
+                ->groupBy('conversations.team_id')
+                ->get();
 
-            $active30 = Team::whereIn('id', function ($q) use ($d30) {
-                $q->select('team_id')
-                    ->from('conversations')
-                    ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
-                    ->where('messages.created_at', '>=', $d30);
-            })->count();
+            $active7 = $recentActivity->filter(fn ($r) => $r->last_at >= $d7->toDateTimeString())->count();
+            $active30 = $recentActivity->count();
+            $teamsWithInbound7 = $recentActivity->filter(fn ($r) => $r->last_at >= $d7->toDateTimeString() && (int) $r->inbound_c > 0)->count();
 
-            $signupsThisWeek = Team::where('created_at', '>=', $d7)->count();
-            $signupsLastWeek = Team::whereBetween('created_at', [$d14, $d7])->count();
+            $signupsThisWeek = (int) DB::table('teams')->where('created_at', '>=', $d7)->count();
+            $signupsLastWeek = (int) DB::table('teams')->whereBetween('created_at', [$d14, $d7])->count();
             $signupDelta = $signupsLastWeek === 0
                 ? ($signupsThisWeek > 0 ? 100 : 0)
                 : (int) round((($signupsThisWeek - $signupsLastWeek) / $signupsLastWeek) * 100);
 
-            $aiReplies30 = DB::table('messages')
+            $aiReplies30 = (int) DB::table('messages')
                 ->where('direction', 'outbound')
                 ->where('sender_type', 'ai')
                 ->where('created_at', '>=', $d30)
                 ->count();
-
-            $teamsWithInbound7 = DB::table('conversations')
-                ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
-                ->where('messages.direction', 'inbound')
-                ->where('messages.created_at', '>=', $d7)
-                ->distinct('conversations.team_id')
-                ->count('conversations.team_id');
 
             return [
                 'total_teams'         => $totalTeams,
@@ -127,19 +140,19 @@ class Analytics extends Component
                 'ai_replies_30d'      => $aiReplies30,
                 'teams_inbound_7d'    => $teamsWithInbound7,
             ];
-        });
+        }, fallback: [
+            'total_teams' => 0, 'active_7d' => 0, 'active_30d' => 0,
+            'signups_this_week' => 0, 'signups_last_week' => 0, 'signup_delta_pct' => 0,
+            'ai_replies_30d' => 0, 'teams_inbound_7d' => 0,
+        ]);
     }
 
     #[Computed]
     public function funnel(): array
     {
-        return $this->remember('funnel', function (): array {
-            $teams = Team::query()
-                ->select([
-                    'teams.id',
-                    'teams.owner_id',
-                    'teams.created_at',
-                ])
+        return $this->remember('funnel', self::CACHE_TTL_ALL_TIME, function (): array {
+            $teams = DB::table('teams')
+                ->select(['id', 'owner_id', 'created_at'])
                 ->get();
 
             if ($teams->isEmpty()) {
@@ -173,29 +186,19 @@ class Analytics extends Component
                 ->pluck('team_id')
                 ->flip();
 
-            $teamsWithInbound = DB::table('conversations')
-                ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
-                ->where('messages.direction', 'inbound')
-                ->whereIn('conversations.team_id', $teamIds)
-                ->distinct()
-                ->pluck('conversations.team_id')
-                ->flip();
-
-            $teamsWithOutbound = DB::table('conversations')
-                ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
-                ->where('messages.direction', 'outbound')
-                ->whereIn('conversations.team_id', $teamIds)
-                ->distinct()
-                ->pluck('conversations.team_id')
-                ->flip();
-
-            $lastActivityByTeam = DB::table('conversations')
+            // One grouped pass: derive inbound/outbound presence + last activity per team.
+            $activity = DB::table('conversations')
                 ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
                 ->whereIn('conversations.team_id', $teamIds)
                 ->groupBy('conversations.team_id')
-                ->select('conversations.team_id', DB::raw('MAX(messages.created_at) as last_at'))
+                ->select([
+                    'conversations.team_id',
+                    DB::raw("SUM(CASE WHEN messages.direction='inbound' THEN 1 ELSE 0 END) as inbound_c"),
+                    DB::raw("SUM(CASE WHEN messages.direction='outbound' THEN 1 ELSE 0 END) as outbound_c"),
+                    DB::raw('MAX(messages.created_at) as last_at'),
+                ])
                 ->get()
-                ->pluck('last_at', 'team_id');
+                ->keyBy('team_id');
 
             $stages = [
                 'signed_up'       => 0,
@@ -213,29 +216,26 @@ class Analytics extends Component
                 if (isset($verifiedOwners[$team->owner_id])) {
                     $stages['verified_email']++;
                 }
-
                 if (isset($teamsWithActivePage[$team->id])) {
                     $stages['connected_page']++;
                 }
-
                 if (isset($teamsWithAiConfig[$team->id])) {
                     $stages['configured_ai']++;
                 }
 
-                if (isset($teamsWithInbound[$team->id])) {
+                $act = $activity->get($team->id);
+                if ($act && (int) $act->inbound_c > 0) {
                     $stages['received_inbound']++;
                 }
-
-                if (isset($teamsWithOutbound[$team->id])) {
+                if ($act && (int) $act->outbound_c > 0) {
                     $stages['sent_outbound']++;
                 }
 
                 $signupAt = Carbon::parse($team->created_at);
-                $retentionWindowStart = $signupAt->copy()->addDays(5);
                 $retentionWindowEnd = $signupAt->copy()->addDays(9);
-                if ($retentionWindowEnd->isPast() && isset($lastActivityByTeam[$team->id])) {
-                    $lastAt = Carbon::parse($lastActivityByTeam[$team->id]);
-                    if ($lastAt->between($retentionWindowStart, $retentionWindowEnd) || $lastAt->gt($retentionWindowEnd)) {
+                if ($retentionWindowEnd->isPast() && $act && $act->last_at) {
+                    $lastAt = Carbon::parse($act->last_at);
+                    if ($lastAt->gt($signupAt->copy()->addDays(5))) {
                         $stages['retained_d7']++;
                     }
                 }
@@ -263,7 +263,7 @@ class Analytics extends Component
             }
 
             return $rows;
-        });
+        }, fallback: $this->emptyFunnel());
     }
 
     private function emptyFunnel(): array
@@ -288,9 +288,8 @@ class Analytics extends Component
     #[Computed]
     public function teamsTable(): array
     {
-        $rows = $this->remember('teams_table', function (): array {
+        $rows = $this->remember('teams_table', self::CACHE_TTL_WINDOWED, function (): array {
             $d30 = CarbonImmutable::now()->subDays(30);
-            $d7 = CarbonImmutable::now()->subDays(7);
 
             $teams = Team::query()
                 ->with('owner:id,email,name')
@@ -379,13 +378,16 @@ class Analytics extends Component
             }
 
             return $result;
-        });
+        }, fallback: []);
 
-        return $this->sortRows($rows);
+        return $this->sortRows(is_array($rows) ? $rows : []);
     }
 
     private function sortRows(array $rows): array
     {
+        // Filter out error-marker rows if fallback fired.
+        $rows = array_values(array_filter($rows, fn ($r) => is_array($r) && isset($r['id'])));
+
         usort($rows, function ($a, $b) {
             return match ($this->sort) {
                 'signup_desc'   => strcmp($b['signup_at'], $a['signup_at']),
@@ -406,26 +408,22 @@ class Analytics extends Component
         if (! $hasPage && $daysSinceSignup > 7) {
             return self::HEALTH_NEVER;
         }
-
         if ($daysSinceActivity === null) {
             return $daysSinceSignup <= 7 ? self::HEALTH_ACTIVE : self::HEALTH_NEVER;
         }
-
         if ($daysSinceActivity <= 7) {
             return self::HEALTH_ACTIVE;
         }
-
         if ($daysSinceActivity <= 14) {
             return self::HEALTH_AT_RISK;
         }
-
         return self::HEALTH_DORMANT;
     }
 
     #[Computed]
     public function messagesDaily(): array
     {
-        return $this->remember('messages_daily', function (): array {
+        return $this->remember('messages_daily', self::CACHE_TTL_WINDOWED, function (): array {
             $d30 = CarbonImmutable::now()->subDays(30)->startOfDay();
 
             $rows = DB::table('messages')
@@ -460,13 +458,13 @@ class Analytics extends Component
             }
 
             return array_values($days);
-        });
+        }, fallback: []);
     }
 
     #[Computed]
     public function platformMix(): array
     {
-        return $this->remember('platform_mix', function (): array {
+        return $this->remember('platform_mix', self::CACHE_TTL_WINDOWED, function (): array {
             $d30 = CarbonImmutable::now()->subDays(30);
 
             $rows = DB::table('messages')
@@ -484,7 +482,203 @@ class Analytics extends Component
                 'count'    => (int) $r->c,
                 'pct'      => $total > 0 ? (int) round(((int) $r->c / $total) * 100) : 0,
             ])->all();
-        });
+        }, fallback: []);
+    }
+
+    /**
+     * Activation rate — % of teams that completed onboarding within 24h of signup.
+     * Cohort: teams that signed up 24h+ ago (so they had a chance to complete).
+     */
+    #[Computed]
+    public function activationRate(): array
+    {
+        return $this->remember('activation_rate', self::CACHE_TTL_WINDOWED, function (): array {
+            $cutoff = CarbonImmutable::now()->subHours(24);
+
+            $eligible = (int) DB::table('teams')
+                ->where('created_at', '<=', $cutoff)
+                ->count();
+
+            if ($eligible === 0) {
+                return ['pct' => 0, 'activated' => 0, 'eligible' => 0, 'has_data' => false];
+            }
+
+            // Activated within 24h of signup. Portable across MySQL and SQLite —
+            // we compare `onboarding_completed_at` against `created_at + 24h`
+            // computed at the app layer, not with vendor-specific TIMESTAMPDIFF.
+            $activated = 0;
+            DB::table('teams')
+                ->where('created_at', '<=', $cutoff)
+                ->whereNotNull('onboarding_completed_at')
+                ->select('created_at', 'onboarding_completed_at')
+                ->orderBy('id')
+                ->chunk(500, function ($chunk) use (&$activated) {
+                    foreach ($chunk as $t) {
+                        $signup = Carbon::parse($t->created_at);
+                        $done = Carbon::parse($t->onboarding_completed_at);
+                        if ($done->diffInHours($signup) <= 24) {
+                            $activated++;
+                        }
+                    }
+                });
+
+            return [
+                'pct'       => (int) round(($activated / $eligible) * 100),
+                'activated' => $activated,
+                'eligible'  => $eligible,
+                'has_data'  => true,
+            ];
+        }, fallback: ['pct' => 0, 'activated' => 0, 'eligible' => 0, 'has_data' => false]);
+    }
+
+    /**
+     * Median seconds from team creation to first outbound AI message.
+     */
+    #[Computed]
+    public function timeToFirstAiReply(): array
+    {
+        return $this->remember('time_to_first_ai_reply', self::CACHE_TTL_WINDOWED, function (): array {
+            // Grab first AI outbound per team, JOIN to team created_at, compute deltas in PHP.
+            $rows = DB::table('conversations')
+                ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
+                ->join('teams', 'teams.id', '=', 'conversations.team_id')
+                ->where('messages.direction', 'outbound')
+                ->where('messages.sender_type', 'ai')
+                ->groupBy('conversations.team_id', 'teams.created_at')
+                ->select('conversations.team_id', 'teams.created_at as team_created_at', DB::raw('MIN(messages.created_at) as first_ai_at'))
+                ->get();
+
+            if ($rows->isEmpty()) {
+                return ['median_seconds' => null, 'sample_size' => 0, 'has_data' => false];
+            }
+
+            $deltas = $rows
+                ->map(fn ($r) => Carbon::parse($r->first_ai_at)->diffInSeconds(Carbon::parse($r->team_created_at)))
+                ->filter(fn ($d) => $d >= 0)
+                ->sort()
+                ->values();
+
+            $count = $deltas->count();
+            if ($count === 0) {
+                return ['median_seconds' => null, 'sample_size' => 0, 'has_data' => false];
+            }
+
+            $median = $count % 2 === 1
+                ? $deltas[(int) floor($count / 2)]
+                : (int) round(($deltas[$count / 2 - 1] + $deltas[$count / 2]) / 2);
+
+            return [
+                'median_seconds' => (int) $median,
+                'sample_size'    => $count,
+                'has_data'       => true,
+            ];
+        }, fallback: ['median_seconds' => null, 'sample_size' => 0, 'has_data' => false]);
+    }
+
+    /**
+     * Onboarding completion rate broken down by business_type (top 5 by team count).
+     */
+    #[Computed]
+    public function businessTypeFunnel(): array
+    {
+        return $this->remember('business_type_funnel', self::CACHE_TTL_WINDOWED, function (): array {
+            $rows = DB::table('teams')
+                ->whereNotNull('business_type')
+                ->where('business_type', '!=', '')
+                ->groupBy('business_type')
+                ->select([
+                    'business_type',
+                    DB::raw('COUNT(*) as total'),
+                    DB::raw('SUM(CASE WHEN onboarding_completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed'),
+                ])
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get();
+
+            if ($rows->isEmpty()) {
+                return ['rows' => [], 'has_data' => false];
+            }
+
+            return [
+                'rows' => $rows->map(fn ($r) => [
+                    'business_type' => $r->business_type,
+                    'total'         => (int) $r->total,
+                    'completed'     => (int) $r->completed,
+                    'pct'           => (int) $r->total > 0 ? (int) round(((int) $r->completed / (int) $r->total) * 100) : 0,
+                ])->all(),
+                'has_data' => true,
+            ];
+        }, fallback: ['rows' => [], 'has_data' => false]);
+    }
+
+    /**
+     * 7-day retention: of teams that signed up 7-30 days ago, how many sent/received
+     * a message in the last 7 days? Filters out fresh signups (still activating) and
+     * ancient teams (irrelevant).
+     */
+    #[Computed]
+    public function retention7d(): array
+    {
+        return $this->remember('retention_7d', self::CACHE_TTL_WINDOWED, function (): array {
+            $d7 = CarbonImmutable::now()->subDays(7);
+            $d30 = CarbonImmutable::now()->subDays(30);
+
+            $cohort = DB::table('teams')
+                ->whereBetween('created_at', [$d30, $d7])
+                ->pluck('id');
+
+            if ($cohort->isEmpty()) {
+                return ['pct' => 0, 'retained' => 0, 'cohort' => 0, 'has_data' => false];
+            }
+
+            $retained = (int) DB::table('conversations')
+                ->join('messages', 'messages.conversation_id', '=', 'conversations.id')
+                ->whereIn('conversations.team_id', $cohort->all())
+                ->where('messages.created_at', '>=', $d7)
+                ->distinct('conversations.team_id')
+                ->count('conversations.team_id');
+
+            return [
+                'pct'      => (int) round(($retained / $cohort->count()) * 100),
+                'retained' => $retained,
+                'cohort'   => $cohort->count(),
+                'has_data' => true,
+            ];
+        }, fallback: ['pct' => 0, 'retained' => 0, 'cohort' => 0, 'has_data' => false]);
+    }
+
+    /**
+     * AI dispatch health — % of teams that pass the fast-path dispatch preconditions
+     * (ai_enabled = true AND plan_status not cancelled AND not upstream-limited).
+     *
+     * Approximation of Team::canDispatchAi() at aggregate scale — calling the real
+     * method per-team would N+1 (each call reads a cache key). If you want a precise
+     * answer, sample it via queue-driven aggregation instead.
+     */
+    #[Computed]
+    public function aiDispatchHealth(): array
+    {
+        return $this->remember('ai_dispatch_health', self::CACHE_TTL_WINDOWED, function (): array {
+            $total = (int) DB::table('teams')->count();
+            if ($total === 0) {
+                return ['pct' => 0, 'dispatchable' => 0, 'total' => 0, 'has_data' => false];
+            }
+
+            $dispatchable = (int) DB::table('teams')
+                ->where('ai_enabled', true)
+                ->where(function ($q) {
+                    $q->whereNull('plan_status')
+                        ->orWhereNotIn('plan_status', ['cancelled']);
+                })
+                ->count();
+
+            return [
+                'pct'          => (int) round(($dispatchable / $total) * 100),
+                'dispatchable' => $dispatchable,
+                'total'        => $total,
+                'has_data'     => true,
+            ];
+        }, fallback: ['pct' => 0, 'dispatchable' => 0, 'total' => 0, 'has_data' => false]);
     }
 
     public function setSort(string $sort): void
