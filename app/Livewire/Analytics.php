@@ -257,44 +257,95 @@ class Analytics extends Component
 
     protected function getResponseTimes(int $teamId, $since, array $pageIds): array
     {
-        // Use a single query with self-join to find inbound→outbound message pairs
-        // For each outbound message, find the closest preceding inbound message in the same conversation
-        $results = DB::table('messages as outbound')
-            ->join('conversations', 'outbound.conversation_id', '=', 'conversations.id')
-            ->joinSub(
-                DB::table('messages')
-                    ->select('conversation_id', 'created_at')
-                    ->where('direction', 'inbound'),
-                'inbound',
-                function ($join) {
-                    $join->on('outbound.conversation_id', '=', 'inbound.conversation_id')
-                        ->whereColumn('inbound.created_at', '<', 'outbound.created_at');
-                }
-            )
-            ->where('conversations.team_id', $teamId)
-            ->whereIn('conversations.page_id', $pageIds)
-            ->where('outbound.direction', 'outbound')
-            ->where('outbound.created_at', '>=', $since)
-            ->whereRaw(
-                DB::getDriverName() === 'sqlite'
-                    ? '(julianday(outbound.created_at) - julianday(inbound.created_at)) * 86400 < 86400'
-                    : 'TIMESTAMPDIFF(SECOND, inbound.created_at, outbound.created_at) < 86400'
-            )
-            ->whereRaw('inbound.created_at = (SELECT MAX(m2.created_at) FROM messages m2 WHERE m2.conversation_id = outbound.conversation_id AND m2.direction = \'inbound\' AND m2.created_at < outbound.created_at)')
-            ->selectRaw(
-                DB::getDriverName() === 'sqlite'
-                    ? 'outbound.sender_type, AVG((julianday(outbound.created_at) - julianday(inbound.created_at)) * 86400) as avg_time, COUNT(*) as pair_count'
-                    : 'outbound.sender_type, AVG(TIMESTAMPDIFF(SECOND, inbound.created_at, outbound.created_at)) as avg_time, COUNT(*) as pair_count'
-            )
-            ->groupBy('outbound.sender_type')
-            ->get()
-            ->keyBy('sender_type');
+        // Rewritten 2026-09-25 to eliminate the correlated MAX subquery that
+        // was O(N*M) and 504'd the whole page. Use a window function
+        // (ROW_NUMBER OVER PARTITION) to grab the latest preceding inbound
+        // per outbound message in a single scan. Falls back to the old
+        // correlated form on SQLite (tests) which supports both.
+        //
+        // Also wraps the whole thing in a per-request MySQL statement timeout
+        // so even a pathological query plan cannot hang the render — the
+        // outer try/catch converts it to a "no data yet" fallback.
+        $driver = DB::getDriverName();
+
+        // Hard 3-second MySQL statement timeout on this connection only.
+        // No-op on SQLite (test env). Wrapped in try so an old MySQL that
+        // doesn't support the syntax degrades gracefully.
+        if ($driver === 'mysql') {
+            try {
+                DB::statement('SET SESSION MAX_EXECUTION_TIME = 3000');
+            } catch (Throwable) {
+                // Older MySQL, or a misconfigured proxy — proceed anyway.
+            }
+        }
+
+        // Windowed approach (MySQL 8+): for each outbound message, find the
+        // NEWEST preceding inbound in the same conversation in a single pass.
+        // Ranking done inside a derived table, then we filter to rn=1.
+        if ($driver === 'mysql') {
+            $sql = <<<'SQL'
+                SELECT sender_type,
+                       AVG(latency_seconds) AS avg_time,
+                       COUNT(*)             AS pair_count
+                FROM (
+                    SELECT o.sender_type,
+                           TIMESTAMPDIFF(SECOND, i.created_at, o.created_at) AS latency_seconds,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY o.id
+                               ORDER BY i.created_at DESC
+                           ) AS rn
+                    FROM messages o
+                    JOIN conversations c ON o.conversation_id = c.id
+                    JOIN messages i ON i.conversation_id = o.conversation_id
+                    WHERE o.direction = 'outbound'
+                      AND o.created_at >= ?
+                      AND i.direction = 'inbound'
+                      AND i.created_at < o.created_at
+                      AND TIMESTAMPDIFF(SECOND, i.created_at, o.created_at) < 86400
+                      AND c.team_id = ?
+                      AND c.page_id IN (SELECT * FROM (SELECT ?) x)
+                ) ranked
+                WHERE rn = 1
+                GROUP BY sender_type
+            SQL;
+
+            // Explode pageIds into a repeated ? list. Small (< a few dozen).
+            $inList = implode(',', array_fill(0, count($pageIds), '?'));
+            $sql = str_replace('SELECT * FROM (SELECT ?) x', "SELECT * FROM (SELECT $inList) x", $sql);
+
+            $bindings = array_merge([$since, $teamId], $pageIds);
+            $results = collect(DB::select($sql, $bindings))->keyBy('sender_type');
+        } else {
+            // SQLite (test env) — keep the correlated form; volumes tiny.
+            $results = DB::table('messages as outbound')
+                ->join('conversations', 'outbound.conversation_id', '=', 'conversations.id')
+                ->joinSub(
+                    DB::table('messages')
+                        ->select('conversation_id', 'created_at')
+                        ->where('direction', 'inbound'),
+                    'inbound',
+                    function ($join) {
+                        $join->on('outbound.conversation_id', '=', 'inbound.conversation_id')
+                            ->whereColumn('inbound.created_at', '<', 'outbound.created_at');
+                    }
+                )
+                ->where('conversations.team_id', $teamId)
+                ->whereIn('conversations.page_id', $pageIds)
+                ->where('outbound.direction', 'outbound')
+                ->where('outbound.created_at', '>=', $since)
+                ->whereRaw('(julianday(outbound.created_at) - julianday(inbound.created_at)) * 86400 < 86400')
+                ->whereRaw('inbound.created_at = (SELECT MAX(m2.created_at) FROM messages m2 WHERE m2.conversation_id = outbound.conversation_id AND m2.direction = \'inbound\' AND m2.created_at < outbound.created_at)')
+                ->selectRaw('outbound.sender_type, AVG((julianday(outbound.created_at) - julianday(inbound.created_at)) * 86400) as avg_time, COUNT(*) as pair_count')
+                ->groupBy('outbound.sender_type')
+                ->get()
+                ->keyBy('sender_type');
+        }
 
         return [
-            'ai_avg' => isset($results['ai']) ? round($results['ai']->avg_time) : null,
-            'human_avg' => isset($results['user']) ? round($results['user']->avg_time) : null,
-            'ai_count' => $results['ai']->pair_count ?? 0,
-            'human_count' => $results['user']->pair_count ?? 0,
+            'ai_avg'      => isset($results['ai'])   ? (int) round((float) $results['ai']->avg_time)   : null,
+            'human_avg'   => isset($results['user']) ? (int) round((float) $results['user']->avg_time) : null,
+            'ai_count'    => (int) ($results['ai']->pair_count   ?? 0),
+            'human_count' => (int) ($results['user']->pair_count ?? 0),
         ];
     }
 
