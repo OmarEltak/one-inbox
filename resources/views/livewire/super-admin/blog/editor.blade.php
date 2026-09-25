@@ -3,7 +3,7 @@
     {{-- Header --}}
     <div class="flex items-center gap-4 mb-6">
         <a href="{{ route('super-admin.blog.index') }}" wire:navigate>
-            <flux:button variant="ghost" icon="arrow-left" size="sm" class="text-zinc-900">All Posts</flux:button>
+            <flux:button variant="outline" icon="arrow-left" size="sm" class="text-zinc-900">All Posts</flux:button>
         </a>
         <flux:heading size="xl" class="text-zinc-900">
             {{ $post?->exists ? 'Edit Post' : 'New Post' }}
@@ -12,7 +12,7 @@
 
     @if(session('success'))
         <div class="mb-4 rounded-lg bg-green-50 border border-green-200 p-3">
-            <flux:text class="text-green-700 text-sm">{{ session('success') }}</flux:text>
+            <p class="text-sm font-medium text-green-900">{{ session('success') }}</p>
         </div>
     @endif
 
@@ -126,14 +126,14 @@
             <div class="rounded-xl border border-zinc-200 p-4 space-y-3">
                 <flux:heading size="sm" class="text-zinc-900">Publish</flux:heading>
 
-                <flux:button wire:click="saveDraft" variant="ghost" class="w-full text-zinc-900">Save Draft</flux:button>
+                <flux:button wire:click="saveDraft" variant="outline" class="w-full text-zinc-900">Save Draft</flux:button>
                 <flux:button wire:click="publishNow" variant="primary" class="w-full">Publish Now</flux:button>
 
                 <div class="border-t border-zinc-100 pt-3 space-y-2">
                     <flux:label class="text-xs text-zinc-900">Schedule for later</flux:label>
                     <input type="datetime-local" wire:model="scheduledAt"
                         class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                    <flux:button wire:click="schedule" variant="ghost" class="w-full text-sm text-zinc-900">Schedule</flux:button>
+                    <flux:button wire:click="schedule" variant="outline" class="w-full text-sm text-zinc-900">Schedule</flux:button>
                     @error('scheduledAt') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
                 </div>
             </div>

@@ -8,25 +8,24 @@
 
     @if(session('success'))
         <div class="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
-            <flux:text class="text-green-700 dark:text-green-400">{{ session('success') }}</flux:text>
+            <p class="text-sm font-medium text-green-900 dark:text-green-200">{{ session('success') }}</p>
         </div>
     @endif
 
     @if(session('error'))
         <div class="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
-            <flux:text class="text-red-700 dark:text-red-400">{{ session('error') }}</flux:text>
+            <p class="text-sm font-medium text-red-900 dark:text-red-200">{{ session('error') }}</p>
         </div>
     @endif
 
     {{-- Filters --}}
     <div class="mb-4 flex flex-wrap items-end gap-3">
         <div class="flex-1 min-w-64">
-            <flux:input
-                wire:model.live.debounce.300ms="search"
-                icon="magnifying-glass"
-                placeholder="Search by team name, owner name, or email..."
-                class="text-zinc-900"
-            />
+            <div class="relative">
+                <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search by team name, owner name, or email..."
+                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+            </div>
         </div>
         <div class="w-44">
             <flux:select wire:model.live="statusFilter" class="text-zinc-900">
@@ -70,7 +69,7 @@
                 >
                     Reset AI quota
                 </flux:button>
-                <flux:button wire:click="clearSelection" size="sm" variant="ghost">Clear</flux:button>
+                <flux:button wire:click="clearSelection" size="sm" variant="outline">Clear</flux:button>
             </div>
         </div>
     @endif
@@ -78,7 +77,7 @@
     @if($this->teams->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-12 text-center">
             <flux:icon name="user-group" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-            <flux:text class="text-zinc-500">No teams match these filters.</flux:text>
+            <p class="text-sm text-zinc-700 dark:text-zinc-300">No teams match these filters.</p>
         </div>
     @else
         <div class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
@@ -193,7 +192,7 @@
                                         wire:click="resetAiQuota({{ $team->id }})"
                                         wire:confirm="Reset AI quota (ai_credits_used → 0) for {{ $team->name }}?"
                                         size="sm"
-                                        variant="ghost"
+                                        variant="outline"
                                         icon="arrow-path"
                                     >
                                         {{ __('Reset AI') }}
@@ -203,8 +202,9 @@
                                             wire:click="revoke({{ $team->id }})"
                                             wire:confirm="Revoke {{ $team->name }}'s plan and reset to free tier?"
                                             size="sm"
-                                            variant="ghost"
+                                            variant="outline"
                                             icon="x-mark"
+                                            class="text-red-700 hover:text-red-800 border-red-300 hover:bg-red-50"
                                         >
                                             {{ __('Revoke') }}
                                         </flux:button>
@@ -275,7 +275,8 @@
                     @if($grantDuration === 'custom')
                         <div>
                             <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">{{ __('Custom end date') }}</label>
-                            <flux:input type="date" wire:model="grantCustomDate" min="{{ now()->addDay()->toDateString() }}" />
+                            <input type="date" wire:model="grantCustomDate" min="{{ now()->addDay()->toDateString() }}"
+                                class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
                         </div>
                     @endif
 
@@ -300,7 +301,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <flux:button wire:click="closeGrant" variant="ghost">{{ __('Cancel') }}</flux:button>
+                    <flux:button wire:click="closeGrant" variant="outline">{{ __('Cancel') }}</flux:button>
                     <flux:button wire:click="grant" variant="primary" icon="check">{{ __('Grant access') }}</flux:button>
                 </div>
             </div>

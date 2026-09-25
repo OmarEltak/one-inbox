@@ -11,7 +11,7 @@
 
     @if(session('success'))
         <div class="mb-4 rounded-lg bg-green-50 border border-green-200 p-3">
-            <flux:text class="text-green-700 text-sm">{{ session('success') }}</flux:text>
+            <p class="text-sm font-medium text-green-900">{{ session('success') }}</p>
         </div>
     @endif
 
@@ -39,15 +39,15 @@
                             {{ $post->title }}
                         </td>
                         <td class="px-4 py-3">
-                            <flux:badge size="sm" color="zinc">{{ strtoupper($post->language) }}</flux:badge>
+                            <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-900 ring-1 ring-zinc-200">{{ strtoupper($post->language) }}</span>
                         </td>
                         <td class="px-4 py-3">
                             @if(is_null($post->published_at))
-                                <flux:badge size="sm" color="zinc">Draft</flux:badge>
+                                <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-900 ring-1 ring-zinc-200">Draft</span>
                             @elseif($post->published_at->isFuture())
-                                <flux:badge size="sm" color="amber">Scheduled</flux:badge>
+                                <span class="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">Scheduled</span>
                             @else
-                                <flux:badge size="sm" color="green">Published</flux:badge>
+                                <span class="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-900 ring-1 ring-green-200">Published</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-zinc-900">
@@ -56,14 +56,14 @@
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2 justify-end">
                                 <a href="{{ route('super-admin.blog.edit', $post) }}" wire:navigate>
-                                    <flux:button size="sm" variant="ghost" icon="pencil">Edit</flux:button>
+                                    <flux:button size="sm" variant="outline" icon="pencil">Edit</flux:button>
                                 </a>
                                 <flux:button
                                     wire:click="$set('confirmDeleteId', {{ $post->id }})"
                                     size="sm"
-                                    variant="ghost"
+                                    variant="outline"
                                     icon="trash"
-                                    class="text-red-500 hover:text-red-600"
+                                    class="text-red-700 hover:text-red-800 border-red-300 hover:bg-red-50"
                                 >Delete</flux:button>
                             </div>
                         </td>
@@ -82,7 +82,7 @@
             <flux:text class="mt-2 text-zinc-900">This cannot be undone.</flux:text>
             <div class="flex gap-3 mt-5">
                 <flux:button wire:click="deletePost({{ $confirmDeleteId }})" variant="danger" class="flex-1">Delete</flux:button>
-                <flux:button wire:click="$set('confirmDeleteId', null)" variant="ghost" class="flex-1">Cancel</flux:button>
+                <flux:button wire:click="$set('confirmDeleteId', null)" variant="outline" class="flex-1">Cancel</flux:button>
             </div>
         </div>
     </div>

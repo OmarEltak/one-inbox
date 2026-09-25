@@ -11,14 +11,14 @@
 
     @if(session('success'))
         <div class="mb-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
-            <flux:text class="text-green-700 dark:text-green-400">{{ session('success') }}</flux:text>
+            <p class="text-sm font-medium text-green-900 dark:text-green-200">{{ session('success') }}</p>
         </div>
     @endif
 
     @if($this->customers->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-12 text-center">
             <flux:icon name="building-office-2" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-            <flux:text class="text-zinc-500">{{ __('No customers yet. Click "New Customer" to provision the first one.') }}</flux:text>
+            <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('No customers yet. Click "New Customer" to provision the first one.') }}</p>
         </div>
     @else
         <div class="space-y-3">
@@ -28,8 +28,8 @@
                         <div class="min-w-0">
                             <div class="flex items-center gap-2">
                                 <flux:heading size="sm" class="text-zinc-900">{{ $team->name }}</flux:heading>
-                                <flux:badge color="zinc" size="sm">{{ $team->pages_count }} {{ __('pages') }}</flux:badge>
-                                <flux:badge color="zinc" size="sm">{{ $team->members_count }} {{ __('users') }}</flux:badge>
+                                <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-900 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700">{{ $team->pages_count }} {{ __('pages') }}</span>
+                                <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-900 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700">{{ $team->members_count }} {{ __('users') }}</span>
                             </div>
                             @if($team->owner)
                                 <flux:text size="xs" class="mt-1 text-zinc-900">
@@ -47,7 +47,7 @@
                                 {{ __('View Pages') }}
                             </flux:button>
                             @if($team->owner)
-                                <flux:button wire:click="openPasswordModal({{ $team->owner->id }})" size="sm" variant="ghost" icon="key">
+                                <flux:button wire:click="openPasswordModal({{ $team->owner->id }})" size="sm" variant="outline" icon="key">
                                     {{ __('Reset Password') }}
                                 </flux:button>
                             @endif
@@ -55,9 +55,9 @@
                                 wire:click="deleteCustomer({{ $team->id }})"
                                 wire:confirm="Delete customer '{{ addslashes($team->name) }}' and its owner? This cannot be undone."
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 icon="trash"
-                                class="text-red-500 hover:text-red-600"
+                                class="text-red-700 hover:text-red-800 border-red-300 hover:bg-red-50"
                             />
                         </div>
                     </div>
@@ -72,19 +72,35 @@
             <flux:text>{{ __('Creates a workspace and a login for the customer. They will sign in with the email and password you set below.') }}</flux:text>
 
             <div class="space-y-4">
-                <flux:input wire:model="companyName" :label="__('Company Name')" placeholder="{{ __('Acme Corp') }}" required />
-                <flux:input wire:model="ownerName" :label="__('Owner Full Name')" placeholder="{{ __('John Doe') }}" required />
-                <flux:input wire:model="ownerEmail" :label="__('Owner Email')" type="email" placeholder="{{ __('john@acme.com') }}" required />
-                <flux:input wire:model="ownerPassword" :label="__('Password')" type="password" :placeholder="__('Minimum 8 characters')" required />
+                <div>
+                    <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Company Name') }}</label>
+                    <input type="text" wire:model="companyName" placeholder="{{ __('Acme Corp') }}" required
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Owner Full Name') }}</label>
+                    <input type="text" wire:model="ownerName" placeholder="{{ __('John Doe') }}" required
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Owner Email') }}</label>
+                    <input type="email" wire:model="ownerEmail" placeholder="{{ __('john@acme.com') }}" required
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Password') }}</label>
+                    <input type="password" wire:model="ownerPassword" placeholder="{{ __('Minimum 8 characters') }}" required
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                </div>
             </div>
 
-            @error('companyName') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
-            @error('ownerName') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
-            @error('ownerEmail') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
-            @error('ownerPassword') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
+            @error('companyName') <p class="text-red-700 text-xs">{{ $message }}</p> @enderror
+            @error('ownerName') <p class="text-red-700 text-xs">{{ $message }}</p> @enderror
+            @error('ownerEmail') <p class="text-red-700 text-xs">{{ $message }}</p> @enderror
+            @error('ownerPassword') <p class="text-red-700 text-xs">{{ $message }}</p> @enderror
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showCreateModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="$set('showCreateModal', false)" variant="outline">{{ __('Cancel') }}</flux:button>
                 <flux:button wire:click="createCustomer" variant="primary">{{ __('Create Customer') }}</flux:button>
             </div>
         </div>
@@ -95,7 +111,7 @@
             <flux:heading size="lg">{{ __('Pages for') }} {{ $pagesModalTeamName }}</flux:heading>
 
             @if(empty($pagesModalPages))
-                <flux:text class="text-zinc-500">{{ __('No pages connected yet.') }}</flux:text>
+                <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('No pages connected yet.') }}</p>
             @else
                 <div class="divide-y divide-zinc-200 dark:divide-zinc-700 rounded-lg border border-zinc-200 dark:border-zinc-700">
                     @foreach($pagesModalPages as $page)
@@ -104,9 +120,9 @@
                                 <flux:text class="font-medium text-zinc-900 truncate">{{ $page['name'] ?: __('(Unnamed page)') }}</flux:text>
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
-                                <flux:badge color="blue" size="sm">{{ ucfirst($page['platform']) }}</flux:badge>
+                                <span class="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-900 ring-1 ring-blue-200">{{ ucfirst($page['platform']) }}</span>
                                 @if(! $page['is_active'])
-                                    <flux:badge color="zinc" size="sm">{{ __('Inactive') }}</flux:badge>
+                                    <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-900 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700">{{ __('Inactive') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -115,7 +131,7 @@
             @endif
 
             <div class="flex justify-end">
-                <flux:button wire:click="$set('showPagesModal', false)" variant="ghost">{{ __('Close') }}</flux:button>
+                <flux:button wire:click="$set('showPagesModal', false)" variant="outline">{{ __('Close') }}</flux:button>
             </div>
         </div>
     </flux:modal>
@@ -125,11 +141,15 @@
             <flux:heading size="lg">{{ __('Reset Password') }}</flux:heading>
             <flux:text>{{ __('Set a new password for') }} {{ $passwordUserName }}.</flux:text>
 
-            <flux:input wire:model="newPassword" :label="__('New Password')" type="password" :placeholder="__('Minimum 8 characters')" required />
-            @error('newPassword') <flux:text class="text-red-500 text-xs">{{ $message }}</flux:text> @enderror
+            <div>
+                <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('New Password') }}</label>
+                <input type="password" wire:model="newPassword" placeholder="{{ __('Minimum 8 characters') }}" required
+                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+            </div>
+            @error('newPassword') <p class="text-red-700 text-xs">{{ $message }}</p> @enderror
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:click="$set('showPasswordModal', false)" variant="ghost">{{ __('Cancel') }}</flux:button>
+                <flux:button wire:click="$set('showPasswordModal', false)" variant="outline">{{ __('Cancel') }}</flux:button>
                 <flux:button wire:click="resetPassword" variant="primary">{{ __('Reset Password') }}</flux:button>
             </div>
         </div>
