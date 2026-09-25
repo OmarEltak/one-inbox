@@ -488,7 +488,7 @@ class MeetYourAi extends Component
         return [
             ['id' => 'ecommerce',   'label' => 'E-commerce',        'hint' => 'Shopify, Instagram shop, DTC brand', 'icon' => 'shopping-bag'],
             ['id' => 'services',    'label' => 'Services / Agency', 'hint' => 'Consultancy, freelance, done-for-you', 'icon' => 'briefcase'],
-            ['id' => 'restaurant',  'label' => 'Restaurant / F&B',  'hint' => 'Delivery, dine-in, bakery',           'icon' => 'cake'],
+            ['id' => 'restaurant',  'label' => 'Restaurant / Café',  'hint' => 'Delivery, dine-in, bakery',           'icon' => 'cake'],
             ['id' => 'clinic',      'label' => 'Clinic / Health',   'hint' => 'Dental, aesthetic, wellness',         'icon' => 'heart'],
             ['id' => 'real_estate', 'label' => 'Real Estate',       'hint' => 'Brokers, developers, PM',             'icon' => 'home'],
             ['id' => 'other',       'label' => 'Something else',    'hint' => 'We\'ll adapt to your needs',          'icon' => 'sparkles'],

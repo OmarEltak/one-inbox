@@ -237,9 +237,10 @@
                     <div>&gt; <span class="animate-pulse">initializing…</span></div>
                 </div>
                 <div wire:loading wire:target="generate" class="space-y-2">
-                    <div>&gt; parsing business context…</div>
-                    <div>&gt; assembling system prompt…</div>
-                    <div>&gt; polishing tone with NaraRouter…</div>
+                    <div>&gt; reading your answers…</div>
+                    <div>&gt; drafting your AI's system prompt…</div>
+                    <div>&gt; tuning voice and tone…</div>
+                    <div>&gt; almost ready…</div>
                     <div><span class="animate-pulse">▊</span></div>
                 </div>
             </div>

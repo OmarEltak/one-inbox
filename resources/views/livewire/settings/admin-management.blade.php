@@ -9,15 +9,18 @@
         </flux:button>
     </div>
 
-    {{-- Flash Messages --}}
+    {{-- Flash Messages. Plain <p> instead of flux:text — Flux was inheriting a
+         near-transparent muted-text color on top of the tinted background, making
+         success copy nearly invisible against bg-emerald-50. Explicit emerald-900
+         guarantees readable contrast. --}}
     @if(session('success'))
-        <div class="mb-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
-            <flux:text class="text-green-700 dark:text-green-400">{{ session('success') }}</flux:text>
+        <div class="mb-6 rounded-lg bg-emerald-50 border border-emerald-200 p-4">
+            <p class="text-sm font-medium text-emerald-900">{{ session('success') }}</p>
         </div>
     @endif
     @if(session('error'))
-        <div class="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
-            <flux:text class="text-red-700 dark:text-red-400">{{ session('error') }}</flux:text>
+        <div class="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+            <p class="text-sm font-medium text-red-900">{{ session('error') }}</p>
         </div>
     @endif
 
@@ -28,9 +31,13 @@
             <div>
                 <div class="flex items-center gap-2">
                     <flux:heading size="sm" class="!text-zinc-900">{{ auth()->user()->currentTeam->owner->name }}</flux:heading>
-                    <flux:badge color="yellow" size="sm">{{ __('Head Admin') }}</flux:badge>
+                    {{-- Plain span badge with explicit amber background + amber-900 text.
+                         flux:badge color=yellow was rendering white-on-yellow. --}}
+                    <span class="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">
+                        {{ __('Head Admin') }}
+                    </span>
                 </div>
-                <flux:text size="xs" class="text-zinc-900">{{ auth()->user()->currentTeam->owner->email }} &middot; {{ __('Full access to everything') }}</flux:text>
+                <p class="mt-1 text-xs text-zinc-700">{{ auth()->user()->currentTeam->owner->email }} &middot; {{ __('Full access to everything') }}</p>
             </div>
         </div>
     </div>
@@ -50,30 +57,37 @@
                             <flux:avatar :name="$admin->name" />
                             <div class="min-w-0">
                                 <flux:heading size="sm" class="!text-zinc-900">{{ $admin->name }}</flux:heading>
-                                <flux:text size="xs" class="text-zinc-900">{{ $admin->email }}</flux:text>
+                                <p class="text-xs text-zinc-700">{{ $admin->email }}</p>
                                 <div class="flex flex-wrap gap-1 mt-2">
                                     @forelse($admin->pivot->permissions as $perm)
-                                        <flux:badge color="blue" size="sm">{{ \App\Livewire\Settings\AdminManagement::PERMISSIONS[$perm] ?? $perm }}</flux:badge>
+                                        {{-- Plain span with saturated bg + dark text. flux:badge blue was
+                                             rendering white-on-light-blue = invisible. --}}
+                                        <span class="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-900 ring-1 ring-blue-200">
+                                            {{ \App\Livewire\Settings\AdminManagement::PERMISSIONS[$perm] ?? $perm }}
+                                        </span>
                                     @empty
-                                        <flux:badge color="red" size="sm">{{ __('No Permissions') }}</flux:badge>
+                                        <span class="inline-flex items-center rounded-md bg-red-100 px-2 py-0.5 text-xs font-medium text-red-900 ring-1 ring-red-200">
+                                            {{ __('No Permissions') }}
+                                        </span>
                                     @endforelse
                                 </div>
                             </div>
                         </div>
+                        {{-- Outline variant instead of ghost so the buttons are visible against white. --}}
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <flux:button wire:click="openEditModal({{ $admin->id }})" size="sm" variant="ghost" icon="pencil">
+                            <flux:button wire:click="openEditModal({{ $admin->id }})" size="sm" variant="outline" icon="pencil">
                                 {{ __('Permissions') }}
                             </flux:button>
-                            <flux:button wire:click="openPasswordModal({{ $admin->id }})" size="sm" variant="ghost" icon="key">
+                            <flux:button wire:click="openPasswordModal({{ $admin->id }})" size="sm" variant="outline" icon="key">
                                 {{ __('Password') }}
                             </flux:button>
                             <flux:button
                                 wire:click="deleteAdmin({{ $admin->id }})"
                                 wire:confirm="Delete admin '{{ addslashes($admin->name) }}'? This cannot be undone."
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 icon="trash"
-                                class="text-red-500 hover:text-red-600"
+                                class="!text-red-600 hover:!text-red-700 !border-red-200 hover:!border-red-300"
                             />
                         </div>
                     </div>
