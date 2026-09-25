@@ -65,6 +65,14 @@
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
     <link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    {{-- Brand typography (Phase 1). Adds Instrument Serif for headline treatments used by
+         <x-brand.nav /> / <x-brand.footer /> and any marketing page that adopts .serif / .font-serif.
+         Existing pages continue to use --font-sans (Cairo) and are visually unchanged. --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- JSON-LD Structured Data --}}
@@ -89,6 +97,7 @@
     </script>
     @stack('schema')
     @stack('meta')
+    @stack('head')
 </head>
 <body class="min-h-screen bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
 
@@ -219,6 +228,8 @@
             </div>
         </div>
     </footer>
+
+    @stack('scripts')
 
 </body>
 </html>

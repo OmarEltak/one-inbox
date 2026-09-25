@@ -83,6 +83,14 @@
          separately-indexable URLs, so listing them confuses Google rather than helping. --}}
 
     <link rel="icon" href="/logo.png" type="image/png">
+
+    {{-- Brand typography (Phase 1). Adds Instrument Serif for headline treatments used by
+         <x-brand.nav /> / <x-brand.footer /> and any marketing page that adopts .serif / .font-serif.
+         Existing pages continue to use --font-sans (Cairo) and are visually unchanged. --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Alpine.js + plugins for marketing pages (plugins must load before core) --}}
@@ -141,6 +149,7 @@
 
     {{-- Page-specific JSON-LD (FAQPage, Article, BreadcrumbList, etc.) --}}
     @stack('schema')
+    @stack('head')
 </head>
 <body class="min-h-screen bg-white text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
 
@@ -313,6 +322,8 @@
             </div>
         </div>
     </footer>
+
+    @stack('scripts')
 
 </body>
 </html>

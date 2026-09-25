@@ -6,10 +6,35 @@
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
+/* Safelist dynamic emer-* pill classes (Tailwind v4 uses @source inline for JIT safelist).
+   Ensures bg-emer-100 text-emer-900 ring-emer-200 etc. are compiled even when generated at runtime. */
+@source inline("{bg,text,ring,border}-emer-{50,100,400,500,600,700,900}");
+@source inline("{bg,text,ring,border}-emer-{50,100,400,500,600,700,900}/{5,10,15,20,25,30,40,50,60,70,80,90}");
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
     --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: '"Instrument Serif"', 'Georgia', serif;
+
+    /* ── OT1-Pro brand palette (Phase 1 foundation) ──
+       Additive only. Consumed by <x-brand.nav /> / <x-brand.footer /> and
+       marketing pages opted-in via resources/css/brand.css. Does not affect
+       the dashboard or existing marketing pages until they choose to use these
+       classes. */
+    --color-ink:    #0a1f1c;
+    --color-ink2:   #132824;
+    --color-cream:  #faf7f2;
+    --color-cream2: #f1ede4;
+    --color-line:   #e6dfd0;
+
+    --color-emer-50:  #ecfdf5;
+    --color-emer-100: #d1fae5;
+    --color-emer-400: #34d399;
+    --color-emer-500: #10b981;
+    --color-emer-600: #059669;
+    --color-emer-700: #047857;
+    --color-emer-900: #064e3b;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
