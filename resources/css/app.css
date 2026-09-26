@@ -48,15 +48,19 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: #7C3AED;
-    --color-accent-content: #7C3AED;
+    /* Brand accent — emerald from the Phase 1 palette (--color-emer-600).
+       Flux uses --color-accent for input focus rings, primary buttons,
+       checkboxes, links. Do NOT reintroduce violet (#7C3AED) here — the
+       whole site standardised on emerald + ink + cream. */
+    --color-accent: #059669;
+    --color-accent-content: #047857;
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: #7C3AED;
-        --color-accent-content: #7C3AED;
+        --color-accent: #10b981;
+        --color-accent-content: #34d399;
         --color-accent-foreground: var(--color-white);
     }
 }
@@ -269,11 +273,13 @@ html:not(.dark) [data-flux-input] textarea {
     border-color: #d4d4d4;
 }
 
-/* ── Auth pages: violet brand border, black text, black labels — always on ── */
+/* ── Auth pages: emerald brand border, ink text, ink labels — always on.
+   Focus ring comes from --color-accent (also emerald). Do NOT change back
+   to #7c3aed — the site standardised on emerald + ink + cream. */
 .auth-form-panel [data-flux-input] input:not([type="file"]),
 .auth-form-panel [data-flux-input] textarea {
-    border-color: #7c3aed !important;
-    color: #171717 !important;
+    border-color: #059669 !important;
+    color: #0a1f1c !important;
 }
 .auth-form-panel [data-flux-label],
 .auth-form-panel label,
