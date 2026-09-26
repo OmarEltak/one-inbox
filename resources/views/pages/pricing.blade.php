@@ -1,5 +1,13 @@
-<x-layouts.marketing
-    :title="__('OT1-Pro Pricing — Free Social Media CRM, Plans from $0/mo')"
+{{--
+    Route: /pricing → name('pricing')
+
+    Phase-2 brand pricing. Ported from the "PRICING" section of
+    homepage-redesign-preview.html: volume slider + 3 plans (Free /
+    Starter / Pro) on ink surface. Preserves Product + FAQPage
+    JSON-LD (Google's Rich Result eligibility depends on it).
+--}}
+<x-layouts.brand-marketing
+    :title="__('OT1-Pro Pricing — Free social CRM, plans from $0/mo')"
     :description="__('Start free with OT1-Pro. Affordable social CRM pricing for businesses of all sizes — Free, Starter $29/mo, Pro $79/mo, and Enterprise custom plans.')">
 
 @push('schema')
@@ -11,42 +19,9 @@
     "description": "Unified social inbox with AI sales responder. Manage WhatsApp, Instagram, Facebook, and Telegram from one place.",
     "brand": {"@@type": "Brand", "name": "OT1-Pro"},
     "offers": [
-        {
-            "@@type": "Offer",
-            "name": "Free",
-            "price": "0",
-            "priceCurrency": "USD",
-            "url": "{{ route('register') }}",
-            "availability": "https://schema.org/InStock"
-        },
-        {
-            "@@type": "Offer",
-            "name": "Starter",
-            "price": "29",
-            "priceCurrency": "USD",
-            "url": "{{ route('register') }}",
-            "availability": "https://schema.org/InStock"
-        },
-        {
-            "@@type": "Offer",
-            "name": "Pro",
-            "price": "79",
-            "priceCurrency": "USD",
-            "url": "{{ route('register') }}",
-            "availability": "https://schema.org/InStock"
-        },
-        {
-            "@@type": "Offer",
-            "name": "Enterprise",
-            "priceCurrency": "USD",
-            "url": "https://wa.me/201026361218",
-            "availability": "https://schema.org/InStock",
-            "priceSpecification": {
-                "@@type": "PriceSpecification",
-                "priceCurrency": "USD",
-                "description": "Custom pricing"
-            }
-        }
+        {"@@type": "Offer", "name": "Free",    "price": "0",  "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
+        {"@@type": "Offer", "name": "Starter", "price": "29", "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
+        {"@@type": "Offer", "name": "Pro",     "price": "79", "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"}
     ]
 }
 </script>
@@ -55,315 +30,174 @@
     "@@context": "https://schema.org",
     "@@type": "FAQPage",
     "mainEntity": [
-        {
-            "@@type": "Question",
-            "name": "Is there really a free plan?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The Free plan includes 1 connected page and 50 AI responses per month with no credit card required."}
-        },
-        {
-            "@@type": "Question",
-            "name": "Can I connect Facebook, Instagram, WhatsApp and Telegram at the same time?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Each connected page or account counts toward your page limit, regardless of platform."}
-        },
-        {
-            "@@type": "Question",
-            "name": "Can I upgrade or downgrade anytime?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Contact us on WhatsApp and we will switch your plan immediately with prorated billing."}
-        },
-        {
-            "@@type": "Question",
-            "name": "What platforms are coming next?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "TikTok DMs and LinkedIn Messages are in active development. Enterprise customers get early access."}
-        }
+        {"@@type": "Question", "name": "Is there really a free plan?",
+         "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The Free plan includes 1 connected page and 100 AI responses per month with no credit card required."}},
+        {"@@type": "Question", "name": "Can I connect Facebook, Instagram, WhatsApp and Telegram at the same time?",
+         "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Each connected page or account counts toward your page limit, regardless of platform."}},
+        {"@@type": "Question", "name": "Can I upgrade or downgrade anytime?",
+         "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Contact us on WhatsApp and we will switch your plan immediately with prorated billing."}},
+        {"@@type": "Question", "name": "Do I have to add a credit card?",
+         "acceptedAnswer": {"@@type": "Answer", "text": "No. Try any plan free for 14 days. When you decide to keep it we send bank transfer details."}}
     ]
 }
 </script>
 @endpush
 
+{{-- ═══════ HERO ═══════ --}}
+<section class="bg-ink text-cream pt-32 pb-16 grain relative">
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <div class="text-xs uppercase tracking-[0.2em] text-emer-400 mb-6">{{ __('Pricing') }}</div>
+        <h1 class="serif text-5xl lg:text-7xl leading-[1.02] mb-6">
+            {{ __("Pay in cash, once it's working.") }}<br>
+            <span class="serif-it text-emer-400">{{ __('Not before.') }}</span>
+        </h1>
+        <p class="text-cream/70 text-lg leading-relaxed max-w-xl mx-auto">
+            {{ __("Try any plan free for 14 days. No card needed. When you decide to keep it, we send bank details and you pay by transfer. That's it. No auto-renew traps.") }}
+        </p>
+    </div>
+</section>
 
-    {{-- Hero --}}
-    <section class="py-20 lg:py-28">
-        <div class="mx-auto max-w-6xl px-6">
-            <div class="text-center">
-                <span class="inline-flex items-center rounded-full bg-indigo-100 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-700">
-                    {{ __('No credit card required to start') }}
-                </span>
-                <h1 class="mt-6 text-4xl font-bold tracking-tight sm:text-5xl">
-                    {{ __('One price for every message,') }}<br>
-                    <span class="text-indigo-600">{{ __('every platform, every lead.') }}</span>
-                </h1>
-                <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600 max-w-2xl mx-auto">
-                    {{ __('Stop paying for 4 different tools. OT1-Pro unifies Facebook, Instagram, WhatsApp & Telegram with an AI that converts conversations into customers — automatically.') }}
-                </p>
+{{-- ═══════ VOLUME SLIDER + PLANS ═══════ --}}
+<section id="plans" class="bg-ink text-cream pb-24 grain relative">
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+
+        <div class="mb-10 bg-ink2 rounded-2xl p-6 border border-cream/10 fade-up">
+            <div class="flex items-center justify-between mb-3">
+                <label for="volume-slider" class="text-sm text-cream/80">{{ __('How many messages does your business get per month?') }}</label>
+                <span class="text-2xl font-semibold text-emer-400"><span id="slider-val">1,200</span> {{ __('msgs') }}</span>
             </div>
-
-            {{-- Platform badges --}}
-            <div class="mt-10 flex flex-wrap justify-center gap-3">
-                {{-- Facebook --}}
-                <span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    Facebook
-                </span>
-                {{-- Instagram --}}
-                <span class="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-pink-50 px-4 py-1.5 text-sm font-medium text-pink-700 dark:border-pink-800 dark:bg-pink-900/20 dark:text-pink-300">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-                    Instagram
-                </span>
-                {{-- WhatsApp --}}
-                <span class="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    WhatsApp
-                </span>
-                {{-- Telegram --}}
-                <span class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-sm font-medium text-sky-700 dark:border-sky-800 dark:bg-sky-900/20 dark:text-sky-300">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                    Telegram
-                </span>
-                {{-- TikTok --}}
-                <span class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-1.5 text-sm font-medium text-zinc-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-600">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
-                    TikTok <span class="text-xs opacity-60">(soon)</span>
-                </span>
-                {{-- LinkedIn --}}
-                <span class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-1.5 text-sm font-medium text-zinc-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-600">
-                    <svg class="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    LinkedIn <span class="text-xs opacity-60">(soon)</span>
-                </span>
+            <input id="volume-slider" type="range" min="0" max="10" value="3" class="w-full accent-emer-500">
+            <div class="flex justify-between text-[10px] text-cream/60 mt-1">
+                <span>~100</span><span>500</span><span>1k</span><span>2.5k</span><span>5k</span><span>10k+</span>
             </div>
-
-            {{-- Pricing cards — horizontally scrollable snap strip --}}
-            @php
-                $pricingPlans = [
-                    [
-                        'name'    => 'Free',
-                        'tagline' => 'Try before you commit',
-                        'price'   => '$0',
-                        'note'    => 'No credit card needed',
-                        'popular' => false,
-                        'check'   => 'violet',
-                        'features' => [
-                            '1 connected page',
-                            '20 AI responses/mo',
-                            'Unified inbox',
-                            '1 team member',
-                        ],
-                        'cta_label' => 'Get Started Free',
-                        'cta_href'  => route('register'),
-                        'cta_style' => 'border',
-                    ],
-                    [
-                        'name'    => 'Basic',
-                        'tagline' => 'Just enough AI to get started',
-                        'price'   => '$8',
-                        'note'    => 'Less than a coffee a week',
-                        'popular' => false,
-                        'check'   => 'violet',
-                        'features' => [
-                            '1 connected page',
-                            '100 AI responses/mo',
-                            'Unified inbox',
-                            '1 team member',
-                        ],
-                        'cta_label' => 'Get Basic',
-                        'cta_href'  => route('pay-wire') . '?plan=basic',
-                        'cta_style' => 'outline',
-                    ],
-                    [
-                        'name'    => 'Starter',
-                        'tagline' => 'Your AI sales rep, 24/7',
-                        'price'   => '$29',
-                        'note'    => 'Pays for itself with 1 closed lead',
-                        'popular' => false,
-                        'check'   => 'green',
-                        'features' => [
-                            '3 connected pages',
-                            '500 AI responses/mo',
-                            'All 4 platforms',
-                            'Lead scoring',
-                            '3 team members',
-                        ],
-                        'cta_label' => 'Get Started',
-                        'cta_href'  => route('pay-wire') . '?plan=starter',
-                        'cta_style' => 'outline',
-                    ],
-                    [
-                        'name'    => 'Pro',
-                        'tagline' => 'Built for teams that close deals',
-                        'price'   => '$79',
-                        'note'    => 'Replaces a part-time sales hire',
-                        'popular' => true,
-                        'check'   => 'green',
-                        'features' => [
-                            '5 connected pages',
-                            '2,000 AI responses/mo',
-                            'All platforms + TikTok (soon)',
-                            'Advanced analytics',
-                            'AI bulk campaigns',
-                            '10 team members',
-                            'Priority support',
-                        ],
-                        'cta_label' => 'Get Pro',
-                        'cta_href'  => route('pay-wire') . '?plan=pro',
-                        'cta_style' => 'primary',
-                    ],
-                    [
-                        'name'    => 'Enterprise',
-                        'tagline' => 'For agencies & large teams',
-                        'price'   => 'Custom',
-                        'note'    => 'Tailored to your scale',
-                        'popular' => false,
-                        'check'   => 'green',
-                        'features' => [
-                            'Unlimited pages',
-                            'Unlimited AI responses',
-                            'All platforms',
-                            'Custom AI voice & training',
-                            'White-label option',
-                            'Unlimited team members',
-                            'Dedicated onboarding & SLA',
-                        ],
-                        'cta_label' => 'Talk to Sales',
-                        'cta_href'  => 'https://wa.me/201026361218?text=' . urlencode("Hi, I'm interested in an Enterprise plan"),
-                        'cta_style' => 'border',
-                    ],
-                ];
-            @endphp
-
-            {{-- Arrow nav --}}
-            <div class="mt-10 sm:mt-16 flex items-center justify-end gap-2">
-                <button onclick="document.getElementById('pricing-track').scrollBy({left:-256,behavior:'smooth'})"
-                    class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
-                    <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-                <button onclick="document.getElementById('pricing-track').scrollBy({left:256,behavior:'smooth'})"
-                    class="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 transition-colors">
-                    <svg class="size-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-
-            {{-- Scrollable card strip --}}
-            <div id="pricing-track" class="mt-4 -mx-6 px-6 overflow-x-auto scrollbar-hide">
-                <div class="flex gap-4 sm:gap-5 pb-4 pt-6" style="width: max-content;">
-                    @foreach($pricingPlans as $plan)
-                        <div class="relative w-56 sm:w-64 md:w-72 flex-shrink-0 snap-start rounded-2xl border bg-white p-5 sm:p-7 flex flex-col
-                            {{ $plan['popular'] ? 'border-2 border-violet-600' : 'border-zinc-200' }}">
-
-                            @if($plan['popular'])
-                                <span class="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-violet-600 px-4 py-1 text-xs font-semibold text-white whitespace-nowrap">
-                                    {{ __('Most Popular') }}
-                                </span>
-                            @endif
-
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-zinc-900">{{ __($plan['name']) }}</h3>
-                                <p class="mt-1 text-sm text-zinc-500">{{ __($plan['tagline']) }}</p>
-                                <p class="mt-4 sm:mt-6">
-                                    <span class="text-3xl sm:text-4xl font-bold text-zinc-900">{{ $plan['price'] }}</span>
-                                    @if($plan['price'] !== 'Custom')
-                                        <span class="text-zinc-500">/{{ __('mo') }}</span>
-                                    @endif
-                                </p>
-                                <p class="mt-1 text-xs text-zinc-500">{{ __($plan['note']) }}</p>
-
-                                <ul class="mt-5 sm:mt-8 space-y-2 sm:space-y-3 text-sm text-zinc-600">
-                                    @foreach($plan['features'] as $feature)
-                                        <li class="flex items-center gap-2">
-                                            <svg class="size-4 shrink-0 text-{{ $plan['check'] }}-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                            </svg>
-                                            {{ __($feature) }}
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-
-                            @php
-                                $planSlug = \Illuminate\Support\Str::slug($plan['name']);
-                                $isEnterprise = $plan['name'] === 'Enterprise';
-                                $heronEvent = $isEnterprise ? 'demo_requested' : 'plan_selected';
-                            @endphp
-                            <div class="mt-auto pt-5 sm:pt-8">
-                                @if($plan['cta_style'] === 'primary')
-                                    <a href="{{ $plan['cta_href'] }}" data-heron-event="{{ $heronEvent }}" data-heron-plan="{{ $planSlug }}" class="block w-full rounded-lg bg-violet-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-violet-700">
-                                        {{ __($plan['cta_label']) }}
-                                    </a>
-                                @elseif($plan['cta_style'] === 'outline')
-                                    <a href="{{ $plan['cta_href'] }}" data-heron-event="{{ $heronEvent }}" data-heron-plan="{{ $planSlug }}" class="block w-full rounded-lg border border-violet-400 py-2.5 text-center text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50">
-                                        {{ __($plan['cta_label']) }}
-                                    </a>
-                                @else
-                                    <a href="{{ $plan['cta_href'] }}" data-heron-event="{{ $heronEvent }}" data-heron-plan="{{ $planSlug }}" class="block w-full rounded-lg border border-zinc-300 py-2.5 text-center text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50">
-                                        {{ __($plan['cta_label']) }}
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>{{-- /pricing-track --}}
-
-            {{-- Trust line --}}
-            <p class="mt-10 text-center text-sm text-zinc-500">
-                {{ __('All plans include: Unified inbox · AI auto-responder · Lead scoring · Real-time notifications · SSL & 99.9% uptime') }}
-            </p>
+            <div class="mt-4 text-sm text-cream/80">{{ __('Recommended:') }} <span id="rec-plan" class="text-emer-400 font-semibold">Starter</span> — <span id="rec-reason">{{ __('plenty of headroom for a growing shop') }}</span></div>
         </div>
-    </section>
 
-    {{-- FAQ --}}
-    <section class="border-t border-zinc-200 py-20 dark:border-zinc-200">
-        <div class="mx-auto max-w-3xl px-6">
-            <h2 class="text-center text-3xl font-bold">{{ __('Common questions') }}</h2>
-            <div class="mt-12 space-y-8">
-                <div>
-                    <h3 class="font-semibold">{{ __('Do I need a credit card to start?') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('No. The Free plan requires no payment. Paid plans are activated after a conversation with our sales team on WhatsApp.') }}</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold">{{ __('What counts as an "AI response"?') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Every time the AI automatically replies to an incoming message counts as one AI response. Manual replies by your team do not count.') }}</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold">{{ __('Can I connect Facebook, Instagram, WhatsApp and Telegram at the same time?') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Yes. Each connected page or account counts toward your page limit, regardless of platform. Mix and match as you like.') }}</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold">{{ __('Can I upgrade or downgrade anytime?') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Yes. Contact us on WhatsApp and we\'ll switch your plan immediately with prorated billing.') }}</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold">{{ __('What platforms are coming next?') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('TikTok DMs and LinkedIn Messages are in active development. Enterprise customers get early access.') }}</p>
-                </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="free">
+                <div class="serif text-3xl mb-1">{{ __('Free') }}</div>
+                <div class="text-cream/60 text-sm mb-6">{{ __('Try the flow, no strings') }}</div>
+                <div class="serif text-5xl mb-6">$0</div>
+                <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 platform, 100 AI replies / month') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 team seat') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Meet-Your-AI wizard') }}</li>
+                    <li class="flex items-center gap-2 text-cream/50"><span>—</span> {{ __('Advanced routing') }}</li>
+                </ul>
+                @if(Route::has('register'))
+                    <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start free') }}</a>
+                @endif
+            </div>
+
+            <div class="plan bg-cream text-ink rounded-2xl p-8 relative shadow-xl transform scale-105" data-plan="starter">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emer-500 text-ink text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">{{ __('Most shops start here') }}</div>
+                <div class="serif text-3xl mb-1">Starter</div>
+                <div class="text-ink/70 text-sm mb-6">{{ __('For growing DMs') }}</div>
+                <div class="serif text-5xl mb-1">$29<span class="text-lg text-ink/50">/mo</span></div>
+                <div class="text-ink/60 text-xs mb-6">{{ __('or $290/yr — 2 months free') }}</div>
+                <ul class="space-y-2.5 text-sm text-ink/80 mb-8">
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 platforms, 2,500 AI replies / mo') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 team seats') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('Custom AI voice tuning') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('Founder email support') }}</li>
+                </ul>
+                @if(Route::has('register'))
+                    <a href="{{ route('register') }}" class="block w-full text-center bg-ink text-cream hover:bg-ink2 rounded-full py-3 text-sm font-semibold transition">{{ __('Start 14-day trial') }}</a>
+                @endif
+            </div>
+
+            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="pro">
+                <div class="serif text-3xl mb-1">Pro</div>
+                <div class="text-cream/60 text-sm mb-6">{{ __('Scale without hiring') }}</div>
+                <div class="serif text-5xl mb-1">$79<span class="text-lg text-cream/50">/mo</span></div>
+                <div class="text-cream/60 text-xs mb-6">{{ __('or $790/yr — 2 months free') }}</div>
+                <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('All platforms, 10,000 AI replies / mo') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Unlimited team seats') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Custom AI + workflows') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Priority support < 4hr') }}</li>
+                </ul>
+                @if(Route::has('register'))
+                    <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start 14-day trial') }}</a>
+                @endif
             </div>
         </div>
-    </section>
+        <p class="mt-8 text-xs text-cream/60 text-center">{{ __('Custom volume, on-prem, or a franchise?') }} <a href="{{ route('contact') }}" class="underline hover:text-emer-400">{{ __('Email Omar') }}</a> — {{ __('he handles enterprise personally.') }}</p>
+    </div>
+</section>
 
-    {{-- CTA --}}
-    <section class="bg-indigo-600 py-20">
-        <div class="mx-auto max-w-3xl px-6 text-center">
-            <h2 class="text-3xl font-bold text-white">{{ __('Still deciding? Let\'s talk.') }}</h2>
-            <p class="mt-4 text-indigo-800">{{ __('Our team will help you pick the right plan and get you set up in minutes.') }}</p>
-            <a href="https://wa.me/201026361218" target="_blank" data-heron-event="demo_requested" data-heron-source="pricing_footer" class="mt-8 inline-flex items-center gap-2 rounded-lg bg-white px-8 py-3 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-50">
-                <svg class="size-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                {{ __('Chat with us on WhatsApp') }}
-            </a>
+{{-- ═══════ FAQ ═══════ --}}
+<section class="py-24 fade-up">
+    <div class="max-w-3xl mx-auto px-6">
+        <div class="mb-10 text-center">
+            <div class="text-xs uppercase tracking-widest text-emer-700 mb-4">{{ __('Common questions') }}</div>
+            <h2 class="serif text-4xl lg:text-5xl">{{ __('Pricing questions,') }} <span class="serif-it text-emer-700">{{ __('answered.') }}</span></h2>
         </div>
-    </section>
+        <div class="divide-y divide-line border-y border-line">
+            @foreach([
+                [__('Is there really a free plan?'),                     __("Yes. Free means 1 platform + 100 AI replies / month, no card required. If you outgrow it you can upgrade in one click.")],
+                [__('Do I have to add a credit card?'),                  __("No. Try any plan free for 14 days. If you decide to keep it we send bank transfer details. You pay by wire. No auto-renew, no surprise charge.")],
+                [__('Can I upgrade or downgrade anytime?'),              __("Yes. WhatsApp the founder and we switch your plan instantly with prorated billing.")],
+                [__('What if I need more than 10,000 replies / month?'), __("Custom volume, franchise, or on-prem? Email omareltak7@gmail.com — Omar handles enterprise personally.")],
+            ] as [$q, $a])
+                <details class="py-5">
+                    <summary class="flex justify-between items-center">
+                        <span class="serif text-xl">{{ $q }}</span>
+                        <span class="chev serif text-2xl text-emer-700">+</span>
+                    </summary>
+                    <p class="mt-3 text-ink/70 text-sm leading-relaxed">{{ $a }}</p>
+                </details>
+            @endforeach
+        </div>
+    </div>
+</section>
 
-    {{-- Delegated HeronSignal funnel-event dispatcher.
-         Fires on any <a data-heron-event="..."> click and passes optional
-         data-heron-plan / data-heron-source attributes as the payload. --}}
-    <script>
-        document.addEventListener('click', function (e) {
-            var a = e.target.closest('a[data-heron-event]');
-            if (!a || !window.heronsignal) return;
-            var payload = {};
-            if (a.dataset.heronPlan)   payload.plan   = a.dataset.heronPlan;
-            if (a.dataset.heronSource) payload.source = a.dataset.heronSource;
-            payload.page = 'pricing';
-            try { window.heronsignal.event(a.dataset.heronEvent, payload); } catch (_) {}
+{{-- ═══════ FINAL CTA ═══════ --}}
+<section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Ninety seconds to') }} <span class="serif-it text-emer-400">{{ __('go live.') }}</span></h2>
+        <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('No card. No auto-renew. Pay by transfer only when it\'s working.') }}</p>
+        @if(Route::has('register'))
+            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Start free — no card') }} <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
+        @endif
+    </div>
+</section>
+
+@push('scripts')
+<script>
+(function () {
+    var slider = document.getElementById('volume-slider');
+    if (!slider) return;
+    var buckets = [
+        { msgs: 100,   plan: 'Free',    reason: 'small volume, casual DMs — the free tier fits' },
+        { msgs: 300,   plan: 'Free',    reason: 'still within the free 100/mo cap x 3 platforms' },
+        { msgs: 500,   plan: 'Starter', reason: 'extra headroom + custom voice tuning' },
+        { msgs: 1200,  plan: 'Starter', reason: 'plenty of headroom for a growing shop' },
+        { msgs: 1800,  plan: 'Starter', reason: 'still inside the 2.5k Starter cap' },
+        { msgs: 2500,  plan: 'Starter', reason: 'right at the Starter ceiling — check Pro too' },
+        { msgs: 3500,  plan: 'Pro',     reason: "over Starter's cap — Pro unlocks 10k/mo + all platforms" },
+        { msgs: 5000,  plan: 'Pro',     reason: 'Pro is the sweet spot for your volume' },
+        { msgs: 7000,  plan: 'Pro',     reason: "still inside Pro's 10k cap" },
+        { msgs: 9000,  plan: 'Pro',     reason: "approaching Pro's ceiling — plan ahead" },
+        { msgs: 12000, plan: 'Custom',  reason: 'email Omar for a custom volume plan' },
+    ];
+    function updateSlider() {
+        var i = parseInt(slider.value, 10);
+        var b = buckets[i];
+        document.getElementById('slider-val').textContent = b.msgs.toLocaleString();
+        document.getElementById('rec-plan').textContent = b.plan;
+        document.getElementById('rec-reason').textContent = b.reason;
+        document.querySelectorAll('.plan').forEach(function (p) {
+            p.classList.remove('ring-2', 'ring-emer-400');
+            if (p.dataset.plan.toLowerCase() === b.plan.toLowerCase()) {
+                p.classList.add('ring-2', 'ring-emer-400');
+            }
         });
-    </script>
+    }
+    slider.addEventListener('input', updateSlider);
+    updateSlider();
+})();
+</script>
+@endpush
 
-</x-layouts.marketing>
-
+</x-layouts.brand-marketing>
