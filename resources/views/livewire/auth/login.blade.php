@@ -2,8 +2,8 @@
     <div class="flex flex-col gap-6">
         {{-- Header --}}
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Welcome back') }}</h1>
-            <p class="mt-1 text-sm text-zinc-500">{{ __('Sign in to your account') }}</p>
+            <h1 class="serif text-3xl leading-tight text-ink">{{ __('Welcome back') }}</h1>
+            <p class="mt-2 text-sm text-ink/70">{{ __('Sign in to your account') }}</p>
         </div>
 
         <!-- Session Status -->
@@ -27,11 +27,11 @@
             <!-- Password -->
             <div class="flex flex-col gap-1">
                 <div class="flex items-center justify-between mb-1">
-                    <span class="text-sm font-medium text-zinc-700">{{ __('Password') }}</span>
+                    <span class="text-sm font-medium text-ink">{{ __('Password') }}</span>
                     @if (Route::has('password.request'))
-                        <flux:link class="text-xs" :href="route('password.request')" wire:navigate>
+                        <a class="text-xs font-medium text-emer-700 hover:text-emer-600 underline underline-offset-2" href="{{ route('password.request') }}" wire:navigate>
                             {{ __('Forgot password?') }}
-                        </flux:link>
+                        </a>
                     @endif
                 </div>
                 <flux:input
@@ -47,15 +47,16 @@
             <!-- Remember Me -->
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
+            <button type="submit" data-test="login-button"
+                class="inline-flex items-center justify-center gap-2 w-full bg-emer-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emer-700 transition cursor-pointer">
                 {{ __('Sign in') }}
-            </flux:button>
+            </button>
         </form>
 
         @if (Route::has('register'))
-            <p class="text-sm text-center text-zinc-500">
+            <p class="text-sm text-center text-ink/70">
                 {{ __("Don't have an account?") }}
-                <flux:link :href="route('register')" wire:navigate class="font-medium">{{ __('Sign up free') }}</flux:link>
+                <a href="{{ route('register') }}" wire:navigate class="font-semibold text-emer-700 hover:text-emer-600">{{ __('Sign up free') }}</a>
             </p>
         @endif
     </div>

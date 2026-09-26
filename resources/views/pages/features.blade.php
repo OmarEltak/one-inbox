@@ -1,409 +1,188 @@
-<x-layouts.marketing
-    :title="__('Features — Unified Inbox, AI Responder & Lead Scoring | OT1-Pro')"
-    :description="__('Discover OT1-Pro features: manage Facebook, Instagram, WhatsApp & Telegram in one place. AI sales responder, lead scoring, analytics, and team collaboration.')">
+{{--
+    Route: /features → name('features')
 
-@push('schema')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "FAQPage",
-    "mainEntity": [
-        {
-            "@@type": "Question",
-            "name": "Which messaging platforms does OT1-Pro support?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram are fully supported today. TikTok DMs and LinkedIn Messages are in active development."}
-        },
-        {
-            "@@type": "Question",
-            "name": "Do I need a developer to set up OT1-Pro?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "No. Each platform is connected through a guided OAuth flow. WhatsApp uses an in-app QR connect that works without writing any code."}
-        },
-        {
-            "@@type": "Question",
-            "name": "How does the AI sales responder learn my product?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "You provide product information, pricing, and brand voice in a structured form. The AI uses that context plus the live conversation to generate replies and route hot leads to your team."}
-        },
-        {
-            "@@type": "Question",
-            "name": "Can my whole team use the same inbox?",
-            "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Team members are invited with role-based permissions. Conversations can be assigned, internal notes are kept separate from customer-visible messages, and an audit trail records every change."}
-        }
-    ]
-}
-</script>
-@endpush
+    Phase-2 brand features page. Uses the "everything you need" ink hero
+    + the two feature blocks from homepage-redesign-preview.html
+    (Every channel + The AI), plus a platform grid and a testimonial-flip
+    row scaled down for this page.
+--}}
+<x-layouts.brand-marketing
+    :title="__('Features — Unified inbox, AI responder & lead scoring | OT1-Pro')"
+    :description="__('Facebook, Instagram, WhatsApp, Telegram — in one inbox, answered by an AI in your voice. Escalations, lead scoring, team seats, and real-time sync.')">
 
-    <section class="py-20 lg:py-28">
-        <div class="mx-auto max-w-6xl px-6">
-            <div class="text-center animate-fade-in-up">
-                <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">{{ __('Powerful features for modern sales teams') }}</h1>
-                <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600 max-w-3xl mx-auto">
-                    {{ __('OT1-Pro gives sales and support teams a single place to manage every customer conversation across WhatsApp, Instagram, Facebook, and Telegram — with an AI agent that qualifies leads, answers questions, and hands off hot prospects automatically.') }}
-                </p>
-                <p class="mt-4 text-base text-zinc-500 dark:text-zinc-500 max-w-3xl mx-auto">
-                    {{ __('Stop juggling four different apps and missing messages. Everything below is included on every plan, including the free tier.') }}
-                </p>
+{{-- ═══════ HERO ═══════ --}}
+<section class="bg-ink text-cream pt-32 pb-16 grain relative">
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <div class="text-xs uppercase tracking-[0.2em] text-emer-400 mb-6">{{ __('Every feature, in your voice') }}</div>
+        <h1 class="serif text-5xl lg:text-7xl leading-[1.02] mb-6">
+            {{ __('Everything you need') }}<br>
+            <span class="serif-it text-emer-400">{{ __('to close in DMs.') }}</span>
+        </h1>
+        <p class="text-cream/70 text-lg leading-relaxed max-w-xl mx-auto">
+            {{ __('One inbox. Every platform. An AI that writes like you, escalates like a junior, and never sleeps. Below is exactly what you get on any plan.') }}
+        </p>
+    </div>
+</section>
+
+{{-- ═══════ PLATFORM GRID ═══════ --}}
+<section id="platforms" class="bg-cream2 py-20 fade-up">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-xs uppercase tracking-widest text-emer-700 mb-4 text-center">{{ __('Every platform') }}</div>
+        <h2 class="serif text-4xl lg:text-5xl mb-14 leading-tight text-center">{{ __('Pick the ones your customers actually use.') }}</h2>
+        <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+            @foreach([
+                ['whatsapp-inbox',      __('WhatsApp Business'), __('QR-code or official API. Media, buttons, templates.')],
+                ['instagram-dm',        __('Instagram DMs'),     __('Story replies, comments, product mentions.')],
+                ['facebook-messenger',  __('Facebook Messenger'),__('Multi-page teams, comment escalation.')],
+                ['telegram-inbox',      __('Telegram'),          __('Bots and channels, unlimited replies.')],
+            ] as [$route, $name, $blurb])
+                <a href="{{ Route::has($route) ? route($route) : '#' }}" class="block bg-white border border-line rounded-2xl p-6 hover:border-emer-500 transition group">
+                    <div class="w-10 h-10 rounded-full bg-emer-100 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5 text-emer-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    </div>
+                    <div class="serif text-2xl mb-2">{{ $name }}</div>
+                    <p class="text-ink/70 text-sm leading-relaxed">{{ $blurb }}</p>
+                    <div class="mt-4 text-xs text-emer-700 font-semibold group-hover:underline">{{ __('Learn more →') }}</div>
+                </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- ═══════ FEATURE 1: EVERY CHANNEL ═══════ --}}
+<section class="py-24 fade-up">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <div class="bg-white rounded-2xl border border-line p-4 shadow-sm order-2 lg:order-1">
+                <div class="rounded-xl bg-ink text-cream p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emer-400"></span>
+                        <span class="ml-2 text-[10px] text-cream/60 font-mono">{{ __('All conversations · 3 unread') }}</span>
+                    </div>
+                    <div class="space-y-2">
+                        @foreach([
+                            ['Layla',  '"Is the small tote still…"',      'now'],
+                            ['Ahmed',  '"Ok I\'ll take it — please…"',    '2m'],
+                            ['Marco',  '"Do you deliver in Rome?"',       '5m'],
+                            ['Fatima', '"Hi, do you have red in the small…"', '7m'],
+                        ] as [$name, $preview, $when])
+                            <div class="bg-ink2 rounded-lg p-3 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emer-500 flex-shrink-0"></div>
+                                <div class="flex-1 text-sm">{{ $name }} · <span class="text-cream/60">{{ $preview }}</span></div>
+                                <div class="text-[10px] text-emer-400">{{ $when }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
+            <div class="order-1 lg:order-2">
+                <div class="text-xs uppercase tracking-widest text-emer-700 mb-4">{{ __('Every channel') }}</div>
+                <h3 class="serif text-4xl lg:text-5xl mb-6 leading-tight">{{ __('One inbox for every message.') }} <span class="serif-it text-emer-700">{{ __('Everywhere.') }}</span></h3>
+                <p class="text-ink/70 leading-relaxed mb-6">{{ __('Facebook Messenger. Instagram DMs. WhatsApp Business. Telegram bot. Web chat widget. Email. All arrive in the same clean feed. Reply from one screen, keep context, never lose a conversation.') }}</p>
+                <ul class="space-y-3 text-sm text-ink/80">
+                    @foreach([
+                        __('Zero-friction connection via official OAuth on every platform'),
+                        __('Multi-page and multi-account, one team at the seat price'),
+                        __('Real-time sync, messages appear in less than a second'),
+                        __('Full history preserved when a conversation moves platforms'),
+                    ] as $point)
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 rounded-full bg-emer-100 text-emer-700 flex items-center justify-center flex-shrink-0 text-[10px]">✓</span>
+                            {{ $point }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
 
-            <div class="mt-20 space-y-24">
-
-                {{-- Feature: Unified Inbox --}}
-                <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-left')" style="opacity:0">
+{{-- ═══════ FEATURE 2: THE AI ═══════ --}}
+<section class="bg-cream2 py-24 fade-up">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+                <div class="text-xs uppercase tracking-widest text-emer-700 mb-4">{{ __('The AI') }}</div>
+                <h3 class="serif text-4xl lg:text-5xl mb-6 leading-tight">{{ __('Not a chatbot.') }} <span class="serif-it text-emer-700">{{ __('A closer.') }}</span></h3>
+                <p class="text-ink/70 leading-relaxed mb-6">{{ __("Your AI reads the customer, checks your catalog, knows your shipping rules, and writes a reply in your business voice. If it doesn't know something, it asks you. If the customer's ready to buy, it sends the checkout link.") }}</p>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    @foreach([
+                        [__('Answers in your voice'),         __('Trained on how you talk to customers, not a generic template')],
+                        [__('Escalates only when needed'),    __('You get pinged for the 5% that actually need a human')],
+                        [__('Handles Arabic + English'),      __('Code-switch mid-sentence, we handle it')],
+                        [__('Learns from your corrections'),  __('Every edit you make trains it further')],
+                        [__('Understands product images'),    __('Vision chain reads the photo the customer sent')],
+                        [__('Sends checkout links'),          __('Connects to your store to hand off warm buyers')],
+                    ] as [$title, $body])
+                        <div class="border-l-2 border-emer-600 pl-4">
+                            <div class="font-semibold mb-1">{{ $title }}</div>
+                            <div class="text-ink/60 text-xs">{{ $body }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-line p-6 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-8 h-8 rounded-full bg-emer-100"></div>
                     <div>
-                        <div class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                            {{ __('Core Feature') }}
-                        </div>
-                        <h2 class="mt-4 text-3xl font-bold">{{ __('Unified Inbox') }}</h2>
-                        <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                            {{ __('Manage all your Facebook, Instagram, WhatsApp, and Telegram conversations from a single, clean interface. No more switching between apps.') }}
-                        </p>
-                        <ul class="mt-6 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Real-time message sync') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Filter by platform, status, or contact') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Send images, files, and emoji') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
-                        {{-- Decorative grid dots --}}
-                        <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                        <div class="relative space-y-4">
-                            <div class="flex items-center gap-4">
-                                <div class="flex size-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                                    <svg class="size-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" /></svg>
-                                </div>
-                                <div>
-                                    <p class="text-2xl font-bold text-blue-600">4</p>
-                                    <p class="text-sm text-zinc-500">{{ __('Platforms supported') }}</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                    <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{{ __('Real-time') }}</p>
-                                    <p class="text-xs text-zinc-500">{{ __('Message sync') }}</p>
-                                </div>
-                                <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                    <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">∞</p>
-                                    <p class="text-xs text-zinc-500">{{ __('Messages') }}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="text-sm font-semibold">Layla · Instagram</div>
+                        <div class="text-[11px] text-ink/60">{{ __('Repeat customer · 3 orders') }}</div>
                     </div>
                 </div>
-
-                {{-- Feature: AI Sales Responder --}}
-                <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-right')" style="opacity:0">
-                    <div class="order-2 lg:order-1 card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
-                        <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                        <div class="relative space-y-4">
-                            <div class="flex items-center gap-4">
-                                <div class="flex size-12 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-                                    <svg class="size-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" /></svg>
-                                </div>
-                                <div>
-                                    <p class="text-2xl font-bold text-indigo-600">24/7</p>
-                                    <p class="text-sm text-zinc-500">{{ __('Always responding') }}</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                    <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">&lt;5s</p>
-                                    <p class="text-xs text-zinc-500">{{ __('Avg response') }}</p>
-                                </div>
-                                <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                    <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">100+</p>
-                                    <p class="text-xs text-zinc-500">{{ __('Languages') }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="order-1 lg:order-2">
-                        <div class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-700">
-                            {{ __('AI Powered') }}
-                        </div>
-                        <h2 class="mt-4 text-3xl font-bold">{{ __('AI Sales Responder') }}</h2>
-                        <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                            {{ __('Your AI sales agent qualifies leads, handles objections, and guides conversations toward a close. Configure it with your products, pricing, and brand voice.') }}
-                        </p>
-                        <ul class="mt-6 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Custom brand voice and product knowledge') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Automatic lead qualification') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Seamless human handoff') }}
-                            </li>
-                        </ul>
-                    </div>
+                <div class="space-y-3">
+                    <div class="text-right"><span class="inline-block bg-cream2 text-ink px-3 py-2 rounded-2xl rounded-br-sm text-sm max-w-[80%]">Hey! Do you still have the small crossbody in mustard? Need it for Friday 🙏</span></div>
+                    <div class="text-right text-[10px] text-ink/50">10:24 AM · Read</div>
+                    <div><span class="inline-block bg-emer-600 text-white px-3 py-2 rounded-2xl rounded-bl-sm text-sm max-w-[80%]">
+                        <span class="text-[10px] uppercase tracking-widest opacity-80 block mb-1">{{ __('AI · replying') }}</span>
+                        {{ __('Yes! Mustard small is in stock — I can ship priority for Friday delivery, £4 extra. Reserve it?') }}
+                    </span></div>
                 </div>
-
-                {{-- Feature: Lead Scoring --}}
-                <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-left')" style="opacity:0">
-                    <div>
-                        <div class="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-sm font-medium text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-                            {{ __('Intelligence') }}
-                        </div>
-                        <h2 class="mt-4 text-3xl font-bold">{{ __('Lead Scoring & Analytics') }}</h2>
-                        <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                            {{ __('AI automatically scores every lead based on conversation signals. Track AI performance, response times, conversion rates, and your entire lead pipeline in real-time.') }}
-                        </p>
-                        <ul class="mt-6 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Automatic lead scoring (0-100)') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Conversion funnel tracking') }}
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                {{ __('Platform performance comparison') }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
-                        <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                        <div class="relative space-y-4">
-                            <div class="flex items-center gap-4">
-                                <div class="flex size-12 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30">
-                                    <svg class="size-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75Z" /></svg>
-                                </div>
-                                <div>
-                                    <p class="text-2xl font-bold text-orange-600">100+</p>
-                                    <p class="text-sm text-zinc-500">{{ __('Scoring signals tracked') }}</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                    <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">0-100</p>
-                                    <p class="text-xs text-zinc-500">{{ __('Lead score') }}</p>
-                                </div>
-                                <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                    <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{{ __('Live') }}</p>
-                                    <p class="text-xs text-zinc-500">{{ __('Dashboards') }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mt-4 flex items-center justify-between text-xs text-ink/60 border-t border-line pt-3">
+                    <span>{{ __('3.1s reply · in your voice') }}</span>
+                    <span class="text-emer-700 font-medium">✓ {{ __('Auto-sent') }}</span>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    {{-- Why teams choose OT1-Pro --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 lg:py-28 dark:border-zinc-200 dark:bg-white">
-        <div class="mx-auto max-w-6xl px-6">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Built for the way real sales teams work') }}</h2>
-                <p class="mx-auto mt-5 max-w-3xl text-lg text-zinc-600 dark:text-zinc-600">
-                    {{ __('Most CRMs were built for email and phone. Most chat tools were built for website visitors. OT1-Pro is the only tool built specifically for businesses whose customers reach them on WhatsApp, Instagram, Facebook, and Telegram — the platforms they actually use.') }}
-                </p>
-            </div>
-
-            <div class="mt-14 grid gap-6 md:grid-cols-3">
-                <div class="rounded-2xl border border-zinc-200 bg-white p-7 dark:border-zinc-200 dark:bg-white">
-                    <div class="flex size-12 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-                        <svg class="size-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" /></svg>
-                    </div>
-                    <h3 class="mt-5 text-lg font-semibold">{{ __('Faster than email') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">
-                        {{ __('Customers expect a reply in minutes on WhatsApp, not days. Average AI response time is under five seconds, and human agents see new conversations the moment they arrive.') }}
-                    </p>
-                </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-7 dark:border-zinc-200 dark:bg-white">
-                    <div class="flex size-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                        <svg class="size-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                    </div>
-                    <h3 class="mt-5 text-lg font-semibold">{{ __('Built for WhatsApp Business API') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">
-                        {{ __('Connect through the official WhatsApp Business API for unlimited messages, no phone-number restrictions, and full automation. We handle the API setup so you do not have to read Meta documentation.') }}
-                    </p>
-                </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-7 dark:border-zinc-200 dark:bg-white">
-                    <div class="flex size-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30">
-                        <svg class="size-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" /></svg>
-                    </div>
-                    <h3 class="mt-5 text-lg font-semibold">{{ __('Pricing that scales with you') }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">
-                        {{ __('Start free, upgrade when you grow. Mid-market teams pay one transparent monthly fee instead of per-seat license stacking, and enterprise gets dedicated support.') }}
-                    </p>
-                </div>
-            </div>
+{{-- ═══════ HOW IT WORKS ═══════ --}}
+<section id="howitworks" class="py-24 fade-up">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-2xl mb-16">
+            <div class="text-xs uppercase tracking-widest text-emer-700 mb-4">{{ __('How it works') }}</div>
+            <h2 class="serif text-5xl lg:text-6xl leading-[1.05]">{{ __('Ninety seconds to') }} <span class="serif-it text-emer-700">{{ __('go live.') }}</span></h2>
         </div>
-    </section>
-
-    {{-- Team Collaboration --}}
-    <section class="py-20 lg:py-28">
-        <div class="mx-auto max-w-6xl px-6">
-            <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-left')" style="opacity:0">
-                <div>
-                    <div class="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                        {{ __('Teamwork') }}
-                    </div>
-                    <h2 class="mt-4 text-3xl font-bold">{{ __('Team collaboration without the chaos') }}</h2>
-                    <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                        {{ __('Assign conversations to specific agents, leave private internal notes, and watch every team member work in the same shared inbox without overlapping or losing context. New hires can read the full history of any conversation on day one.') }}
-                    </p>
-                    <ul class="mt-6 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Role-based permissions (admin, agent, viewer)') }}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Internal notes never visible to customers') }}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Full audit trail of who replied and when') }}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Quick replies your whole team can reuse') }}
-                        </li>
-                    </ul>
+        <div class="grid md:grid-cols-3 gap-8">
+            @foreach([
+                ['01', __('Connect a channel'), __('Facebook, Instagram, WhatsApp, Telegram. Whichever one your customers actually use. Add more later.')],
+                ['02', __('Answer three questions'), __("What you sell. What customers ask most. Your voice. That's it. We build your AI's brain from there.")],
+                ['03', __('Test it with a fake customer'), __('Chat with your own AI before any real customer sees it. Tweak the tone. Then flip it live.')],
+            ] as [$num, $title, $body])
+                <div class="relative" @if($loop->index === 1) style="margin-top: 4rem" @elseif($loop->index === 2) style="margin-top: 8rem" @endif>
+                    <div class="serif text-8xl text-emer-100 leading-none absolute -top-4 -left-2 -z-10">{{ $num }}</div>
+                    <h3 class="serif text-3xl mb-3 relative">{{ $title }}</h3>
+                    <p class="text-ink/70 leading-relaxed">{{ $body }}</p>
                 </div>
-                <div class="card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
-                    <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                    <div class="relative space-y-4">
-                        <div class="flex items-center gap-4">
-                            <div class="flex size-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30">
-                                <svg class="size-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-                            </div>
-                            <div>
-                                <p class="text-2xl font-bold text-green-600">∞</p>
-                                <p class="text-sm text-zinc-500">{{ __('Team members') }}</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">3</p>
-                                <p class="text-xs text-zinc-500">{{ __('Permission roles') }}</p>
-                            </div>
-                            <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                                <p class="text-lg font-bold text-zinc-900 dark:text-zinc-100">100%</p>
-                                <p class="text-xs text-zinc-500">{{ __('Audit logged') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
-    </section>
+    </div>
+</section>
 
-    {{-- Multi-Platform Coverage --}}
-    <section class="border-t border-zinc-200 py-20 lg:py-28 dark:border-zinc-200">
-        <div class="mx-auto max-w-6xl px-6">
-            <div class="grid items-center gap-12 lg:grid-cols-2" x-data x-intersect.once="$el.classList.add('animate-slide-in-right')" style="opacity:0">
-                <div class="order-2 lg:order-1 card-hover relative overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
-                    <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, currentColor 1px, transparent 1px); background-size: 24px 24px;"></div>
-                    <div class="relative grid grid-cols-2 gap-3">
-                        <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                            <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ __('WhatsApp') }}</p>
-                            <p class="mt-1 text-xs text-zinc-500">{{ __('Business API + QR') }}</p>
-                        </div>
-                        <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                            <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ __('Instagram') }}</p>
-                            <p class="mt-1 text-xs text-zinc-500">{{ __('DMs + comments') }}</p>
-                        </div>
-                        <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                            <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ __('Facebook') }}</p>
-                            <p class="mt-1 text-xs text-zinc-500">{{ __('Page messages') }}</p>
-                        </div>
-                        <div class="rounded-lg bg-white px-4 py-3 dark:bg-zinc-100">
-                            <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ __('Telegram') }}</p>
-                            <p class="mt-1 text-xs text-zinc-500">{{ __('Bot + groups') }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="order-1 lg:order-2">
-                    <div class="inline-flex items-center gap-2 rounded-full bg-pink-50 px-3 py-1 text-sm font-medium text-pink-700 dark:bg-pink-900/30 dark:text-pink-300">
-                        {{ __('Coverage') }}
-                    </div>
-                    <h2 class="mt-4 text-3xl font-bold">{{ __('Every platform your customers actually use') }}</h2>
-                    <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                        {{ __('Connect WhatsApp Business, Instagram DMs, Facebook Pages, and Telegram bots from a single dashboard. Each platform comes with a guided setup that handles the OAuth and webhook plumbing for you, so you never have to touch developer documentation.') }}
-                    </p>
-                    <ul class="mt-6 space-y-3 text-sm text-zinc-600 dark:text-zinc-600">
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Connect multiple WhatsApp numbers and Facebook Pages') }}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Auto-reply to Instagram comments and DMs') }}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('TikTok DMs and LinkedIn Messages — coming soon') }}
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="size-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                            {{ __('Email channels and web chat widget included') }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
+{{-- ═══════ FINAL CTA ═══════ --}}
+<section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Every feature.') }} <span class="serif-it text-emer-400">{{ __('One flat price.') }}</span></h2>
+        <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('Start free. Pay by bank transfer only when it\'s working. No card, no auto-renew.') }}</p>
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            @if(Route::has('register'))
+                <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Start free — no card') }}</a>
+            @endif
+            <a href="{{ route('pricing') }}" class="text-cream/90 hover:text-cream font-medium u-link">{{ __('See pricing') }}</a>
         </div>
-    </section>
+    </div>
+</section>
 
-    {{-- FAQ --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-20 lg:py-28 dark:border-zinc-200 dark:bg-white">
-        <div class="mx-auto max-w-3xl px-6">
-            <h2 class="text-3xl font-bold tracking-tight">{{ __('Frequently asked questions') }}</h2>
-            <div class="mt-10 divide-y divide-zinc-200 dark:divide-zinc-800">
-                <div class="py-6">
-                    <h3 class="text-lg font-semibold">{{ __('Which messaging platforms does OT1-Pro support?') }}</h3>
-                    <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('Facebook Messenger, Instagram DMs, WhatsApp Business, and Telegram are fully supported today. TikTok DMs and LinkedIn Messages are in active development. Email and an embeddable web chat widget round out the channel set.') }}</p>
-                </div>
-                <div class="py-6">
-                    <h3 class="text-lg font-semibold">{{ __('Do I need a developer to set up OT1-Pro?') }}</h3>
-                    <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('No. Each platform is connected through a guided OAuth flow. WhatsApp uses an in-app QR connect that works without writing any code. Most teams are up and replying within an hour of signing up.') }}</p>
-                </div>
-                <div class="py-6">
-                    <h3 class="text-lg font-semibold">{{ __('How does the AI sales responder learn my product?') }}</h3>
-                    <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('You provide product information, pricing, and brand voice in a structured form. The AI uses that context plus the live conversation to generate replies, qualify leads, and route hot prospects to your team. You can override or take over from the AI at any point.') }}</p>
-                </div>
-                <div class="py-6">
-                    <h3 class="text-lg font-semibold">{{ __('Can my whole team use the same inbox?') }}</h3>
-                    <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('Yes. Team members are invited with role-based permissions. Conversations can be assigned, internal notes are kept separate from customer-visible messages, and a full audit trail records every change. Plans on the Starter tier and above support unlimited team members.') }}</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- CTA --}}
-    <section class="py-20 lg:py-28">
-        <div class="mx-auto max-w-6xl px-6" x-data x-intersect.once="$el.classList.add('animate-fade-in-up')" style="opacity:0">
-            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
-                <div class="pointer-events-none absolute inset-0 overflow-hidden">
-                </div>
-                <div class="relative">
-                    <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Ready to get started?') }}</h2>
-                    <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Start your free trial today. No credit card required.') }}</p>
-                    @if(Route::has('register'))
-                        <a href="{{ route('register') }}" class="arrow-slide group mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md hover:shadow-xl">
-                            {{ __('Get Started Free') }}
-                            <svg class="arrow-icon size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                        </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </section>
-
-</x-layouts.marketing>
+</x-layouts.brand-marketing>
