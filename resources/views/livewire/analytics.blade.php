@@ -180,7 +180,7 @@
                                          label: @js(__('AI Responses')),
                                          data: ai,
                                          borderColor: '#10b981',
-                                         backgroundColor: 'rgba(139,92,246,0.1)',
+                                         backgroundColor: 'rgba(5,150,105,0.1)',
                                          fill: true,
                                          tension: 0.4,
                                          pointRadius: 3,
