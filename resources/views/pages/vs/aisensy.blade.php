@@ -6,7 +6,7 @@
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
         <div class="mx-auto max-w-4xl px-6 text-center">
-            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:border-indigo-200 dark:bg-indigo-50/50 dark:text-indigo-700">
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:border-emerald-200 dark:bg-emerald-50/50 dark:text-emerald-700">
                 {{ __('Comparison') }}
             </div>
             <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -16,7 +16,7 @@
                 {{ __('AiSensy is a strong WhatsApp tool built for the Indian market. If you run a MENA storefront that needs Instagram DMs, Messenger, Telegram, and Arabic-first AI in the same inbox — here is the honest tradeoff comparison.') }}
             </p>
             <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-700">
+                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-700">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
@@ -31,10 +31,10 @@
             <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('When AiSensy is the right choice') }}</h2>
             <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Credit where credit is due. AiSensy is a reasonable pick if:') }}</p>
             <ul class="mt-6 space-y-3 text-zinc-700 dark:text-zinc-700">
-                <li class="flex gap-3"><span class="text-indigo-600">✓</span>{{ __('You are an Indian D2C brand doing 90%+ of orders on WhatsApp.') }}</li>
-                <li class="flex gap-3"><span class="text-indigo-600">✓</span>{{ __('You pay in INR and want aggressive entry-tier pricing.') }}</li>
-                <li class="flex gap-3"><span class="text-indigo-600">✓</span>{{ __('Your customers write in English or Hindi (not Arabic).') }}</li>
-                <li class="flex gap-3"><span class="text-indigo-600">✓</span>{{ __('You are comfortable with a WhatsApp-only stack and separate tools for IG/Messenger.') }}</li>
+                <li class="flex gap-3"><span class="text-emerald-600">✓</span>{{ __('You are an Indian D2C brand doing 90%+ of orders on WhatsApp.') }}</li>
+                <li class="flex gap-3"><span class="text-emerald-600">✓</span>{{ __('You pay in INR and want aggressive entry-tier pricing.') }}</li>
+                <li class="flex gap-3"><span class="text-emerald-600">✓</span>{{ __('Your customers write in English or Hindi (not Arabic).') }}</li>
+                <li class="flex gap-3"><span class="text-emerald-600">✓</span>{{ __('You are comfortable with a WhatsApp-only stack and separate tools for IG/Messenger.') }}</li>
             </ul>
             <p class="mt-6 text-sm text-zinc-500">{{ __('If any of those do not match you — especially the Arabic and multi-channel parts — keep reading.') }}</p>
         </div>
@@ -49,7 +49,7 @@
                     <thead>
                         <tr class="border-b border-zinc-200 dark:border-zinc-200">
                             <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-700">{{ __('Capability') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-indigo-600">OT1-Pro</th>
+                            <th class="px-6 py-4 text-center font-semibold text-emerald-600">OT1-Pro</th>
                             <th class="px-6 py-4 text-center font-semibold text-zinc-500">AiSensy</th>
                         </tr>
                     </thead>
@@ -109,8 +109,8 @@
                 ];
                 @endphp
                 @foreach($questions as $q)
-                <div class="rounded-2xl border border-indigo-100 bg-white p-6 dark:border-indigo-200 dark:bg-white">
-                    <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-800">{{ $q[0] }}</h3>
+                <div class="rounded-2xl border border-emerald-100 bg-white p-6 dark:border-emerald-200 dark:bg-white">
+                    <h3 class="text-lg font-semibold text-emerald-900 dark:text-emerald-800">{{ $q[0] }}</h3>
                     <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-600">{{ $q[1] }}</p>
                 </div>
                 @endforeach
@@ -175,11 +175,11 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Try OT1-Pro free — no credit card required') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('All 4 channels, Arabic AI, EGP + USD payment. See it working with your real messages in 30 minutes.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
-                <p class="mt-3 text-sm text-indigo-800">{{ __('Free plan available · Founder-accessible on WhatsApp') }}</p>
+                <p class="mt-3 text-sm text-emerald-800">{{ __('Free plan available · Founder-accessible on WhatsApp') }}</p>
             </div>
         </div>
     </section>

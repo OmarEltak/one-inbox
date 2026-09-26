@@ -50,7 +50,7 @@
 
 <div class="p-6 space-y-8">
     {{-- Top-of-page indeterminate progress bar during ANY Livewire request --}}
-    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-indigo-500 animate-pulse"></div>
+    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-emerald-500 animate-pulse"></div>
 
     <div class="flex items-center justify-between">
         <div>
@@ -61,7 +61,7 @@
             </flux:text>
         </div>
         <div wire:loading class="flex items-center gap-2 text-xs text-zinc-500">
-            <svg class="w-4 h-4 animate-spin text-indigo-500 dark:text-indigo-400" viewBox="0 0 24 24" fill="none">
+            <svg class="w-4 h-4 animate-spin text-emerald-500 dark:text-emerald-400" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/>
                 <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
             </svg>
@@ -213,7 +213,7 @@
                     </div>
                     <div class="h-6 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                         <div
-                            class="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded transition-all"
+                            class="h-full bg-gradient-to-r from-emerald-500 to-emerald-500 rounded transition-all"
                             style="width: {{ $stage['pct'] }}%"
                         ></div>
                     </div>
@@ -282,7 +282,7 @@
             </div>
             <div class="flex gap-4 text-xs">
                 <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-sky-500"></span> Inbound</div>
-                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-violet-500"></span> AI</div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500"></span> AI</div>
                 <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500"></span> Human</div>
             </div>
         </div>
@@ -316,7 +316,7 @@
                         <rect x="{{ $x }}" y="{{ $yIn }}" width="{{ $w }}" height="{{ $inH }}" class="fill-sky-500" />
                     @endif
                     @if($aiH > 0)
-                        <rect x="{{ $x }}" y="{{ $yAi }}" width="{{ $w }}" height="{{ $aiH }}" class="fill-violet-500" />
+                        <rect x="{{ $x }}" y="{{ $yAi }}" width="{{ $w }}" height="{{ $aiH }}" class="fill-emerald-500" />
                     @endif
                     @if($huH > 0)
                         <rect x="{{ $x }}" y="{{ $yHu }}" width="{{ $w }}" height="{{ $huH }}" class="fill-emerald-500" />
@@ -424,7 +424,7 @@
                                     @endif
                                 </td>
                                 <td class="py-2 pr-3 text-right tabular-nums text-zinc-800 dark:text-zinc-200">{{ number_format($t['inbound_30']) }}</td>
-                                <td class="py-2 pr-3 text-right tabular-nums text-violet-600 dark:text-violet-400">{{ number_format($t['ai_out_30']) }}</td>
+                                <td class="py-2 pr-3 text-right tabular-nums text-emerald-600 dark:text-emerald-400">{{ number_format($t['ai_out_30']) }}</td>
                                 <td class="py-2 pr-3 text-right tabular-nums text-emerald-600 dark:text-emerald-400">{{ number_format($t['human_out_30']) }}</td>
                                 <td class="py-2 pr-3 text-right tabular-nums text-zinc-600 dark:text-zinc-400">{{ $t['ai_share_pct'] }}%</td>
                                 <td class="py-2 pr-3 text-right text-zinc-600 dark:text-zinc-400">

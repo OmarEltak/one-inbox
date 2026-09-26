@@ -41,24 +41,24 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
                         {{ __('Ecommerce') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Handle Every <span class="text-indigo-400">WhatsApp and Instagram Order</span> — Even at 2 AM') !!}
+                        {!! __('Handle Every <span class="text-emerald-400">WhatsApp and Instagram Order</span> — Even at 2 AM') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-700">
                         {{ __('MENA ecommerce customers message on WhatsApp, Instagram, Facebook, and Telegram — mostly between 8 PM and 1 AM when your team is asleep. OT1-Pro\'s AI answers pricing, shipping, and order questions instantly in Egyptian Arabic — turning overnight ad traffic into next-day deliveries.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
                             {{ __('Start Free') }}
                         </a>
-                        <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-indigo-700">
+                        <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-emerald-700">
                             {{ __('See Pricing') }}
                         </a>
                     </div>
@@ -77,7 +77,7 @@
                     @foreach($metrics as [$label, $value, $sub])
                     <div class="mb-4 rounded-lg bg-zinc-100 px-4 py-3">
                         <p class="text-xs text-zinc-500">{{ $label }}</p>
-                        <p class="text-2xl font-bold text-indigo-400">{{ $value }}</p>
+                        <p class="text-2xl font-bold text-emerald-400">{{ $value }}</p>
                         <p class="text-xs text-zinc-500">{{ $sub }}</p>
                     </div>
                     @endforeach
@@ -100,7 +100,7 @@
                 <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('By morning, 90+ have gone cold or bought from a competitor who replied faster.') }}</li>
                 <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('Your effective ROAS is half what your ad manager reports — because half your leads were never engaged.') }}</li>
             </ul>
-            <p class="mt-8 rounded-xl bg-indigo-50 p-6 text-zinc-800 dark:bg-indigo-50/50 dark:text-zinc-800">{!! __('<strong>The uncomfortable truth:</strong> Most MENA stores don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are. Studies of MENA D2C brands show lead-to-sale conversion drops roughly 60% when first-response time exceeds 2 hours.') !!}</p>
+            <p class="mt-8 rounded-xl bg-emerald-50 p-6 text-zinc-800 dark:bg-emerald-50/50 dark:text-zinc-800">{!! __('<strong>The uncomfortable truth:</strong> Most MENA stores don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are. Studies of MENA D2C brands show lead-to-sale conversion drops roughly 60% when first-response time exceeds 2 hours.') !!}</p>
         </div>
     </section>
 
@@ -145,8 +145,8 @@
             </div>
             <div class="mt-12 space-y-6">
                 <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm font-semibold text-indigo-600">{{ __('Availability + upsell template') }}</p>
-                    <blockquote class="mt-3 border-l-4 border-indigo-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
+                    <p class="text-sm font-semibold text-emerald-600">{{ __('Availability + upsell template') }}</p>
+                    <blockquote class="mt-3 border-l-4 border-emerald-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
                         <p>أيوة يا فندم، ده متاح في المقاس اللي انتي عايزاه 👗<br>
                         سعره ٤٥٠ جنيه + ٥٠ جنيه شحن للقاهرة (٧٠ جنيه لباقي المحافظات).<br>
                         لو ضيفتي معاه أي حاجة تانية الشحن يبقى ببلاش 🎁<br>
@@ -155,16 +155,16 @@
                     <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Why it works: confirms availability instantly, transparent pricing, soft upsell (free shipping), soft-commitment close instead of a hard "buy now".') }}</p>
                 </div>
                 <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm font-semibold text-indigo-600">{{ __('Overnight auto-reply (fires after 10 PM)') }}</p>
-                    <blockquote class="mt-3 border-l-4 border-indigo-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
+                    <p class="text-sm font-semibold text-emerald-600">{{ __('Overnight auto-reply (fires after 10 PM)') }}</p>
+                    <blockquote class="mt-3 border-l-4 border-emerald-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
                         <p>مرحبا 👋 استلمنا رسالتك.<br>
                         فريقنا هيرد عليكي بالتفصيل الصبح الساعة ٩، بس علشان مايفوتنيش سؤالك، لو حابة تكتبي المقاس اللي عايزاه والمدينة، هجاوبك مع أول رد بكل التفاصيل 💛</p>
                     </blockquote>
                     <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Why it works: acknowledges immediately (customer feels heard), sets honest expectation, captures qualifying info while intent is still hot — so the morning reply is a closer, not a discovery call.') }}</p>
                 </div>
                 <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm font-semibold text-indigo-600">{{ __('COD order confirmation') }}</p>
-                    <blockquote class="mt-3 border-l-4 border-indigo-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
+                    <p class="text-sm font-semibold text-emerald-600">{{ __('COD order confirmation') }}</p>
+                    <blockquote class="mt-3 border-l-4 border-emerald-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
                         <p>تمام يا فندم، هنسجّل طلبك دفع عند الاستلام 📦<br>
                         محتاجين منك:<br>
                         1️⃣ الاسم بالكامل<br>
@@ -271,7 +271,7 @@
                         <tr class="border-b border-zinc-200 dark:border-zinc-200">
                             <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-700">{{ __('Metric') }}</th>
                             <th class="px-6 py-4 text-center font-semibold text-zinc-500">{{ __('Before') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-indigo-600">{{ __('After (30 days)') }}</th>
+                            <th class="px-6 py-4 text-center font-semibold text-emerald-600">{{ __('After (30 days)') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -290,7 +290,7 @@
                         <tr class="{{ $i % 2 === 0 ? 'bg-zinc-50 dark:bg-zinc-100' : '' }} border-b border-zinc-100 last:border-0 dark:border-zinc-200">
                             <td class="px-6 py-4 font-medium text-zinc-700 dark:text-zinc-700">{{ $row[0] }}</td>
                             <td class="px-6 py-4 text-center text-zinc-500">{{ $row[1] }}</td>
-                            <td class="px-6 py-4 text-center font-semibold text-indigo-700">{{ $row[2] }}</td>
+                            <td class="px-6 py-4 text-center font-semibold text-emerald-700">{{ $row[2] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -350,10 +350,10 @@
                 @foreach($plans as [$name, $for, $features, $when])
                 <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
                     <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-900">{{ $name }}</h3>
-                    <p class="mt-1 text-sm font-medium text-indigo-600">{{ $for }}</p>
+                    <p class="mt-1 text-sm font-medium text-emerald-600">{{ $for }}</p>
                     <ul class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-600">
                         @foreach($features as $f)
-                        <li class="flex gap-2"><span class="text-indigo-600 shrink-0">✓</span>{{ $f }}</li>
+                        <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span>{{ $f }}</li>
                         @endforeach
                     </ul>
                     <p class="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-600 dark:bg-zinc-100 dark:text-zinc-700">{{ $when }}</p>
@@ -361,7 +361,7 @@
                 @endforeach
             </div>
             <div class="mt-8 text-center">
-                <a href="{{ route('pricing') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">{{ __('See all plans & features →') }}</a>
+                <a href="{{ route('pricing') }}" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">{{ __('See all plans & features →') }}</a>
             </div>
         </div>
     </section>
@@ -406,11 +406,11 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Stop losing overnight sales') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up in one evening. Watch it capture leads while your team sleeps, from the very first night.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
-                <p class="mt-3 text-sm text-indigo-800">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
+                <p class="mt-3 text-sm text-emerald-800">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
             </div>
         </div>
     </section>

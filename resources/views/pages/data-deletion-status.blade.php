@@ -52,9 +52,9 @@
             <div class="mt-6 text-sm text-zinc-500">
                 <p>
                     {{ __('Need help? Contact us on') }}
-                    <a href="https://wa.me/201026361218" class="text-indigo-600 hover:underline">WhatsApp</a>
+                    <a href="https://wa.me/201026361218" class="text-emerald-600 hover:underline">WhatsApp</a>
                     {{ __('or via the') }}
-                    <a href="{{ route('contact') }}" class="text-indigo-600 hover:underline">{{ __('contact page') }}</a>.
+                    <a href="{{ route('contact') }}" class="text-emerald-600 hover:underline">{{ __('contact page') }}</a>.
                 </p>
             </div>
         </div>

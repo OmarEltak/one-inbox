@@ -66,7 +66,7 @@
                 {{-- Label filters — collapsed into a dropdown --}}
                 @php $activeLabel = collect(\App\Livewire\Inbox\Index::LABELS)->keys()->contains($filter) ? $filter : null; @endphp
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-violet-600 border-violet-600 text-white' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100' }}">
+                    <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100' }}">
                         {{ $activeLabel ? ucfirst($activeLabel) : __('Labels') }}
                         <svg class="w-3 h-3 transition-transform" x-bind:class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
@@ -528,7 +528,7 @@
 
                 <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
                     <button @click="scrollToBottom(); showNewMessageBadge = false"
-                            class="rounded-full bg-purple-600 px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-purple-700">
+                            class="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-emerald-700">
                         {{ __('New messages') }}
                     </button>
                 </div>
@@ -566,7 +566,7 @@
                     <div class="flex w-full {{ $message->isInbound() ? 'justify-start' : 'justify-end' }}">
                         <div class="max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-2 break-words {{ $message->isInbound()
                             ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
-                            : ($message->isFromAi() ? 'bg-purple-500 text-white' : 'bg-blue-500 text-white')
+                            : ($message->isFromAi() ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white')
                         }}" style="overflow-wrap: anywhere;">
                             @if($message->isFromAi())
                                 <div class="flex items-center gap-1.5 mb-1 text-xs opacity-80">

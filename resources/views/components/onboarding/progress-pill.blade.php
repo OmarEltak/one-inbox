@@ -17,9 +17,9 @@
     // the wizard's primary color (violet-600). Weight steps up with progress so
     // users still feel the pill "warming" as they complete steps, without
     // introducing amber/blue/emerald that fight the app's violet identity.
-    $ring = $percent < 40 ? 'ring-violet-200 bg-violet-50 text-violet-700'
-          : ($percent < 80 ? 'ring-violet-300 bg-violet-100 text-violet-800'
-          : 'ring-violet-400 bg-violet-100 text-violet-900');
+    $ring = $percent < 40 ? 'ring-emerald-200 bg-emerald-50 text-emerald-700'
+          : ($percent < 80 ? 'ring-emerald-300 bg-emerald-100 text-emerald-800'
+          : 'ring-emerald-400 bg-emerald-100 text-emerald-900');
 @endphp
 
 <a href="{{ $next['url'] }}"

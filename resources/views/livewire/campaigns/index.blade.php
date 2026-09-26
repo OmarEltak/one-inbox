@@ -34,7 +34,7 @@
             ['label' => 'Active', 'value' => $allCampaigns->where('status', 'active')->count(), 'color' => 'text-yellow-600'],
             ['label' => 'Scheduled', 'value' => $allCampaigns->where('status', 'scheduled')->count(), 'color' => 'text-blue-600'],
             ['label' => 'Total Sent', 'value' => number_format($allCampaigns->sum('sent_count')), 'color' => 'text-emerald-700'],
-            ['label' => 'Completed', 'value' => $allCampaigns->where('status', 'completed')->count(), 'color' => 'text-violet-700'],
+            ['label' => 'Completed', 'value' => $allCampaigns->where('status', 'completed')->count(), 'color' => 'text-emerald-700'],
             ['label' => 'Draft', 'value' => $allCampaigns->where('status', 'draft')->count(), 'color' => 'text-zinc-700'],
         ];
     @endphp
@@ -53,7 +53,7 @@
             <button
                 @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
-                    ? 'border-b-2 text-violet-700'
+                    ? 'border-b-2 text-emerald-700'
                     : 'text-zinc-700 hover:text-zinc-800'"
                 :style="tab === '{{ $key }}' ? 'border-color: #7C3AED;' : ''"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px"
@@ -224,7 +224,7 @@
                         wire:click="$set('platform', 'facebook')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'facebook',
+                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'facebook',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'facebook',
                         ])
                     >
@@ -240,7 +240,7 @@
                         wire:click="$set('platform', 'instagram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'instagram',
+                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'instagram',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'instagram',
                         ])
                     >
@@ -256,7 +256,7 @@
                         wire:click="$set('platform', 'telegram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'telegram',
+                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'telegram',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'telegram',
                         ])
                     >
@@ -272,7 +272,7 @@
                         wire:click="$set('platform', 'email')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'email',
+                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'email',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'email',
                         ])
                     >
@@ -288,7 +288,7 @@
                         wire:click="$set('platform', 'whatsapp')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'whatsapp',
+                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'whatsapp',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'whatsapp',
                         ])
                     >

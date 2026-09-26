@@ -73,10 +73,10 @@
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
              class="flex justify-end">
-            <div class="inline-flex items-center gap-1 rounded-2xl bg-indigo-100 px-4 py-3">
-                <span class="size-1.5 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 0ms"></span>
-                <span class="size-1.5 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 150ms"></span>
-                <span class="size-1.5 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 300ms"></span>
+            <div class="inline-flex items-center gap-1 rounded-2xl bg-emerald-100 px-4 py-3">
+                <span class="size-1.5 rounded-full bg-emerald-500 animate-bounce" style="animation-delay: 0ms"></span>
+                <span class="size-1.5 rounded-full bg-emerald-500 animate-bounce" style="animation-delay: 150ms"></span>
+                <span class="size-1.5 rounded-full bg-emerald-500 animate-bounce" style="animation-delay: 300ms"></span>
             </div>
         </div>
 
@@ -86,13 +86,13 @@
              x-transition:enter-start="opacity-0 translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-end">
-            <div class="max-w-[78%] rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm leading-snug text-white">
-                <div class="mb-1 flex items-center gap-1.5 text-[11px] text-indigo-100">
+            <div class="max-w-[78%] rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm leading-snug text-white">
+                <div class="mb-1 flex items-center gap-1.5 text-[11px] text-emerald-100">
                     <svg class="size-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
                     </svg>
                     <span class="font-semibold">{{ __('Replied by AI') }}</span>
-                    <span class="text-indigo-200">· 96% confidence</span>
+                    <span class="text-emerald-200">· 96% confidence</span>
                 </div>
                 {{ __('Hi! Yes, 3 left in medium. Want me to hold one for you?') }}
             </div>
@@ -115,13 +115,13 @@
              x-transition:enter-start="opacity-0 translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-end">
-            <div class="max-w-[78%] rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm leading-snug text-white">
-                <div class="mb-1 flex items-center gap-1.5 text-[11px] text-indigo-100">
+            <div class="max-w-[78%] rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm leading-snug text-white">
+                <div class="mb-1 flex items-center gap-1.5 text-[11px] text-emerald-100">
                     <svg class="size-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
                     </svg>
                     <span class="font-semibold">{{ __('Replied by AI') }}</span>
-                    <span class="text-indigo-200">· 91% confidence</span>
+                    <span class="text-emerald-200">· 91% confidence</span>
                 </div>
                 {{ __('2-3 business days, free over EGP 1,500. Want a payment link?') }}
             </div>

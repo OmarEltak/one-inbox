@@ -72,7 +72,7 @@
                         </td>
                         <td class="px-3 py-2">
                             @if(isset($this->pendingReceiptByTeam[$team->id]))
-                                <a href="{{ route('super-admin.subscriptions') }}" class="text-violet-600 underline">
+                                <a href="{{ route('super-admin.subscriptions') }}" class="text-emerald-600 underline">
                                     {{ __('Review') }}
                                 </a>
                             @else

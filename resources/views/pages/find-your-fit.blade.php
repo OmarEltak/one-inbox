@@ -11,7 +11,7 @@
          button. Do not wire the CTAs before flipping META_APP_VERIFIED=true.
          ═══════════════════════════════════════════════════════════════════ --}}
 
-    <section class="relative min-h-[calc(100vh-4rem)] py-16 lg:py-24 bg-gradient-to-b from-white via-indigo-50/40 to-white"
+    <section class="relative min-h-[calc(100vh-4rem)] py-16 lg:py-24 bg-gradient-to-b from-white via-emerald-50/40 to-white"
              x-data="findYourFit()"
              x-cloak>
 
@@ -19,12 +19,12 @@
 
             {{-- Header --}}
             <div class="text-center mb-10">
-                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600 mb-3">
+                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600 mb-3">
                     {{ __('60-second personalized setup') }}
                 </div>
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 tracking-tight">
                     {{ __('Find the AI setup') }}
-                    <span class="text-indigo-600">{{ __('built for you.') }}</span>
+                    <span class="text-emerald-600">{{ __('built for you.') }}</span>
                 </h1>
                 <p class="mt-4 max-w-xl mx-auto text-zinc-600 text-base sm:text-lg">
                     {{ __('Three questions. Zero email. A personalized recommendation for your business, your goals, and the brand you want to look like in 12 months.') }}
@@ -34,13 +34,13 @@
             {{-- Progress bar --}}
             <div class="mb-10">
                 <div class="flex justify-between text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
-                    <span :class="step >= 1 ? 'text-indigo-600' : ''">{{ __('Who') }}</span>
-                    <span :class="step >= 2 ? 'text-indigo-600' : ''">{{ __('Goal') }}</span>
-                    <span :class="step >= 3 ? 'text-indigo-600' : ''">{{ __('Vision') }}</span>
-                    <span :class="step >= 4 ? 'text-indigo-600' : ''">{{ __('Result') }}</span>
+                    <span :class="step >= 1 ? 'text-emerald-600' : ''">{{ __('Who') }}</span>
+                    <span :class="step >= 2 ? 'text-emerald-600' : ''">{{ __('Goal') }}</span>
+                    <span :class="step >= 3 ? 'text-emerald-600' : ''">{{ __('Vision') }}</span>
+                    <span :class="step >= 4 ? 'text-emerald-600' : ''">{{ __('Result') }}</span>
                 </div>
                 <div class="h-2 bg-zinc-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-500 ease-out"
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-500 ease-out"
                          :style="`width: ${(step / 4) * 100}%`"></div>
                 </div>
             </div>
@@ -56,12 +56,12 @@
                     <template x-for="option in whoOptions" :key="option.id">
                         <button type="button"
                                 @click="answers.who = option.id; nextStep()"
-                                class="group relative text-left p-6 bg-white border-2 border-zinc-200 hover:border-indigo-500 rounded-2xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
+                                class="group relative text-left p-6 bg-white border-2 border-zinc-200 hover:border-emerald-500 rounded-2xl transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
                             <div class="text-3xl mb-3" x-text="option.icon"></div>
                             <div class="font-semibold text-zinc-900 text-lg" x-text="option.label"></div>
                             <div class="text-sm text-zinc-500 mt-1" x-text="option.sub"></div>
-                            <div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-zinc-300 group-hover:border-indigo-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                <svg class="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-zinc-300 group-hover:border-emerald-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </div>
@@ -82,20 +82,20 @@
                     <template x-for="option in goalOptions" :key="option.id">
                         <button type="button"
                                 @click="answers.goal = option.id; nextStep()"
-                                class="group w-full text-left p-5 bg-white border-2 border-zinc-200 hover:border-indigo-500 rounded-xl transition-all duration-200 hover:shadow-md flex items-start gap-4">
+                                class="group w-full text-left p-5 bg-white border-2 border-zinc-200 hover:border-emerald-500 rounded-xl transition-all duration-200 hover:shadow-md flex items-start gap-4">
                             <div class="text-2xl flex-shrink-0" x-text="option.icon"></div>
                             <div class="flex-1">
                                 <div class="font-semibold text-zinc-900" x-text="option.label"></div>
                                 <div class="text-sm text-zinc-500 mt-0.5" x-text="option.sub"></div>
                             </div>
-                            <svg class="w-5 h-5 text-zinc-300 group-hover:text-indigo-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-zinc-300 group-hover:text-emerald-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </button>
                     </template>
                 </div>
                 <div class="mt-6 text-center">
-                    <button @click="prevStep()" class="text-sm text-zinc-500 hover:text-indigo-600 font-medium">
+                    <button @click="prevStep()" class="text-sm text-zinc-500 hover:text-emerald-600 font-medium">
                         ← {{ __('Back') }}
                     </button>
                 </div>
@@ -113,7 +113,7 @@
                     <template x-for="option in visionOptions" :key="option.id">
                         <button type="button"
                                 @click="answers.vision = option.id; nextStep()"
-                                class="group text-left p-5 bg-white border-2 border-zinc-200 hover:border-indigo-500 rounded-xl transition hover:shadow-md">
+                                class="group text-left p-5 bg-white border-2 border-zinc-200 hover:border-emerald-500 rounded-xl transition hover:shadow-md">
                             <div class="text-2xl mb-2" x-text="option.icon"></div>
                             <div class="font-semibold text-zinc-900" x-text="option.label"></div>
                             <div class="text-sm text-zinc-500 mt-1" x-text="option.sub"></div>
@@ -121,7 +121,7 @@
                     </template>
                 </div>
                 <div class="mt-6 text-center">
-                    <button @click="prevStep()" class="text-sm text-zinc-500 hover:text-indigo-600 font-medium">
+                    <button @click="prevStep()" class="text-sm text-zinc-500 hover:text-emerald-600 font-medium">
                         ← {{ __('Back') }}
                     </button>
                 </div>
@@ -134,12 +134,12 @@
                 <div class="bg-white border border-zinc-200 rounded-3xl shadow-xl overflow-hidden">
 
                     {{-- Result header --}}
-                    <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-8 sm:p-10">
-                        <div class="text-xs uppercase tracking-[0.18em] text-indigo-200 mb-2">
+                    <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-8 sm:p-10">
+                        <div class="text-xs uppercase tracking-[0.18em] text-emerald-200 mb-2">
                             {{ __('Your personalized setup') }}
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-bold" x-text="result.headline"></h2>
-                        <p class="mt-3 text-indigo-100 text-base sm:text-lg" x-text="result.subhead"></p>
+                        <p class="mt-3 text-emerald-100 text-base sm:text-lg" x-text="result.subhead"></p>
                     </div>
 
                     {{-- The recommended 3-step setup --}}
@@ -149,8 +149,8 @@
                         </div>
                         <div class="space-y-4">
                             <template x-for="(step, i) in result.steps" :key="i">
-                                <div class="flex gap-4 p-4 bg-indigo-50/50 rounded-xl">
-                                    <div class="flex-shrink-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm"
+                                <div class="flex gap-4 p-4 bg-emerald-50/50 rounded-xl">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-semibold text-sm"
                                          x-text="i + 1"></div>
                                     <div>
                                         <div class="font-semibold text-zinc-900" x-text="step.title"></div>
@@ -191,15 +191,15 @@
                             </a>
                             <div class="mt-3 text-xs text-zinc-500">
                                 {{ __('Or') }}
-                                <a href="{{ route('pricing') }}" class="underline hover:text-indigo-600">{{ __('see plans') }}</a>
+                                <a href="{{ route('pricing') }}" class="underline hover:text-emerald-600">{{ __('see plans') }}</a>
                                 ·
-                                <a href="{{ route('blog.index') }}" class="underline hover:text-indigo-600">{{ __('read the blog') }}</a>
+                                <a href="{{ route('blog.index') }}" class="underline hover:text-emerald-600">{{ __('read the blog') }}</a>
                             </div>
                         </div>
 
                         {{-- Restart --}}
                         <div class="mt-6 text-center">
-                            <button @click="restart()" class="text-sm text-zinc-500 hover:text-indigo-600 font-medium">
+                            <button @click="restart()" class="text-sm text-zinc-500 hover:text-emerald-600 font-medium">
                                 ↻ {{ __('Start over') }}
                             </button>
                         </div>

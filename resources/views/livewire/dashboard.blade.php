@@ -149,7 +149,7 @@
                     <div class="flex items-center justify-between mb-5">
                         <h3 class="text-sm font-semibold text-zinc-900">{{ __('Platform Overview') }}</h3>
                         <a href="{{ route('connections.index') }}" wire:navigate
-                           class="text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors">{{ __('View All') }}</a>
+                           class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('View All') }}</a>
                     </div>
                     @php
                         $platformConfig = [
@@ -187,7 +187,7 @@
                             </svg>
                             <p class="text-sm text-zinc-400 mb-3">{{ __('No conversations yet') }}</p>
                             <a href="{{ route('connections.index') }}" wire:navigate
-                               class="text-xs font-medium text-violet-600 hover:text-violet-700">{{ __('Connect a channel →') }}</a>
+                               class="text-xs font-medium text-emerald-600 hover:text-emerald-700">{{ __('Connect a channel →') }}</a>
                         </div>
                     @endif
                     <div class="mt-4 rounded-xl p-3 text-center" style="background: #f4f4f5; border: 1px solid #e5e5e5;">
@@ -254,7 +254,7 @@
                         <div class="rounded-xl p-4 text-center" style="background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.15);">
                             <p class="text-sm text-zinc-600">
                                 {{ __('AI handles') }}
-                                <span class="font-bold text-violet-600 text-base">{{ $aiPercent }}%</span>
+                                <span class="font-bold text-emerald-600 text-base">{{ $aiPercent }}%</span>
                                 {{ __('of all responses') }}
                             </p>
                         </div>
@@ -270,7 +270,7 @@
                     <div class="flex items-center justify-between mb-5">
                         <h3 class="text-sm font-semibold text-zinc-900">{{ __('Recent Messages') }}</h3>
                         <a href="{{ route('inbox') }}" wire:navigate
-                           class="text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors">{{ __('Open Inbox') }}</a>
+                           class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('Open Inbox') }}</a>
                     </div>
                     @if($stats['recentConversations']->isNotEmpty())
                         <div class="space-y-1">
@@ -330,7 +330,7 @@
                     <div class="flex items-center justify-between mb-5">
                         <h3 class="text-sm font-semibold text-zinc-900">{{ __('Hot Leads') }}</h3>
                         <a href="{{ route('contacts.index') }}" wire:navigate
-                           class="text-xs font-medium text-violet-600 hover:text-violet-700 transition-colors">{{ __('View All') }}</a>
+                           class="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('View All') }}</a>
                     </div>
                     @if($stats['hotLeads']->isNotEmpty())
                         <div class="space-y-2">
@@ -379,7 +379,7 @@
                     @php
                         $statusConfig = [
                             'new'       => ['color' => '#99A1AF', 'bg' => 'bg-gray-400'],
-                            'cold'      => ['color' => '#818CF8', 'bg' => 'bg-indigo-400'],
+                            'cold'      => ['color' => '#818CF8', 'bg' => 'bg-emerald-400'],
                             'warm'      => ['color' => '#FBBF24', 'bg' => 'bg-amber-400'],
                             'hot'       => ['color' => '#FB7185', 'bg' => 'bg-rose-400'],
                             'converted' => ['color' => '#34D399', 'bg' => 'bg-emerald-400'],

@@ -61,7 +61,7 @@
             $plan = $team?->subscription_plan ?? 'free';
             $planLabels = ['free' => __('Free'), 'starter' => __('Starter — $29/mo'), 'pro' => __('Pro — $79/mo'), 'enterprise' => __('Enterprise')];
             $planColors = [
-                'enterprise' => 'bg-purple-100 text-purple-700 border-purple-200',
+                'enterprise' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
                 'pro'        => 'bg-blue-100 text-blue-700 border-blue-200',
                 'starter'    => 'bg-green-100 text-green-700 border-green-200',
                 'free'       => 'bg-zinc-100 text-zinc-600 border-zinc-200',

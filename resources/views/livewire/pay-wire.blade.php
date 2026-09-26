@@ -29,7 +29,7 @@
                 </p>
                 <p class="mt-6 text-sm text-zinc-400">
                     {{ __('Questions? Email us at') }}
-                    <a href="mailto:it@mishkahu.com" class="text-violet-600 hover:underline">it@mishkahu.com</a>
+                    <a href="mailto:it@mishkahu.com" class="text-emerald-600 hover:underline">it@mishkahu.com</a>
                 </p>
             </div>
         @else
@@ -38,7 +38,7 @@
                 {{-- Bank Details Card --}}
                 <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         <h2 class="font-semibold text-zinc-900">{{ __('Step 1 — Send your payment to this account') }}</h2>
@@ -71,7 +71,7 @@
                 {{-- Form Card --}}
                 <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <h2 class="font-semibold text-zinc-900">{{ __('Step 2 — Fill in your details & upload your receipt') }}</h2>
@@ -131,13 +131,13 @@
                                     type="file"
                                     wire:model="receipt"
                                     accept=".jpg,.jpeg,.png,.pdf,.webp"
-                                    class="block w-full text-sm text-zinc-700 border border-zinc-300 rounded-lg cursor-pointer bg-zinc-50 focus:outline-none focus:border-violet-400 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 py-2 px-3"
+                                    class="block w-full text-sm text-zinc-700 border border-zinc-300 rounded-lg cursor-pointer bg-zinc-50 focus:outline-none focus:border-emerald-400 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 py-2 px-3"
                                 />
                             </div>
                             <p class="mt-1 text-xs text-zinc-400">{{ __('JPG, PNG, PDF, or WebP — max 10 MB') }}</p>
                             @error('receipt') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
 
-                            <div wire:loading wire:target="receipt" class="mt-2 text-xs text-violet-600">{{ __('Uploading...') }}</div>
+                            <div wire:loading wire:target="receipt" class="mt-2 text-xs text-emerald-600">{{ __('Uploading...') }}</div>
                         </div>
 
                         @if($errors->any())

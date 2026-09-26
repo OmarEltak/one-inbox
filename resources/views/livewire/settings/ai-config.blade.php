@@ -58,8 +58,8 @@
                             @click.capture="if ({{ $selectedPageId === $page->id ? 'false' : 'true' }} && dirty && ! confirm(@js($unsavedConfirm))) { $event.stopImmediatePropagation(); }"
                             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all
                                 {{ $selectedPageId === $page->id
-                                    ? 'bg-white text-violet-700 border-2 border-violet-700 shadow-lg ring-4 ring-violet-200 scale-[1.02] font-bold'
-                                    : 'bg-violet-600 text-white border-2 border-transparent hover:bg-violet-700 hover:border-violet-400' }}"
+                                    ? 'bg-white text-emerald-700 border-2 border-emerald-700 shadow-lg ring-4 ring-emerald-200 scale-[1.02] font-bold'
+                                    : 'bg-emerald-600 text-white border-2 border-transparent hover:bg-emerald-700 hover:border-emerald-400' }}"
                         >
                             <flux:icon
                                 :name="match($page->platform) {
@@ -98,7 +98,7 @@
                            grey against light backgrounds so users can see the OFF state. */
                         [data-flux-switch]:not([aria-checked="true"]) { background-color: rgb(212,212,216) !important; }
                     </style>
-                    <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-violet-400 [&_textarea]:!border-violet-400 [&_select]:!border-violet-400">
+                    <form wire:submit="saveConfig" class="space-y-8 [&_input]:!border-emerald-400 [&_textarea]:!border-emerald-400 [&_select]:!border-emerald-400">
                         {{-- Active Toggle --}}
                         <div class="rounded-xl border-2 {{ $is_active ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800/50' }} p-4">
                             <div class="flex items-center justify-between">
@@ -175,7 +175,7 @@
                                             class="text-left p-4 rounded-xl border-2 transition-colors
                                                 {{ $sales_goal_preset === $preset['key']
                                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                                                    : 'border-violet-300 hover:border-violet-400' }}"
+                                                    : 'border-emerald-300 hover:border-emerald-400' }}"
                                         >
                                             <div class="flex items-start justify-between gap-2 mb-1">
                                                 <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $preset['title'] }}</span>
@@ -258,7 +258,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Products / Services') }}</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">{{ __('List what you sell so the AI can recommend and describe products.') }}</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="ghost" wire:click="addProduct" type="button" icon="plus" class="!bg-violet-600 !text-white hover:!bg-violet-700">
+                                <flux:button size="sm" variant="ghost" wire:click="addProduct" type="button" icon="plus" class="!bg-emerald-600 !text-white hover:!bg-emerald-700">
                                     {{ __('Add') }}
                                 </flux:button>
                             </div>
@@ -284,7 +284,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Pricing') }}</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">{{ __('Add pricing details the AI should know about.') }}</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="ghost" wire:click="addPricing" type="button" icon="plus" class="!bg-violet-600 !text-white hover:!bg-violet-700">
+                                <flux:button size="sm" variant="ghost" wire:click="addPricing" type="button" icon="plus" class="!bg-emerald-600 !text-white hover:!bg-emerald-700">
                                     {{ __('Add') }}
                                 </flux:button>
                             </div>
@@ -310,7 +310,7 @@
                                     <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('FAQ') }}</flux:heading>
                                     <flux:text size="sm" class="text-zinc-900">{{ __('Common questions & answers the AI should know.') }}</flux:text>
                                 </div>
-                                <flux:button size="sm" variant="ghost" wire:click="addFaq" type="button" icon="plus" class="!bg-violet-600 !text-white hover:!bg-violet-700">
+                                <flux:button size="sm" variant="ghost" wire:click="addFaq" type="button" icon="plus" class="!bg-emerald-600 !text-white hover:!bg-emerald-700">
                                     {{ __('Add') }}
                                 </flux:button>
                             </div>
@@ -398,7 +398,7 @@
                             <flux:heading size="lg" class="mb-1 text-zinc-900">{{ __('Working Hours') }}</flux:heading>
                             <flux:text size="sm" class="mb-4 text-zinc-900">{{ __('AI will only respond during these hours. Outside of them, messages wait for humans.') }}</flux:text>
 
-                            <div class="mb-4 flex items-center justify-between rounded-lg border border-violet-300 p-3">
+                            <div class="mb-4 flex items-center justify-between rounded-lg border border-emerald-300 p-3">
                                 <div>
                                     <div class="text-sm font-medium text-zinc-900">{{ __('Always on (24/7)') }}</div>
                                     <div class="text-xs text-zinc-900">{{ __('When on, the AI replies any time of day — schedule below is ignored.') }}</div>
@@ -439,9 +439,9 @@
                         {{-- Tab: Handoff --}}
                         @if($activeTab === 'handoff')
                             {{-- Intro: what handoff means, in one place, in plain English. --}}
-                            <section class="rounded-lg border border-violet-200 bg-violet-50 p-4">
-                                <flux:heading size="sm" class="mb-1 text-violet-900">{{ __('What is handoff?') }}</flux:heading>
-                                <flux:text size="sm" class="text-violet-900">{{ __('Handoff means: the AI stops replying and the conversation is flagged as "Escalated" in your inbox so a human on your team takes over. The customer never sees an apology or an error — they just stop getting AI replies until you (or a teammate) jumps in. Any rule you turn on below will trigger a handoff automatically.') }}</flux:text>
+                            <section class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                                <flux:heading size="sm" class="mb-1 text-emerald-900">{{ __('What is handoff?') }}</flux:heading>
+                                <flux:text size="sm" class="text-emerald-900">{{ __('Handoff means: the AI stops replying and the conversation is flagged as "Escalated" in your inbox so a human on your team takes over. The customer never sees an apology or an error — they just stop getting AI replies until you (or a teammate) jumps in. Any rule you turn on below will trigger a handoff automatically.') }}</flux:text>
                             </section>
 
                             {{-- Section: Escalation Keywords --}}
@@ -615,7 +615,7 @@
                                                 class="text-left p-4 rounded-xl border-2 transition-colors
                                                     {{ $comment_reply_mode === $mode['key']
                                                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                                                        : 'border-violet-300 hover:border-violet-400' }}"
+                                                        : 'border-emerald-300 hover:border-emerald-400' }}"
                                             >
                                                 <div class="flex items-start justify-between gap-2 mb-1">
                                                     <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $mode['title'] }}</span>
@@ -668,7 +668,7 @@
                                                 class="text-left p-4 rounded-xl border-2 transition-colors
                                                     {{ $comment_dm_mode === $mode['key']
                                                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                                                        : 'border-violet-300 hover:border-violet-400' }}"
+                                                        : 'border-emerald-300 hover:border-emerald-400' }}"
                                             >
                                                 <div class="flex items-start justify-between gap-2 mb-1">
                                                     <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $mode['title'] }}</span>
@@ -738,7 +738,7 @@
                                                 class="text-left p-4 rounded-xl border-2 transition-colors
                                                     {{ $comment_scope === $scope['key']
                                                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                                                        : 'border-violet-300 hover:border-violet-400' }}"
+                                                        : 'border-emerald-300 hover:border-emerald-400' }}"
                                             >
                                                 <div class="flex items-start justify-between gap-2 mb-1">
                                                     <span class="font-medium !text-zinc-900 dark:!text-zinc-900">{{ $scope['title'] }}</span>

@@ -6,7 +6,7 @@
     {{-- Hero --}}
     <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
         <div class="mx-auto max-w-4xl px-6 text-center">
-            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700 dark:border-indigo-200 dark:bg-indigo-50/50 dark:text-indigo-700">
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:border-emerald-200 dark:bg-emerald-50/50 dark:text-emerald-700">
                 {{ __('Comparison') }}
             </div>
             <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -16,11 +16,11 @@
                 {{ __('ManyChat is great for broadcast campaigns and simple chatbot flows. But if you want a real AI that manages live sales conversations across WhatsApp, Instagram, Facebook, and Telegram — OT1-Pro is the better choice.') }}
             </p>
             <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-700">
+                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-700">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
-                {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-indigo-300 hover:text-indigo-700 dark:border-zinc-200 dark:text-zinc-700">
+                {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-emerald-300 hover:text-emerald-700 dark:border-zinc-200 dark:text-zinc-700">
                     {{ __('See Pricing') }}
                 </a> --}}
             </div>
@@ -37,7 +37,7 @@
                     <thead>
                         <tr class="border-b border-zinc-200 dark:border-zinc-200">
                             <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-700">{{ __('Feature') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-indigo-600">OT1-Pro</th>
+                            <th class="px-6 py-4 text-center font-semibold text-emerald-600">OT1-Pro</th>
                             <th class="px-6 py-4 text-center font-semibold text-zinc-500">ManyChat</th>
                         </tr>
                     </thead>
@@ -96,9 +96,9 @@
                 ];
                 @endphp
                 @foreach($wins as $win)
-                <div class="rounded-2xl border border-indigo-100 bg-indigo-50 p-6 dark:border-indigo-200 dark:bg-indigo-50/40">
+                <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-6 dark:border-emerald-200 dark:bg-emerald-50/40">
                     <div class="mb-3 text-3xl">{{ $win[0] }}</div>
-                    <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-800">{{ $win[1] }}</h3>
+                    <h3 class="text-lg font-semibold text-emerald-900 dark:text-emerald-800">{{ $win[1] }}</h3>
                     <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $win[2] }}</p>
                 </div>
                 @endforeach
@@ -150,11 +150,11 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Try OT1-Pro free — no credit card required') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Move beyond chatbot flows. Use real AI that understands your customers and closes more deals.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
-                <p class="mt-3 text-sm text-indigo-800">{{ __('No credit card required · Free plan available') }}</p>
+                <p class="mt-3 text-sm text-emerald-800">{{ __('No credit card required · Free plan available') }}</p>
             </div>
         </div>
     </section>

@@ -1,6 +1,6 @@
 <div>
     {{-- Top-of-page indeterminate progress bar during ANY Livewire request (period switch, chip toggle). --}}
-    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-violet-500 animate-pulse"></div>
+    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-emerald-500 animate-pulse"></div>
 
     @if(! $data)
         <div class="flex flex-col items-center justify-center py-20 text-center">
@@ -12,7 +12,7 @@
             </h2>
             @if($noConnections ?? false)
                 <p class="mt-2 text-sm text-white/40">{{ __('Connect a page to see analytics.') }}</p>
-                <a href="{{ route('connections.index') }}" class="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500">
+                <a href="{{ route('connections.index') }}" class="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
                     {{ __('Go to Connections') }}
                 </a>
             @endif
@@ -39,7 +39,7 @@
                     <div class="mt-1 flex items-center gap-3">
                         <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('AI performance and sales insights') }}</p>
                         <span wire:loading class="inline-flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
-                            <svg class="size-3.5 animate-spin text-violet-500 dark:text-violet-400" viewBox="0 0 24 24" fill="none">
+                            <svg class="size-3.5 animate-spin text-emerald-500 dark:text-emerald-400" viewBox="0 0 24 24" fill="none">
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/>
                                 <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
                             </svg>
@@ -75,7 +75,7 @@
                         <button
                             wire:click="selectAllPages"
                             wire:loading.attr="disabled"
-                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
+                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
                         >
                             {{ __('All') }}
                         </button>
@@ -86,7 +86,7 @@
                             wire:click="togglePage({{ $page->id }})"
                             wire:loading.attr="disabled"
                             wire:target="togglePage({{ $page->id }})"
-                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
+                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
                             title="{{ ucfirst($page->platform) }} — {{ $page->name }}"
                         >
                             <span class="size-2 rounded-full {{ $chipPlatformColors[$page->platform] ?? 'bg-gray-400' }}"></span>

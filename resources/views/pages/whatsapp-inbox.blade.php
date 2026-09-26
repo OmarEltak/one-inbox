@@ -201,7 +201,7 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Start managing WhatsApp like a pro') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Connect your WhatsApp Business number in minutes. AI starts handling conversations immediately.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                     {{ __('Connect WhatsApp Free') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>

@@ -19,19 +19,19 @@
                         <div>
                             <label for="name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-700">{{ __('Name') }}</label>
                             <input type="text" name="name" id="name" required
-                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100">
+                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100">
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-zinc-700 dark:text-zinc-700">{{ __('Email') }}</label>
                             <input type="email" name="email" id="email" required
-                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100">
+                                   class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100">
                         </div>
                         <div>
                             <label for="message" class="block text-sm font-medium text-zinc-700 dark:text-zinc-700">{{ __('Message') }}</label>
                             <textarea name="message" id="message" rows="5" required
-                                      class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100"></textarea>
+                                      class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500 dark:border-zinc-200 dark:bg-zinc-100 dark:text-zinc-100"></textarea>
                         </div>
-                        <button type="submit" class="w-full rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <button type="submit" class="w-full rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
                             {{ __('Send Message') }}
                         </button>
                     </form>

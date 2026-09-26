@@ -62,7 +62,7 @@
             ['Total',    $c['total'],        'text-zinc-900',    'bg-white  border-zinc-200'],
             ['Pending',  $c['pending'],      'text-zinc-700',    'bg-zinc-50 border-zinc-200'],
             ['Sent',     $c['sent'],         'text-emerald-700', 'bg-emerald-50 border-emerald-200'],
-            ['Opened',   $c['opened'],       'text-violet-700',  'bg-violet-50 border-violet-200'],
+            ['Opened',   $c['opened'],       'text-emerald-700',  'bg-emerald-50 border-emerald-200'],
             ['Failed',   $c['failed'],       'text-red-700',     'bg-red-50 border-red-200'],
             ['Unsub.',   $c['unsubscribed'], 'text-orange-700',  'bg-orange-50 border-orange-200'],
         ] as [$label, $value, $color, $bgBorder])
@@ -99,7 +99,7 @@
                 <span class="font-semibold text-zinc-900">{{ $pct }}%</span>
             </div>
             <div class="h-2 rounded-full bg-zinc-200 overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-violet-600 to-violet-400 transition-all duration-500"
+                <div class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
                      style="width: {{ $pct }}%"></div>
             </div>
         </div>
@@ -118,11 +118,11 @@
             @endphp
             <button wire:click="$set('filter', '{{ $key }}')"
                     class="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold transition-colors cursor-pointer -mb-px whitespace-nowrap
-                           {{ $filter === $key ? 'border-b-2 border-violet-600 text-violet-700' : 'text-zinc-700 hover:text-zinc-900' }}">
+                           {{ $filter === $key ? 'border-b-2 border-emerald-600 text-emerald-700' : 'text-zinc-700 hover:text-zinc-900' }}">
                 {{ $label }}
                 @if($count !== null && $key !== 'all')
                     <span class="inline-flex items-center justify-center min-w-[20px] px-1.5 h-5 rounded-full text-[10px] font-bold
-                                 {{ $filter === $key ? 'bg-violet-100 text-violet-800' : 'bg-zinc-100 text-zinc-700' }}">
+                                 {{ $filter === $key ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-100 text-zinc-700' }}">
                         {{ number_format($count) }}
                     </span>
                 @endif
@@ -150,7 +150,7 @@
                         @php
                             $statusClass = match($r->status) {
                                 'sent'         => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-                                'opened'       => 'bg-violet-50 text-violet-800 border-violet-200',
+                                'opened'       => 'bg-emerald-50 text-emerald-800 border-emerald-200',
                                 'pending'      => 'bg-zinc-50 text-zinc-700 border-zinc-200',
                                 'queued'       => 'bg-blue-50 text-blue-800 border-blue-200',
                                 'sending'      => 'bg-yellow-50 text-yellow-800 border-yellow-200',

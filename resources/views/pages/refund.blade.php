@@ -49,8 +49,8 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('6. How to Request a Refund') }}</h2>
                     <p class="mt-3">{{ __('To request a refund, contact us within the eligible window:') }}</p>
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li><strong>{{ __('Email:') }}</strong> {{ __('Send your request to') }} <a href="mailto:support@ot1-pro.com" class="text-indigo-600 hover:underline">support@ot1-pro.com</a> {{ __('with the subject line "Refund Request" and include your registered email address and the reason for your request.') }}</li>
-                        <li><strong>{{ __('WhatsApp:') }}</strong> {{ __('Message us directly at') }} <a href="https://wa.me/201026361218" class="text-indigo-600 hover:underline" target="_blank" rel="noopener">+20 102 636 1218</a>.</li>
+                        <li><strong>{{ __('Email:') }}</strong> {{ __('Send your request to') }} <a href="mailto:support@ot1-pro.com" class="text-emerald-600 hover:underline">support@ot1-pro.com</a> {{ __('with the subject line "Refund Request" and include your registered email address and the reason for your request.') }}</li>
+                        <li><strong>{{ __('WhatsApp:') }}</strong> {{ __('Message us directly at') }} <a href="https://wa.me/201026361218" class="text-emerald-600 hover:underline" target="_blank" rel="noopener">+20 102 636 1218</a>.</li>
                     </ul>
                     <p class="mt-3">{{ __('We will respond within 2 business days. Once approved, Paddle will process the refund to your original payment method within 5–10 business days, depending on your bank.') }}</p>
                 </div>

@@ -19,7 +19,7 @@
                         {{ __('Your Instagram DMs are full of potential buyers asking questions, checking prices, and ready to buy. OT1-Pro makes sure every single one gets a reply — instantly, intelligently, and automatically.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-indigo-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90">
+                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 to-emerald-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-pink-500/25 transition-all hover:opacity-90">
                             {{ __('Connect Instagram Free') }}
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                         </a>
@@ -31,7 +31,7 @@
                 </div>
                 <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-200 dark:bg-white">
                     <div class="mb-4 flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-200">
-                        <div class="size-8 rounded-full bg-gradient-to-br from-pink-500 to-indigo-600"></div>
+                        <div class="size-8 rounded-full bg-gradient-to-br from-pink-500 to-emerald-600"></div>
                         <div>
                             <p class="text-sm font-semibold">{{ __('Instagram DMs') }}</p>
                             <p class="text-xs text-zinc-500">{{ __('24 new · AI handling 18') }}</p>
@@ -103,7 +103,7 @@
                 @endphp
                 @foreach($steps as $step)
                 <div class="flex gap-6">
-                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-600 to-indigo-600 text-lg font-bold text-white">{{ $step[0] }}</div>
+                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-600 to-emerald-600 text-lg font-bold text-white">{{ $step[0] }}</div>
                     <div class="pt-1">
                         <h3 class="text-lg font-semibold">{{ $step[1] }}</h3>
                         <p class="mt-1 text-zinc-600 dark:text-zinc-600">{{ $step[2] }}</p>
@@ -176,7 +176,7 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Turn your Instagram DMs into a sales machine') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Connect your Instagram account and let AI handle the conversations while you focus on growing your business.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                     {{ __('Connect Instagram Free') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>

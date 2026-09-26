@@ -75,22 +75,22 @@
                 <div>
                     <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Company Name') }}</label>
                     <input type="text" wire:model="companyName" placeholder="{{ __('Acme Corp') }}" required
-                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Owner Full Name') }}</label>
                     <input type="text" wire:model="ownerName" placeholder="{{ __('John Doe') }}" required
-                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Owner Email') }}</label>
                     <input type="email" wire:model="ownerEmail" placeholder="{{ __('john@acme.com') }}" required
-                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('Password') }}</label>
                     <input type="password" wire:model="ownerPassword" placeholder="{{ __('Minimum 8 characters') }}" required
-                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
                 </div>
             </div>
 
@@ -144,7 +144,7 @@
             <div>
                 <label class="block text-sm font-medium text-zinc-900 mb-1">{{ __('New Password') }}</label>
                 <input type="password" wire:model="newPassword" placeholder="{{ __('Minimum 8 characters') }}" required
-                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
             </div>
             @error('newPassword') <p class="text-red-700 text-xs">{{ $message }}</p> @enderror
 

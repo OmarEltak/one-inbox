@@ -43,7 +43,7 @@
         {{-- New messages badge --}}
         <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
             <button @click="scrollToBottom(); showNewMessageBadge = false"
-                    class="rounded-full bg-[#8b5cf6] px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-purple-500">
+                    class="rounded-full bg-[#8b5cf6] px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-emerald-500">
                 New messages
             </button>
         </div>
@@ -52,7 +52,7 @@
             {{-- Welcome state --}}
             <div class="flex h-full flex-col items-center justify-center text-center py-12 max-w-xl mx-auto">
                 {{-- AI Avatar --}}
-                <div class="size-20 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] flex items-center justify-center mb-6 shadow-lg shadow-purple-500/20">
+                <div class="size-20 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
                     <svg class="size-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>

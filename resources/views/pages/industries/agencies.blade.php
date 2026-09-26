@@ -26,21 +26,21 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
                         {{ __('Marketing Agencies') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Manage All Your <span class="text-indigo-400">Client Inboxes</span> From One Platform') !!}
+                        {!! __('Manage All Your <span class="text-emerald-400">Client Inboxes</span> From One Platform') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-700">
                         {{ __('Your clients\' customers are messaging on WhatsApp, Instagram, Facebook, and Telegram — and expecting fast, intelligent replies. OT1-Pro lets your agency handle all of it, with AI doing the heavy lifting.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
                             {{ __('Start Free') }}
                         </a>
                         {{-- <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-white">
@@ -92,7 +92,7 @@
                 @endphp
                 @foreach($props as [$icon, $title, $desc])
                 <div class="rounded-xl border p-6 transition-colors {{ $loop->first
-                    ? 'lg:col-span-2 lg:p-8 border-indigo-200 bg-indigo-50/60 dark:border-indigo-200 dark:bg-indigo-50/60'
+                    ? 'lg:col-span-2 lg:p-8 border-emerald-200 bg-emerald-50/60 dark:border-emerald-200 dark:bg-emerald-50/60'
                     : 'border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white' }}">
                     <div class="text-2xl {{ $loop->first ? 'lg:text-3xl' : '' }}">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold {{ $loop->first ? 'lg:text-lg' : '' }}">{{ $title }}</h3>
@@ -158,7 +158,7 @@
         <div class="mx-auto max-w-3xl px-6 text-center">
             <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Offer AI-Powered Social Inbox as an Agency Service') }}</h2>
             <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Differentiate your agency with AI inbox management. Start with one client, scale to all of them.') }}</p>
-            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                 {{ __('Get Started Free') }}
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>

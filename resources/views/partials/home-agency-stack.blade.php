@@ -60,9 +60,9 @@
     </div>
 
     {{-- Sum bar --}}
-    <div class="mt-5 flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+    <div class="mt-5 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4">
         <div class="flex items-center gap-3">
-            <svg class="size-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="size-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
             <div>
@@ -70,6 +70,6 @@
                 <div class="text-xs text-zinc-600">{{ __('82 closed by AI · 6 hot leads waiting for you') }}</div>
             </div>
         </div>
-        <span class="hidden rounded-md bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-indigo-700 sm:inline">{{ __('All clients') }}</span>
+        <span class="hidden rounded-md bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-emerald-700 sm:inline">{{ __('All clients') }}</span>
     </div>
 </div>

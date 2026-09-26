@@ -49,7 +49,7 @@
                                     <span class="block text-sm font-semibold text-zinc-800 truncate leading-tight">{{ $team->name }}</span>
                                     @php $plan = $team->subscription_plan ?? 'free'; @endphp
                                     <span class="inline-block mt-0.5 text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full leading-none
-                                        {{ $plan === 'enterprise' ? 'bg-purple-100 text-purple-700' : ($plan === 'pro' ? 'bg-blue-100 text-blue-700' : ($plan === 'starter' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500')) }}">
+                                        {{ $plan === 'enterprise' ? 'bg-emerald-100 text-emerald-700' : ($plan === 'pro' ? 'bg-blue-100 text-blue-700' : ($plan === 'starter' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500')) }}">
                                         {{ ucfirst($plan) }}
                                     </span>
                                 </span>
@@ -70,7 +70,7 @@
                                             </span>
                                             <span class="flex-1 text-left text-sm text-zinc-900 dark:text-zinc-100 truncate">{{ $userTeam->name }}</span>
                                             @if($userTeam->id === $team->id)
-                                                <svg class="size-4 text-purple-600 dark:text-purple-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <svg class="size-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             @endif
@@ -95,7 +95,7 @@
                                 <span class="block text-[10px] uppercase tracking-widest text-zinc-400 font-semibold leading-tight">{{ __('Workspace') }}</span>
                                 <span class="block text-sm font-semibold text-zinc-800 truncate leading-tight">{{ $team->name }}</span>
                                 <span class="inline-block mt-0.5 text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full leading-none
-                                    {{ $plan === 'enterprise' ? 'bg-purple-100 text-purple-700' : ($plan === 'pro' ? 'bg-blue-100 text-blue-700' : ($plan === 'starter' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500')) }}">
+                                    {{ $plan === 'enterprise' ? 'bg-emerald-100 text-emerald-700' : ($plan === 'pro' ? 'bg-blue-100 text-blue-700' : ($plan === 'starter' ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-500')) }}">
                                     {{ ucfirst($plan) }}
                                 </span>
                             </span>
@@ -228,7 +228,7 @@
                         <a href="{{ route('inbox') }}" wire:navigate.hover
                            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 group
                                   {{ $allActive ? 'text-zinc-800 bg-zinc-100' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50' }}">
-                            <svg class="size-3.5 flex-shrink-0 {{ $allActive ? 'text-violet-600' : 'text-zinc-400 group-hover:text-zinc-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="size-3.5 flex-shrink-0 {{ $allActive ? 'text-emerald-600' : 'text-zinc-400 group-hover:text-zinc-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
                             <span>{{ __('All Messages') }}</span>
@@ -450,7 +450,7 @@
                         {{ __('Cancel') }}
                     </button>
                     <a href="{{ route('connections.index') }}" wire:navigate.hover @click="open = false"
-                       class="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-500 transition-colors">
+                       class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
                         {{ __('Go to Connections') }} →
                     </a>
                 </div>

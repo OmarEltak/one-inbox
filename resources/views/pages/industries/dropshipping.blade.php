@@ -36,24 +36,24 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
                         {{ __('Dropshipping') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Turn Every <span class="text-indigo-400">Instagram Ad Click</span> Into a WhatsApp Sale — Automatically') !!}
+                        {!! __('Turn Every <span class="text-emerald-400">Instagram Ad Click</span> Into a WhatsApp Sale — Automatically') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-700">
                         {{ __('Egyptian and MENA dropshippers know the drill: run Facebook and Instagram ads → get flooded with "بكام؟" and "الشحن كام؟" messages → lose half the leads because your team is asleep. OT1-Pro\'s AI handles pricing, shipping, and COD confirmation 24/7 in your customer\'s dialect — so overnight ad traffic turns into next-day deliveries.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
                             {{ __('Start Free') }}
                         </a>
-                        <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-indigo-700">
+                        <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-emerald-700">
                             {{ __('See Pricing') }}
                         </a>
                     </div>
@@ -72,7 +72,7 @@
                     @foreach($metrics as [$label, $value, $sub])
                     <div class="mb-4 rounded-lg bg-zinc-100 px-4 py-3">
                         <p class="text-xs text-zinc-500">{{ $label }}</p>
-                        <p class="text-2xl font-bold text-indigo-400">{{ $value }}</p>
+                        <p class="text-2xl font-bold text-emerald-400">{{ $value }}</p>
                         <p class="text-xs text-zinc-500">{{ $sub }}</p>
                     </div>
                     @endforeach
@@ -94,7 +94,7 @@
                 <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('By morning, 90+ have gone cold or bought from a competitor who replied faster.') }}</li>
                 <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('Your effective ROAS is half what your ad manager reports — because half your leads were never contacted.') }}</li>
             </ul>
-            <p class="mt-8 rounded-xl bg-indigo-50 p-6 text-zinc-800 dark:bg-indigo-50/50 dark:text-zinc-800">{!! __('<strong>The uncomfortable truth:</strong> Most dropshippers don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are.') !!}</p>
+            <p class="mt-8 rounded-xl bg-emerald-50 p-6 text-zinc-800 dark:bg-emerald-50/50 dark:text-zinc-800">{!! __('<strong>The uncomfortable truth:</strong> Most dropshippers don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are.') !!}</p>
         </div>
     </section>
 
@@ -231,11 +231,11 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
                 <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Stop losing overnight ad clicks') }}</h2>
                 <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up in under an hour. See it capture leads while you sleep, from the very first evening.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
-                <p class="mt-3 text-sm text-indigo-800">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
+                <p class="mt-3 text-sm text-emerald-800">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
             </div>
         </div>
     </section>

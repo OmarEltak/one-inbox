@@ -48,33 +48,33 @@
          x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4"
-         class="mb-4 rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-5 shadow-sm">
+         class="mb-4 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-50 p-5 shadow-sm">
         <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 size-10 rounded-xl bg-violet-600 flex items-center justify-center shadow-sm">
+            <div class="flex-shrink-0 size-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm">
                 <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-violet-900">{{ __("You're connected! Now activate your AI.") }}</p>
-                <p class="mt-1 text-sm text-violet-700 leading-relaxed">
+                <p class="text-sm font-bold text-emerald-900">{{ __("You're connected! Now activate your AI.") }}</p>
+                <p class="mt-1 text-sm text-emerald-700 leading-relaxed">
                     {{ __('Set up your AI Sales Assistant with your business info so it can start responding to customers automatically — 24/7, in your voice.') }}
                 </p>
                 <div class="mt-3 flex items-center gap-3">
                     <a href="{{ route('settings.ai') }}" wire:navigate
-                       class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 px-4 py-2 text-sm font-semibold text-white transition-colors shadow-sm">
+                       class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-colors shadow-sm">
                         <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                         </svg>
                         {{ __('Set up AI') }}
                     </a>
                     <button type="button" @click="show = false"
-                            class="text-sm text-violet-500 hover:text-violet-700 font-medium transition-colors">
+                            class="text-sm text-emerald-500 hover:text-emerald-700 font-medium transition-colors">
                         {{ __('Do it later') }}
                     </button>
                 </div>
             </div>
-            <button type="button" @click="show = false" class="flex-shrink-0 text-violet-400 hover:text-violet-600 transition-colors">
+            <button type="button" @click="show = false" class="flex-shrink-0 text-emerald-400 hover:text-emerald-600 transition-colors">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -99,7 +99,7 @@
             so white-on-color text is fully legible. The prior version used 10% opacity
             over the page's white background, which rendered the copy near-invisible.
         --}}
-        <div class="mb-2 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-5 shadow-md"
+        <div class="mb-2 rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-600 to-emerald-600 p-5 shadow-md"
              x-data="{ showDetails: false }">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 size-11 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center">
@@ -117,7 +117,7 @@
                     </p>
                     <div class="mt-4 flex flex-wrap items-center gap-2">
                         <button type="button" wire:click="openRequestForm('facebook')"
-                                class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm hover:bg-white/95 transition">
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-white/95 transition">
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
                             {{ __('Request Facebook connection') }}
                         </button>
@@ -246,7 +246,7 @@
         {{-- Instagram --}}
         <div class="aio-card rounded-2xl p-5">
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">IG</div>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">IG</div>
                 <div>
                     <h3 class="font-semibold text-white/80">Instagram</h3>
                     <p class="text-xs text-white/40">{{ __('Direct Messages') }}</p>
@@ -316,11 +316,11 @@
                     </button>
                 @elseif(isset($this->openOnboardingByPlatform['instagram']))
                     @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
-                    <div class="rounded-lg bg-purple-50 border border-purple-200 p-3 text-xs">
-                        <p class="text-purple-700 font-semibold capitalize">
+                    <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs">
+                        <p class="text-emerald-700 font-semibold capitalize">
                             {{ str_replace('_', ' ', $igReq->status) }}
                         </p>
-                        <p class="text-purple-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $igReq->created_at->diffForHumans()]) }}</p>
+                        <p class="text-emerald-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $igReq->created_at->diffForHumans()]) }}</p>
                     </div>
                 @else
                     <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
@@ -748,12 +748,12 @@
                         <div>
                             <label class="block text-xs font-medium text-zinc-500 mb-1">{{ __('Email Address') }}</label>
                             <input type="email" name="email" placeholder="you@gmail.com" required
-                                   class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-violet-400" />
+                                   class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-emerald-400" />
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-zinc-500 mb-1">{{ __('Password / App Password') }}</label>
                             <input type="password" name="password" placeholder="{{ __('Paste the 16-char app password here') }}" required
-                                   class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-violet-400" />
+                                   class="w-full rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder-zinc-400 focus:outline-none bg-white border border-zinc-200 focus:border-emerald-400" />
                         </div>
                         <button type="submit"
                                 class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary">

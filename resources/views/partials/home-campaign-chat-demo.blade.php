@@ -60,7 +60,7 @@
              x-transition:enter-start="opacity-0 translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-end">
-            <div class="max-w-[85%] rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm leading-snug text-white">
+            <div class="max-w-[85%] rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm leading-snug text-white">
                 {{ __('Ramadan promo → Cairo regulars from last 90 days. 20% off. Send Thu 9am.') }}
             </div>
         </div>
@@ -85,7 +85,7 @@
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-start">
             <div class="max-w-[88%] rounded-2xl bg-zinc-100 px-4 py-2.5 text-sm leading-snug text-zinc-800">
-                <div class="mb-1.5 flex items-center gap-1.5 text-[11px] text-indigo-600">
+                <div class="mb-1.5 flex items-center gap-1.5 text-[11px] text-emerald-600">
                     <svg class="size-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
                     </svg>
@@ -106,7 +106,7 @@
              x-transition:enter-start="opacity-0 translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              class="flex justify-end">
-            <div class="max-w-[50%] rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm leading-snug text-white">
+            <div class="max-w-[50%] rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm leading-snug text-white">
                 {{ __('Ship it.') }}
             </div>
         </div>
@@ -134,8 +134,8 @@
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
              class="flex justify-center pt-1">
-            <span class="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[11px] font-semibold text-indigo-700">
-                <span class="size-1.5 rounded-full bg-indigo-500"></span>
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                <span class="size-1.5 rounded-full bg-emerald-500"></span>
                 {{ __('Campaign live · 847 recipients') }}
             </span>
         </div>

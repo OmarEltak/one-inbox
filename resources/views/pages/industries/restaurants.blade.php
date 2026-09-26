@@ -26,21 +26,21 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
                         {{ __('Restaurants & Food') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('<span class="text-indigo-400">WhatsApp Orders, Reservations,</span> and Delivery — All on Autopilot') !!}
+                        {!! __('<span class="text-emerald-400">WhatsApp Orders, Reservations,</span> and Delivery — All on Autopilot') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-700">
                         {{ __('Your kitchen is busy. Your team is busy. But customers are messaging you on WhatsApp and Instagram for menus, delivery times, and table bookings — right now. Let the AI handle it.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
                             {{ __('Start Free') }}
                         </a>
                     </div>
@@ -56,8 +56,8 @@
                     @endphp
                     @foreach($msgs as [$icon, $text, $who])
                     <div class="mb-3 flex gap-3 {{ $who === __('AI') ? 'flex-row-reverse' : '' }}">
-                        <div class="size-8 shrink-0 rounded-full {{ $who === __('AI') ? 'bg-indigo-600' : 'bg-zinc-700' }} flex items-center justify-center text-sm">{{ $icon }}</div>
-                        <div class="max-w-xs rounded-xl {{ $who === __('AI') ? 'bg-indigo-900/40 text-indigo-100' : 'bg-zinc-100 text-zinc-700' }} px-3 py-2 text-sm">{{ $text }}</div>
+                        <div class="size-8 shrink-0 rounded-full {{ $who === __('AI') ? 'bg-emerald-600' : 'bg-zinc-700' }} flex items-center justify-center text-sm">{{ $icon }}</div>
+                        <div class="max-w-xs rounded-xl {{ $who === __('AI') ? 'bg-emerald-900/40 text-emerald-100' : 'bg-zinc-100 text-zinc-700' }} px-3 py-2 text-sm">{{ $text }}</div>
                     </div>
                     @endforeach
                     <p class="mt-3 text-center text-xs text-zinc-600">{{ __('AI handled this — no staff needed') }}</p>
@@ -83,7 +83,7 @@
                 @endphp
                 @foreach($features as [$icon, $title, $desc])
                 <div class="rounded-xl border p-5 transition-colors {{ $loop->first
-                    ? 'lg:col-span-2 lg:p-7 border-indigo-200 bg-indigo-50/60 dark:border-indigo-200 dark:bg-indigo-50/60'
+                    ? 'lg:col-span-2 lg:p-7 border-emerald-200 bg-emerald-50/60 dark:border-emerald-200 dark:bg-emerald-50/60'
                     : 'border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white' }}">
                     <div class="text-2xl">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold">{{ $title }}</h3>
@@ -127,7 +127,7 @@
         <div class="mx-auto max-w-3xl px-6 text-center">
             <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Let AI Handle Your WhatsApp While You Focus on the Food') }}</h2>
             <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up in minutes. AI starts handling messages immediately. Free to start.') }}</p>
-            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                 {{ __('Get Started Free') }}
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>

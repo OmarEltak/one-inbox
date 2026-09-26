@@ -31,21 +31,21 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
                         {{ __('Real Estate') }}
                     </span>
                     <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Close More Property Deals with a <span class="text-indigo-400">WhatsApp Inbox</span> for Real Estate') !!}
+                        {!! __('Close More Property Deals with a <span class="text-emerald-400">WhatsApp Inbox</span> for Real Estate') !!}
                     </h1>
                     <p class="mt-5 text-lg text-zinc-700">
                         {{ __('Buyers and renters message you on WhatsApp, Instagram, and Facebook — often at night, on weekends, when your agents are unavailable. OT1-Pro and its AI responder make sure every lead gets an instant, intelligent reply.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
                             {{ __('Start Free') }}
                         </a>
                         <a href="{{ route('features') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-white">
@@ -64,7 +64,7 @@
                     @endphp
                     @foreach($chats as $chat)
                     <div class="mb-3 flex items-start gap-3">
-                        <div class="flex size-8 shrink-0 items-center justify-center rounded-full {{ $chat['from'] === 'AI' ? 'bg-indigo-600' : 'bg-zinc-700' }} text-xs font-bold text-white">
+                        <div class="flex size-8 shrink-0 items-center justify-center rounded-full {{ $chat['from'] === 'AI' ? 'bg-emerald-600' : 'bg-zinc-700' }} text-xs font-bold text-white">
                             {{ $chat['from'] === 'AI' ? 'AI' : substr($chat['from'], 0, 1) }}
                         </div>
                         <div class="flex-1">
@@ -75,7 +75,7 @@
                                 @endif
                                 <span class="text-xs text-zinc-600">{{ $chat['time'] }}</span>
                             </div>
-                            <p class="mt-1 rounded-lg {{ $chat['from'] === 'AI' ? 'bg-indigo-900/40 text-indigo-100' : 'bg-zinc-100 text-zinc-700' }} px-3 py-2 text-sm">{{ $chat['msg'] }}</p>
+                            <p class="mt-1 rounded-lg {{ $chat['from'] === 'AI' ? 'bg-emerald-900/40 text-emerald-100' : 'bg-zinc-100 text-zinc-700' }} px-3 py-2 text-sm">{{ $chat['msg'] }}</p>
                         </div>
                     </div>
                     @endforeach
@@ -135,7 +135,7 @@
                 @endphp
                 @foreach($features as [$icon, $title, $desc])
                 <div class="rounded-xl p-6 shadow-sm transition-colors {{ $loop->first
-                    ? 'lg:col-span-2 lg:p-8 border border-indigo-200 bg-indigo-50/60 dark:border-indigo-200 dark:bg-indigo-50/60'
+                    ? 'lg:col-span-2 lg:p-8 border border-emerald-200 bg-emerald-50/60 dark:border-emerald-200 dark:bg-emerald-50/60'
                     : 'bg-white dark:bg-white' }}">
                     <div class="text-2xl">{{ $icon }}</div>
                     <h3 class="mt-3 font-semibold">{{ $title }}</h3>
@@ -179,7 +179,7 @@
         <div class="mx-auto max-w-3xl px-6 text-center">
             <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Stop Losing Real Estate Leads After Hours') }}</h2>
             <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up your unified inbox and AI responder in minutes. Free to start.') }}</p>
-            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
+            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
                 {{ __('Get Started Free') }}
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </a>
