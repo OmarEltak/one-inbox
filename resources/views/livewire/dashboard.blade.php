@@ -16,8 +16,8 @@
     @if(! $stats)
         <div class="flex flex-col items-center justify-center py-24 text-center">
             <div class="size-20 rounded-2xl flex items-center justify-center mb-6"
-                 style="background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(6,182,212,0.2)); border: 1px solid rgba(124,58,237,0.3);">
-                <svg class="size-10 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                 style="background: linear-gradient(135deg, rgba(5,150,105,0.2), rgba(6,182,212,0.2)); border: 1px solid rgba(5,150,105,0.3);">
+                <svg class="size-10 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                 </svg>
             </div>
@@ -50,7 +50,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <p class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{{ __('Total Messages') }}</p>
                         <div class="aio-icon-purple rounded-xl p-2">
-                            <svg class="size-4 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg class="size-4 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                         </div>
@@ -60,7 +60,7 @@
                             <span class="text-3xl font-bold text-zinc-900">{{ number_format($stats['totalMessages']) }}</span>
                             <p class="mt-1 text-xs text-zinc-400">{{ $stats['messagesToday'] }} {{ __('today') }}</p>
                         </div>
-                        <svg class="h-10 w-20 text-[#7C3AED]/40" viewBox="0 0 80 40" fill="none">
+                        <svg class="h-10 w-20 text-[#059669]/40" viewBox="0 0 80 40" fill="none">
                             <polyline points="0,35 13,28 26,30 39,18 52,22 65,12 80,8" stroke="currentColor" stroke-width="2" fill="none"/>
                         </svg>
                     </div>
@@ -216,8 +216,8 @@
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="size-6 rounded-lg flex items-center justify-center" style="background: rgba(124,58,237,0.15);">
-                                        <svg class="size-3.5 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <div class="size-6 rounded-lg flex items-center justify-center" style="background: rgba(5,150,105,0.15);">
+                                        <svg class="size-3.5 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                         </svg>
                                     </div>
@@ -227,7 +227,7 @@
                             </div>
                             <div class="h-1.5 rounded-full overflow-hidden" style="background: #f4f4f5;">
                                 <div class="h-full rounded-full transition-all duration-700"
-                                     style="width: {{ $aiPercent }}%; background: linear-gradient(90deg, #7C3AED, #9F5FFF);"></div>
+                                     style="width: {{ $aiPercent }}%; background: linear-gradient(90deg, #059669, #34d399);"></div>
                             </div>
                         </div>
 
@@ -251,7 +251,7 @@
                         </div>
 
                         {{-- Summary chip --}}
-                        <div class="rounded-xl p-4 text-center" style="background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.15);">
+                        <div class="rounded-xl p-4 text-center" style="background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.15);">
                             <p class="text-sm text-zinc-600">
                                 {{ __('AI handles') }}
                                 <span class="font-bold text-emerald-600 text-base">{{ $aiPercent }}%</span>
@@ -287,7 +287,7 @@
                                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-zinc-50 group">
                                     <div class="relative flex-shrink-0">
                                         <div class="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                                             style="background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(6,182,212,0.4)); border: 1px solid rgba(0,0,0,0.08);">
+                                             style="background: linear-gradient(135deg, rgba(5,150,105,0.4), rgba(6,182,212,0.4)); border: 1px solid rgba(0,0,0,0.08);">
                                             @if($conv->contact?->avatar)
                                                 <img src="{{ $conv->contact->avatar }}" alt="{{ $conv->contact->name ?? 'Contact' }}" class="w-full h-full rounded-full object-cover" />
                                             @else
@@ -310,7 +310,7 @@
                                     </div>
                                     @if($conv->unread_count > 0)
                                         <span class="flex-shrink-0 size-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                                              style="background: #7C3AED;">{{ $conv->unread_count }}</span>
+                                              style="background: #059669;">{{ $conv->unread_count }}</span>
                                     @endif
                                 </a>
                             @endforeach
@@ -345,7 +345,7 @@
                                 <div class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-zinc-50"
                                      style="border: 1px solid #e5e5e5;">
                                     <div class="size-9 rounded-full flex items-center justify-center text-xs font-bold text-zinc-700 flex-shrink-0"
-                                         style="background: linear-gradient(135deg, {{ $scoreColor['bg'] }}, rgba(124,58,237,0.08));">
+                                         style="background: linear-gradient(135deg, {{ $scoreColor['bg'] }}, rgba(5,150,105,0.08));">
                                         {{ strtoupper(substr($lead->name, 0, 1)) }}
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -421,9 +421,9 @@
                     </div>
                 </a>
                 <a href="{{ route('ai-chat') }}" wire:navigate
-                   class="aio-card flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-[#7C3AED]/30 hover:bg-[#7C3AED]/5 group">
+                   class="aio-card flex items-center gap-4 rounded-2xl p-4 transition-all hover:border-[#059669]/30 hover:bg-[#059669]/5 group">
                     <div class="aio-icon-purple rounded-xl p-3">
-                        <svg class="size-5 text-[#7C3AED]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="size-5 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                         </svg>
                     </div>

@@ -179,7 +179,7 @@
                     <a href="{{ route($firstItem['route']) }}" wire:navigate.hover
                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
                               {{ $isCurrent ? 'text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
-                       @if($isCurrent) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
+                       @if($isCurrent) style="background: linear-gradient(135deg, rgba(5,150,105,0.92) 0%, rgba(4,120,87,0.92) 100%); box-shadow: 0 2px 12px rgba(5,150,105,0.28);" @endif>
                         <flux:icon name="{{ $firstItem['icon'] }}" class="size-4.5 flex-shrink-0 {{ $isCurrent ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
                         <span>{{ __($firstItem['label']) }}</span>
                     </a>
@@ -200,7 +200,7 @@
                     <button @click="open = !open"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group w-full cursor-pointer
                                {{ $isInboxActive ? 'text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
-                        @if($isInboxActive) style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);" @endif>
+                        @if($isInboxActive) style="background: linear-gradient(135deg, rgba(5,150,105,0.92) 0%, rgba(4,120,87,0.92) 100%); box-shadow: 0 2px 12px rgba(5,150,105,0.28);" @endif>
                         <flux:icon name="inbox" class="size-4.5 flex-shrink-0 {{ $isInboxActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-600' }}" />
                         <span class="flex-1 text-left">{{ __('Inbox') }}</span>
                         @if(isset($unreadCount) && $unreadCount > 0)
@@ -278,7 +278,7 @@
                                      ? 'text-white shadow-lg'
                                      : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100' }}"
                            @if($isCurrent)
-                           style="background: linear-gradient(135deg, rgba(124,58,237,0.85) 0%, rgba(109,40,217,0.85) 100%); box-shadow: 0 2px 12px rgba(124,58,237,0.35);"
+                           style="background: linear-gradient(135deg, rgba(5,150,105,0.92) 0%, rgba(4,120,87,0.92) 100%); box-shadow: 0 2px 12px rgba(5,150,105,0.28);"
                            @endif
                         >
                             <flux:icon name="{{ $item['icon'] }}"
@@ -303,7 +303,7 @@
                     <flux:dropdown position="top" align="start" class="w-full">
                         <button class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-zinc-100 transition-colors group cursor-pointer">
                             <div class="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                                 style="background: linear-gradient(135deg, #7C3AED, #06B6D4);">
+                                 style="background: linear-gradient(135deg, #059669, #10b981);">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                             <div class="min-w-0 flex-1 text-left">
@@ -393,7 +393,7 @@
             <flux:dropdown position="top" align="end">
                 <button class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-zinc-100 transition-colors cursor-pointer">
                     <div class="size-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
-                         style="background: linear-gradient(135deg, #7C3AED, #06B6D4);">
+                         style="background: linear-gradient(135deg, #059669, #10b981);">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <span class="hidden lg:block text-sm font-medium text-zinc-600 max-w-[100px] truncate">

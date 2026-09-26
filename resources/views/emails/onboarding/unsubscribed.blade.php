@@ -9,7 +9,7 @@
         .card { max-width:480px; margin:64px auto; background:#fff; border-radius:12px; padding:32px; text-align:center; }
         h1 { font-size:20px; margin:0 0 12px; }
         p { font-size:15px; line-height:1.55; color:#555; margin:0 0 16px; }
-        a { color:#7C3AED; text-decoration:none; font-weight:600; }
+        a { color:#059669; text-decoration:none; font-weight:600; }
     </style>
 </head>
 <body>

@@ -55,7 +55,7 @@
                 :class="tab === '{{ $key }}'
                     ? 'border-b-2 text-emerald-700'
                     : 'text-zinc-700 hover:text-zinc-800'"
-                :style="tab === '{{ $key }}' ? 'border-color: #7C3AED;' : ''"
+                :style="tab === '{{ $key }}' ? 'border-color: #059669;' : ''"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px"
             >{{ $label }}</button>
         @endforeach
@@ -143,7 +143,7 @@
                                 </div>
                                 <div class="h-1.5 rounded-full overflow-hidden" style="background: #e4e4e7;">
                                     <div class="h-full rounded-full transition-all duration-300"
-                                         style="width: {{ $progress }}%; background: {{ $campaign->status === 'active' ? 'linear-gradient(90deg, #7C3AED, #06B6D4)' : ($campaign->status === 'completed' ? '#00D492' : '#6B7280') }};">
+                                         style="width: {{ $progress }}%; background: {{ $campaign->status === 'active' ? 'linear-gradient(90deg, #059669, #06B6D4)' : ($campaign->status === 'completed' ? '#00D492' : '#6B7280') }};">
                                     </div>
                                 </div>
                                 <div class="flex gap-4 text-xs text-zinc-700">
@@ -198,7 +198,7 @@
                 </div>
             </div>
         @empty
-            <div class="rounded-2xl p-10 text-center" style="border: 1px dashed rgba(124,58,237,0.2); background: rgba(124,58,237,0.03);">
+            <div class="rounded-2xl p-10 text-center" style="border: 1px dashed rgba(5,150,105,0.2); background: rgba(5,150,105,0.03);">
                 <flux:icon.paper-airplane class="mx-auto size-10 text-zinc-700" />
                 <p class="mt-3 font-semibold text-zinc-900">{{ __('No campaigns yet') }}</p>
                 <p class="mt-1 text-sm text-zinc-700">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
@@ -224,7 +224,7 @@
                         wire:click="$set('platform', 'facebook')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'facebook',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'facebook',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'facebook',
                         ])
                     >
@@ -240,7 +240,7 @@
                         wire:click="$set('platform', 'instagram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'instagram',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'instagram',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'instagram',
                         ])
                     >
@@ -256,7 +256,7 @@
                         wire:click="$set('platform', 'telegram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'telegram',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'telegram',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'telegram',
                         ])
                     >
@@ -272,7 +272,7 @@
                         wire:click="$set('platform', 'email')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'email',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'email',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'email',
                         ])
                     >
@@ -288,7 +288,7 @@
                         wire:click="$set('platform', 'whatsapp')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-emerald-50 text-emerald-900' => $platform === 'whatsapp',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'whatsapp',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'whatsapp',
                         ])
                     >

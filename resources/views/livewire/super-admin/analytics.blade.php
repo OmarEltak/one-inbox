@@ -31,7 +31,7 @@
         'instagram' => '#E1306C',
         'whatsapp'  => '#25D366',
         'telegram'  => '#0088CC',
-        'email'     => '#8B5CF6',
+        'email'     => '#10b981',
         'unknown'   => '#94A3B8',
     ];
 

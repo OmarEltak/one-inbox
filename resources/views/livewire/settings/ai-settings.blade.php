@@ -10,9 +10,9 @@
             <button
                 @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
-                    ? 'border-b-2 text-[#C27AFF]'
+                    ? 'border-b-2 text-[#34d399]'
                     : 'text-white/35 hover:text-white/60'"
-                :style="tab === '{{ $key }}' ? 'border-color: #7C3AED;' : ''"
+                :style="tab === '{{ $key }}' ? 'border-color: #059669;' : ''"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px"
             >{{ $label }}</button>
         @endforeach

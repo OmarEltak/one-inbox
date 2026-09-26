@@ -11,7 +11,7 @@
                 border-radius: 16px; padding: 40px; max-width: 480px; width: 100%; text-align: center; }
         h1 { font-size: 22px; margin: 0 0 12px; }
         p { color: rgba(255,255,255,0.6); line-height: 1.5; }
-        .email { color: #C27AFF; font-weight: 600; }
+        .email { color: #34d399; font-weight: 600; }
     </style>
 </head>
 <body>

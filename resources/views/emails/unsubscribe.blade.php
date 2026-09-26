@@ -12,8 +12,8 @@
                 border-radius: 16px; padding: 40px; max-width: 480px; width: 100%; text-align: center; }
         h1 { font-size: 22px; margin: 0 0 12px; }
         p { color: rgba(255,255,255,0.6); margin: 0 0 24px; line-height: 1.5; }
-        .email { color: #C27AFF; font-weight: 600; }
-        button { background: linear-gradient(135deg, #7C3AED, #6D28D9); color: #fff;
+        .email { color: #34d399; font-weight: 600; }
+        button { background: linear-gradient(135deg, #059669, #047857); color: #fff;
                  border: 0; border-radius: 10px; padding: 12px 28px; font-size: 14px;
                  font-weight: 600; cursor: pointer; }
         button:hover { opacity: 0.9; }

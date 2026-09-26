@@ -4,7 +4,7 @@
         {{-- Header --}}
         <div class="text-center mb-10">
             <a href="{{ route('home') }}" class="inline-flex items-center gap-2 mb-6">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl" style="background: linear-gradient(135deg, #059669, #5b21b6);">
                     <x-app-logo-icon class="size-5 fill-current text-white" />
                 </span>
                 <span class="text-xl font-bold text-zinc-900">{{ config('app.name', 'OT1-Pro') }}</span>

@@ -35,7 +35,7 @@
             <p class="text-xs text-white/35 mt-1">{{ __('Scheduled') }}</p>
         </div>
         <div class="aio-card aio-stat-purple rounded-2xl p-4 text-center">
-            <p class="text-xl font-bold text-[#C27AFF]">{{ number_format($totalViews) }}</p>
+            <p class="text-xl font-bold text-[#34d399]">{{ number_format($totalViews) }}</p>
             <p class="text-xs text-white/35 mt-1">{{ __('Total Views') }}</p>
         </div>
         <div class="aio-card aio-stat-cyan rounded-2xl p-4 text-center">
@@ -50,8 +50,8 @@
             <button
                 wire:click="$set('tab', '{{ $key }}')"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px
-                       {{ $tab === $key ? 'text-[#C27AFF]' : 'text-white/35 hover:text-white/60' }}"
-                @if($tab === $key) style="border-bottom: 2px solid #7C3AED;" @endif
+                       {{ $tab === $key ? 'text-[#34d399]' : 'text-white/35 hover:text-white/60' }}"
+                @if($tab === $key) style="border-bottom: 2px solid #059669;" @endif
             >{{ $label }}</button>
         @endforeach
     </div>
@@ -112,7 +112,7 @@
                         </td>
                         <td class="px-4 py-3 text-right">
                             @if($item['engagement'] > 0)
-                                <span class="text-[#C27AFF] font-semibold">{{ $item['engagement'] }}%</span>
+                                <span class="text-[#34d399] font-semibold">{{ $item['engagement'] }}%</span>
                             @else
                                 <span class="text-white/25">—</span>
                             @endif

@@ -23,7 +23,7 @@
     <div class="px-6 py-4 border-b border-zinc-200">
         <div class="flex items-center gap-3">
             <div class="size-9 rounded-xl flex items-center justify-center"
-                 style="background: linear-gradient(135deg, #7C3AED, #06B6D4); box-shadow: 0 0 16px rgba(124,58,237,0.35);">
+                 style="background: linear-gradient(135deg, #059669, #06B6D4); box-shadow: 0 0 16px rgba(5,150,105,0.35);">
                 <svg class="size-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
@@ -43,7 +43,7 @@
         {{-- New messages badge --}}
         <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
             <button @click="scrollToBottom(); showNewMessageBadge = false"
-                    class="rounded-full bg-[#8b5cf6] px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-emerald-500">
+                    class="rounded-full bg-[#10b981] px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-emerald-500">
                 New messages
             </button>
         </div>
@@ -52,7 +52,7 @@
             {{-- Welcome state --}}
             <div class="flex h-full flex-col items-center justify-center text-center py-12 max-w-xl mx-auto">
                 {{-- AI Avatar --}}
-                <div class="size-20 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
+                <div class="size-20 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#10b981] flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
                     <svg class="size-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
@@ -74,7 +74,7 @@
                             {{ __('Analyzing campaign performance and reply rates') }}
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="size-1.5 rounded-full bg-[#8b5cf6]"></span>
+                            <span class="size-1.5 rounded-full bg-[#10b981]"></span>
                             {{ __('Sending targeted messages to leads by score or status') }}
                         </li>
                         <li class="flex items-center gap-2">
@@ -113,10 +113,10 @@
 
                     <button
                         wire:click="$set('message', 'Send a promotional message to all hot leads')"
-                        class="flex items-center gap-3 rounded-xl aio-card p-3 text-left hover:border-[#8b5cf6] transition-colors cursor-pointer group"
+                        class="flex items-center gap-3 rounded-xl aio-card p-3 text-left hover:border-[#10b981] transition-colors cursor-pointer group"
                     >
-                        <div class="rounded-lg bg-[#8b5cf6]/10 p-2 group-hover:bg-[#8b5cf6]/20 transition-colors">
-                            <svg class="size-4 text-[#8b5cf6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="rounded-lg bg-[#10b981]/10 p-2 group-hover:bg-[#10b981]/20 transition-colors">
+                            <svg class="size-4 text-[#10b981]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                             </svg>
                         </div>
@@ -162,7 +162,7 @@
                 @foreach($messages as $msg)
                     @if($msg['role'] === 'user')
                         <div class="flex justify-end">
-                            <div class="max-w-[80%] rounded-2xl rounded-br-md bg-[#8b5cf6] px-4 py-2.5 text-sm text-white">
+                            <div class="max-w-[80%] rounded-2xl rounded-br-md bg-[#10b981] px-4 py-2.5 text-sm text-white">
                                 @if(! empty($msg['media_url']))
                                     @if(str_starts_with($msg['media_type'] ?? '', 'image/'))
                                         <img src="{{ $msg['media_url'] }}" alt="Shared image" class="max-w-full rounded-lg mb-1 cursor-pointer" onclick="window.open(this.src, '_blank')" loading="lazy" />
@@ -179,7 +179,7 @@
                     @else
                         <div class="flex justify-start gap-2">
                             <div class="mt-1 flex-shrink-0">
-                                <div class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
+                                <div class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#10b981]">
                                     <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                     </svg>
@@ -195,7 +195,7 @@
                 {{-- Loading indicator --}}
                 <div wire:loading wire:target="sendMessage" class="flex justify-start gap-2">
                     <div class="mt-1 flex-shrink-0">
-                        <div class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6]">
+                        <div class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#10b981]">
                             <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                             </svg>

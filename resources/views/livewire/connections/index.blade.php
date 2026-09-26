@@ -303,7 +303,7 @@
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
-                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
+                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? __('Add via Meta') : __('Connect via Meta') }}
                     </flux:button>
                     <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">

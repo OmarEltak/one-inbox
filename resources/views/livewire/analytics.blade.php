@@ -54,7 +54,7 @@
                             wire:loading.attr="disabled"
                             wire:target="$set('period', '{{ $value }}')"
                             class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all {{ $period === $value ? 'text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800' }} disabled:opacity-60 disabled:cursor-wait"
-                            @if($period === $value) style="background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 2px 8px rgba(124,58,237,0.3);" @endif
+                            @if($period === $value) style="background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 8px rgba(5,150,105,0.3);" @endif
                         >
                             <span wire:loading.remove wire:target="$set('period', '{{ $value }}')">{{ $label }}</span>
                             <span wire:loading wire:target="$set('period', '{{ $value }}')" class="inline-flex items-center gap-1">
@@ -108,7 +108,7 @@
                 {{-- AI Automation Rate --}}
                 <div class="aio-card aio-stat-purple rounded-2xl p-5">
                     <p class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">{{ __('AI Automation') }}</p>
-                    <span class="text-3xl font-bold text-[#C27AFF]">{{ $data['aiVsHuman']['ai_percent'] }}%</span>
+                    <span class="text-3xl font-bold text-[#34d399]">{{ $data['aiVsHuman']['ai_percent'] }}%</span>
                     <p class="mt-2 text-xs text-white/35">{{ number_format($data['aiVsHuman']['ai']) }} AI / {{ number_format($data['aiVsHuman']['human']) }} human</p>
                 </div>
 
@@ -179,7 +179,7 @@
                                      {
                                          label: @js(__('AI Responses')),
                                          data: ai,
-                                         borderColor: '#8b5cf6',
+                                         borderColor: '#10b981',
                                          backgroundColor: 'rgba(139,92,246,0.1)',
                                          fill: true,
                                          tension: 0.4,
@@ -230,7 +230,7 @@
                     <h3 class="text-sm font-semibold text-white/80">{{ __('Reach Across Platforms') }}</h3>
                     <div class="flex gap-4">
                         <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#64748b]"></div><span class="text-xs text-white/40">{{ __('Inbound') }}</span></div>
-                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#8b5cf6]"></div><span class="text-xs text-white/40">AI</span></div>
+                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#10b981]"></div><span class="text-xs text-white/40">AI</span></div>
                         <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#3b82f6]"></div><span class="text-xs text-white/40">{{ __('Human Responses') }}</span></div>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
                         <div class="space-y-4">
                             <div class="flex h-8 overflow-hidden rounded-full">
                                 @if($data['aiVsHuman']['ai'] > 0)
-                                    <div class="flex items-center justify-center bg-[#8b5cf6] text-xs font-bold text-white transition-all" style="width: {{ $data['aiVsHuman']['ai_percent'] }}%">
+                                    <div class="flex items-center justify-center bg-[#10b981] text-xs font-bold text-white transition-all" style="width: {{ $data['aiVsHuman']['ai_percent'] }}%">
                                         @if($data['aiVsHuman']['ai_percent'] > 15) {{ $data['aiVsHuman']['ai_percent'] }}% @endif
                                     </div>
                                 @endif
@@ -260,7 +260,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <div class="flex items-center gap-2">
-                                    <div class="size-3 rounded-full bg-[#8b5cf6]"></div>
+                                    <div class="size-3 rounded-full bg-[#10b981]"></div>
                                     <span class="text-sm text-white/80">{{ __('AI Responses') }}: {{ number_format($data['aiVsHuman']['ai']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -394,7 +394,7 @@
                                             <div class="bg-[#64748b]" style="width: {{ $maxDaily > 0 ? round(($day['inbound'] / $maxDaily) * 100) : 0 }}%"></div>
                                         @endif
                                         @if($day['ai'] > 0)
-                                            <div class="bg-[#8b5cf6]" style="width: {{ $maxDaily > 0 ? round(($day['ai'] / $maxDaily) * 100) : 0 }}%"></div>
+                                            <div class="bg-[#10b981]" style="width: {{ $maxDaily > 0 ? round(($day['ai'] / $maxDaily) * 100) : 0 }}%"></div>
                                         @endif
                                         @if($day['human'] > 0)
                                             <div class="bg-[#3b82f6]" style="width: {{ $maxDaily > 0 ? round(($day['human'] / $maxDaily) * 100) : 0 }}%"></div>
@@ -406,7 +406,7 @@
                         </div>
                         <div class="mt-3 flex gap-4">
                             <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#64748b]"></div><span class="text-xs text-white/40">Inbound</span></div>
-                            <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#8b5cf6]"></div><span class="text-xs text-white/40">AI</span></div>
+                            <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#10b981]"></div><span class="text-xs text-white/40">AI</span></div>
                             <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#3b82f6]"></div><span class="text-xs text-white/40">Human</span></div>
                         </div>
                     @else
