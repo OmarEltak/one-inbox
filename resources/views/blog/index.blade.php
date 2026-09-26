@@ -1,6 +1,7 @@
 <x-layouts.brand-marketing
     :title="__('Stories — WhatsApp, Instagram & AI Sales Guides | OT1-Pro')"
     :description="__('Practical guides on WhatsApp marketing, Instagram DM automation, AI sales bots, and social media customer service. Written by the OT1-Pro founder.')"
+    :solidNav="true"
 >
 
 @push('schema')

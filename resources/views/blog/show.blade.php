@@ -4,6 +4,7 @@
     :canonical="route('blog.show', $post->slug)"
     :htmlLang="$post->language"
     :htmlDir="$post->is_rtl ? 'rtl' : 'ltr'"
+    :solidNav="true"
 >
 
 @push('schema')

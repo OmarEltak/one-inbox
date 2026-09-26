@@ -13,7 +13,13 @@
 
     Nav morphs from transparent-over-hero (cream text, dark logo) to
     solid-cream-scrolled (ink text, light logo) at scrollY > 40.
+
+    Pages without a dark hero (blog, most /vs/*, dashboards) should pass
+    `solid` so the nav starts already in the light-logo/ink-text state:
+        <x-brand.nav solid />
 --}}
+
+@props(['solid' => false])
 
 @once
     @push('head')
@@ -21,12 +27,12 @@
     @endpush
 @endonce
 
-<nav id="topnav" class="fixed top-0 inset-x-0 z-50 border-b border-transparent">
+<nav id="topnav" class="fixed top-0 inset-x-0 z-50 border-b @if($solid) solid @endif" @if($solid) data-solid-pinned="1" @endif>
     <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
         <a href="{{ route('home') }}" class="flex items-center gap-2">
             {{-- Logo swaps based on nav state: dark PNG over dark hero, light PNG when nav turns cream. --}}
-            <img src="/logo/logo-dark.png"  alt="OT1-Pro" class="nav-logo nav-logo-dark  h-10 w-auto" />
-            <img src="/logo/logo-light.png" alt="OT1-Pro" class="nav-logo nav-logo-light h-10 w-auto hidden" />
+            <img src="/logo/logo-dark.png"  alt="OT1-Pro" class="nav-logo nav-logo-dark  h-10 w-auto {{ $solid ? 'hidden' : '' }}" />
+            <img src="/logo/logo-light.png" alt="OT1-Pro" class="nav-logo nav-logo-light h-10 w-auto {{ $solid ? '' : 'hidden' }}" />
         </a>
 
         <div class="hidden md:flex items-center gap-8 text-sm nav-text">
@@ -65,6 +71,9 @@
             (function () {
                 var nav = document.getElementById('topnav');
                 if (!nav) return;
+                // Pages without a dark hero pin the nav in solid state via
+                // data-solid-pinned. Skip the scroll morph entirely on those.
+                if (nav.dataset.solidPinned === '1') return;
                 function onScroll() {
                     var solid = window.scrollY > 40;
                     nav.classList.toggle('solid', solid);

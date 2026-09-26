@@ -6,6 +6,10 @@
     'htmlDir'     => null,
     'ogImage'     => null,
     'noindex'     => false,
+    // Pass true when the page has NO dark hero at top (blog, contact, most
+    // vs/*). Ensures the nav starts in solid state so the ink logo is visible
+    // over cream instead of the dark logo being invisible on cream.
+    'solidNav'    => false,
 ])
 {{--
     <x-layouts.brand-marketing>
@@ -206,7 +210,7 @@
 </head>
 <body class="brand min-h-screen">
 
-    <x-brand.nav />
+    <x-brand.nav :solid="$solidNav" />
 
     {{-- No <main class="pt-20"> — each brand page controls its own top spacing
          (usually pt-32 on the hero to clear the fixed nav). --}}
