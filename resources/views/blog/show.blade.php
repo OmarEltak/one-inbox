@@ -1,4 +1,4 @@
-<x-layouts.marketing
+<x-layouts.brand-marketing
     :title="$post->meta_title"
     :description="$post->meta_description"
     :canonical="route('blog.show', $post->slug)"
@@ -75,61 +75,151 @@
 <meta name="twitter:image" content="{{ config('app.url') }}/og-image.png">
 @endpush
 
+@push('head')
+<style>
+    /* Article prose overrides: serif headings, emerald accents on cream. */
+    .brand-prose {
+        font-family: 'Inter', system-ui, sans-serif;
+        color: #0a1f1c;
+        font-size: 1.125rem;      /* 18px */
+        line-height: 1.75;
+    }
+    .brand-prose > * + * { margin-top: 1.35em; }
+    .brand-prose h2 {
+        font-family: 'Instrument Serif', Georgia, serif;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        font-size: 2.25rem;
+        line-height: 1.15;
+        margin-top: 2.5em;
+        margin-bottom: 0.6em;
+        scroll-margin-top: 6rem;
+        color: #0a1f1c;
+    }
+    .brand-prose h3 {
+        font-family: 'Instrument Serif', Georgia, serif;
+        font-weight: 400;
+        letter-spacing: -0.015em;
+        font-size: 1.6rem;
+        line-height: 1.25;
+        margin-top: 2em;
+        margin-bottom: 0.5em;
+        color: #0a1f1c;
+    }
+    .brand-prose h4 { font-weight: 600; font-size: 1.15rem; margin-top: 1.8em; margin-bottom: 0.5em; color: #0a1f1c; }
+    .brand-prose p, .brand-prose li { color: rgba(10,31,28,0.82); }
+    .brand-prose a {
+        color: #047857;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(4,120,87,0.35);
+        transition: border-color 0.2s, color 0.2s;
+    }
+    .brand-prose a:hover { color: #064e3b; border-bottom-color: #064e3b; }
+    .brand-prose strong { color: #0a1f1c; font-weight: 600; }
+    .brand-prose ul, .brand-prose ol { padding-left: 1.5em; }
+    .brand-prose ul { list-style: disc; }
+    .brand-prose ol { list-style: decimal; }
+    .brand-prose li + li { margin-top: 0.5em; }
+    .brand-prose blockquote {
+        border-left: 3px solid #10b981;
+        padding: 0.25em 1.25em;
+        margin-left: 0;
+        font-style: italic;
+        color: rgba(10,31,28,0.72);
+    }
+    .brand-prose code {
+        background: #ecfdf5;
+        color: #047857;
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        font-size: 0.92em;
+    }
+    .brand-prose pre {
+        background: #0a1f1c;
+        color: #faf7f2;
+        padding: 1.25em;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 0.9em;
+        line-height: 1.6;
+    }
+    .brand-prose pre code { background: transparent; color: inherit; padding: 0; }
+    .brand-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5em 0;
+        font-size: 0.95em;
+    }
+    .brand-prose th, .brand-prose td {
+        border-bottom: 1px solid #e6dfd0;
+        padding: 0.75em 1em;
+        text-align: left;
+    }
+    .brand-prose th { font-weight: 600; color: #0a1f1c; background: #faf7f2; }
+    .brand-prose img { border-radius: 12px; }
+    .brand-prose hr { border: 0; border-top: 1px solid #e6dfd0; margin: 3em 0; }
+    [dir="rtl"] .brand-prose ul,
+    [dir="rtl"] .brand-prose ol { padding-left: 0; padding-right: 1.5em; }
+    [dir="rtl"] .brand-prose blockquote { border-left: 0; border-right: 3px solid #10b981; }
+</style>
+@endpush
+
     {{-- Reading progress bar (top of viewport) --}}
-    <div class="fixed left-0 top-0 z-50 h-1 w-full bg-transparent" aria-hidden="true">
-        <div id="reading-progress-bar" class="h-full w-0 bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-600 transition-[width] duration-100 ease-linear"></div>
+    <div class="fixed left-0 top-0 z-[60] h-[3px] w-full bg-transparent" aria-hidden="true">
+        <div id="reading-progress-bar" class="h-full w-0 bg-emer-500 transition-[width] duration-100 ease-linear"></div>
     </div>
 
-    {{-- Breadcrumb --}}
-    <div class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-200 dark:bg-white">
-        <div class="mx-auto max-w-3xl px-6 py-4">
-            <nav class="flex items-center gap-2 text-sm text-zinc-500">
-                <a href="{{ route('home') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Home') }}</a>
-                <span>/</span>
-                <a href="{{ route('blog.index') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Blog') }}</a>
-                <span>/</span>
-                <span class="text-zinc-700 dark:text-zinc-700">{{ $post->category }}</span>
+    {{-- Breadcrumb (clears fixed nav) --}}
+    <div class="bg-cream pt-28 md:pt-32">
+        <div class="max-w-3xl mx-auto px-6 pb-4">
+            <nav class="flex items-center gap-2 text-sm text-ink/60">
+                <a href="{{ route('home') }}" class="u-link hover:text-ink">{{ __('Home') }}</a>
+                <span class="text-ink/30">/</span>
+                <a href="{{ route('blog.index') }}" class="u-link hover:text-ink">{{ __('Stories') }}</a>
+                <span class="text-ink/30">/</span>
+                <span class="text-ink/80">{{ $post->category }}</span>
             </nav>
         </div>
     </div>
 
     {{-- Article --}}
-    <article class="py-12 lg:py-20">
+    <article class="bg-cream pb-16 lg:pb-24">
         <div class="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 lg:grid-cols-[minmax(0,1fr)_240px]">
 
-            <div class="mx-auto w-full max-w-3xl lg:mx-0">
+            <div class="mx-auto w-full max-w-2xl lg:mx-0">
 
                 {{-- Header --}}
-                <header class="mb-8">
-                    <span class="inline-block rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-700">
+                <header class="mb-10 pt-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-emer-700 font-semibold mb-5">
                         {{ $post->category }}
-                    </span>
-                    <h1 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">{{ $post->title }}</h1>
-                    <div class="mt-6 flex items-center gap-4 text-sm text-zinc-500">
-                        <span>{{ __('By') }} <strong class="text-zinc-700 dark:text-zinc-700">{{ $post->author }}</strong></span>
-                        <span>·</span>
+                    </div>
+                    <h1 class="serif text-4xl md:text-5xl lg:text-6xl leading-[1.08] text-ink">{{ $post->title }}</h1>
+                    <div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-ink/60">
+                        <span>{{ __('By') }} <strong class="font-semibold text-ink">{{ $post->author }}</strong></span>
+                        <span class="text-ink/30">·</span>
                         <span>{{ $post->published_at->format('F j, Y') }}</span>
-                        <span>·</span>
+                        <span class="text-ink/30">·</span>
                         <span>{{ $post->reading_time }}</span>
                     </div>
                 </header>
 
                 {{-- Quick answer box (featured-snippet magnet + attention hook) --}}
-                <aside class="mb-10 rounded-2xl border-l-4 border-indigo-500 bg-gradient-to-br from-indigo-50 to-blue-50 p-6 shadow-sm dark:from-indigo-50 dark:to-blue-50" @if($post->is_rtl) dir="rtl" @endif>
+                <aside class="mb-12 rounded-2xl border border-line bg-white p-6 md:p-7 relative overflow-hidden" @if($post->is_rtl) dir="rtl" @endif>
+                    <div class="absolute top-0 bottom-0 {{ $post->is_rtl ? 'right-0' : 'left-0' }} w-1 bg-emer-500"></div>
                     <div class="flex items-start gap-3">
-                        <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
-                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+                        <div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-emer-100">
+                            <svg class="size-4 text-emer-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
                         </div>
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-indigo-700">{{ __('Quick answer') }}</p>
-                            <p class="mt-1 text-base leading-relaxed text-zinc-800">{{ $post->excerpt }}</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emer-700">{{ __('Quick answer') }}</p>
+                            <p class="mt-2 text-[17px] leading-relaxed text-ink/80">{{ $post->excerpt }}</p>
                         </div>
                     </div>
                 </aside>
 
-                {{-- Inline TOC (mobile + desktop first pass) --}}
-                <nav id="toc-inline" class="mb-10 hidden rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white" aria-label="{{ __('Table of contents') }}" @if($post->is_rtl) dir="rtl" @endif>
-                    <div class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                {{-- Inline TOC (mobile-first, revealed by JS when 3+ H2s exist) --}}
+                <nav id="toc-inline" class="mb-12 hidden rounded-xl border border-line bg-white p-5" aria-label="{{ __('Table of contents') }}" @if($post->is_rtl) dir="rtl" @endif>
+                    <div class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-ink/60">
                         <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                         {{ __('In this article') }}
                     </div>
@@ -137,22 +227,20 @@
                 </nav>
 
                 {{-- Content --}}
-                <div id="post-content" class="prose prose-zinc max-w-none dark:prose-invert
-                    prose-headings:font-bold prose-headings:tracking-tight prose-headings:scroll-mt-24
-                    prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline
-                    prose-code:text-indigo-600 prose-code:bg-indigo-50 prose-code:px-1 prose-code:rounded
-                    dark:prose-a:text-indigo-400 dark:prose-code:bg-indigo-50/50 dark:prose-code:text-indigo-700"
-                    @if($post->is_rtl) dir="rtl" @endif>
+                <div id="post-content" class="brand-prose" @if($post->is_rtl) dir="rtl" @endif>
                     {!! $post->content !!}
                 </div>
 
-                {{-- CTA Box --}}
-                <div class="mt-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 p-8 text-center text-white">
-                    <h2 class="text-2xl font-bold">{{ __('Ready to try OT1-Pro?') }}</h2>
-                    <p class="mt-2 text-indigo-100">{{ __('Connect WhatsApp, Instagram, Facebook & Telegram with AI that sells for you.') }}</p>
-                    <a href="{{ route('register') }}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-indigo-700 transition-all hover:bg-indigo-50">
-                        {{ __('Get Started Free') }}
-                        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                {{-- CTA (ink surface — matches homepage closing CTA) --}}
+                <div class="mt-16 rounded-3xl bg-ink text-cream p-8 md:p-10 text-center">
+                    <h2 class="serif text-3xl md:text-4xl leading-tight">
+                        {{ __('Ready to try') }} <span class="serif-it text-emer-400">OT1-Pro</span>?
+                    </h2>
+                    <p class="mt-4 text-cream/70 leading-relaxed">{{ __('Connect WhatsApp, Instagram, Facebook & Telegram with AI that sells for you.') }}</p>
+                    <a href="{{ route('register') }}"
+                       class="mt-6 inline-flex items-center gap-2 rounded-full bg-emer-500 hover:bg-emer-400 px-7 py-3 text-sm font-semibold text-ink transition-colors">
+                        {{ __('Get started free') }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
 
@@ -160,13 +248,13 @@
 
             {{-- Sticky sidebar TOC (desktop only) --}}
             <aside class="hidden lg:block">
-                <div class="sticky top-24">
+                <div class="sticky top-28">
                     <nav id="toc-sidebar" aria-label="{{ __('Table of contents') }}">
-                        <div class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                        <div class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-ink/60">
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                             {{ __('On this page') }}
                         </div>
-                        <ol id="toc-sidebar-list" class="border-l border-zinc-200 text-sm dark:border-zinc-200"></ol>
+                        <ol id="toc-sidebar-list" class="border-l border-line text-sm"></ol>
                     </nav>
                 </div>
             </aside>
@@ -235,8 +323,8 @@
                     a.href = '#' + h.id;
                     a.textContent = h.textContent;
                     a.className = decorated
-                        ? 'block text-zinc-600 hover:text-indigo-700 transition-colors'
-                        : 'block text-zinc-700 hover:text-indigo-700 transition-colors';
+                        ? 'block text-ink/70 hover:text-emer-700 transition-colors'
+                        : 'block text-ink/80 hover:text-emer-700 transition-colors';
                     a.dataset.tocLink = h.id;
                     li.appendChild(a);
                     target.appendChild(li);
@@ -257,10 +345,11 @@
                 });
                 const clearActive = () => {
                     linkMap.forEach((li) => {
-                        li.classList.remove('border-indigo-500', 'text-indigo-700');
+                        li.classList.remove('text-emer-700');
                         li.classList.add('border-transparent');
+                        li.style.borderLeftColor = '';
                         const a = li.querySelector('a');
-                        if (a) a.classList.remove('font-semibold', 'text-indigo-700');
+                        if (a) a.classList.remove('font-semibold', 'text-emer-700');
                     });
                 };
                 const setActive = (id) => {
@@ -268,9 +357,9 @@
                     const li = linkMap.get(id);
                     if (!li) return;
                     li.classList.remove('border-transparent');
-                    li.classList.add('border-indigo-500');
+                    li.style.borderLeftColor = '#059669';
                     const a = li.querySelector('a');
-                    if (a) a.classList.add('font-semibold', 'text-indigo-700');
+                    if (a) a.classList.add('font-semibold', 'text-emer-700');
                 };
                 const observer = new IntersectionObserver((entries) => {
                     const visible = entries
@@ -285,17 +374,18 @@
         })();
     </script>
 
-    {{-- Related Posts --}}
+    {{-- Related Posts (PRIORITY_SLUGS + category picks from BlogController::show) --}}
     @if($related->isNotEmpty())
-    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
-        <div class="mx-auto max-w-6xl px-6">
-            <h2 class="mb-8 text-2xl font-bold">{{ __('Related articles') }}</h2>
-            <div class="grid gap-6 sm:grid-cols-3">
+    <section class="border-t border-line bg-cream2 py-16 lg:py-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-xs uppercase tracking-[0.2em] text-ink/50 mb-3">{{ __('Keep reading') }}</div>
+            <h2 class="serif text-3xl md:text-4xl leading-tight text-ink mb-10">{{ __('Related stories') }}</h2>
+            <div class="grid gap-8 sm:grid-cols-3">
                 @foreach($related as $rel)
-                <a href="{{ route('blog.show', $rel->slug) }}" class="group rounded-xl border border-zinc-200 bg-white p-5 transition-all hover:shadow-md dark:border-zinc-200 dark:bg-white">
-                    <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">{{ $rel->category }}</span>
-                    <h3 class="mt-2 font-semibold leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ $rel->title }}</h3>
-                    <p class="mt-2 text-xs text-zinc-500">{{ $rel->reading_time }} · {{ $rel->published_at->format('M j, Y') }}</p>
+                <a href="{{ route('blog.show', $rel->slug) }}" class="group flex flex-col">
+                    <div class="text-xs uppercase tracking-[0.18em] text-emer-700 font-semibold mb-3">{{ $rel->category }}</div>
+                    <h3 class="serif text-xl md:text-2xl leading-snug text-ink group-hover:text-emer-700 transition-colors">{{ $rel->title }}</h3>
+                    <p class="mt-4 pt-4 border-t border-line text-xs text-ink/60">{{ $rel->reading_time }} · {{ $rel->published_at->format('M j, Y') }}</p>
                 </a>
                 @endforeach
             </div>
@@ -303,4 +393,4 @@
     </section>
     @endif
 
-</x-layouts.marketing>
+</x-layouts.brand-marketing>
