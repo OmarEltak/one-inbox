@@ -99,7 +99,7 @@
                                 </div>
                             </div>
 
-                            <ul class="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                            <ul class="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-200 mb-4">
                                 <li class="flex items-center gap-2">
                                     <flux:icon name="check" class="w-4 h-4 text-green-500 flex-shrink-0" />
                                     {{ $plan['ai_credits'] === -1 ? __('Unlimited') : number_format($plan['ai_credits']) }} {{ __('AI credits/mo') }}
