@@ -1,4 +1,5 @@
-<x-layouts.marketing
+<x-layouts.brand-marketing
+    :solidNav="true"
     :title="__('WhatsApp + Instagram Inbox for Ecommerce Stores in Egypt & MENA — OT1-Pro')"
     :description="__('AI-powered unified inbox for MENA ecommerce: handle WhatsApp orders, Instagram DMs, Facebook Messenger, and Telegram in Egyptian Arabic — with Shopify, Salla, Zid, and Bosta integrations. From $8/mo.')"
     :canonical="route('industry.ecommerce')"
@@ -41,30 +42,30 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden pt-32 pb-20 text-ink lg:pt-40 lg:pb-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
+                    <span class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-emer-700">
                         {{ __('Ecommerce') }}
                     </span>
-                    <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Handle Every <span class="text-emerald-400">WhatsApp and Instagram Order</span> — Even at 2 AM') !!}
+                    <h1 class="serif mt-5 text-5xl leading-[1.02] text-ink lg:text-6xl xl:text-7xl">
+                        {!! __('Handle Every <span class="serif-it text-emer-700">WhatsApp and Instagram Order</span> — Even at 2 AM') !!}
                     </h1>
-                    <p class="mt-5 text-lg text-zinc-700">
+                    <p class="mt-6 text-lg leading-relaxed text-ink/70">
                         {{ __('MENA ecommerce customers message on WhatsApp, Instagram, Facebook, and Telegram — mostly between 8 PM and 1 AM when your team is asleep. OT1-Pro\'s AI answers pricing, shipping, and order questions instantly in Egyptian Arabic — turning overnight ad traffic into next-day deliveries.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
+                        <a href="{{ route('register') }}" class="inline-flex items-center rounded-full bg-ink px-7 py-4 font-semibold text-cream transition hover:bg-ink2">
                             {{ __('Start Free') }}
                         </a>
-                        <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-emerald-700">
+                        <a href="{{ route('pricing') }}" class="inline-flex items-center rounded-full border border-ink/20 px-7 py-4 font-semibold text-ink transition hover:bg-ink/5">
                             {{ __('See Pricing') }}
                         </a>
                     </div>
-                    <p class="mt-4 text-sm text-zinc-500">{{ __('From $8/month · Free plan available · Talk to founder on WhatsApp +20 102 636 1218') }}</p>
+                    <p class="mt-4 text-sm text-ink/60">{{ __('From $8/month · Free plan available · Talk to founder on WhatsApp +20 102 636 1218') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6">
+                <div class="rounded-2xl border border-line bg-cream2 p-6 shadow-sm">
                     @php
                     $metrics = [
                         [__('Avg. first response'), '< 30s', __('vs. 4+ hours before')],
@@ -73,12 +74,12 @@
                         [__('AI cost per response'), '~$0.02', __('vs $2+ per manual reply')],
                     ];
                     @endphp
-                    <p class="mb-4 text-sm font-semibold text-zinc-600">{{ __('Real results for MENA ecommerce stores') }}</p>
+                    <p class="mb-4 text-sm font-semibold text-ink/70">{{ __('Real results for MENA ecommerce stores') }}</p>
                     @foreach($metrics as [$label, $value, $sub])
-                    <div class="mb-4 rounded-lg bg-zinc-100 px-4 py-3">
-                        <p class="text-xs text-zinc-500">{{ $label }}</p>
-                        <p class="text-2xl font-bold text-emerald-400">{{ $value }}</p>
-                        <p class="text-xs text-zinc-500">{{ $sub }}</p>
+                    <div class="mb-4 rounded-lg bg-cream px-4 py-3">
+                        <p class="text-xs text-ink/60">{{ $label }}</p>
+                        <p class="serif text-3xl text-emer-700">{{ $value }}</p>
+                        <p class="text-xs text-ink/60">{{ $sub }}</p>
                     </div>
                     @endforeach
                 </div>
@@ -87,20 +88,20 @@
     </section>
 
     {{-- The overnight problem — MENA-specific pain framing --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-4xl px-6">
-            <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('The overnight-ad-traffic problem, honestly') }}</h2>
-            <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('You already know this if you sell on Instagram and WhatsApp in Egypt or the Gulf. Meta\'s own data confirms MENA shoppers are most active on Instagram and WhatsApp between 8 PM and midnight. In Egypt, message peaks land between 10 PM and 12:30 AM — the exact window your team is asleep.') }}</p>
-            <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Here is what actually happens on a busy ad night for a typical MENA storefront:') }}</p>
-            <ul class="mt-6 space-y-3 text-zinc-700 dark:text-zinc-700">
-                <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('You spend 3,000 EGP on Facebook/Instagram ads during the evening prime slot.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('That produces 180+ DMs and WhatsApp messages between 8 PM and 1 AM.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('Your team replies to the first 30 messages, then goes to sleep.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('The remaining 150 leads see no reply until 10 AM the next day.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('By morning, 90+ have gone cold or bought from a competitor who replied faster.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500 shrink-0">✗</span>{{ __('Your effective ROAS is half what your ad manager reports — because half your leads were never engaged.') }}</li>
+            <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('The overnight-ad-traffic problem, honestly') }}</h2>
+            <p class="mt-4 text-ink/70">{{ __('You already know this if you sell on Instagram and WhatsApp in Egypt or the Gulf. Meta\'s own data confirms MENA shoppers are most active on Instagram and WhatsApp between 8 PM and midnight. In Egypt, message peaks land between 10 PM and 12:30 AM — the exact window your team is asleep.') }}</p>
+            <p class="mt-4 text-ink/70">{{ __('Here is what actually happens on a busy ad night for a typical MENA storefront:') }}</p>
+            <ul class="mt-6 space-y-3 text-ink/80">
+                <li class="flex gap-3"><span class="text-ink/50 shrink-0">✗</span>{{ __('You spend 3,000 EGP on Facebook/Instagram ads during the evening prime slot.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50 shrink-0">✗</span>{{ __('That produces 180+ DMs and WhatsApp messages between 8 PM and 1 AM.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50 shrink-0">✗</span>{{ __('Your team replies to the first 30 messages, then goes to sleep.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50 shrink-0">✗</span>{{ __('The remaining 150 leads see no reply until 10 AM the next day.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50 shrink-0">✗</span>{{ __('By morning, 90+ have gone cold or bought from a competitor who replied faster.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50 shrink-0">✗</span>{{ __('Your effective ROAS is half what your ad manager reports — because half your leads were never engaged.') }}</li>
             </ul>
-            <p class="mt-8 rounded-xl bg-emerald-50 p-6 text-zinc-800 dark:bg-emerald-50/50 dark:text-zinc-800">{!! __('<strong>The uncomfortable truth:</strong> Most MENA stores don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are. Studies of MENA D2C brands show lead-to-sale conversion drops roughly 60% when first-response time exceeds 2 hours.') !!}</p>
+            <p class="mt-8 rounded-2xl border-l-4 border-emer-500 bg-cream p-6 text-ink">{!! __('<strong>The uncomfortable truth:</strong> Most MENA stores don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are. Studies of MENA D2C brands show lead-to-sale conversion drops roughly 60% when first-response time exceeds 2 hours.') !!}</p>
         </div>
     </section>
 
@@ -108,8 +109,8 @@
     <section class="py-20">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('What the AI handles for your MENA store') }}</h2>
-                <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('90% of ecommerce WhatsApp and Instagram messages fall into these categories. The AI handles them in the customer\'s dialect, using your catalog as its knowledge base.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('What the AI handles for your MENA store') }}</h2>
+                <p class="mt-3 text-ink/70">{{ __('90% of ecommerce WhatsApp and Instagram messages fall into these categories. The AI handles them in the customer\'s dialect, using your catalog as its knowledge base.') }}</p>
             </div>
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -126,10 +127,10 @@
                 ];
                 @endphp
                 @foreach($usecases as [$icon, $title, $desc])
-                <div class="rounded-xl border p-5 transition-colors border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-6">
                     <div class="text-2xl">{{ $icon }}</div>
-                    <h3 class="mt-3 font-semibold">{{ $title }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $desc }}</p>
+                    <h3 class="serif mt-3 text-2xl leading-snug text-ink">{{ $title }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $desc }}</p>
                 </div>
                 @endforeach
             </div>
@@ -137,34 +138,34 @@
     </section>
 
     {{-- Real Egyptian Arabic templates --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-4xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Real reply templates (Egyptian Arabic)') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Generic auto-replies kill conversions. These are the templates working for MENA storefronts right now — you can copy them straight into your AI settings.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Real reply templates (Egyptian Arabic)') }}</h2>
+                <p class="mt-4 text-ink/70">{{ __('Generic auto-replies kill conversions. These are the templates working for MENA storefronts right now — you can copy them straight into your AI settings.') }}</p>
             </div>
             <div class="mt-12 space-y-6">
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm font-semibold text-emerald-600">{{ __('Availability + upsell template') }}</p>
-                    <blockquote class="mt-3 border-l-4 border-emerald-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
+                    <p class="text-sm font-semibold text-emer-700">{{ __('Availability + upsell template') }}</p>
+                    <blockquote class="mt-3 border-l-4 border-emer-100 pl-4 text-ink/80" dir="rtl">
                         <p>أيوة يا فندم، ده متاح في المقاس اللي انتي عايزاه 👗<br>
                         سعره ٤٥٠ جنيه + ٥٠ جنيه شحن للقاهرة (٧٠ جنيه لباقي المحافظات).<br>
                         لو ضيفتي معاه أي حاجة تانية الشحن يبقى ببلاش 🎁<br>
                         عايزة أحفظلك المقاس ده وأرسل الطلب؟</p>
                     </blockquote>
-                    <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Why it works: confirms availability instantly, transparent pricing, soft upsell (free shipping), soft-commitment close instead of a hard "buy now".') }}</p>
+                    <p class="mt-3 text-sm text-ink/70">{{ __('Why it works: confirms availability instantly, transparent pricing, soft upsell (free shipping), soft-commitment close instead of a hard "buy now".') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm font-semibold text-emerald-600">{{ __('Overnight auto-reply (fires after 10 PM)') }}</p>
-                    <blockquote class="mt-3 border-l-4 border-emerald-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
+                    <p class="text-sm font-semibold text-emer-700">{{ __('Overnight auto-reply (fires after 10 PM)') }}</p>
+                    <blockquote class="mt-3 border-l-4 border-emer-100 pl-4 text-ink/80" dir="rtl">
                         <p>مرحبا 👋 استلمنا رسالتك.<br>
                         فريقنا هيرد عليكي بالتفصيل الصبح الساعة ٩، بس علشان مايفوتنيش سؤالك، لو حابة تكتبي المقاس اللي عايزاه والمدينة، هجاوبك مع أول رد بكل التفاصيل 💛</p>
                     </blockquote>
-                    <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Why it works: acknowledges immediately (customer feels heard), sets honest expectation, captures qualifying info while intent is still hot — so the morning reply is a closer, not a discovery call.') }}</p>
+                    <p class="mt-3 text-sm text-ink/70">{{ __('Why it works: acknowledges immediately (customer feels heard), sets honest expectation, captures qualifying info while intent is still hot — so the morning reply is a closer, not a discovery call.') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm font-semibold text-emerald-600">{{ __('COD order confirmation') }}</p>
-                    <blockquote class="mt-3 border-l-4 border-emerald-200 pl-4 text-zinc-700 dark:text-zinc-700" dir="rtl">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
+                    <p class="text-sm font-semibold text-emer-700">{{ __('COD order confirmation') }}</p>
+                    <blockquote class="mt-3 border-l-4 border-emer-100 pl-4 text-ink/80" dir="rtl">
                         <p>تمام يا فندم، هنسجّل طلبك دفع عند الاستلام 📦<br>
                         محتاجين منك:<br>
                         1️⃣ الاسم بالكامل<br>
@@ -172,7 +173,7 @@
                         3️⃣ العنوان (شارع + رقم + دور + شقة)<br>
                         4️⃣ ميعاد التوصيل المفضل: صباحاً / بعد الظهر / مساءً</p>
                     </blockquote>
-                    <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Why it works: structured data collection prevents missed digits in phone numbers and wrong-district deliveries — the #1 cause of failed COD deliveries in Egypt.') }}</p>
+                    <p class="mt-3 text-sm text-ink/70">{{ __('Why it works: structured data collection prevents missed digits in phone numbers and wrong-district deliveries — the #1 cause of failed COD deliveries in Egypt.') }}</p>
                 </div>
             </div>
         </div>
@@ -182,8 +183,8 @@
     <section class="py-20">
         <div class="mx-auto max-w-5xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Works with your store platform') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Native integrations with the ecommerce platforms MENA storefronts actually use.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Works with your store platform') }}</h2>
+                <p class="mt-4 text-ink/70">{{ __('Native integrations with the ecommerce platforms MENA storefronts actually use.') }}</p>
             </div>
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
@@ -195,24 +196,24 @@
                 ];
                 @endphp
                 @foreach($platforms as [$name, $desc])
-                <div class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-lg font-semibold text-zinc-900 dark:text-zinc-900">{{ $name }}</p>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $desc }}</p>
+                <div class="fade-up rounded-2xl border border-line bg-cream p-6">
+                    <p class="text-lg font-semibold text-ink">{{ $name }}</p>
+                    <p class="mt-2 text-sm text-ink/70">{{ $desc }}</p>
                 </div>
                 @endforeach
             </div>
-            <div class="mt-8 rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-200 dark:bg-white">
-                <p class="text-sm text-zinc-600 dark:text-zinc-600">{!! __('Plus MENA logistics: <strong>Bosta, Aramex, ShipBlu, R2S</strong> — shipment webhooks push tracking updates to customers automatically as WhatsApp messages ("طلبك خرج للتوصيل").') !!}</p>
+            <div class="mt-8 rounded-xl border border-line bg-cream2 p-6 text-center">
+                <p class="text-sm text-ink/70">{!! __('Plus MENA logistics: <strong>Bosta, Aramex, ShipBlu, R2S</strong> — shipment webhooks push tracking updates to customers automatically as WhatsApp messages ("طلبك خرج للتوصيل").') !!}</p>
             </div>
         </div>
     </section>
 
     {{-- Platform Channels --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-6xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('All your sales channels in one inbox') }}</h2>
-                <p class="mt-3 text-zinc-600 dark:text-zinc-600">{{ __('MENA shoppers switch between WhatsApp, Instagram, Facebook, and Telegram in one buying journey. You shouldn\'t need 4 different apps to keep up.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('All your sales channels in one inbox') }}</h2>
+                <p class="mt-3 text-ink/70">{{ __('MENA shoppers switch between WhatsApp, Instagram, Facebook, and Telegram in one buying journey. You shouldn\'t need 4 different apps to keep up.') }}</p>
             </div>
             <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @php
@@ -224,9 +225,9 @@
                 ];
                 @endphp
                 @foreach($channels as [$ch, $desc])
-                <div class="rounded-xl border border-zinc-200 bg-white p-5 text-center dark:border-zinc-200 dark:bg-white">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-5 text-center">
                     <p class="font-semibold">{{ $ch }}</p>
-                    <p class="mt-2 text-xs text-zinc-500">{{ $desc }}</p>
+                    <p class="mt-2 text-xs text-ink/60">{{ $desc }}</p>
                 </div>
                 @endforeach
             </div>
@@ -236,8 +237,8 @@
     {{-- The 4-step setup --}}
     <section class="py-20">
         <div class="mx-auto max-w-4xl px-6">
-            <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Setup: from zero to first AI reply in one hour') }}</h2>
-            <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Most MENA storefronts are live within an evening. Here is the exact playbook:') }}</p>
+            <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Setup: from zero to first AI reply in one hour') }}</h2>
+            <p class="mt-4 text-ink/70">{{ __('Most MENA storefronts are live within an evening. Here is the exact playbook:') }}</p>
             <ol class="mt-8 space-y-6">
                 @php
                 $steps = [
@@ -249,9 +250,9 @@
                 ];
                 @endphp
                 @foreach($steps as $step)
-                <li class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white">
-                    <h3 class="font-semibold text-zinc-900 dark:text-zinc-900">{{ $step[0] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $step[1] }}</p>
+                <li class="fade-up rounded-2xl border border-line bg-cream p-6">
+                    <h3 class="serif text-xl text-ink">{{ $step[0] }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $step[1] }}</p>
                 </li>
                 @endforeach
             </ol>
@@ -259,19 +260,19 @@
     </section>
 
     {{-- Before / After comparison --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-5xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Before OT1-Pro vs. after — a realistic 30-day comparison') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Based on aggregated data from MENA D2C stores in the $5k–$50k/month revenue range during their first month.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Before OT1-Pro vs. after — a realistic 30-day comparison') }}</h2>
+                <p class="mt-4 text-ink/70">{{ __('Based on aggregated data from MENA D2C stores in the $5k–$50k/month revenue range during their first month.') }}</p>
             </div>
-            <div class="mt-10 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white">
+            <div class="mt-10 overflow-x-auto rounded-2xl border border-line bg-cream">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-zinc-200 dark:border-zinc-200">
-                            <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-700">{{ __('Metric') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-zinc-500">{{ __('Before') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-emerald-600">{{ __('After (30 days)') }}</th>
+                        <tr class="border-b border-line bg-ink text-cream">
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-widest text-cream/70">{{ __('Metric') }}</th>
+                            <th class="serif px-6 py-4 text-center text-xl font-normal text-cream/70">{{ __('Before') }}</th>
+                            <th class="serif px-6 py-4 text-center text-xl font-normal text-emer-400">{{ __('After (30 days)') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -287,16 +288,16 @@
                         ];
                         @endphp
                         @foreach($rows as $i => $row)
-                        <tr class="{{ $i % 2 === 0 ? 'bg-zinc-50 dark:bg-zinc-100' : '' }} border-b border-zinc-100 last:border-0 dark:border-zinc-200">
-                            <td class="px-6 py-4 font-medium text-zinc-700 dark:text-zinc-700">{{ $row[0] }}</td>
-                            <td class="px-6 py-4 text-center text-zinc-500">{{ $row[1] }}</td>
-                            <td class="px-6 py-4 text-center font-semibold text-emerald-700">{{ $row[2] }}</td>
+                        <tr class="{{ $i % 2 === 0 ? 'bg-cream2/60' : '' }} border-b border-line last:border-0">
+                            <td class="px-6 py-4 font-medium text-ink/80">{{ $row[0] }}</td>
+                            <td class="px-6 py-4 text-center text-ink/60">{{ $row[1] }}</td>
+                            <td class="px-6 py-4 text-center font-semibold text-emer-700">{{ $row[2] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-            <p class="mt-6 text-center text-xs text-zinc-500">{{ __('Note: these are aggregated benchmarks. Individual results depend on ad spend, product catalog quality, and how much of your AI configuration you complete.') }}</p>
+            <p class="mt-6 text-center text-xs text-ink/60">{{ __('Note: these are aggregated benchmarks. Individual results depend on ad spend, product catalog quality, and how much of your AI configuration you complete.') }}</p>
         </div>
     </section>
 
@@ -304,8 +305,8 @@
     <section class="py-20">
         <div class="mx-auto max-w-5xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Which plan for which stage') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Ecommerce-focused breakdown so you pick the right tier the first time.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Which plan for which stage') }}</h2>
+                <p class="mt-4 text-ink/70">{{ __('Ecommerce-focused breakdown so you pick the right tier the first time.') }}</p>
             </div>
             <div class="mt-10 grid gap-6 lg:grid-cols-3">
                 @php
@@ -348,28 +349,28 @@
                 ];
                 @endphp
                 @foreach($plans as [$name, $for, $features, $when])
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
-                    <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-900">{{ $name }}</h3>
-                    <p class="mt-1 text-sm font-medium text-emerald-600">{{ $for }}</p>
-                    <ul class="mt-4 space-y-2 text-sm text-zinc-600 dark:text-zinc-600">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
+                    <h3 class="serif text-2xl leading-snug text-ink">{{ $name }}</h3>
+                    <p class="mt-1 text-sm font-medium text-emer-700">{{ $for }}</p>
+                    <ul class="mt-4 space-y-2 text-sm text-ink/70">
                         @foreach($features as $f)
-                        <li class="flex gap-2"><span class="text-emerald-600 shrink-0">✓</span>{{ $f }}</li>
+                        <li class="flex gap-2"><span class="text-emer-700 shrink-0">✓</span>{{ $f }}</li>
                         @endforeach
                     </ul>
-                    <p class="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-600 dark:bg-zinc-100 dark:text-zinc-700">{{ $when }}</p>
+                    <p class="mt-4 rounded-lg bg-cream2 p-3 text-xs text-ink/70">{{ $when }}</p>
                 </div>
                 @endforeach
             </div>
             <div class="mt-8 text-center">
-                <a href="{{ route('pricing') }}" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">{{ __('See all plans & features →') }}</a>
+                <a href="{{ route('pricing') }}" class="text-sm font-semibold text-emer-700 hover:text-ink">{{ __('See all plans & features →') }}</a>
             </div>
         </div>
     </section>
 
     {{-- FAQ (expanded) --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-3xl px-6">
-            <h2 class="mb-10 text-center text-3xl font-bold">{{ __('Ecommerce FAQ') }}</h2>
+            <h2 class="serif mb-10 text-center text-4xl leading-tight text-ink lg:text-5xl">{{ __('Ecommerce FAQ') }}</h2>
             @php
             $faqs = [
                 [__('Does OT1-Pro integrate with Shopify, Salla, and Zid?'), __('Yes to all three. Shopify via native app. Salla and Zid via webhook. Order events, abandoned-cart triggers, and shipment status updates fire into WhatsApp/Instagram/Messenger automatically. WooCommerce is also supported via REST API. Setup takes 15 minutes per platform with our step-by-step guides.')],
@@ -384,35 +385,28 @@
                 [__('What kind of support do you offer for MENA stores?'), __('MENA-hours support directly from the founder on WhatsApp: +20 102 636 1218. This is not a marketing line — it is how we actually support customers. Response time is under an hour during business hours and typically within 4 hours during evenings/weekends.')],
             ];
             @endphp
-            <div class="space-y-4">
+            <div class="divide-y divide-line border-y border-line">
                 @foreach($faqs as [$q, $a])
-                <div x-data="{ open: false }" class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white">
-                    <button @click="open = !open" class="flex w-full items-center justify-between px-5 py-4 text-left font-medium">
-                        <span>{{ $q }}</span>
-                        <svg class="size-5 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    </button>
-                    <div x-show="open" x-collapse class="border-t border-zinc-100 px-5 py-4 text-zinc-600 dark:border-zinc-200 dark:text-zinc-600">
-                        {{ $a }}
-                    </div>
-                </div>
+                <details class="py-5">
+                    <summary class="flex items-center justify-between gap-4">
+                        <span class="serif text-xl text-ink">{{ $q }}</span>
+                        <span class="chev serif text-2xl text-emer-700">+</span>
+                    </summary>
+                    <p class="mt-3 text-sm leading-relaxed text-ink/70">{{ $a }}</p>
+                </details>
                 @endforeach
             </div>
         </div>
     </section>
 
-    {{-- CTA --}}
-    <section class="border-t border-zinc-200 bg-white py-20 lg:py-28 dark:bg-white">
-        <div class="mx-auto max-w-4xl px-6">
-            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
-                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Stop losing overnight sales') }}</h2>
-                <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up in one evening. Watch it capture leads while your team sleeps, from the very first night.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
-                    {{ __('Start Free with OT1-Pro') }}
-                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                </a>
-                <p class="mt-3 text-sm text-emerald-800">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
-            </div>
+    {{-- ═══════ FINAL CTA ═══════ --}}
+    <section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Stop losing overnight sales') }}</h2>
+            <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('Set up in one evening. Watch it capture leads while your team sleeps, from the very first night.') }}</p>
+            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Start Free with OT1-Pro') }} <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
+            <p class="mt-4 text-sm text-cream/60">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
         </div>
     </section>
 
-</x-layouts.marketing>
+</x-layouts.brand-marketing>
