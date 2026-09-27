@@ -1,6 +1,6 @@
 <div>
     {{-- Top-of-page indeterminate progress bar during ANY Livewire request (period switch, chip toggle). --}}
-    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-violet-500 animate-pulse"></div>
+    <div wire:loading class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-emerald-500 animate-pulse"></div>
 
     @if(! $data)
         <div class="flex flex-col items-center justify-center py-20 text-center">
@@ -12,7 +12,7 @@
             </h2>
             @if($noConnections ?? false)
                 <p class="mt-2 text-sm text-white/40">{{ __('Connect a page to see analytics.') }}</p>
-                <a href="{{ route('connections.index') }}" class="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500">
+                <a href="{{ route('connections.index') }}" class="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
                     {{ __('Go to Connections') }}
                 </a>
             @endif
@@ -35,11 +35,11 @@
             {{-- Header with period selector --}}
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{{ __('Analytics') }}</h1>
+                    <h1 class="font-serif text-3xl text-ink dark:text-zinc-50">{{ __('Analytics') }}</h1>
                     <div class="mt-1 flex items-center gap-3">
                         <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('AI performance and sales insights') }}</p>
                         <span wire:loading class="inline-flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
-                            <svg class="size-3.5 animate-spin text-violet-500 dark:text-violet-400" viewBox="0 0 24 24" fill="none">
+                            <svg class="size-3.5 animate-spin text-emerald-500 dark:text-emerald-400" viewBox="0 0 24 24" fill="none">
                                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/>
                                 <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
                             </svg>
@@ -54,7 +54,7 @@
                             wire:loading.attr="disabled"
                             wire:target="$set('period', '{{ $value }}')"
                             class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold transition-all {{ $period === $value ? 'text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800' }} disabled:opacity-60 disabled:cursor-wait"
-                            @if($period === $value) style="background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 2px 8px rgba(124,58,237,0.3);" @endif
+                            @if($period === $value) style="background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 8px rgba(5,150,105,0.3);" @endif
                         >
                             <span wire:loading.remove wire:target="$set('period', '{{ $value }}')">{{ $label }}</span>
                             <span wire:loading wire:target="$set('period', '{{ $value }}')" class="inline-flex items-center gap-1">
@@ -75,7 +75,7 @@
                         <button
                             wire:click="selectAllPages"
                             wire:loading.attr="disabled"
-                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
+                            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:opacity-60 {{ $allSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
                         >
                             {{ __('All') }}
                         </button>
@@ -86,7 +86,7 @@
                             wire:click="togglePage({{ $page->id }})"
                             wire:loading.attr="disabled"
                             wire:target="togglePage({{ $page->id }})"
-                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-violet-600 bg-violet-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
+                            class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-all disabled:opacity-60 disabled:cursor-wait {{ $isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400' }}"
                             title="{{ ucfirst($page->platform) }} — {{ $page->name }}"
                         >
                             <span class="size-2 rounded-full {{ $chipPlatformColors[$page->platform] ?? 'bg-gray-400' }}"></span>
@@ -108,7 +108,7 @@
                 {{-- AI Automation Rate --}}
                 <div class="aio-card aio-stat-purple rounded-2xl p-5">
                     <p class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">{{ __('AI Automation') }}</p>
-                    <span class="text-3xl font-bold text-[#C27AFF]">{{ $data['aiVsHuman']['ai_percent'] }}%</span>
+                    <span class="text-3xl font-bold text-[#34d399]">{{ $data['aiVsHuman']['ai_percent'] }}%</span>
                     <p class="mt-2 text-xs text-white/35">{{ number_format($data['aiVsHuman']['ai']) }} AI / {{ number_format($data['aiVsHuman']['human']) }} human</p>
                 </div>
 
@@ -179,8 +179,8 @@
                                      {
                                          label: @js(__('AI Responses')),
                                          data: ai,
-                                         borderColor: '#8b5cf6',
-                                         backgroundColor: 'rgba(139,92,246,0.1)',
+                                         borderColor: '#10b981',
+                                         backgroundColor: 'rgba(5,150,105,0.1)',
                                          fill: true,
                                          tension: 0.4,
                                          pointRadius: 3,
@@ -230,7 +230,7 @@
                     <h3 class="text-sm font-semibold text-white/80">{{ __('Reach Across Platforms') }}</h3>
                     <div class="flex gap-4">
                         <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#64748b]"></div><span class="text-xs text-white/40">{{ __('Inbound') }}</span></div>
-                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#8b5cf6]"></div><span class="text-xs text-white/40">AI</span></div>
+                        <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#10b981]"></div><span class="text-xs text-white/40">AI</span></div>
                         <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#3b82f6]"></div><span class="text-xs text-white/40">{{ __('Human Responses') }}</span></div>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
                         <div class="space-y-4">
                             <div class="flex h-8 overflow-hidden rounded-full">
                                 @if($data['aiVsHuman']['ai'] > 0)
-                                    <div class="flex items-center justify-center bg-[#8b5cf6] text-xs font-bold text-white transition-all" style="width: {{ $data['aiVsHuman']['ai_percent'] }}%">
+                                    <div class="flex items-center justify-center bg-[#10b981] text-xs font-bold text-white transition-all" style="width: {{ $data['aiVsHuman']['ai_percent'] }}%">
                                         @if($data['aiVsHuman']['ai_percent'] > 15) {{ $data['aiVsHuman']['ai_percent'] }}% @endif
                                     </div>
                                 @endif
@@ -260,7 +260,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <div class="flex items-center gap-2">
-                                    <div class="size-3 rounded-full bg-[#8b5cf6]"></div>
+                                    <div class="size-3 rounded-full bg-[#10b981]"></div>
                                     <span class="text-sm text-white/80">{{ __('AI Responses') }}: {{ number_format($data['aiVsHuman']['ai']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -272,9 +272,9 @@
                                 @php
                                     $speedup = $data['responseTime']['human_avg'] > 0 ? round($data['responseTime']['human_avg'] / max($data['responseTime']['ai_avg'], 1)) : 0;
                                 @endphp
-                                <div class="rounded-lg bg-white/5 p-3">
-                                    <p class="text-sm text-white/40">
-                                        {{ __('AI responds') }} <span class="font-bold text-green-400">{{ $speedup }}x {{ __('faster') }}</span> {{ __('than human agents') }}
+                                <div class="rounded-lg bg-ink text-cream p-3">
+                                    <p class="text-sm text-cream/80">
+                                        {{ __('AI responds') }} <span class="font-bold text-emer-400">{{ $speedup }}x {{ __('faster') }}</span> {{ __('than human agents') }}
                                     </p>
                                 </div>
                             @endif
@@ -394,7 +394,7 @@
                                             <div class="bg-[#64748b]" style="width: {{ $maxDaily > 0 ? round(($day['inbound'] / $maxDaily) * 100) : 0 }}%"></div>
                                         @endif
                                         @if($day['ai'] > 0)
-                                            <div class="bg-[#8b5cf6]" style="width: {{ $maxDaily > 0 ? round(($day['ai'] / $maxDaily) * 100) : 0 }}%"></div>
+                                            <div class="bg-[#10b981]" style="width: {{ $maxDaily > 0 ? round(($day['ai'] / $maxDaily) * 100) : 0 }}%"></div>
                                         @endif
                                         @if($day['human'] > 0)
                                             <div class="bg-[#3b82f6]" style="width: {{ $maxDaily > 0 ? round(($day['human'] / $maxDaily) * 100) : 0 }}%"></div>
@@ -406,7 +406,7 @@
                         </div>
                         <div class="mt-3 flex gap-4">
                             <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#64748b]"></div><span class="text-xs text-white/40">Inbound</span></div>
-                            <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#8b5cf6]"></div><span class="text-xs text-white/40">AI</span></div>
+                            <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#10b981]"></div><span class="text-xs text-white/40">AI</span></div>
                             <div class="flex items-center gap-1.5"><div class="size-2 rounded-full bg-[#3b82f6]"></div><span class="text-xs text-white/40">Human</span></div>
                         </div>
                     @else

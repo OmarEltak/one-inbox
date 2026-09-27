@@ -82,7 +82,7 @@
                         <li>{{ __('We reserve the right to change pricing with 30 days notice') }}</li>
                     </ul>
                     <p class="mt-3">{{ __('You can cancel your subscription at any time from your account settings. Access continues until the end of the current billing period.') }}</p>
-                    <p class="mt-3">{{ __('Refund eligibility is governed by our') }} <a href="{{ route('refund') }}" class="text-indigo-600 hover:underline">{{ __('Refund Policy') }}</a>{{ __(', which includes a 14-day money-back guarantee on new subscriptions.') }}</p>
+                    <p class="mt-3">{{ __('Refund eligibility is governed by our') }} <a href="{{ route('refund') }}" class="text-emerald-600 hover:underline">{{ __('Refund Policy') }}</a>{{ __(', which includes a 14-day money-back guarantee on new subscriptions.') }}</p>
                 </div>
 
                 <div>

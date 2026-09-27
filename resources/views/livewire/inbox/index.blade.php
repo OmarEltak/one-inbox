@@ -24,9 +24,9 @@
         </button>
     </div>
     {{-- Conversation List Sidebar --}}
-    <div wire:poll.30s class="flex-shrink-0 border-e border-zinc-200 dark:border-zinc-700 flex flex-col w-full md:w-80 {{ $selectedConversationId ? 'hidden md:flex' : 'flex' }}">
+    <div wire:poll.30s class="flex-shrink-0 border-e border-line dark:border-zinc-700 flex flex-col w-full md:w-80 {{ $selectedConversationId ? 'hidden md:flex' : 'flex' }}">
         {{-- Filters --}}
-        <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 space-y-3">
+        <div class="border-b border-line dark:border-zinc-700 p-3 space-y-3">
             <div class="flex items-center gap-2">
                 <div class="flex-1 ring-2 ring-blue-500 rounded-lg">
                 <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search conversations...') }}" icon="magnifying-glass" size="sm" class="w-full [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
@@ -41,7 +41,7 @@
                 <flux:badge as="button" wire:click="setFilter('unread')" :variant="$filter === 'unread' ? 'solid' : 'outline'" color="red" size="sm" :class="$filter !== 'unread' ? '!text-zinc-900' : ''">
                     {{ __('Unread') }} {{ $this->unreadCount > 0 ? "({$this->unreadCount})" : '' }}
                 </flux:badge>
-                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">{{ __('Mine') }}</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="emerald" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">{{ __('Mine') }}</flux:badge>
                 @if(!$pageId)
                 <flux:badge as="button" wire:click="setFilter('facebook')" :variant="$filter === 'facebook' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'facebook' ? '!text-zinc-900' : ''">FB</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('instagram')" :variant="$filter === 'instagram' ? 'solid' : 'outline'" color="pink" size="sm" :class="$filter !== 'instagram' ? '!text-zinc-900' : ''">IG</flux:badge>
@@ -66,7 +66,7 @@
                 {{-- Label filters — collapsed into a dropdown --}}
                 @php $activeLabel = collect(\App\Livewire\Inbox\Index::LABELS)->keys()->contains($filter) ? $filter : null; @endphp
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-violet-600 border-violet-600 text-white' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100' }}">
+                    <button @click="open = !open" class="inline-flex items-center gap-1 rounded-full border text-xs px-2 py-0.5 transition-colors {{ $activeLabel ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100' }}">
                         {{ $activeLabel ? ucfirst($activeLabel) : __('Labels') }}
                         <svg class="w-3 h-3 transition-transform" x-bind:class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
@@ -120,7 +120,7 @@
                                 <span class="font-medium text-sm truncate {{ $selectedConversationId === $conversation->id ? '!text-white dark:!text-white' : '!text-zinc-900 dark:!text-zinc-900 group-hover:!text-white dark:group-hover:!text-white' }}">
                                     {{ $conversation->contact?->name ?? 'Unknown' }}
                                 </span>
-                                <span class="text-xs text-zinc-500 flex-shrink-0 ml-2">
+                                <span class="text-xs text-ink/60 flex-shrink-0 ml-2">
                                     {{ $conversation->last_message_at?->shortAbsoluteDiffForHumans() }}
                                 </span>
                             </div>
@@ -184,7 +184,7 @@
                 @else
                     <div class="flex flex-col items-center justify-center h-full p-6 text-center">
                         <flux:icon name="inbox" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mb-3" />
-                        <flux:heading size="sm" class="text-zinc-500">{{ __('No conversations yet') }}</flux:heading>
+                        <flux:heading size="sm" class="text-ink/60">{{ __('No conversations yet') }}</flux:heading>
                         <flux:text size="sm" class="text-zinc-400 mt-1">
                             {{ __('Connect your social accounts to start receiving messages.') }}
                         </flux:text>
@@ -287,7 +287,7 @@
                         >
                             <div class="p-3 border-b border-zinc-100 dark:border-zinc-700">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-medium text-zinc-500">{{ __('Score History') }}</span>
+                                    <span class="text-xs font-medium text-ink/60">{{ __('Score History') }}</span>
                                     <span class="text-lg font-bold">{{ $conv->contact->lead_score }}/100</span>
                                 </div>
                             </div>
@@ -528,7 +528,7 @@
 
                 <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
                     <button @click="scrollToBottom(); showNewMessageBadge = false"
-                            class="rounded-full bg-purple-600 px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-purple-700">
+                            class="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-emerald-700">
                         {{ __('New messages') }}
                     </button>
                 </div>
@@ -566,7 +566,7 @@
                     <div class="flex w-full {{ $message->isInbound() ? 'justify-start' : 'justify-end' }}">
                         <div class="max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-2 break-words {{ $message->isInbound()
                             ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
-                            : ($message->isFromAi() ? 'bg-purple-500 text-white' : 'bg-blue-500 text-white')
+                            : ($message->isFromAi() ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white')
                         }}" style="overflow-wrap: anywhere;">
                             @if($message->isFromAi())
                                 <div class="flex items-center gap-1.5 mb-1 text-xs opacity-80">
@@ -641,7 +641,7 @@
             </div>
 
             {{-- Composer --}}
-            <div class="border-t border-zinc-200 dark:border-zinc-700 p-3">
+            <div class="border-t border-line dark:border-zinc-700 p-3">
                 {{-- Attachment Preview --}}
                 @if($attachment)
                     <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
@@ -759,7 +759,7 @@
         @else
             <div class="flex-1 flex flex-col items-center justify-center text-center p-6">
                 <flux:icon name="chat-bubble-left-right" class="w-16 h-16 text-zinc-300 dark:text-zinc-600 mb-4" />
-                <flux:heading size="lg" class="text-zinc-500">{{ __('Select a conversation') }}</flux:heading>
+                <flux:heading size="lg" class="text-ink/60">{{ __('Select a conversation') }}</flux:heading>
                 <flux:text class="text-zinc-400 mt-2">{{ __('Choose a conversation from the sidebar to start messaging.') }}</flux:text>
             </div>
         @endif

@@ -26,7 +26,7 @@
 
                     <p style="margin:0 0 24px; text-align:center;">
                         <a href="mailto:omareltak7@gmail.com?subject=OT1-Pro%20setup%20help"
-                           style="display:inline-block; padding:12px 24px; background:#7C3AED; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; font-size:15px;">
+                           style="display:inline-block; padding:12px 24px; background:#059669; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; font-size:15px;">
                             Email Omar
                         </a>
                     </p>

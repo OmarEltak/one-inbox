@@ -19,7 +19,7 @@
      data-testid="onboarding-next-step-panel">
     <div class="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6">
         <div class="flex items-center gap-3 mb-4">
-            <div class="size-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+            <div class="size-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
                 <flux:icon name="sparkles" class="size-5" />
             </div>
             <div class="min-w-0 flex-1">
@@ -29,7 +29,7 @@
         </div>
 
         <div class="h-1.5 rounded-full bg-zinc-100 overflow-hidden mb-5">
-            <div class="h-full bg-purple-500 transition-all"
+            <div class="h-full bg-emerald-500 transition-all"
                  style="width: {{ max(2, $percent) }}%;"></div>
         </div>
 
@@ -55,7 +55,7 @@
         @if($next)
             <a href="{{ $next['url'] }}"
                wire:navigate.hover
-               class="block w-full text-center rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold px-4 py-2.5 transition-colors">
+               class="block w-full text-center rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2.5 transition-colors">
                 {{ __('Next') }}: {{ __($next['label']) }} →
             </a>
         @endif

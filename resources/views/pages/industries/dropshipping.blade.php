@@ -1,4 +1,5 @@
-<x-layouts.marketing
+<x-layouts.brand-marketing
+    :solidNav="true"
     :title="__('WhatsApp + Instagram Inbox for Dropshippers in Egypt & MENA — OT1-Pro')"
     :description="__('Egyptian and GCC dropshippers get flooded with WhatsApp and Instagram DMs on ad-driven traffic. OT1-Pro\'s AI handles pricing, shipping, and cash-on-delivery questions 24/7 — so no lead is lost overnight.')"
     :canonical="route('industry.dropshipping')"
@@ -36,30 +37,30 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-indigo-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden pt-32 pb-20 text-ink lg:pt-40 lg:pb-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                    <span class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-emer-700">
                         {{ __('Dropshipping') }}
                     </span>
-                    <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('Turn Every <span class="text-indigo-400">Instagram Ad Click</span> Into a WhatsApp Sale — Automatically') !!}
+                    <h1 class="serif mt-5 text-5xl leading-[1.02] text-ink lg:text-6xl xl:text-7xl">
+                        {!! __('Turn Every <span class="serif-it text-emer-700">Instagram Ad Click</span> Into a WhatsApp Sale — Automatically') !!}
                     </h1>
-                    <p class="mt-5 text-lg text-zinc-700">
+                    <p class="mt-6 text-lg leading-relaxed text-ink/70">
                         {{ __('Egyptian and MENA dropshippers know the drill: run Facebook and Instagram ads → get flooded with "بكام؟" and "الشحن كام؟" messages → lose half the leads because your team is asleep. OT1-Pro\'s AI handles pricing, shipping, and COD confirmation 24/7 in your customer\'s dialect — so overnight ad traffic turns into next-day deliveries.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700">
+                        <a href="{{ route('register') }}" class="inline-flex items-center rounded-full bg-ink px-7 py-4 font-semibold text-cream transition hover:bg-ink2">
                             {{ __('Start Free') }}
                         </a>
-                        <a href="{{ route('pricing') }}" class="rounded-xl border border-zinc-300 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-indigo-700">
+                        <a href="{{ route('pricing') }}" class="inline-flex items-center rounded-full border border-ink/20 px-7 py-4 font-semibold text-ink transition hover:bg-ink/5">
                             {{ __('See Pricing') }}
                         </a>
                     </div>
-                    <p class="mt-4 text-sm text-zinc-500">{{ __('From $8/month · Free plan available · Founder on WhatsApp +20 102 636 1218') }}</p>
+                    <p class="mt-4 text-sm text-ink/60">{{ __('From $8/month · Free plan available · Founder on WhatsApp +20 102 636 1218') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6">
+                <div class="rounded-2xl border border-line bg-cream2 p-6 shadow-sm">
                     @php
                     $metrics = [
                         [__('Overnight leads captured'), '+65%', __('vs manual reply team')],
@@ -68,12 +69,12 @@
                         [__('AI cost per response'), '~$0.02', __('vs $2+ per manual reply')],
                     ];
                     @endphp
-                    <p class="mb-4 text-sm font-semibold text-zinc-600">{{ __('Real results for MENA dropshippers') }}</p>
+                    <p class="mb-4 text-sm font-semibold text-ink/70">{{ __('Real results for MENA dropshippers') }}</p>
                     @foreach($metrics as [$label, $value, $sub])
-                    <div class="mb-4 rounded-lg bg-zinc-100 px-4 py-3">
-                        <p class="text-xs text-zinc-500">{{ $label }}</p>
-                        <p class="text-2xl font-bold text-indigo-400">{{ $value }}</p>
-                        <p class="text-xs text-zinc-500">{{ $sub }}</p>
+                    <div class="mb-4 rounded-lg bg-cream px-4 py-3">
+                        <p class="text-xs text-ink/60">{{ $label }}</p>
+                        <p class="serif text-3xl text-emer-700">{{ $value }}</p>
+                        <p class="text-xs text-ink/60">{{ $sub }}</p>
                     </div>
                     @endforeach
                 </div>
@@ -82,19 +83,19 @@
     </section>
 
     {{-- The Dropshipper Problem --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-4xl px-6">
-            <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('The dropshipper problem, honestly') }}</h2>
-            <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Your ad budget produces traffic. Most of that traffic messages you at night — because that is when Egyptians scroll Instagram. Here is what actually happens:') }}</p>
-            <ul class="mt-8 space-y-4 text-zinc-700 dark:text-zinc-700">
-                <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('You spend 3,000 EGP on a Facebook ad campaign in one evening.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('That produces 180 DMs and WhatsApp messages between 8pm and 1am.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('Your team (or just you) replies to the first 30, then goes to sleep.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('The other 150 leads see no reply until 10am the next day.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('By morning, 90+ have gone cold or bought from a competitor who replied faster.') }}</li>
-                <li class="flex gap-3"><span class="text-red-500">✗</span>{{ __('Your effective ROAS is half what your ad manager reports — because half your leads were never contacted.') }}</li>
+            <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('The dropshipper problem, honestly') }}</h2>
+            <p class="mt-4 text-ink/70">{{ __('Your ad budget produces traffic. Most of that traffic messages you at night — because that is when Egyptians scroll Instagram. Here is what actually happens:') }}</p>
+            <ul class="mt-8 space-y-4 text-ink/80">
+                <li class="flex gap-3"><span class="text-ink/50">✗</span>{{ __('You spend 3,000 EGP on a Facebook ad campaign in one evening.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50">✗</span>{{ __('That produces 180 DMs and WhatsApp messages between 8pm and 1am.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50">✗</span>{{ __('Your team (or just you) replies to the first 30, then goes to sleep.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50">✗</span>{{ __('The other 150 leads see no reply until 10am the next day.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50">✗</span>{{ __('By morning, 90+ have gone cold or bought from a competitor who replied faster.') }}</li>
+                <li class="flex gap-3"><span class="text-ink/50">✗</span>{{ __('Your effective ROAS is half what your ad manager reports — because half your leads were never contacted.') }}</li>
             </ul>
-            <p class="mt-8 rounded-xl bg-indigo-50 p-6 text-zinc-800 dark:bg-indigo-50/50 dark:text-zinc-800">{!! __('<strong>The uncomfortable truth:</strong> Most dropshippers don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are.') !!}</p>
+            <p class="mt-8 rounded-2xl border-l-4 border-emer-500 bg-cream p-6 text-ink">{!! __('<strong>The uncomfortable truth:</strong> Most dropshippers don\'t have an ad problem. They have a reply-time problem that makes their ads look worse than they are.') !!}</p>
         </div>
     </section>
 
@@ -102,8 +103,8 @@
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('What OT1-Pro does for dropshippers') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Built for solo operators and 2–5 person teams running FB/IG ads on tight margins.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('What OT1-Pro does for dropshippers') }}</h2>
+                <p class="mt-4 text-ink/70">{{ __('Built for solo operators and 2–5 person teams running FB/IG ads on tight margins.') }}</p>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -141,10 +142,10 @@
                 ];
                 @endphp
                 @foreach($features as $f)
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
                     <div class="mb-3 text-3xl">{{ $f[0] }}</div>
-                    <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-900">{{ $f[1] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $f[2] }}</p>
+                    <h3 class="serif text-2xl leading-snug text-ink">{{ $f[1] }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $f[2] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -152,10 +153,10 @@
     </section>
 
     {{-- The Playbook --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-4xl px-6">
-            <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('The 4-step dropshipper setup') }}</h2>
-            <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Most solo dropshippers are live with OT1-Pro in under an hour.') }}</p>
+            <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('The 4-step dropshipper setup') }}</h2>
+            <p class="mt-4 text-ink/70">{{ __('Most solo dropshippers are live with OT1-Pro in under an hour.') }}</p>
             <ol class="mt-8 space-y-6">
                 @php
                 $steps = [
@@ -166,9 +167,9 @@
                 ];
                 @endphp
                 @foreach($steps as $step)
-                <li class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white">
-                    <h3 class="font-semibold text-zinc-900 dark:text-zinc-900">{{ $step[0] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $step[1] }}</p>
+                <li class="fade-up rounded-2xl border border-line bg-cream p-6">
+                    <h3 class="serif text-xl text-ink">{{ $step[0] }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $step[1] }}</p>
                 </li>
                 @endforeach
             </ol>
@@ -179,9 +180,9 @@
     <section class="py-20">
         <div class="mx-auto max-w-3xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Dropshipper FAQ') }}</h2>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Dropshipper FAQ') }}</h2>
             </div>
-            <div class="mt-12 space-y-4" x-data="{ open: null }">
+            <div class="mt-12 divide-y divide-line border-y border-line">
                 @php
                 $faqs = [
                     [
@@ -211,33 +212,26 @@
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
-                <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white" x-data>
-                    <button @click="open = open === {{ $i }} ? null : {{ $i }}" class="flex w-full items-center justify-between px-6 py-4 text-left cursor-pointer">
-                        <span class="font-medium">{{ $faq[0] }}</span>
-                        <svg class="size-5 flex-shrink-0 text-zinc-600 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    </button>
-                    <div x-show="open === {{ $i }}" x-collapse>
-                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-600">{{ $faq[1] }}</div>
-                    </div>
-                </div>
+                <details class="py-5">
+                    <summary class="flex items-center justify-between gap-4">
+                        <span class="serif text-xl text-ink">{{ $faq[0] }}</span>
+                        <span class="chev serif text-2xl text-emer-700">+</span>
+                    </summary>
+                    <p class="mt-3 text-sm leading-relaxed text-ink/70">{{ $faq[1] }}</p>
+                </details>
                 @endforeach
             </div>
         </div>
     </section>
 
-    {{-- CTA --}}
-    <section class="py-20 lg:py-28">
-        <div class="mx-auto max-w-4xl px-6">
-            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
-                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Stop losing overnight ad clicks') }}</h2>
-                <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up in under an hour. See it capture leads while you sleep, from the very first evening.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md">
-                    {{ __('Start Free with OT1-Pro') }}
-                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                </a>
-                <p class="mt-3 text-sm text-indigo-800">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
-            </div>
+    {{-- ═══════ FINAL CTA ═══════ --}}
+    <section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Stop losing overnight ad clicks') }}</h2>
+            <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('Set up in under an hour. See it capture leads while you sleep, from the very first evening.') }}</p>
+            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Start Free with OT1-Pro') }} <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
+            <p class="mt-4 text-sm text-cream/60">{{ __('$8/month after free tier · No credit card required · Founder on WhatsApp') }}</p>
         </div>
     </section>
 
-</x-layouts.marketing>
+</x-layouts.brand-marketing>

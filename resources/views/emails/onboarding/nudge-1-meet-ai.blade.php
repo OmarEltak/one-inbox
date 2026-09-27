@@ -22,7 +22,7 @@
 
                     <p style="margin:0 0 24px; text-align:center;">
                         <a href="{{ url('/onboarding/meet-your-ai') }}"
-                           style="display:inline-block; padding:12px 24px; background:#7C3AED; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; font-size:15px;">
+                           style="display:inline-block; padding:12px 24px; background:#059669; color:#ffffff; text-decoration:none; border-radius:8px; font-weight:600; font-size:15px;">
                             Meet your AI (90 seconds) →
                         </a>
                     </p>

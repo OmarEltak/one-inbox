@@ -2,8 +2,8 @@
     <div class="flex flex-col gap-6">
         {{-- Header --}}
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Create your account') }}</h1>
-            <p class="mt-1 text-sm text-zinc-500">{{ __('Start managing all your conversations in one place') }}</p>
+            <h1 class="serif text-3xl leading-tight text-ink">{{ __('Create your account') }}</h1>
+            <p class="mt-2 text-sm text-ink/70">{{ __('Start managing all your conversations in one place') }}</p>
         </div>
 
         <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-5">
@@ -43,7 +43,7 @@
                     :placeholder="__('Min. 8 characters')"
                     viewable
                 />
-                <p class="text-xs text-zinc-400">
+                <p class="text-xs text-ink/60">
                     {{ __('Min. 8 characters.') }}
                 </p>
             </div>
@@ -59,14 +59,15 @@
                 viewable
             />
 
-            <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
+            <button type="submit" data-test="register-user-button"
+                class="inline-flex items-center justify-center gap-2 w-full bg-emer-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emer-700 transition cursor-pointer">
                 {{ __('Create account') }}
-            </flux:button>
+            </button>
         </form>
 
-        <p class="text-sm text-center text-zinc-500">
+        <p class="text-sm text-center text-ink/70">
             {{ __('Already have an account?') }}
-            <flux:link :href="route('login')" wire:navigate class="font-medium">{{ __('Sign in') }}</flux:link>
+            <a href="{{ route('login') }}" wire:navigate class="font-semibold text-emer-700 hover:text-emer-600">{{ __('Sign in') }}</a>
         </p>
     </div>
 </x-layouts::auth>

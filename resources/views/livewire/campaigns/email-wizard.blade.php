@@ -28,7 +28,7 @@
             <div class="flex items-center gap-2">
                 <span class="px-3 py-1.5 rounded-lg
                     {{ $i < $current ? 'bg-green-500/20 text-green-300' : '' }}
-                    {{ $i === $current ? 'bg-[#7C3AED]/30 text-[#C27AFF] font-semibold' : '' }}
+                    {{ $i === $current ? 'bg-[#059669]/30 text-[#34d399] font-semibold' : '' }}
                     {{ $i > $current ? 'bg-white/[0.04] text-white/40' : '' }}">
                     {{ $label }}
                 </span>
@@ -49,8 +49,8 @@
                        class="block w-full text-sm text-white/80
                               file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
                               file:text-sm file:font-semibold
-                              file:bg-[#7C3AED]/20 file:text-[#C27AFF]
-                              hover:file:bg-[#7C3AED]/30 cursor-pointer" />
+                              file:bg-[#059669]/20 file:text-[#34d399]
+                              hover:file:bg-[#059669]/30 cursor-pointer" />
                 <p class="text-xs text-white/40 mt-2">{{ __('.csv or .xlsx, up to 10 MB, max 50,000 rows.') }}</p>
                 @error('file') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -151,7 +151,7 @@
     @if($step === 'compose')
         <div class="aio-card rounded-2xl p-6 space-y-4">
             <flux:callout variant="success" icon="check-circle">
-                Imported <strong>{{ $importedCount }}</strong> contact{{ $importedCount === 1 ? '' : 's' }} (tagged <code class="text-[#C27AFF]">{{ $importTag }}</code>).
+                Imported <strong>{{ $importedCount }}</strong> contact{{ $importedCount === 1 ? '' : 's' }} (tagged <code class="text-[#34d399]">{{ $importTag }}</code>).
             </flux:callout>
 
             <div>
@@ -165,7 +165,7 @@
                 <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Sender (your connected email account)') }}</label>
                 @if($this->emailSenders->isEmpty())
                     <flux:callout variant="warning" icon="exclamation-triangle">
-                        No connected email accounts. <a href="{{ route('connections.index') }}" wire:navigate class="underline text-[#C27AFF]">Connect one →</a>
+                        No connected email accounts. <a href="{{ route('connections.index') }}" wire:navigate class="underline text-[#34d399]">Connect one →</a>
                     </flux:callout>
                 @else
                     <select wire:model="senderPageId"

@@ -132,7 +132,7 @@
                 <div class="border-t border-zinc-100 pt-3 space-y-2">
                     <flux:label class="text-xs text-zinc-900">Schedule for later</flux:label>
                     <input type="datetime-local" wire:model="scheduledAt"
-                        class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                     <flux:button wire:click="schedule" variant="outline" class="w-full text-sm text-zinc-900">Schedule</flux:button>
                     @error('scheduledAt') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
                 </div>
@@ -142,7 +142,7 @@
             <div class="rounded-xl border border-zinc-200 p-4 space-y-2">
                 <flux:heading size="sm" class="text-zinc-900">Language</flux:heading>
                 <select wire:model.live="language"
-                    class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="en">🇬🇧 English</option>
                     <option value="ar">🇸🇦 Arabic</option>
                     <option value="fr">🇫🇷 French</option>

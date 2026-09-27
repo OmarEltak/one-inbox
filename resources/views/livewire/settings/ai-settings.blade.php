@@ -1,7 +1,7 @@
 <div class="p-6 max-w-3xl" x-data="{ tab: 'general' }">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-zinc-900">{{ __('AI Settings') }}</h1>
-        <p class="mt-1 text-sm text-white/40">{{ __('Control the AI sales responder for your entire team.') }}</p>
+        <h1 class="font-serif text-3xl text-ink">{{ __('AI Settings') }}</h1>
+        <p class="mt-1 text-sm text-zinc-600">{{ __('Control the AI sales responder for your entire team.') }}</p>
     </div>
 
     {{-- Tab Bar --}}
@@ -10,9 +10,9 @@
             <button
                 @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
-                    ? 'border-b-2 text-[#C27AFF]'
+                    ? 'border-b-2 text-[#34d399]'
                     : 'text-white/35 hover:text-white/60'"
-                :style="tab === '{{ $key }}' ? 'border-color: #7C3AED;' : ''"
+                :style="tab === '{{ $key }}' ? 'border-color: #059669;' : ''"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px"
             >{{ $label }}</button>
         @endforeach

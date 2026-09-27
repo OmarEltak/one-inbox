@@ -100,10 +100,10 @@
         .btn:active { transform: translateY(1px); }
         .btn-primary {
             color: #fff;
-            background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
         }
-        .btn-primary:hover { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); }
+        .btn-primary:hover { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         .btn-secondary {
             color: rgba(255, 255, 255, 0.75);
             background: transparent;

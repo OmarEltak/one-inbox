@@ -24,7 +24,7 @@
             <div class="relative">
                 <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search by team name, owner name, or email..."
-                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
             </div>
         </div>
         <div class="w-44">
@@ -55,8 +55,8 @@
 
     {{-- Bulk action bar --}}
     @if(count($selected) > 0)
-        <div class="mb-4 flex items-center justify-between gap-3 rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 px-4 py-2.5">
-            <div class="text-sm text-violet-900 dark:text-violet-200">
+        <div class="mb-4 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2.5">
+            <div class="text-sm text-emerald-900 dark:text-emerald-200">
                 <strong>{{ count($selected) }}</strong> team(s) selected
             </div>
             <div class="flex gap-2">
@@ -90,7 +90,7 @@
                                 type="checkbox"
                                 @checked($allSelected)
                                 wire:click="{{ $allSelected ? 'clearSelection' : 'selectAllVisible' }}"
-                                class="rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500"
+                                class="rounded border-zinc-300 dark:border-zinc-600 text-emerald-600 focus:ring-emerald-500"
                                 title="Select all visible"
                             />
                         </th>
@@ -127,7 +127,7 @@
                                     type="checkbox"
                                     value="{{ $team->id }}"
                                     wire:model.live="selected"
-                                    class="rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500"
+                                    class="rounded border-zinc-300 dark:border-zinc-600 text-emerald-600 focus:ring-emerald-500"
                                 />
                             </td>
                             <td class="px-4 py-3">
@@ -277,7 +277,7 @@
                         <div>
                             <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">{{ __('Custom end date') }}</label>
                             <input type="date" wire:model="grantCustomDate" min="{{ now()->addDay()->toDateString() }}"
-                                class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition" />
+                                class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition" />
                         </div>
                     @endif
 

@@ -1,12 +1,12 @@
 <div class="p-6 space-y-6" x-data="{ tab: 'all' }">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Campaigns') }}</h1>
-            <p class="mt-1 text-sm text-zinc-700">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
+            <h1 class="font-serif text-3xl text-ink">{{ __('Campaigns') }}</h1>
+            <p class="mt-1 text-sm text-zinc-600">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('campaigns.email.new') }}" wire:navigate
-               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-800 transition-all bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">
+               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-ink transition-all bg-white hover:bg-cream border border-line">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -34,7 +34,7 @@
             ['label' => 'Active', 'value' => $allCampaigns->where('status', 'active')->count(), 'color' => 'text-yellow-600'],
             ['label' => 'Scheduled', 'value' => $allCampaigns->where('status', 'scheduled')->count(), 'color' => 'text-blue-600'],
             ['label' => 'Total Sent', 'value' => number_format($allCampaigns->sum('sent_count')), 'color' => 'text-emerald-700'],
-            ['label' => 'Completed', 'value' => $allCampaigns->where('status', 'completed')->count(), 'color' => 'text-violet-700'],
+            ['label' => 'Completed', 'value' => $allCampaigns->where('status', 'completed')->count(), 'color' => 'text-emerald-700'],
             ['label' => 'Draft', 'value' => $allCampaigns->where('status', 'draft')->count(), 'color' => 'text-zinc-700'],
         ];
     @endphp
@@ -53,9 +53,9 @@
             <button
                 @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}'
-                    ? 'border-b-2 text-violet-700'
+                    ? 'border-b-2 text-emerald-700'
                     : 'text-zinc-700 hover:text-zinc-800'"
-                :style="tab === '{{ $key }}' ? 'border-color: #7C3AED;' : ''"
+                :style="tab === '{{ $key }}' ? 'border-color: #059669;' : ''"
                 class="px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer -mb-px"
             >{{ $label }}</button>
         @endforeach
@@ -143,7 +143,7 @@
                                 </div>
                                 <div class="h-1.5 rounded-full overflow-hidden" style="background: #e4e4e7;">
                                     <div class="h-full rounded-full transition-all duration-300"
-                                         style="width: {{ $progress }}%; background: {{ $campaign->status === 'active' ? 'linear-gradient(90deg, #7C3AED, #06B6D4)' : ($campaign->status === 'completed' ? '#00D492' : '#6B7280') }};">
+                                         style="width: {{ $progress }}%; background: {{ $campaign->status === 'active' ? 'linear-gradient(90deg, #059669, #06B6D4)' : ($campaign->status === 'completed' ? '#00D492' : '#6B7280') }};">
                                     </div>
                                 </div>
                                 <div class="flex gap-4 text-xs text-zinc-700">
@@ -198,10 +198,10 @@
                 </div>
             </div>
         @empty
-            <div class="rounded-2xl p-10 text-center" style="border: 1px dashed rgba(124,58,237,0.2); background: rgba(124,58,237,0.03);">
-                <flux:icon.paper-airplane class="mx-auto size-10 text-zinc-700" />
-                <p class="mt-3 font-semibold text-zinc-900">{{ __('No campaigns yet') }}</p>
-                <p class="mt-1 text-sm text-zinc-700">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
+            <div class="rounded-2xl p-10 text-center bg-cream border border-dashed border-line">
+                <flux:icon.paper-airplane class="mx-auto size-10 text-zinc-500" />
+                <p class="mt-3 font-serif text-xl text-ink">{{ __('No campaigns yet') }}</p>
+                <p class="mt-1 text-sm text-zinc-600">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
                 <div class="mt-4">
                     <flux:button icon="plus" wire:click="openCreateModal">{{ __('New Campaign') }}</flux:button>
                 </div>
@@ -224,7 +224,7 @@
                         wire:click="$set('platform', 'facebook')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'facebook',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'facebook',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'facebook',
                         ])
                     >
@@ -240,7 +240,7 @@
                         wire:click="$set('platform', 'instagram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'instagram',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'instagram',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'instagram',
                         ])
                     >
@@ -256,7 +256,7 @@
                         wire:click="$set('platform', 'telegram')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'telegram',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'telegram',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'telegram',
                         ])
                     >
@@ -272,7 +272,7 @@
                         wire:click="$set('platform', 'email')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'email',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'email',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'email',
                         ])
                     >
@@ -288,7 +288,7 @@
                         wire:click="$set('platform', 'whatsapp')"
                         @class([
                             'flex items-center gap-3 p-3 rounded-xl border text-left transition-all',
-                            'border-[#7C3AED] bg-violet-50 text-violet-900' => $platform === 'whatsapp',
+                            'border-[#059669] bg-emerald-50 text-emerald-900' => $platform === 'whatsapp',
                             'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:text-zinc-800' => $platform !== 'whatsapp',
                         ])
                     >

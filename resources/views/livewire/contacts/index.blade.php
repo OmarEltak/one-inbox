@@ -67,10 +67,10 @@
                                 @if($contact->avatar)
                                     <img src="{{ $contact->avatar }}" alt="{{ $contact->name ?? 'Contact' }}"
                                          class="size-9 rounded-full object-cover flex-shrink-0"
-                                         onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'size-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0', style: 'background: linear-gradient(135deg, #3b82f6, #8b5cf6);', textContent: '{{ strtoupper(substr($contact->name ?? 'U', 0, 1)) }}'}))" />
+                                         onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'size-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0', style: 'background: linear-gradient(135deg, #3b82f6, #10b981);', textContent: '{{ strtoupper(substr($contact->name ?? 'U', 0, 1)) }}'}))" />
                                 @else
                                     <div class="size-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                                         style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                                         style="background: linear-gradient(135deg, #3b82f6, #10b981);">
                                         {{ strtoupper(substr($contact->name ?? 'U', 0, 1)) }}
                                     </div>
                                 @endif
@@ -189,7 +189,7 @@
                              class="size-14 rounded-full object-cover flex-shrink-0" />
                     @else
                         <div class="size-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-                             style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                             style="background: linear-gradient(135deg, #3b82f6, #10b981);">
                             {{ strtoupper(substr($sc->name ?? 'U', 0, 1)) }}
                         </div>
                     @endif

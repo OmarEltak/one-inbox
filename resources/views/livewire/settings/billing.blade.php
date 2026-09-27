@@ -20,14 +20,14 @@
             {{-- Current Plan --}}
             <div>
                 <flux:heading size="sm">{{ __('Current Plan') }}</flux:heading>
-                <div class="mt-3 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
+                <div class="mt-3 rounded-xl bg-ink text-cream p-5">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                            <span class="font-serif text-2xl text-cream">
                                 {{ $this->plans[$this->currentPlan]['name'] ?? 'Free' }}
                             </span>
                             @if($this->currentPlan !== 'free')
-                                <span class="ml-2 text-sm text-zinc-500">${{ $this->plans[$this->currentPlan]['price'] ?? 0 }}/mo</span>
+                                <span class="ml-2 text-sm text-cream/70">${{ $this->plans[$this->currentPlan]['price'] ?? 0 }}/mo</span>
                             @endif
                         </div>
                         {{-- Stripe portal hidden — billing is now manual wire transfer --}}
@@ -43,7 +43,7 @@
                     <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
                         <div class="flex items-center justify-between mb-2">
                             <flux:text class="text-sm font-medium text-zinc-500">{{ __('AI Credits') }}</flux:text>
-                            <flux:icon name="sparkles" class="w-4 h-4 text-purple-500" />
+                            <flux:icon name="sparkles" class="w-4 h-4 text-emerald-500" />
                         </div>
                         <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                             {{ number_format($this->usage['ai_credits_used']) }}
@@ -54,7 +54,7 @@
                         @if($this->usage['ai_credits_limit'] > 0)
                             @php $pct = min(100, ($this->usage['ai_credits_used'] / $this->usage['ai_credits_limit']) * 100); @endphp
                             <div class="mt-2 h-2 rounded-full bg-zinc-100 dark:bg-zinc-700">
-                                <div class="h-2 rounded-full {{ $pct > 90 ? 'bg-red-500' : ($pct > 70 ? 'bg-yellow-500' : 'bg-purple-500') }}" style="width: {{ $pct }}%"></div>
+                                <div class="h-2 rounded-full {{ $pct > 90 ? 'bg-red-500' : ($pct > 70 ? 'bg-yellow-500' : 'bg-emerald-500') }}" style="width: {{ $pct }}%"></div>
                             </div>
                         @endif
                     </div>
@@ -87,8 +87,8 @@
                 <div class="mt-3 grid gap-4 sm:grid-cols-2">
                     @foreach($this->plans as $key => $plan)
                         <div class="rounded-xl border p-5 {{ $this->currentPlan === $key
-                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                            : 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800' }}">
+                            ? 'border-emer-600 bg-emer-50 dark:bg-emerald-900/20'
+                            : 'border-line bg-white dark:border-zinc-700 dark:bg-zinc-800' }}">
                             <div class="mb-3">
                                 <span class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{{ $plan['name'] }}</span>
                                 <div class="mt-1">
@@ -99,7 +99,7 @@
                                 </div>
                             </div>
 
-                            <ul class="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                            <ul class="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-200 mb-4">
                                 <li class="flex items-center gap-2">
                                     <flux:icon name="check" class="w-4 h-4 text-green-500 flex-shrink-0" />
                                     {{ $plan['ai_credits'] === -1 ? __('Unlimited') : number_format($plan['ai_credits']) }} {{ __('AI credits/mo') }}
@@ -111,11 +111,11 @@
                             </ul>
 
                             @if($this->currentPlan === $key)
-                                <flux:badge variant="solid" color="purple" size="sm">{{ __('Current Plan') }}</flux:badge>
+                                <flux:badge variant="solid" color="emerald" size="sm">{{ __('Current Plan') }}</flux:badge>
                             @elseif($key === 'free')
                                 {{-- Can't downgrade to free --}}
                             @else
-                                <a href="{{ route('pay-wire') }}?plan={{ $key }}" class="block w-full text-center py-1.5 px-4 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors">
+                                <a href="{{ route('pay-wire') }}?plan={{ $key }}" class="block w-full text-center py-1.5 px-4 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
                                     {{ __('Upgrade via Wire Transfer') }}
                                 </a>
                             @endif
@@ -143,7 +143,7 @@
                                         <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300">{{ $invoice->date()->toFormattedDateString() }}</td>
                                         <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300">{{ $invoice->total() }}</td>
                                         <td class="px-4 py-3 text-right">
-                                            <a href="{{ $invoice->invoicePdf() }}" target="_blank" class="text-purple-600 hover:text-purple-800 dark:text-purple-400">
+                                            <a href="{{ $invoice->invoicePdf() }}" target="_blank" class="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400">
                                                 {{ __('Download') }}
                                             </a>
                                         </td>

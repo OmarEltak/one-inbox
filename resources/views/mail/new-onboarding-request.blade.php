@@ -35,7 +35,7 @@
     @endif
 
     <p style="margin-top: 24px;">
-        <a href="{{ url('/super-admin/onboarding-requests') }}" style="display: inline-block; background: #7c3aed; color: white; padding: 10px 18px; text-decoration: none; border-radius: 6px;">Open admin queue</a>
+        <a href="{{ url('/super-admin/onboarding-requests') }}" style="display: inline-block; background: #059669; color: white; padding: 10px 18px; text-decoration: none; border-radius: 6px;">Open admin queue</a>
     </p>
 </body>
 </html>

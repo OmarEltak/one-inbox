@@ -18,14 +18,15 @@
                 placeholder="email@example.com"
             />
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
+            <button type="submit" data-test="email-password-reset-link-button"
+                class="inline-flex items-center justify-center gap-2 w-full bg-emer-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emer-700 transition cursor-pointer">
                 {{ __('Email password reset link') }}
-            </flux:button>
+            </button>
         </form>
 
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-400">
+        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-ink/70">
             <span>{{ __('Or, return to') }}</span>
-            <flux:link :href="route('login')" wire:navigate>{{ __('log in') }}</flux:link>
+            <a href="{{ route('login') }}" wire:navigate class="font-semibold text-emer-700 hover:text-emer-600">{{ __('log in') }}</a>
         </div>
     </div>
 </x-layouts::auth>

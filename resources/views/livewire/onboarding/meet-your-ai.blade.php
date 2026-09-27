@@ -39,7 +39,7 @@
         {{-- Progress bar --}}
         <div class="mb-8 h-1.5 rounded-full bg-zinc-200 overflow-hidden">
             <div
-                class="h-full bg-violet-600 transition-all duration-500 ease-out"
+                class="h-full bg-emer-600 transition-all duration-500 ease-out"
                 style="width: {{ ($step / $totalSteps) * 100 }}%"
             ></div>
         </div>
@@ -61,14 +61,14 @@
                         <button
                             type="button"
                             wire:click="pickBusinessType('{{ $opt['id'] }}')"
-                            class="group relative flex flex-col items-start gap-2 p-5 rounded-xl border-2 border-zinc-200 bg-white hover:border-violet-500 hover:shadow-lg text-left transition-all cursor-pointer"
+                            class="group relative flex flex-col items-start gap-2 p-5 rounded-xl border-2 border-line bg-white hover:border-emer-500 hover:shadow-lg text-left transition-all cursor-pointer"
                             data-test="business-type-{{ $opt['id'] }}"
                         >
-                            <div class="size-10 rounded-lg bg-violet-100 flex items-center justify-center group-hover:bg-violet-200">
-                                <flux:icon :name="$opt['icon']" class="size-5 text-violet-700" />
+                            <div class="size-10 rounded-lg bg-emer-100 flex items-center justify-center group-hover:bg-emer-200">
+                                <flux:icon :name="$opt['icon']" class="size-5 text-emer-700" />
                             </div>
-                            <div class="font-semibold text-zinc-900">{{ __($opt['label']) }}</div>
-                            <div class="text-xs text-zinc-500">{{ __($opt['hint']) }}</div>
+                            <div class="font-semibold text-ink">{{ __($opt['label']) }}</div>
+                            <div class="text-xs text-ink/70">{{ __($opt['hint']) }}</div>
                         </button>
                     @endforeach
                 </div>
@@ -84,21 +84,21 @@
                 <button
                     type="button"
                     wire:click="backToStep1"
-                    class="inline-flex items-center gap-2 text-xs text-zinc-500 hover:text-violet-700 cursor-pointer"
+                    class="inline-flex items-center gap-2 text-xs text-ink/70 hover:text-emer-700 cursor-pointer"
                     data-test="edit-business-type"
                 >
                     <svg class="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                     {{ __('Business type:') }}
-                    <span class="font-semibold text-violet-700">{{ __($this->businessTypeLabel) }}</span>
+                    <span class="font-semibold text-emer-700">{{ __($this->businessTypeLabel) }}</span>
                     <span class="underline underline-offset-2">{{ __('change') }}</span>
                 </button>
 
                 {{-- Q1 --}}
                 @if($questionIndex >= 1)
                     <div class="flex gap-3">
-                        <div class="shrink-0 size-9 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold">1</div>
-                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-zinc-200 p-4">
-                            <div class="text-zinc-900 font-medium mb-3">
+                        <div class="shrink-0 size-9 rounded-full bg-emer-600 flex items-center justify-center text-white text-sm font-bold">1</div>
+                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-line p-4">
+                            <div class="text-ink font-medium mb-3">
                                 {{ __('What do you sell or offer?') }}
                             </div>
                             @if($questionIndex === 1)
@@ -110,7 +110,7 @@
                                     rows="3"
                                     placeholder="{{ __('e.g. Handmade leather bags shipped worldwide') }}"
                                     autofocus
-                                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition resize-y"
+                                    class="block w-full rounded-lg border border-line bg-white text-ink placeholder:text-ink/40 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition resize-y"
                                 ></textarea>
                                 @error('q1Offer') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                                 <div class="flex justify-end mt-3">
@@ -125,8 +125,8 @@
                                     class="w-full text-left group cursor-pointer"
                                     data-test="edit-q1"
                                 >
-                                    <div class="text-zinc-700 text-sm whitespace-pre-wrap">{{ $q1Offer }}</div>
-                                    <div class="mt-1.5 text-xs text-zinc-400 group-hover:text-violet-700 underline underline-offset-2">{{ __('Edit') }}</div>
+                                    <div class="text-ink/80 text-sm whitespace-pre-wrap">{{ $q1Offer }}</div>
+                                    <div class="mt-1.5 text-xs text-ink/60 group-hover:text-emer-700 underline underline-offset-2">{{ __('Edit') }}</div>
                                 </button>
                             @endif
                         </div>
@@ -136,9 +136,9 @@
                 {{-- Q2 --}}
                 @if($questionIndex >= 2)
                     <div class="flex gap-3">
-                        <div class="shrink-0 size-9 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold">2</div>
-                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-zinc-200 p-4">
-                            <div class="text-zinc-900 font-medium mb-3">
+                        <div class="shrink-0 size-9 rounded-full bg-emer-600 flex items-center justify-center text-white text-sm font-bold">2</div>
+                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-line p-4">
+                            <div class="text-ink font-medium mb-3">
                                 {{ __('What\'s the #1 question customers ask you?') }}
                             </div>
                             @if($questionIndex === 2)
@@ -146,14 +146,14 @@
                                     wire:model="q2TopQuestion"
                                     rows="2"
                                     placeholder="{{ __('Pick a suggestion or write your own') }}"
-                                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition resize-y"
+                                    class="block w-full rounded-lg border border-line bg-white text-ink placeholder:text-ink/40 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition resize-y"
                                 ></textarea>
                                 <div class="flex flex-wrap gap-2 mt-3">
                                     @foreach($suggestedQuestions as $q)
                                         <button
                                             type="button"
                                             wire:click="useSuggestedQuestion(@js($q))"
-                                            class="px-3 py-1.5 rounded-full text-xs bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition cursor-pointer"
+                                            class="px-3 py-1.5 rounded-full text-xs bg-emer-50 text-emer-700 border border-emer-200 hover:bg-emer-100 transition cursor-pointer"
                                         >
                                             {{ $q }}
                                         </button>
@@ -172,8 +172,8 @@
                                     class="w-full text-left group cursor-pointer"
                                     data-test="edit-q2"
                                 >
-                                    <div class="text-zinc-700 text-sm whitespace-pre-wrap">{{ $q2TopQuestion }}</div>
-                                    <div class="mt-1.5 text-xs text-zinc-400 group-hover:text-violet-700 underline underline-offset-2">{{ __('Edit') }}</div>
+                                    <div class="text-ink/80 text-sm whitespace-pre-wrap">{{ $q2TopQuestion }}</div>
+                                    <div class="mt-1.5 text-xs text-ink/60 group-hover:text-emer-700 underline underline-offset-2">{{ __('Edit') }}</div>
                                 </button>
                             @endif
                         </div>
@@ -183,9 +183,9 @@
                 {{-- Q3 --}}
                 @if($questionIndex >= 3)
                     <div class="flex gap-3">
-                        <div class="shrink-0 size-9 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold">3</div>
-                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-zinc-200 p-4">
-                            <div class="text-zinc-900 font-medium mb-3">
+                        <div class="shrink-0 size-9 rounded-full bg-emer-600 flex items-center justify-center text-white text-sm font-bold">3</div>
+                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-line p-4">
+                            <div class="text-ink font-medium mb-3">
                                 {{ __('How do you want your AI to sound?') }}
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
@@ -194,7 +194,7 @@
                                         type="button"
                                         wire:click="$set('q3Tone', '{{ $key }}')"
                                         class="px-3 py-2 rounded-lg text-sm border-2 transition cursor-pointer
-                                            {{ $q3Tone === $key ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-zinc-700 border-zinc-200 hover:border-violet-300' }}"
+                                            {{ $q3Tone === $key ? 'bg-emer-600 text-white border-emer-600' : 'bg-white text-ink border-line hover:border-emer-400' }}"
                                         data-test="tone-{{ $key }}"
                                     >
                                         {{ $label }}
@@ -206,7 +206,7 @@
                                     wire:model="q3CustomTone"
                                     rows="2"
                                     placeholder="{{ __('e.g. warm but no-nonsense, uses local Egyptian slang') }}"
-                                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition resize-y"
+                                    class="block w-full rounded-lg border border-line bg-white text-ink placeholder:text-ink/40 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition resize-y"
                                 ></textarea>
                                 @error('q3CustomTone') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
                             @endif
@@ -226,7 +226,7 @@
              ═══════════════════════════════════════════════════════════════ --}}
         @if($step === 3)
             <div class="rounded-xl bg-zinc-900 text-green-400 font-mono text-sm p-6 shadow-xl">
-                <div class="flex items-center gap-2 text-zinc-500 mb-4">
+                <div class="flex items-center gap-2 text-zinc-400 mb-4">
                     <span class="size-3 rounded-full bg-red-500"></span>
                     <span class="size-3 rounded-full bg-yellow-500"></span>
                     <span class="size-3 rounded-full bg-green-500"></span>
@@ -251,14 +251,14 @@
              ═══════════════════════════════════════════════════════════════ --}}
         @if($step === 4)
             <div class="space-y-4">
-                <div class="rounded-xl bg-violet-50 border border-violet-200 p-4 text-sm text-violet-900">
+                <div class="rounded-xl bg-emer-50 border border-emer-200 p-4 text-sm text-emer-900">
                     <div class="font-semibold mb-1">{{ __('You\'re now chatting as a fake customer.') }}</div>
                     <div>{{ __('Your AI is replying using the voice you just described. Try asking real questions.') }}</div>
                 </div>
 
                 <div
                     id="meet-ai-chat-scroll"
-                    class="rounded-xl bg-white border border-zinc-200 h-96 overflow-y-auto p-4 space-y-3"
+                    class="rounded-xl bg-white border border-line h-96 overflow-y-auto p-4 space-y-3"
                     x-init="$nextTick(() => $el.scrollTop = $el.scrollHeight)"
                 >
                     @foreach($chatMessages as $msg)
@@ -266,11 +266,11 @@
                             {{-- inline-block on the bubble so it shrinks to content width; text-left forces
                                  natural reading alignment regardless of bubble width. --}}
                             <div class="text-right">
-                                <div class="inline-block max-w-[75%] text-left rounded-2xl rounded-br-md bg-violet-600 text-white px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $msg['content'] }}</div>
+                                <div class="inline-block max-w-[75%] text-left rounded-2xl rounded-br-md bg-emer-600 text-white px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $msg['content'] }}</div>
                             </div>
                         @else
                             <div class="text-left">
-                                <div class="inline-block max-w-[75%] text-left rounded-2xl rounded-bl-md bg-zinc-100 text-zinc-900 px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $msg['content'] }}</div>
+                                <div class="inline-block max-w-[75%] text-left rounded-2xl rounded-bl-md bg-cream2 text-ink px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $msg['content'] }}</div>
                             </div>
                         @endif
                     @endforeach
@@ -301,7 +301,7 @@
                             type="text"
                             wire:model="customerInput"
                             placeholder="{{ __('Reply as the customer…') }}"
-                            class="flex-1 rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 px-3.5 py-2 text-sm shadow-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition"
+                            class="flex-1 rounded-lg border border-line bg-white text-ink placeholder:text-ink/40 px-3.5 py-2 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition"
                             data-test="customer-input"
                             @if($isAiTyping) disabled @endif
                         />
@@ -310,7 +310,7 @@
                         </flux:button>
                     </form>
                 @else
-                    <div class="rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-600 text-sm px-3 py-2 text-center">
+                    <div class="rounded-lg bg-cream2 border border-line text-ink/80 text-sm px-3 py-2 text-center">
                         {{ __('Chat cap reached for the demo — connect a real page to keep going.') }}
                     </div>
                 @endif
@@ -334,9 +334,9 @@
                     </flux:button>
                 </div>
 
-                <div class="text-center text-xs text-zinc-500 pt-2">
+                <div class="text-center text-xs text-ink/70 pt-2">
                     {{ __('Something feel off?') }}
-                    <a href="mailto:omareltak7@gmail.com?subject=OT1-Pro%20setup%20help" class="underline underline-offset-4 hover:text-zinc-800">
+                    <a href="mailto:omareltak7@gmail.com?subject=OT1-Pro%20setup%20help" class="underline underline-offset-4 hover:text-ink">
                         {{ __('Email Omar') }}
                     </a>
                 </div>
