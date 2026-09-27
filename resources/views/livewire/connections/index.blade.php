@@ -95,38 +95,39 @@
     --}}
     @if($usesConciergeFlow)
         {{--
-            Committed color strategy: solid indigo→violet gradient carries the surface
-            so white-on-color text is fully legible. The prior version used 10% opacity
-            over the page's white background, which rendered the copy near-invisible.
+            Solid emerald surface — white-on-emerald reads cleanly.
+            Mobile-first sizing: at 320px the text column has ~220px after padding+icon+gap,
+            enough for the heading to break naturally. Buttons stack vertically below 640px
+            so each hits its native full-width target instead of wrapping mid-word.
         --}}
-        <div class="mb-2 rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-600 to-emerald-600 p-5 shadow-md"
+        <div class="mb-2 rounded-2xl bg-emerald-600 p-4 md:p-5 shadow-md"
              x-data="{ showDetails: false }">
-            <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 size-11 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center">
-                    <svg class="size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="flex items-start gap-3 md:gap-4">
+                <div class="flex-shrink-0 size-8 md:size-11 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center">
+                    <svg class="size-4 md:size-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-base font-semibold text-white">
+                    <p class="text-[15px] md:text-base font-semibold text-white leading-snug">
                         {{ __('We connect Facebook and Instagram for you, usually within :n min.', ['n' => $conciergeMedianMinutes ?? 10]) }}
                     </p>
-                    <p class="mt-1.5 text-sm text-white leading-relaxed">
+                    <p class="mt-1.5 text-sm text-white/90 leading-relaxed">
                         {{ __('Our team personally verifies every page before it goes live. It\'s how we keep the platform clean for early customers, free with any plan.') }}
                         {{ __('Send us your page details and we\'ll take it from there.') }}
                     </p>
-                    <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <div class="mt-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                         <button type="button" wire:click="openRequestForm('facebook')"
-                                class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-white/95 transition">
+                                class="inline-flex w-full sm:w-auto items-center justify-center sm:justify-start gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-white/95 transition">
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
                             {{ __('Request Facebook connection') }}
                         </button>
                         <button type="button" wire:click="openRequestForm('instagram')"
-                                class="inline-flex items-center gap-1.5 rounded-lg bg-white/15 ring-1 ring-white/30 px-3 py-2 text-sm font-semibold text-white hover:bg-white/25 transition">
+                                class="inline-flex w-full sm:w-auto items-center justify-center sm:justify-start gap-1.5 rounded-lg bg-white/15 ring-1 ring-white/30 px-3 py-2 text-sm font-semibold text-white hover:bg-white/25 transition">
                             {{ __('Or request Instagram') }}
                         </button>
                         <button type="button" @click="showDetails = ! showDetails"
-                                class="ml-1 text-xs font-semibold text-white hover:text-white/90 underline underline-offset-2 cursor-pointer">
+                                class="mt-1 sm:mt-0 sm:ml-1 text-xs font-semibold text-white/90 hover:text-white underline underline-offset-2 cursor-pointer text-left">
                             <span x-show="!showDetails">{{ __('How long does it take?') }}</span>
                             <span x-show="showDetails" x-cloak>{{ __('Hide details') }}</span>
                         </button>
