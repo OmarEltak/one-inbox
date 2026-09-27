@@ -1,12 +1,12 @@
 <div class="p-6 space-y-6" x-data="{ tab: 'all' }">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-zinc-900">{{ __('Campaigns') }}</h1>
-            <p class="mt-1 text-sm text-zinc-700">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
+            <h1 class="font-serif text-3xl text-ink">{{ __('Campaigns') }}</h1>
+            <p class="mt-1 text-sm text-zinc-600">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('campaigns.email.new') }}" wire:navigate
-               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-800 transition-all bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">
+               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-ink transition-all bg-white hover:bg-cream border border-line">
                 <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -198,10 +198,10 @@
                 </div>
             </div>
         @empty
-            <div class="rounded-2xl p-10 text-center" style="border: 1px dashed rgba(5,150,105,0.2); background: rgba(5,150,105,0.03);">
-                <flux:icon.paper-airplane class="mx-auto size-10 text-zinc-700" />
-                <p class="mt-3 font-semibold text-zinc-900">{{ __('No campaigns yet') }}</p>
-                <p class="mt-1 text-sm text-zinc-700">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
+            <div class="rounded-2xl p-10 text-center bg-cream border border-dashed border-line">
+                <flux:icon.paper-airplane class="mx-auto size-10 text-zinc-500" />
+                <p class="mt-3 font-serif text-xl text-ink">{{ __('No campaigns yet') }}</p>
+                <p class="mt-1 text-sm text-zinc-600">{{ __('Create a broadcast campaign to reach your contacts across Facebook, Instagram, or Telegram.') }}</p>
                 <div class="mt-4">
                     <flux:button icon="plus" wire:click="openCreateModal">{{ __('New Campaign') }}</flux:button>
                 </div>
