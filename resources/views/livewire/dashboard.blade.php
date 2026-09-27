@@ -21,7 +21,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                 </svg>
             </div>
-            <h2 class="text-xl font-bold text-zinc-800 mb-2">{{ __('No team selected') }}</h2>
+            <h2 class="font-serif text-2xl text-ink mb-2">{{ __('No team selected') }}</h2>
             <p class="text-zinc-400 text-sm">{{ __('Create or join a team to get started.') }}</p>
         </div>
     @else
@@ -30,10 +30,10 @@
             {{-- ── Welcome Header ── --}}
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-zinc-900">{{ __('Welcome to All in One') }}
-                        <span class="inline-block text-xl ml-1" style="filter: drop-shadow(0 0 8px rgba(250,204,21,0.6));">✦</span>
+                    <h1 class="font-serif text-3xl text-ink dark:text-white">{{ __('Welcome to All in One') }}
+                        <span class="inline-block text-xl ml-1 text-emer-600">✦</span>
                     </h1>
-                    <p class="mt-1 text-sm text-zinc-400">{{ __("Here's your business overview for today.") }}</p>
+                    <p class="mt-1 text-sm text-zinc-500">{{ __("Here's your business overview for today.") }}</p>
                 </div>
                 <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-400">
                     <div class="size-1.5 rounded-full bg-green-400 animate-pulse"></div>
@@ -190,9 +190,9 @@
                                class="text-xs font-medium text-emerald-600 hover:text-emerald-700">{{ __('Connect a channel →') }}</a>
                         </div>
                     @endif
-                    <div class="mt-4 rounded-xl p-3 text-center" style="background: #f4f4f5; border: 1px solid #e5e5e5;">
-                        <span class="text-sm font-bold text-zinc-900">{{ $stats['connectedPages'] }}</span>
-                        <span class="text-xs text-zinc-400 ml-1">{{ __('connected pages') }}</span>
+                    <div class="mt-4 rounded-xl p-3 text-center bg-cream border border-line">
+                        <span class="text-sm font-bold text-ink">{{ $stats['connectedPages'] }}</span>
+                        <span class="text-xs text-zinc-500 ml-1">{{ __('connected pages') }}</span>
                     </div>
                 </div>
 
@@ -251,10 +251,10 @@
                         </div>
 
                         {{-- Summary chip --}}
-                        <div class="rounded-xl p-4 text-center" style="background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.15);">
-                            <p class="text-sm text-zinc-600">
+                        <div class="rounded-xl p-4 text-center bg-ink text-cream">
+                            <p class="text-sm text-cream/80">
                                 {{ __('AI handles') }}
-                                <span class="font-bold text-emerald-600 text-base">{{ $aiPercent }}%</span>
+                                <span class="font-bold text-emer-400 text-base">{{ $aiPercent }}%</span>
                                 {{ __('of all responses') }}
                             </p>
                         </div>
