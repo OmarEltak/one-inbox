@@ -1261,7 +1261,9 @@
          (bg-blue-500/5, text-blue-200, text-white/60) rendered near-invisible
          on cream. Hand-rolled inputs used per contrast-guardrails skill because
          flux:input defaults typed text to zinc-500 (illegible in a wizard). --}}
-    <flux:modal name="onboarding-request" class="md:w-[560px]">
+    {{-- Force light surface — Flux modal defaults to dark bg which makes
+         text-ink labels invisible. Overriding here so brand tokens work as intended. --}}
+    <flux:modal name="onboarding-request" class="md:w-[560px] !bg-white dark:!bg-zinc-900">
         @php
             $platformLabel = ucfirst($requestPlatform ?? 'facebook');
             $isInstagram   = ($requestPlatform ?? '') === 'instagram';
