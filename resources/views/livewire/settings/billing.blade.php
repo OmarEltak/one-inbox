@@ -20,14 +20,14 @@
             {{-- Current Plan --}}
             <div>
                 <flux:heading size="sm">{{ __('Current Plan') }}</flux:heading>
-                <div class="mt-3 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
+                <div class="mt-3 rounded-xl bg-ink text-cream p-5">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                            <span class="font-serif text-2xl text-cream">
                                 {{ $this->plans[$this->currentPlan]['name'] ?? 'Free' }}
                             </span>
                             @if($this->currentPlan !== 'free')
-                                <span class="ml-2 text-sm text-zinc-500">${{ $this->plans[$this->currentPlan]['price'] ?? 0 }}/mo</span>
+                                <span class="ml-2 text-sm text-cream/70">${{ $this->plans[$this->currentPlan]['price'] ?? 0 }}/mo</span>
                             @endif
                         </div>
                         {{-- Stripe portal hidden — billing is now manual wire transfer --}}
@@ -87,8 +87,8 @@
                 <div class="mt-3 grid gap-4 sm:grid-cols-2">
                     @foreach($this->plans as $key => $plan)
                         <div class="rounded-xl border p-5 {{ $this->currentPlan === $key
-                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                            : 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800' }}">
+                            ? 'border-emer-600 bg-emer-50 dark:bg-emerald-900/20'
+                            : 'border-line bg-white dark:border-zinc-700 dark:bg-zinc-800' }}">
                             <div class="mb-3">
                                 <span class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{{ $plan['name'] }}</span>
                                 <div class="mt-1">
@@ -111,7 +111,7 @@
                             </ul>
 
                             @if($this->currentPlan === $key)
-                                <flux:badge variant="solid" color="purple" size="sm">{{ __('Current Plan') }}</flux:badge>
+                                <flux:badge variant="solid" color="emerald" size="sm">{{ __('Current Plan') }}</flux:badge>
                             @elseif($key === 'free')
                                 {{-- Can't downgrade to free --}}
                             @else
