@@ -336,6 +336,10 @@ body {
     border-radius: 14px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 0 rgba(0,0,0,0.02);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    /* Allow the card to shrink inside a grid/flex parent instead of being
+       sized by its min-content. Without this, an aio-card grows past its
+       column on mobile, pushing the whole page right by the overflow. */
+    min-width: 0;
 }
 .aio-card:hover {
     border-color: rgba(5,150,105,0.22);

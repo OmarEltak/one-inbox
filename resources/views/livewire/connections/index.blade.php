@@ -13,7 +13,7 @@
     When Meta approves us: set META_APP_VERIFIED=true in prod .env and
     run php artisan config:cache. OAuth buttons return automatically.
 --}}
-<div class="p-6 space-y-6">
+<div class="p-4 md:p-6 space-y-6 min-w-0">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">{{ __('Connections') }}</h1>
@@ -156,7 +156,10 @@
     @endif
 
     {{-- Available Platforms --}}
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+    {{-- min-w-0 on the grid parent + explicit grid-cols-1 on mobile prevents
+         aio-card children from being sized by min-content and overflowing the
+         viewport horizontally (the "page shifted right" bug on 320-375px). --}}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8 min-w-0">
 
         {{-- Facebook --}}
         <div class="aio-card rounded-2xl p-5">
