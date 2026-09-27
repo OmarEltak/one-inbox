@@ -66,13 +66,13 @@
                 'free'       => 'bg-zinc-100 text-zinc-600 border-zinc-200',
             ];
         @endphp
-        <div class="mt-6 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 flex items-center justify-between gap-3">
+        <div class="mt-6 rounded-xl border border-line bg-cream px-4 py-3 flex items-center justify-between gap-3">
             <div>
-                <p class="text-sm font-semibold text-zinc-900">{{ __('Subscription') }}</p>
-                <p class="text-xs text-zinc-500 mt-0.5">{{ $planLabels[$plan] ?? ucfirst($plan) }}</p>
+                <p class="text-sm font-semibold text-ink">{{ __('Subscription') }}</p>
+                <p class="text-xs text-zinc-600 mt-0.5">{{ $planLabels[$plan] ?? ucfirst($plan) }}</p>
             </div>
             <a href="{{ route('settings.billing') }}" wire:navigate
-               class="text-xs font-medium text-zinc-600 hover:text-zinc-900 underline underline-offset-2 transition-colors">
+               class="text-xs font-medium text-emer-700 hover:text-emer-900 underline underline-offset-2 transition-colors">
                 {{ __('Manage') }}
             </a>
         </div>
