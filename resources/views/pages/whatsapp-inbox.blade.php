@@ -1,43 +1,44 @@
-<x-layouts.marketing
+<x-layouts.brand-marketing
     :title="__('WhatsApp Business Inbox — Manage Every Message | OT1-Pro')"
     :description="__('Manage every WhatsApp Business conversation from one unified inbox. AI auto-replies 24/7, scores leads, and hands off hot prospects to your team instantly. Try free.')"
+    :solidNav="true"
 >
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
+    <section class="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid items-center gap-12 lg:grid-cols-2">
                 <div>
-                    <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-medium text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                            <svg class="size-5 text-green-600" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    <div class="mb-6 inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-emer-700">
+                        <div class="flex size-10 items-center justify-center rounded-full bg-emer-100">
+                            <svg class="size-5 text-emer-700" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                         </div>
                         {{ __('WhatsApp Business Inbox') }}
                     </div>
-                    <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                        {{ __('The WhatsApp Business Inbox Built for') }} <span class="text-green-600 dark:text-green-400">{{ __('Sales Teams') }}</span>
+                    <h1 class="serif text-5xl leading-[1.02] text-ink lg:text-6xl xl:text-7xl">
+                        {{ __('The WhatsApp Business Inbox Built for') }} <span class="serif-it text-emer-700">{{ __('Sales Teams') }}</span>
                     </h1>
-                    <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600">
+                    <p class="mt-6 text-lg leading-relaxed text-ink/70">
                         {{ __('Stop managing WhatsApp in your phone. OT1-Pro gives your entire team a shared WhatsApp Business inbox with AI that replies instantly, qualifies every lead, and never misses a sale — 24/7.') }}
                     </p>
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-green-500/25 transition-all hover:bg-green-700">
+                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-7 py-4 font-semibold text-cream transition hover:bg-ink2">
                             {{ __('Connect WhatsApp Free') }}
                             <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                         </a>
-                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-8 py-3.5 font-semibold text-zinc-700 transition-all hover:border-green-300 hover:text-green-700 dark:border-zinc-200 dark:text-zinc-700">
+                        {{-- <a href="{{ route('pricing') }}" class="inline-flex items-center justify-center rounded-full border border-ink/20 px-7 py-4 font-semibold text-ink transition hover:bg-ink/5">
                             {{ __('View Pricing') }}
                         </a> --}}
                     </div>
-                    <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required · Free plan available') }}</p>
+                    <p class="mt-4 text-sm text-ink/60">{{ __('No credit card required · Free plan available') }}</p>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-200 dark:bg-white">
+                <div class="rounded-2xl border border-line bg-cream2 p-8">
                     <div class="space-y-4">
                         @foreach([
-                            ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', __('AI'), __('Hi! Thanks for reaching out. What product are you interested in today?'), false],
-                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', __('Lead'), __('I want to know the price of your premium package'), true],
-                            ['bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', __('AI'), __('Great choice! The premium package is $299/mo and includes unlimited users. Are you looking for monthly or annual billing? (Annual saves 20%)'), false],
-                            ['bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-800', __('Lead'), __('Annual sounds good. How do I sign up?'), true],
+                            ['bg-emer-100 text-emer-700', __('AI'), __('Hi! Thanks for reaching out. What product are you interested in today?'), false],
+                            ['bg-line text-ink/80', __('Lead'), __('I want to know the price of your premium package'), true],
+                            ['bg-emer-100 text-emer-700', __('AI'), __('Great choice! The premium package is $299/mo and includes unlimited users. Are you looking for monthly or annual billing? (Annual saves 20%)'), false],
+                            ['bg-line text-ink/80', __('Lead'), __('Annual sounds good. How do I sign up?'), true],
                         ] as $msg)
                         <div class="flex {{ $msg[3] ? 'justify-end' : 'justify-start' }}">
                             <div class="max-w-xs rounded-2xl {{ $msg[3] ? 'rounded-tr-sm' : 'rounded-tl-sm' }} {{ $msg[0] }} px-4 py-2.5 text-sm">
@@ -46,7 +47,7 @@
                             </div>
                         </div>
                         @endforeach
-                        <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-center text-xs font-medium text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300">
+                        <div class="rounded-xl border border-emer-100 bg-emer-50 px-4 py-2 text-center text-xs font-medium text-emer-700">
                             {{ __('Lead Score: 87/100 — Hot prospect · Handed off to sales team') }}
                         </div>
                     </div>
@@ -56,11 +57,11 @@
     </section>
 
     {{-- Problem / Why section --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('WhatsApp is your best sales channel. But managing it is a mess.') }}</h2>
-                <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-600">{{ __('Every business faces the same WhatsApp problems. OT1-Pro solves all of them.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('WhatsApp is your best sales channel. But managing it is a mess.') }}</h2>
+                <p class="mt-4 text-lg text-ink/70">{{ __('Every business faces the same WhatsApp problems. OT1-Pro solves all of them.') }}</p>
             </div>
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -74,9 +75,9 @@
                 ];
                 @endphp
                 @foreach($problems as $item)
-                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white">
-                    <p class="text-sm text-red-500">❌ {{ $item[0] }}</p>
-                    <p class="mt-2 text-sm font-medium text-green-600">✅ {{ $item[1] }}</p>
+                <div class="fade-up rounded-2xl border border-line bg-cream p-6">
+                    <p class="text-sm text-ink/60">❌ {{ $item[0] }}</p>
+                    <p class="mt-2 text-sm font-medium text-emer-700">✅ {{ $item[1] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -84,11 +85,11 @@
     </section>
 
     {{-- Features --}}
-    <section class="py-20 lg:py-28">
+    <section class="py-24 lg:py-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Everything your WhatsApp sales team needs') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Built specifically for businesses that sell and support through WhatsApp.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Everything your WhatsApp sales team needs') }}</h2>
+                <p class="mt-4 text-ink/70">{{ __('Built specifically for businesses that sell and support through WhatsApp.') }}</p>
             </div>
             <div class="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -102,10 +103,10 @@
                 ];
                 @endphp
                 @foreach($features as $feature)
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-200 dark:bg-white">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
                     <div class="mb-3 text-3xl">{{ $feature[0] }}</div>
-                    <h3 class="text-lg font-semibold">{{ $feature[1] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $feature[2] }}</p>
+                    <h3 class="serif text-2xl leading-snug text-ink">{{ $feature[1] }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $feature[2] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -113,10 +114,10 @@
     </section>
 
     {{-- Use Cases --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-24">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Who uses OT1-Pro for WhatsApp?') }}</h2>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Who uses OT1-Pro for WhatsApp?') }}</h2>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 @php
@@ -130,9 +131,9 @@
                 ];
                 @endphp
                 @foreach($useCases as $useCase)
-                <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-200 dark:bg-white">
-                    <h3 class="font-semibold text-green-700 dark:text-green-400">{{ $useCase[0] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $useCase[1] }}</p>
+                <div class="fade-up rounded-2xl border border-line bg-cream p-6">
+                    <h3 class="serif text-xl text-emer-700">{{ $useCase[0] }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $useCase[1] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -140,12 +141,12 @@
     </section>
 
     {{-- FAQ --}}
-    <section class="py-20 lg:py-28">
+    <section class="py-24 lg:py-28">
         <div class="mx-auto max-w-3xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('WhatsApp inbox — common questions') }}</h2>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('WhatsApp inbox — common questions') }}</h2>
             </div>
-            <div class="mt-12 space-y-4" x-data="{ open: null }">
+            <div class="mt-12 divide-y divide-line border-y border-line">
                 @php
                 $faqs = [
                     [__('Does OT1-Pro work with WhatsApp Business API?'), __('Yes. OT1-Pro connects via the WhatsApp Business API, which means unlimited messages, no phone-number restrictions, and full automation capability. We handle the API setup for you.')],
@@ -156,25 +157,23 @@
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
-                <div class="rounded-xl border border-zinc-200 dark:border-zinc-200" x-data>
-                    <button @click="open = open === {{ $i }} ? null : {{ $i }}" class="flex w-full items-center justify-between px-6 py-4 text-left cursor-pointer">
-                        <span class="font-medium">{{ $faq[0] }}</span>
-                        <svg class="size-5 flex-shrink-0 text-zinc-600 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    </button>
-                    <div x-show="open === {{ $i }}" x-collapse>
-                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-600">{{ $faq[1] }}</div>
-                    </div>
-                </div>
+                <details class="py-5">
+                    <summary class="flex items-center justify-between gap-4">
+                        <span class="serif text-xl text-ink">{{ $faq[0] }}</span>
+                        <span class="chev serif text-2xl text-emer-700">+</span>
+                    </summary>
+                    <p class="mt-3 text-sm leading-relaxed text-ink/70">{{ $faq[1] }}</p>
+                </details>
                 @endforeach
             </div>
         </div>
     </section>
 
     {{-- Related Reading --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
+    <section class="border-t border-line bg-cream2 py-20">
         <div class="mx-auto max-w-6xl px-6">
-            <h2 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ __('Related WhatsApp guides') }}</h2>
-            <p class="mt-2 text-zinc-600 dark:text-zinc-600">{{ __('Deep dives on running WhatsApp Business at scale.') }}</p>
+            <h2 class="serif text-3xl leading-tight text-ink lg:text-4xl">{{ __('Related WhatsApp guides') }}</h2>
+            <p class="mt-2 text-ink/70">{{ __('Deep dives on running WhatsApp Business at scale.') }}</p>
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 @php
                 $related = [
@@ -185,28 +184,23 @@
                 ];
                 @endphp
                 @foreach($related as $r)
-                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-zinc-200 bg-white p-5 transition-all hover:border-green-300 hover:shadow-md dark:border-zinc-200 dark:bg-white dark:hover:border-green-700">
-                    <div class="mb-2 text-xs font-medium uppercase tracking-wider text-green-600">{{ $r[2] }}</div>
-                    <h3 class="text-base font-semibold text-zinc-900 group-hover:text-green-700 dark:text-zinc-100 dark:group-hover:text-green-300">{{ $r[1] }}</h3>
-                    <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-green-600">{{ __('Read more') }} →</span>
+                <a href="{{ url('/blog/' . $r[0]) }}" class="group block rounded-2xl border border-line bg-cream p-5 transition hover:border-emer-400 hover:shadow-md">
+                    <div class="mb-2 text-xs font-medium uppercase tracking-wider text-emer-700">{{ $r[2] }}</div>
+                    <h3 class="serif text-xl leading-snug text-ink group-hover:text-emer-700">{{ $r[1] }}</h3>
+                    <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-emer-700">{{ __('Read more') }} →</span>
                 </a>
                 @endforeach
             </div>
         </div>
     </section>
 
-    {{-- CTA --}}
-    <section class="pb-20 lg:pb-28 pt-16">
-        <div class="mx-auto max-w-4xl px-6">
-            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
-                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Start managing WhatsApp like a pro') }}</h2>
-                <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Connect your WhatsApp Business number in minutes. AI starts handling conversations immediately.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
-                    {{ __('Connect WhatsApp Free') }}
-                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                </a>
-                <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required') }}</p>
-            </div>
+    {{-- ═══════ FINAL CTA ═══════ --}}
+    <section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Start managing WhatsApp like a pro') }}</h2>
+            <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('Connect your WhatsApp Business number in minutes. AI starts handling conversations immediately.') }}</p>
+            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Connect WhatsApp Free') }} <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
+            <p class="mt-4 text-sm text-cream/60">{{ __('No credit card required') }}</p>
         </div>
     </section>
 
@@ -246,4 +240,4 @@
 </script>
 @endpush
 
-</x-layouts.marketing>
+</x-layouts.brand-marketing>

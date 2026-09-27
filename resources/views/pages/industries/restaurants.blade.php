@@ -1,4 +1,5 @@
-<x-layouts.marketing
+<x-layouts.brand-marketing
+    :solidNav="true"
     :title="__('WhatsApp for Restaurants: Orders, Reservations & Delivery — OT1-Pro')"
     :description="__('Take reservations, handle delivery orders, and answer menu questions via WhatsApp and Instagram — with AI that works around the clock, even during dinner rush.')"
     :canonical="route('industry.restaurants')"
@@ -26,26 +27,26 @@
 @endpush
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden bg-gradient-to-br from-white via-emerald-50/60 to-white py-24 text-zinc-900">
+    <section class="relative overflow-hidden pt-32 pb-20 text-ink lg:pt-40 lg:pb-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
+                    <span class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-emer-700">
                         {{ __('Restaurants & Food') }}
                     </span>
-                    <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-                        {!! __('<span class="text-emerald-400">WhatsApp Orders, Reservations,</span> and Delivery — All on Autopilot') !!}
+                    <h1 class="serif mt-5 text-5xl leading-[1.02] text-ink lg:text-6xl xl:text-7xl">
+                        {!! __('<span class="serif-it text-emer-700">WhatsApp Orders, Reservations,</span> and Delivery — All on Autopilot') !!}
                     </h1>
-                    <p class="mt-5 text-lg text-zinc-700">
+                    <p class="mt-6 text-lg leading-relaxed text-ink/70">
                         {{ __('Your kitchen is busy. Your team is busy. But customers are messaging you on WhatsApp and Instagram for menus, delivery times, and table bookings — right now. Let the AI handle it.') }}
                     </p>
                     <div class="mt-8 flex flex-wrap gap-4">
-                        <a href="{{ route('register') }}" class="rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700">
+                        <a href="{{ route('register') }}" class="inline-flex items-center rounded-full bg-ink px-7 py-4 font-semibold text-cream transition hover:bg-ink2">
                             {{ __('Start Free') }}
                         </a>
                     </div>
                 </div>
-                <div class="rounded-2xl border border-zinc-200 bg-white p-6">
+                <div class="rounded-2xl border border-line bg-cream2 p-6 shadow-sm">
                     @php
                     $msgs = [
                         ['👤', __('Do you have delivery to Maadi?'), __('Customer')],
@@ -56,11 +57,11 @@
                     @endphp
                     @foreach($msgs as [$icon, $text, $who])
                     <div class="mb-3 flex gap-3 {{ $who === __('AI') ? 'flex-row-reverse' : '' }}">
-                        <div class="size-8 shrink-0 rounded-full {{ $who === __('AI') ? 'bg-emerald-600' : 'bg-zinc-700' }} flex items-center justify-center text-sm">{{ $icon }}</div>
-                        <div class="max-w-xs rounded-xl {{ $who === __('AI') ? 'bg-emerald-900/40 text-emerald-100' : 'bg-zinc-100 text-zinc-700' }} px-3 py-2 text-sm">{{ $text }}</div>
+                        <div class="size-8 shrink-0 rounded-full {{ $who === __('AI') ? 'bg-emer-600' : 'bg-ink' }} flex items-center justify-center text-sm">{{ $icon }}</div>
+                        <div class="max-w-xs rounded-xl {{ $who === __('AI') ? 'bg-emer-100 text-emer-900' : 'bg-cream text-ink/80' }} px-3 py-2 text-sm">{{ $text }}</div>
                     </div>
                     @endforeach
-                    <p class="mt-3 text-center text-xs text-zinc-600">{{ __('AI handled this — no staff needed') }}</p>
+                    <p class="mt-3 text-center text-xs text-ink/70">{{ __('AI handled this — no staff needed') }}</p>
                 </div>
             </div>
         </div>
@@ -69,7 +70,7 @@
     {{-- Features --}}
     <section class="py-20">
         <div class="mx-auto max-w-6xl px-6">
-            <h2 class="mb-10 text-center text-3xl font-bold">{{ __('Everything Your Restaurant Needs') }}</h2>
+            <h2 class="serif mb-10 text-center text-4xl leading-tight text-ink lg:text-5xl">{{ __('Everything Your Restaurant Needs') }}</h2>
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @php
                 $features = [
@@ -82,12 +83,12 @@
                 ];
                 @endphp
                 @foreach($features as [$icon, $title, $desc])
-                <div class="rounded-xl border p-5 transition-colors {{ $loop->first
-                    ? 'lg:col-span-2 lg:p-7 border-emerald-200 bg-emerald-50/60 dark:border-emerald-200 dark:bg-emerald-50/60'
-                    : 'border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white' }}">
+                <div class="fade-up rounded-2xl border p-6 transition-colors {{ $loop->first
+ ? 'lg:col-span-2 lg:p-7 border-emer-100 bg-emer-50/60'
+ : 'border-line bg-cream' }}">
                     <div class="text-2xl">{{ $icon }}</div>
-                    <h3 class="mt-3 font-semibold">{{ $title }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $desc }}</p>
+                    <h3 class="serif mt-3 text-2xl leading-snug text-ink">{{ $title }}</h3>
+                    <p class="mt-2 text-sm text-ink/70">{{ $desc }}</p>
                 </div>
                 @endforeach
             </div>
@@ -95,9 +96,9 @@
     </section>
 
     {{-- FAQ --}}
-    <section class="bg-zinc-50 py-20 dark:bg-zinc-50">
+    <section class="bg-cream2 py-20">
         <div class="mx-auto max-w-3xl px-6">
-            <h2 class="mb-10 text-center text-3xl font-bold">{{ __('Frequently Asked Questions') }}</h2>
+            <h2 class="serif mb-10 text-center text-4xl leading-tight text-ink lg:text-5xl">{{ __('Frequently Asked Questions') }}</h2>
             @php
             $faqs = [
                 [__('Can customers place orders via WhatsApp?'), __('Yes. The AI can take orders, confirm details, and collect payment instructions. It handles the entire order conversation so your team only steps in for special requests.')],
@@ -106,32 +107,27 @@
                 [__('Can I customize the menu information the AI uses?'), __('Yes. You provide your menu, prices, daily specials, allergen info, and delivery zones. The AI answers accurately based on what you\'ve given it.')],
             ];
             @endphp
-            <div class="space-y-4">
+            <div class="divide-y divide-line border-y border-line">
                 @foreach($faqs as [$q, $a])
-                <div x-data="{ open: false }" class="rounded-xl border border-zinc-200 dark:border-zinc-200">
-                    <button @click="open = !open" class="flex w-full items-center justify-between px-5 py-4 text-left font-medium">
-                        <span>{{ $q }}</span>
-                        <svg class="size-5 shrink-0 transition-transform" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    </button>
-                    <div x-show="open" x-collapse class="border-t border-zinc-100 px-5 py-4 text-zinc-600 dark:border-zinc-200 dark:text-zinc-600">
-                        {{ $a }}
-                    </div>
-                </div>
+                <details class="py-5">
+                    <summary class="flex items-center justify-between gap-4">
+                        <span class="serif text-xl text-ink">{{ $q }}</span>
+                        <span class="chev serif text-2xl text-emer-700">+</span>
+                    </summary>
+                    <p class="mt-3 text-sm leading-relaxed text-ink/70">{{ $a }}</p>
+                </details>
                 @endforeach
             </div>
         </div>
     </section>
 
-    {{-- CTA --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-20 lg:py-28">
-        <div class="mx-auto max-w-3xl px-6 text-center">
-            <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Let AI Handle Your WhatsApp While You Focus on the Food') }}</h2>
-            <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Set up in minutes. AI starts handling messages immediately. Free to start.') }}</p>
-            <a href="{{ route('register') }}" class="mt-10 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
-                {{ __('Get Started Free') }}
-                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-            </a>
+    {{-- ═══════ FINAL CTA ═══════ --}}
+    <section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Let AI Handle Your WhatsApp While You Focus on the Food') }}</h2>
+            <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('Set up in minutes. AI starts handling messages immediately. Free to start.') }}</p>
+            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Get Started Free') }} <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
         </div>
     </section>
 
-</x-layouts.marketing>
+</x-layouts.brand-marketing>

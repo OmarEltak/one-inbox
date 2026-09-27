@@ -1,41 +1,42 @@
-<x-layouts.marketing
+<x-layouts.brand-marketing
     :title="__('OT1-Pro vs Tidio — Better for Social Sales Teams')"
     :description="__('Comparing OT1-Pro vs Tidio? See why social-first businesses choose OT1-Pro — unified WhatsApp, Instagram, Facebook & Telegram inbox with AI sales agent, not just a website chat widget.')"
+    :solidNav="true"
 >
 
     {{-- Hero --}}
-    <section class="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-32">
+    <section class="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
         <div class="mx-auto max-w-4xl px-6 text-center">
-            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:border-emerald-200 dark:bg-emerald-50/50 dark:text-emerald-700">
+            <div class="mb-6 text-xs uppercase tracking-[0.2em] text-emer-700">
                 {{ __('Comparison') }}
             </div>
-            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 class="serif text-5xl leading-[1.02] text-ink lg:text-7xl">
                 {{ __('OT1-Pro vs Tidio') }}
             </h1>
-            <p class="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 dark:text-zinc-600">
+            <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink/70">
                 {{ __('Tidio is a website live chat tool with a chatbot bolted on. OT1-Pro is a unified social inbox built for businesses that sell on WhatsApp, Instagram, Facebook, and Telegram — with an AI sales agent that closes deals across every channel.') }}
             </p>
             <div class="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-700">
+                <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-7 py-4 font-semibold text-cream transition hover:bg-ink2">
                     {{ __('Start Free with OT1-Pro') }}
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </a>
             </div>
-            <p class="mt-3 text-sm text-zinc-500">{{ __('No credit card required · Free plan available') }}</p>
+            <p class="mt-4 text-sm text-ink/60">{{ __('No credit card required · Free plan available') }}</p>
         </div>
     </section>
 
     {{-- Comparison Table --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-16 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-20">
         <div class="mx-auto max-w-4xl px-6">
-            <h2 class="mb-10 text-center text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Feature-by-feature comparison') }}</h2>
-            <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white">
+            <h2 class="serif mb-10 text-center text-4xl leading-tight text-ink lg:text-5xl">{{ __('Feature-by-feature comparison') }}</h2>
+            <div class="overflow-x-auto rounded-2xl border border-line bg-cream">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-zinc-200 dark:border-zinc-200">
-                            <th class="px-6 py-4 text-left font-semibold text-zinc-700 dark:text-zinc-700">{{ __('Feature') }}</th>
-                            <th class="px-6 py-4 text-center font-semibold text-emerald-600">OT1-Pro</th>
-                            <th class="px-6 py-4 text-center font-semibold text-zinc-500">Tidio</th>
+                        <tr class="border-b border-line bg-ink text-cream">
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-widest text-cream/70">{{ __('Feature') }}</th>
+                            <th class="serif px-6 py-4 text-center text-xl font-normal text-emer-400">OT1-Pro</th>
+                            <th class="serif px-6 py-4 text-center text-xl font-normal text-cream/70">Tidio</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,10 +55,10 @@
                         ];
                         @endphp
                         @foreach($rows as $i => $row)
-                        <tr class="{{ $i % 2 === 0 ? 'bg-zinc-50 dark:bg-zinc-100' : '' }} border-b border-zinc-100 last:border-0 dark:border-zinc-200">
-                            <td class="px-6 py-4 font-medium text-zinc-700 dark:text-zinc-700">{{ $row[0] }}</td>
-                            <td class="px-6 py-4 text-center text-zinc-700 dark:text-zinc-700">{{ $row[1] }}</td>
-                            <td class="px-6 py-4 text-center text-zinc-500">{{ $row[2] }}</td>
+                        <tr class="{{ $i % 2 === 0 ? 'bg-cream2/60' : '' }} border-b border-line last:border-0">
+                            <td class="px-6 py-4 font-medium text-ink">{{ $row[0] }}</td>
+                            <td class="px-6 py-4 text-center text-ink/80">{{ $row[1] }}</td>
+                            <td class="px-6 py-4 text-center text-ink/60">{{ $row[2] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -67,11 +68,11 @@
     </section>
 
     {{-- Where OT1-Pro Wins --}}
-    <section class="py-20 lg:py-28">
+    <section class="py-24 lg:py-28">
         <div class="mx-auto max-w-6xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Where OT1-Pro wins') }}</h2>
-                <p class="mt-4 text-zinc-600 dark:text-zinc-600">{{ __('Three areas where OT1-Pro is the better fit if you sell on social.') }}</p>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Where OT1-Pro wins') }}</h2>
+                <p class="mt-4 leading-relaxed text-ink/70">{{ __('Three areas where OT1-Pro is the better fit if you sell on social.') }}</p>
             </div>
             <div class="mt-12 grid gap-8 sm:grid-cols-3">
                 @php
@@ -94,10 +95,10 @@
                 ];
                 @endphp
                 @foreach($wins as $win)
-                <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-6 dark:border-emerald-200 dark:bg-emerald-50/40">
+                <div class="fade-up rounded-2xl border border-line bg-cream p-7">
                     <div class="mb-3 text-3xl">{{ $win[0] }}</div>
-                    <h3 class="text-lg font-semibold text-emerald-900 dark:text-emerald-800">{{ $win[1] }}</h3>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ $win[2] }}</p>
+                    <h3 class="serif text-2xl leading-snug text-ink">{{ $win[1] }}</h3>
+                    <p class="mt-3 text-sm leading-relaxed text-ink/70">{{ $win[2] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -105,12 +106,12 @@
     </section>
 
     {{-- FAQ --}}
-    <section class="border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-200 dark:bg-white">
+    <section class="border-y border-line bg-cream2 py-24">
         <div class="mx-auto max-w-3xl px-6">
             <div class="text-center">
-                <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ __('Common questions about switching from Tidio') }}</h2>
+                <h2 class="serif text-4xl leading-tight text-ink lg:text-5xl">{{ __('Common questions about switching from Tidio') }}</h2>
             </div>
-            <div class="mt-12 space-y-4" x-data="{ open: null }">
+            <div class="mt-12 divide-y divide-line border-y border-line">
                 @php
                 $faqs = [
                     [
@@ -128,32 +129,25 @@
                 ];
                 @endphp
                 @foreach($faqs as $i => $faq)
-                <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-200 dark:bg-white" x-data>
-                    <button @click="open = open === {{ $i }} ? null : {{ $i }}" class="flex w-full items-center justify-between px-6 py-4 text-left cursor-pointer">
-                        <span class="font-medium">{{ $faq[0] }}</span>
-                        <svg class="size-5 flex-shrink-0 text-zinc-600 transition-transform" :class="open === {{ $i }} && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    </button>
-                    <div x-show="open === {{ $i }}" x-collapse>
-                        <div class="px-6 pb-4 text-sm text-zinc-600 dark:text-zinc-600">{{ $faq[1] }}</div>
-                    </div>
-                </div>
+                <details class="py-5">
+                    <summary class="flex items-center justify-between gap-4">
+                        <span class="serif text-xl text-ink">{{ $faq[0] }}</span>
+                        <span class="chev serif text-2xl text-emer-700">+</span>
+                    </summary>
+                    <p class="mt-3 text-sm leading-relaxed text-ink/70">{{ $faq[1] }}</p>
+                </details>
                 @endforeach
             </div>
         </div>
     </section>
 
-    {{-- CTA --}}
-    <section class="py-20 lg:py-28">
-        <div class="mx-auto max-w-4xl px-6">
-            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-10 text-center sm:p-16">
-                <h2 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">{{ __('Try OT1-Pro free — no credit card required') }}</h2>
-                <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600">{{ __('Join social-first businesses that switched from Tidio to close more deals on WhatsApp and Instagram with AI.') }}</p>
-                <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md">
-                    {{ __('Start Free with OT1-Pro') }}
-                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                </a>
-                <p class="mt-3 text-sm text-emerald-800">{{ __('No credit card required · Free plan available') }}</p>
-            </div>
+    {{-- ═══════ FINAL CTA ═══════ --}}
+    <section class="bg-ink text-cream py-24 grain relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 class="serif text-5xl lg:text-6xl leading-none mb-6">{{ __('Try OT1-Pro free — no credit card required') }}</h2>
+            <p class="text-cream/70 text-lg mb-8 max-w-xl mx-auto">{{ __('Join social-first businesses that switched from Tidio to close more deals on WhatsApp and Instagram with AI.') }}</p>
+            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-lg hover:bg-emer-400 transition">{{ __('Start Free with OT1-Pro') }} <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></a>
+            <p class="mt-4 text-sm text-cream/60">{{ __('No credit card required · Free plan available') }}</p>
         </div>
     </section>
 
@@ -183,4 +177,4 @@
 </script>
 @endpush
 
-</x-layouts.marketing>
+</x-layouts.brand-marketing>
