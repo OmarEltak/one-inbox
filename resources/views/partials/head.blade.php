@@ -28,4 +28,8 @@
 <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700&display=swap" rel="stylesheet" />
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance
+{{-- @fluxAppearance intentionally REMOVED —
+     it auto-adds class="dark" to <html> when browser prefers dark, which
+     broke every Flux modal (dialog turned zinc-800, killed all our text-ink
+     labels). The app is designed light-only; enable this only when we ship
+     a real end-to-end dark theme. --}}

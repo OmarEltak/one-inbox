@@ -329,6 +329,10 @@ body {
     backdrop-filter: none !important;
 }
 
+/* Flux modal light-mode override removed — the root cause was
+   @fluxAppearance in partials/head.blade.php adding class="dark" to
+   <html>. Fixed at the source; no per-modal CSS override needed. */
+
 /* ── Cards ── */
 .aio-card {
     background: #ffffff;
