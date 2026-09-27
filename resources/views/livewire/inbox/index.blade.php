@@ -24,9 +24,9 @@
         </button>
     </div>
     {{-- Conversation List Sidebar --}}
-    <div wire:poll.30s class="flex-shrink-0 border-e border-zinc-200 dark:border-zinc-700 flex flex-col w-full md:w-80 {{ $selectedConversationId ? 'hidden md:flex' : 'flex' }}">
+    <div wire:poll.30s class="flex-shrink-0 border-e border-line dark:border-zinc-700 flex flex-col w-full md:w-80 {{ $selectedConversationId ? 'hidden md:flex' : 'flex' }}">
         {{-- Filters --}}
-        <div class="border-b border-zinc-200 dark:border-zinc-700 p-3 space-y-3">
+        <div class="border-b border-line dark:border-zinc-700 p-3 space-y-3">
             <div class="flex items-center gap-2">
                 <div class="flex-1 ring-2 ring-blue-500 rounded-lg">
                 <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Search conversations...') }}" icon="magnifying-glass" size="sm" class="w-full [&_input]:!text-zinc-900 dark:[&_input]:!text-zinc-900" />
@@ -120,7 +120,7 @@
                                 <span class="font-medium text-sm truncate {{ $selectedConversationId === $conversation->id ? '!text-white dark:!text-white' : '!text-zinc-900 dark:!text-zinc-900 group-hover:!text-white dark:group-hover:!text-white' }}">
                                     {{ $conversation->contact?->name ?? 'Unknown' }}
                                 </span>
-                                <span class="text-xs text-zinc-500 flex-shrink-0 ml-2">
+                                <span class="text-xs text-ink/60 flex-shrink-0 ml-2">
                                     {{ $conversation->last_message_at?->shortAbsoluteDiffForHumans() }}
                                 </span>
                             </div>
@@ -184,7 +184,7 @@
                 @else
                     <div class="flex flex-col items-center justify-center h-full p-6 text-center">
                         <flux:icon name="inbox" class="w-12 h-12 text-zinc-300 dark:text-zinc-600 mb-3" />
-                        <flux:heading size="sm" class="text-zinc-500">{{ __('No conversations yet') }}</flux:heading>
+                        <flux:heading size="sm" class="text-ink/60">{{ __('No conversations yet') }}</flux:heading>
                         <flux:text size="sm" class="text-zinc-400 mt-1">
                             {{ __('Connect your social accounts to start receiving messages.') }}
                         </flux:text>
@@ -287,7 +287,7 @@
                         >
                             <div class="p-3 border-b border-zinc-100 dark:border-zinc-700">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-medium text-zinc-500">{{ __('Score History') }}</span>
+                                    <span class="text-xs font-medium text-ink/60">{{ __('Score History') }}</span>
                                     <span class="text-lg font-bold">{{ $conv->contact->lead_score }}/100</span>
                                 </div>
                             </div>
@@ -641,7 +641,7 @@
             </div>
 
             {{-- Composer --}}
-            <div class="border-t border-zinc-200 dark:border-zinc-700 p-3">
+            <div class="border-t border-line dark:border-zinc-700 p-3">
                 {{-- Attachment Preview --}}
                 @if($attachment)
                     <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
@@ -759,7 +759,7 @@
         @else
             <div class="flex-1 flex flex-col items-center justify-center text-center p-6">
                 <flux:icon name="chat-bubble-left-right" class="w-16 h-16 text-zinc-300 dark:text-zinc-600 mb-4" />
-                <flux:heading size="lg" class="text-zinc-500">{{ __('Select a conversation') }}</flux:heading>
+                <flux:heading size="lg" class="text-ink/60">{{ __('Select a conversation') }}</flux:heading>
                 <flux:text class="text-zinc-400 mt-2">{{ __('Choose a conversation from the sidebar to start messaging.') }}</flux:text>
             </div>
         @endif
