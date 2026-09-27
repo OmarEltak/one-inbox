@@ -30,7 +30,7 @@
                     </div>
                     <p class="mt-4 text-sm text-ink/60">{{ __('No credit card required · Free plan available') }}</p>
                 </div>
-                <div class="rounded-2xl border border-line bg-cream p-6 shadow-sm">
+                <div class="rounded-2xl border border-line bg-cream2 p-6 shadow-sm">
                     <div class="mb-4 flex items-center gap-3 border-b border-line pb-4">
                         <div class="size-8 rounded-full bg-emer-600"></div>
                         <div>

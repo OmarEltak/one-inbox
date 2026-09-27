@@ -31,7 +31,7 @@
                     <p class="mt-4 text-sm text-ink/60">{{ __('No credit card required · Free plan available') }}</p>
                 </div>
                 <div class="space-y-4">
-                    <div class="rounded-2xl border border-line bg-cream p-5 shadow-sm">
+                    <div class="rounded-2xl border border-line bg-cream2 p-5 shadow-sm">
                         <div class="mb-3 flex items-center justify-between">
                             <p class="text-sm font-semibold text-ink/80">{{ __('Facebook Page Inbox') }}</p>
                             <span class="rounded-full bg-emer-100 px-2 py-0.5 text-xs font-medium text-emer-700">{{ __('AI Active') }}</span>
