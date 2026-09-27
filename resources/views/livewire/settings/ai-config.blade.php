@@ -1,6 +1,6 @@
 <div class="p-3 sm:p-6 w-full min-w-0">
-    <flux:heading size="xl" class="mb-2 !text-zinc-900 dark:!text-zinc-900">{{ __('AI Configuration') }}</flux:heading>
-    <flux:text class="mb-6 !text-zinc-900 dark:!text-zinc-900">{{ __('Configure AI behavior per connected page. The AI uses this info to respond to customers.') }}</flux:text>
+    <flux:heading size="xl" class="mb-2 font-serif !text-ink dark:!text-ink">{{ __('AI Configuration') }}</flux:heading>
+    <flux:text class="mb-6 !text-zinc-600 dark:!text-zinc-600">{{ __('Configure AI behavior per connected page. The AI uses this info to respond to customers.') }}</flux:text>
 
     @if($pages->isEmpty())
         <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-8 text-center">
