@@ -19,11 +19,11 @@
                class="inline-flex items-center gap-1 text-xs font-medium text-zinc-700 hover:text-zinc-900">
                 ← {{ __('Campaigns') }}
             </a>
-            <h1 class="text-2xl font-bold text-zinc-900 mt-1 truncate">{{ $campaign->name }}</h1>
-            <p class="mt-1 text-sm text-zinc-700 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 class="font-serif text-3xl text-ink mt-1 truncate">{{ $campaign->name }}</h1>
+            <p class="mt-1 text-sm text-zinc-600 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span>{{ ucfirst($campaign->platform ?? 'email') }}</span>
                 <span class="text-zinc-400">·</span>
-                <span>{{ __('Sender') }}: <strong class="text-zinc-900">{{ optional($campaign->senderPage)->name ?? '—' }}</strong></span>
+                <span>{{ __('Sender') }}: <strong class="text-ink">{{ optional($campaign->senderPage)->name ?? '—' }}</strong></span>
                 <span class="text-zinc-400">·</span>
                 <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border {{ $statusPill }}">
                     {{ ucfirst($campaign->status) }}
