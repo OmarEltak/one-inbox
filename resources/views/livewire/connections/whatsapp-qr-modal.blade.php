@@ -8,15 +8,15 @@
                 <flux:text class="mt-1">{{ __('Scan with any WhatsApp / WhatsApp Business number — no Meta setup required.') }}</flux:text>
             </div>
 
-            {{-- Disclaimer: QR is unofficial and may break during WhatsApp protocol updates --}}
+            {{-- Disclaimer: QR is unofficial and may break during WhatsApp protocol updates.
+                 Amber-on-cream palette per contrast-guardrails safe-pair (bg-amber-50 + text-amber-900). --}}
             @if($status === 'idle')
-                <div class="rounded-xl border border-yellow-400/30 bg-yellow-400/5 p-3 text-left">
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
                     <div class="flex items-start gap-2">
-                        <flux:icon.exclamation-triangle class="size-4 text-yellow-400 mt-0.5 shrink-0" />
-                        <div class="text-xs text-yellow-200/85 leading-relaxed">
-                            <strong class="text-yellow-100">{{ __('Personal / small-team use only.') }}</strong>
-                            {{ __('QR pairing uses an unofficial WhatsApp Web protocol and may briefly disconnect when WhatsApp pushes a protocol update. For mission-critical business use, connect via the official') }}
-                            <strong class="text-yellow-100">{{ __('WhatsApp Cloud API') }}</strong> {{ __('instead — it requires a one-time Meta Business setup but never gets interrupted.') }}
+                        <flux:icon.exclamation-triangle class="size-4 text-amber-700 mt-0.5 shrink-0" />
+                        <div class="text-xs text-amber-900 leading-relaxed">
+                            <strong class="text-amber-900 font-semibold">{{ __('Personal / small-team use only.') }}</strong>
+                            {{ __('QR pairing uses an unofficial WhatsApp Web protocol and may briefly disconnect when WhatsApp pushes a protocol update. For mission-critical business use, contact us for the official WhatsApp Cloud API setup.') }}
                         </div>
                     </div>
                 </div>

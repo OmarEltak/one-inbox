@@ -221,16 +221,11 @@
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
+                    {{-- Single-CTA per Omar's ask (match Slack/Discord/Telegram simplicity).
+                         Concierge escape hatch removed — customers who need it can email support. --}}
                     <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="primary" size="sm" class="w-full">
                         {{ $facebookAccounts->isNotEmpty() ? __('Add Another Account') : __('Connect with Facebook') }}
                     </flux:button>
-                    {{-- Secondary path even after App Review lands: some customers can't OAuth from
-                         a shared work laptop or want us to double-check permissions. Keep the
-                         concierge escape hatch as a small link, not a button. --}}
-                    <button type="button" wire:click="openRequestForm('facebook')"
-                            class="mt-2 w-full text-center text-xs text-white/50 hover:text-white/80 underline underline-offset-2 cursor-pointer">
-                        {{ __('Or request concierge connection') }}
-                    </button>
                 @elseif(isset($this->openOnboardingByPlatform['facebook']))
                     @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
                     <div class="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs">
@@ -307,17 +302,11 @@
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
+                    {{-- Single-CTA per Omar's ask. Direct IG-Login + concierge escape hatch
+                         were removed — Meta path is the correct default; support handles edge cases. --}}
                     <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? __('Add via Meta') : __('Connect via Meta') }}
                     </flux:button>
-                    <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
-                        {{ $instagramAccounts->isNotEmpty() ? __('Add Direct (IG Login)') : __('Connect Direct (IG Login)') }}
-                    </flux:button>
-                    {{-- Same concierge escape hatch as Facebook — see rationale above. --}}
-                    <button type="button" wire:click="openRequestForm('instagram')"
-                            class="w-full text-center text-xs text-white/50 hover:text-white/80 underline underline-offset-2 cursor-pointer">
-                        {{ __('Or request concierge connection') }}
-                    </button>
                 @elseif(isset($this->openOnboardingByPlatform['instagram']))
                     @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
                     <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs">
@@ -395,7 +384,11 @@
 
             <div class="{{ $whatsappAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
                 @if(config('services.wuzapi.qr_enabled'))
-                    {{-- Primary path: QR pairing via Wuzapi gateway (personal / small-team). --}}
+                    {{-- QR pairing via Wuzapi gateway — the only user-facing WhatsApp path.
+                         The Cloud API 'Advanced' option was removed at Omar's request: for
+                         teams that need it we do a one-time setup as a support case, not a
+                         self-serve button (kept the code path in the backend for the modal
+                         'whatsapp-connect' trigger elsewhere). --}}
                     <flux:button
                         x-on:click="$dispatch('open-whatsapp-qr')"
                         variant="primary"
@@ -404,17 +397,17 @@
                     >
                         {{ __('Connect via QR (Beta)') }}
                     </flux:button>
-                    <p class="text-[11px] text-white/50 text-center leading-snug">
+                    <p class="text-[11px] text-zinc-600 text-center leading-snug">
                         {{ __('Scan with WhatsApp on your phone. No Meta setup required.') }}
                     </p>
+                @else
+                    {{-- QR is admin-disabled — fall back to the concierge request. --}}
+                    <flux:modal.trigger name="whatsapp-connect">
+                        <flux:button variant="primary" class="w-full">
+                            {{ __('Request WhatsApp setup') }}
+                        </flux:button>
+                    </flux:modal.trigger>
                 @endif
-
-                {{-- Secondary path: WhatsApp Cloud API (official, requires Meta setup). --}}
-                <flux:modal.trigger name="whatsapp-connect">
-                    <flux:button variant="{{ config('services.wuzapi.qr_enabled') ? 'ghost' : 'primary' }}" class="w-full">
-                        {{ __('Connect via Cloud API (Advanced)') }}
-                    </flux:button>
-                </flux:modal.trigger>
             </div>
         </div>
 
@@ -1117,24 +1110,23 @@
             <div class="space-y-5" x-data="{ tab: 'wordpress' }">
                 {{-- Header --}}
                 <div>
-                    <flux:heading size="lg">{{ __('Your Web Chat widget is ready') }}</flux:heading>
-                    <flux:text class="mt-1">{{ __('Add the snippet below to your website and a green chat bubble appears in the bottom-right corner. Visitors who click it can chat with you — their messages land in this inbox.') }}</flux:text>
+                    <flux:heading size="lg" class="!text-ink">{{ __('Your Web Chat widget is ready') }}</flux:heading>
+                    <p class="mt-1 text-sm text-zinc-700 leading-relaxed">{{ __('Add the snippet below to your website and a green chat bubble appears in the bottom-right corner. Visitors who click it can chat with you — their messages land in this inbox.') }}</p>
                 </div>
 
-                {{-- Snippet with copy button --}}
+                {{-- Snippet block — kept intentionally dark (bg-ink) because it's a code editor
+                     surface. Light-on-dark syntax is legible + it's the recognisable "code" look. --}}
                 <div>
-                    <p class="text-[10px] uppercase tracking-wider text-white/40 mb-2">① Copy this snippet</p>
-                    <div class="rounded-xl border border-white/10 bg-zinc-950/60 p-3">
+                    <p class="text-[10px] uppercase tracking-wider text-zinc-500 mb-2 font-semibold">{{ __('① Copy this snippet') }}</p>
+                    <div class="rounded-xl border border-zinc-200 bg-ink p-3">
                         <div class="flex items-start justify-between gap-2 mb-2">
-                            <span class="text-[10px] text-white/40">embed snippet</span>
+                            <span class="text-[10px] text-cream/60">{{ __('embed snippet') }}</span>
                             <button
                                 type="button"
                                 x-data
-                                x-on:click="navigator.clipboard.writeText($refs.snippet.innerText); $el.innerText = '✓ Copied'; setTimeout(() => $el.innerText = 'Copy', 1500)"
-                                class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30"
-                            >
-                                Copy
-                            </button>
+                                x-on:click="navigator.clipboard.writeText($refs.snippet.innerText); $el.innerText = '✓ {{ __('Copied') }}'; setTimeout(() => $el.innerText = '{{ __('Copy') }}', 1500)"
+                                class="text-[11px] px-2 py-0.5 rounded bg-emer-600 text-white hover:bg-emer-700"
+                            >{{ __('Copy') }}</button>
                         </div>
                         <pre x-ref="snippet" class="text-xs text-emerald-200 whitespace-pre-wrap break-all leading-relaxed">{{ $snippet }}</pre>
                     </div>
@@ -1142,115 +1134,116 @@
 
                 {{-- Platform-specific install instructions (tabs) --}}
                 <div>
-                    <p class="text-[10px] uppercase tracking-wider text-white/40 mb-2">② Paste it on your site — pick where your site lives</p>
-                    <div class="flex flex-wrap gap-1 mb-3 border-b border-white/10">
+                    <p class="text-[10px] uppercase tracking-wider text-zinc-500 mb-2 font-semibold">{{ __('② Paste it on your site — pick where your site lives') }}</p>
+                    <div class="flex flex-wrap gap-1 mb-3 border-b border-zinc-200">
                         @foreach(['wordpress' => 'WordPress', 'shopify' => 'Shopify', 'wix' => 'Wix', 'squarespace' => 'Squarespace', 'webflow' => 'Webflow', 'html' => 'Custom HTML'] as $key => $label)
                             <button
                                 type="button"
                                 x-on:click="tab = '{{ $key }}'"
-                                :class="tab === '{{ $key }}' ? 'bg-emerald-500/15 text-emerald-300 border-b-2 border-emerald-400' : 'text-white/50 hover:text-white/80'"
+                                :class="tab === '{{ $key }}' ? 'bg-emer-50 text-emer-700 border-b-2 border-emer-600 -mb-px' : 'text-zinc-600 hover:text-ink hover:bg-zinc-50'"
                                 class="px-3 py-1.5 text-xs font-medium transition rounded-t-md"
                             >{{ $label }}</button>
                         @endforeach
                     </div>
 
-                    <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs text-white/70 leading-relaxed space-y-2 min-h-[140px]">
+                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-700 leading-relaxed space-y-2 min-h-[140px]">
                         {{-- WordPress --}}
                         <div x-show="tab === 'wordpress'" x-cloak>
-                            <p class="text-white/85 font-semibold mb-2">WordPress (easiest way)</p>
-                            <p>① Install the free plugin <strong class="text-white/85">"Insert Headers and Footers"</strong> by WPBeginner (or "WPCode").</p>
-                            <p>② In your WP admin: <strong class="text-white/85">Settings → Insert Headers and Footers</strong>.</p>
-                            <p>③ Paste the snippet into the <strong class="text-white/85">"Scripts in Footer"</strong> box.</p>
-                            <p>④ Click <strong class="text-white/85">Save</strong>. The bubble appears on every page within ~30 seconds (browser cache may delay).</p>
-                            <p class="text-white/45 mt-2">No FTP / no theme editing needed.</p>
+                            <p class="text-ink font-semibold mb-2">WordPress ({{ __('easiest way') }})</p>
+                            <p>① {{ __('Install the free plugin') }} <strong class="text-ink">"Insert Headers and Footers"</strong> {{ __('by WPBeginner (or "WPCode").') }}</p>
+                            <p>② {{ __('In your WP admin:') }} <strong class="text-ink">Settings → Insert Headers and Footers</strong>.</p>
+                            <p>③ {{ __('Paste the snippet into the') }} <strong class="text-ink">"Scripts in Footer"</strong> {{ __('box.') }}</p>
+                            <p>④ {{ __('Click') }} <strong class="text-ink">Save</strong>. {{ __('The bubble appears on every page within ~30 seconds (browser cache may delay).') }}</p>
+                            <p class="text-zinc-500 mt-2">{{ __('No FTP / no theme editing needed.') }}</p>
                         </div>
 
                         {{-- Shopify --}}
                         <div x-show="tab === 'shopify'" x-cloak>
-                            <p class="text-white/85 font-semibold mb-2">Shopify</p>
-                            <p>① In your Shopify admin: <strong class="text-white/85">Online Store → Themes</strong>.</p>
-                            <p>② On your active theme click <strong class="text-white/85">Actions → Edit code</strong>.</p>
-                            <p>③ Open <code class="text-emerald-300">layout/theme.liquid</code> in the file list.</p>
-                            <p>④ Find the line with <code class="text-emerald-300">&lt;/body&gt;</code> (near the bottom). Paste the snippet on the line just above it.</p>
-                            <p>⑤ Click <strong class="text-white/85">Save</strong>. Refresh your storefront — the bubble shows up.</p>
+                            <p class="text-ink font-semibold mb-2">Shopify</p>
+                            <p>① {{ __('In your Shopify admin:') }} <strong class="text-ink">Online Store → Themes</strong>.</p>
+                            <p>② {{ __('On your active theme click') }} <strong class="text-ink">Actions → Edit code</strong>.</p>
+                            <p>③ {{ __('Open') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">layout/theme.liquid</code> {{ __('in the file list.') }}</p>
+                            <p>④ {{ __('Find the line with') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">&lt;/body&gt;</code> {{ __('(near the bottom). Paste the snippet on the line just above it.') }}</p>
+                            <p>⑤ {{ __('Click') }} <strong class="text-ink">Save</strong>. {{ __('Refresh your storefront — the bubble shows up.') }}</p>
                         </div>
 
                         {{-- Wix --}}
                         <div x-show="tab === 'wix'" x-cloak>
-                            <p class="text-white/85 font-semibold mb-2">Wix</p>
-                            <p>① In your Wix dashboard: <strong class="text-white/85">Settings → Custom Code</strong> (under "Advanced").</p>
-                            <p>② Click <strong class="text-white/85">+ Add Custom Code</strong>.</p>
-                            <p>③ Paste the snippet into the code box. Set:</p>
-                            <p class="ml-4">• Name: <code class="text-emerald-300">OT1-Pro Chat</code></p>
-                            <p class="ml-4">• Add Code to Pages: <strong class="text-white/85">All pages</strong></p>
-                            <p class="ml-4">• Place Code in: <strong class="text-white/85">Body — end</strong></p>
-                            <p>④ Click <strong class="text-white/85">Apply</strong>. Publish your site if needed.</p>
-                            <p class="text-white/45 mt-2">Note: Wix free plans don't allow custom code — you need a Premium plan.</p>
+                            <p class="text-ink font-semibold mb-2">Wix</p>
+                            <p>① {{ __('In your Wix dashboard:') }} <strong class="text-ink">Settings → Custom Code</strong> ({{ __('under "Advanced"') }}).</p>
+                            <p>② {{ __('Click') }} <strong class="text-ink">+ Add Custom Code</strong>.</p>
+                            <p>③ {{ __('Paste the snippet into the code box. Set:') }}</p>
+                            <p class="ml-4">• Name: <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">OT1-Pro Chat</code></p>
+                            <p class="ml-4">• Add Code to Pages: <strong class="text-ink">All pages</strong></p>
+                            <p class="ml-4">• Place Code in: <strong class="text-ink">Body — end</strong></p>
+                            <p>④ {{ __('Click') }} <strong class="text-ink">Apply</strong>. {{ __('Publish your site if needed.') }}</p>
+                            <p class="text-zinc-500 mt-2">{{ __("Note: Wix free plans don't allow custom code — you need a Premium plan.") }}</p>
                         </div>
 
                         {{-- Squarespace --}}
                         <div x-show="tab === 'squarespace'" x-cloak>
-                            <p class="text-white/85 font-semibold mb-2">Squarespace</p>
-                            <p>① <strong class="text-white/85">Settings → Advanced → Code Injection</strong>.</p>
-                            <p>② Paste the snippet into the <strong class="text-white/85">Footer</strong> box.</p>
-                            <p>③ Click <strong class="text-white/85">Save</strong>.</p>
-                            <p class="text-white/45 mt-2">Note: Code Injection requires a Business plan or higher.</p>
+                            <p class="text-ink font-semibold mb-2">Squarespace</p>
+                            <p>① <strong class="text-ink">Settings → Advanced → Code Injection</strong>.</p>
+                            <p>② {{ __('Paste the snippet into the') }} <strong class="text-ink">Footer</strong> {{ __('box.') }}</p>
+                            <p>③ {{ __('Click') }} <strong class="text-ink">Save</strong>.</p>
+                            <p class="text-zinc-500 mt-2">{{ __('Note: Code Injection requires a Business plan or higher.') }}</p>
                         </div>
 
                         {{-- Webflow --}}
                         <div x-show="tab === 'webflow'" x-cloak>
-                            <p class="text-white/85 font-semibold mb-2">Webflow</p>
-                            <p>① Open your project → <strong class="text-white/85">Project Settings → Custom Code</strong>.</p>
-                            <p>② Paste the snippet in the <strong class="text-white/85">Footer Code</strong> box.</p>
-                            <p>③ Click <strong class="text-white/85">Save Changes</strong>, then publish your site.</p>
+                            <p class="text-ink font-semibold mb-2">Webflow</p>
+                            <p>① {{ __('Open your project →') }} <strong class="text-ink">Project Settings → Custom Code</strong>.</p>
+                            <p>② {{ __('Paste the snippet in the') }} <strong class="text-ink">Footer Code</strong> {{ __('box.') }}</p>
+                            <p>③ {{ __('Click') }} <strong class="text-ink">Save Changes</strong>, {{ __('then publish your site.') }}</p>
                         </div>
 
                         {{-- Custom HTML --}}
                         <div x-show="tab === 'html'" x-cloak>
-                            <p class="text-white/85 font-semibold mb-2">Plain HTML / your own framework</p>
-                            <p>Open the HTML file (or template) for every page you want the bubble on. Find the closing <code class="text-emerald-300">&lt;/body&gt;</code> tag and paste the snippet on the line right before it. Example:</p>
-                            <pre class="mt-2 p-2 bg-zinc-950/60 rounded text-[11px] text-emerald-200/90 overflow-x-auto"><code>&lt;body&gt;
-  ... your page content ...
+                            <p class="text-ink font-semibold mb-2">{{ __('Plain HTML / your own framework') }}</p>
+                            <p>{{ __('Open the HTML file (or template) for every page you want the bubble on. Find the closing') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">&lt;/body&gt;</code> {{ __('tag and paste the snippet on the line right before it. Example:') }}</p>
+                            <pre class="mt-2 p-2 bg-ink rounded text-[11px] text-emerald-200 overflow-x-auto"><code>&lt;body&gt;
+  ... {{ __('your page content') }} ...
   {{ $snippet }}
 &lt;/body&gt;</code></pre>
-                            <p class="mt-2 text-white/45">Works with React/Vue/Next.js too — drop it in your root layout / <code>_document.tsx</code> / <code>app.html</code>.</p>
+                            <p class="mt-2 text-zinc-500">{{ __('Works with React/Vue/Next.js too — drop it in your root layout /') }} <code>_document.tsx</code> / <code>app.html</code>.</p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Test it --}}
-                <div class="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-4">
-                    <p class="text-[10px] uppercase tracking-wider text-emerald-300/80 mb-1">③ Test it now (without your site)</p>
-                    <p class="text-xs text-white/70">We hosted a demo page that already has your widget embedded. Open it, click the green bubble, send a test message — then watch your inbox.</p>
-                    <a href="{{ url('/webchat-test.html') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-emerald-300 hover:text-emerald-200">
+                {{-- Test it — emerald-tinted call-out block --}}
+                <div class="rounded-xl border border-emer-200 bg-emer-50 p-4">
+                    <p class="text-[10px] uppercase tracking-wider text-emer-700 mb-1 font-semibold">{{ __('③ Test it now (without your site)') }}</p>
+                    <p class="text-xs text-zinc-700 leading-relaxed">{{ __('We hosted a demo page that already has your widget embedded. Open it, click the green bubble, send a test message — then watch your inbox.') }}</p>
+                    <a href="{{ url('/webchat-test.html') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-emer-700 hover:text-emer-900 hover:underline">
                         <flux:icon.arrow-top-right-on-square class="w-3.5 h-3.5" />
-                        Open test page
+                        {{ __('Open test page') }}
                     </a>
                 </div>
 
                 {{-- Where messages go --}}
-                <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white/60">
-                    <p><strong class="text-white/80">Where messages go:</strong> Site visitors' messages appear in your <a href="{{ route('inbox') }}" class="text-emerald-300 hover:underline">Inbox</a> under the channel <strong class="text-white/85">"Web Chat"</strong>. Your replies are pushed back to the chat bubble within ~1.5 seconds.</p>
+                <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700 leading-relaxed">
+                    <p><strong class="text-ink">{{ __('Where messages go:') }}</strong> {{ __('Site visitors\' messages appear in your') }} <a href="{{ route('inbox') }}" class="text-emer-700 hover:underline">{{ __('Inbox') }}</a> {{ __('under the channel') }} <strong class="text-ink">"Web Chat"</strong>. {{ __('Your replies are pushed back to the chat bubble within ~1.5 seconds.') }}</p>
                 </div>
 
                 {{-- Troubleshooting --}}
-                <details class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                    <summary class="text-xs text-white/60 cursor-pointer hover:text-white/80">Bubble isn't appearing? Click to troubleshoot</summary>
-                    <div class="mt-3 space-y-1.5 text-xs text-white/55 leading-relaxed">
-                        <p><strong class="text-white/80">Wait 30 seconds and refresh.</strong> Many CDNs (Cloudflare, etc.) cache HTML — your snippet update may not be live yet.</p>
-                        <p><strong class="text-white/80">Check browser console</strong> (F12). If you see a CSP error, your site has a Content-Security-Policy that needs <code class="text-emerald-300">{{ parse_url(url('/'), PHP_URL_HOST) }}</code> added to <code class="text-emerald-300">script-src</code>.</p>
-                        <p><strong class="text-white/80">Ad blockers</strong> can sometimes block widgets. Disable yours and reload to confirm.</p>
-                        <p><strong class="text-white/80">Snippet in the wrong place?</strong> It must be in the page <code class="text-emerald-300">&lt;body&gt;</code> — not <code class="text-emerald-300">&lt;head&gt;</code>. The <code>defer</code> attribute means it loads after the page is ready.</p>
+                <details class="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                    <summary class="text-xs text-zinc-700 cursor-pointer hover:text-ink font-medium">{{ __("Bubble isn't appearing? Click to troubleshoot") }}</summary>
+                    <div class="mt-3 space-y-1.5 text-xs text-zinc-700 leading-relaxed">
+                        <p><strong class="text-ink">{{ __('Wait 30 seconds and refresh.') }}</strong> {{ __('Many CDNs (Cloudflare, etc.) cache HTML — your snippet update may not be live yet.') }}</p>
+                        <p><strong class="text-ink">{{ __('Check browser console') }}</strong> (F12). {{ __('If you see a CSP error, your site has a Content-Security-Policy that needs') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">{{ parse_url(url('/'), PHP_URL_HOST) }}</code> {{ __('added to') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">script-src</code>.</p>
+                        <p><strong class="text-ink">{{ __('Ad blockers') }}</strong> {{ __('can sometimes block widgets. Disable yours and reload to confirm.') }}</p>
+                        <p><strong class="text-ink">{{ __('Snippet in the wrong place?') }}</strong> {{ __('It must be in the page') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">&lt;body&gt;</code> — {{ __('not') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">&lt;head&gt;</code>. {{ __('The') }} <code>defer</code> {{ __('attribute means it loads after the page is ready.') }}</p>
                     </div>
                 </details>
 
                 {{-- Widget id reference --}}
-                <div class="text-[11px] text-white/40 border-t border-white/5 pt-3">
-                    Widget ID: <code class="text-emerald-300/80">{{ $newWebChatId }}</code> — keep this private; anyone with it can post messages to your inbox under this widget.
+                <div class="text-[11px] text-zinc-500 border-t border-zinc-200 pt-3 leading-relaxed">
+                    {{ __('Widget ID:') }} <code class="text-emer-700 bg-emer-50 rounded px-1 py-0.5">{{ $newWebChatId }}</code> — {{ __('keep this private; anyone with it can post messages to your inbox under this widget.') }}
                 </div>
 
-                <div class="flex justify-end gap-2">
-                    <flux:button variant="ghost" wire:click="closeWebChatModal">{{ __('Close') }}</flux:button>
+                <div class="flex justify-end gap-2 pt-3 border-t border-zinc-200">
+                    <button type="button" wire:click="closeWebChatModal"
+                            class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-zinc-50 transition">{{ __('Close') }}</button>
                 </div>
             </div>
         @endif

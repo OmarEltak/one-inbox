@@ -43,10 +43,27 @@
         </div>
 
         <div class="flex items-center gap-3">
+            {{-- Language switcher — writes ?lang=X to current URL; SetLocale middleware
+                 persists via long-lived cookie that survives CDN cache strip. Two anchor
+                 tags (EN | AR) rather than a dropdown so it works without JS + is one
+                 tap on mobile. The 'other' language pill highlights as clickable. --}}
+            @php
+                $currentLocale     = app()->getLocale();
+                $currentLangUrlBase = request()->fullUrlWithoutQuery('lang');
+                $joiner            = str_contains($currentLangUrlBase, '?') ? '&' : '?';
+            @endphp
+            <div class="hidden sm:flex items-center gap-1 text-xs font-semibold nav-text">
+                <a href="{{ $currentLangUrlBase . $joiner . 'lang=en' }}"
+                   class="px-2 py-1 rounded-md {{ $currentLocale === 'en' ? 'opacity-100 underline underline-offset-4' : 'opacity-60 hover:opacity-100' }}">EN</a>
+                <span class="opacity-30">·</span>
+                <a href="{{ $currentLangUrlBase . $joiner . 'lang=ar' }}"
+                   class="px-2 py-1 rounded-md {{ $currentLocale === 'ar' ? 'opacity-100 underline underline-offset-4' : 'opacity-60 hover:opacity-100' }}">AR</a>
+            </div>
+
             @auth
                 <a href="{{ route('dashboard') }}" class="nav-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold">
                     {{ __('Dashboard') }}
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    <svg class="w-3.5 h-3.5 rtl:rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </a>
             @else
                 @if(Route::has('login'))
@@ -55,7 +72,7 @@
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="nav-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold">
                         {{ __('Start free') }}
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-3.5 h-3.5 rtl:rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 @endif
             @endauth
