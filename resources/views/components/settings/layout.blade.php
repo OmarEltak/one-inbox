@@ -24,6 +24,7 @@
                 <flux:navlist.item :href="route('two-factor.show')" wire:navigate>{{ __('Two-Factor Auth') }}</flux:navlist.item>
             @endif
             <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
+            <flux:navlist.item :href="route('settings.referrals')" wire:navigate>{{ __('Referrals') }}</flux:navlist.item>
             <flux:navlist.item :href="route('settings.billing')" wire:navigate>{{ __('Billing') }}</flux:navlist.item>
         </flux:navlist>
     </div>

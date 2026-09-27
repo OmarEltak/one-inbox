@@ -141,9 +141,9 @@ final class ProgressService
             ],
             [
                 'id'       => self::STEP_INVITE_TEAMMATE,
-                'label'    => 'Invite a teammate',
+                'label'    => 'Invite a friend',
                 'done'     => $inviteTeamDone,
-                'url'      => '/settings/admins',
+                'url'      => route('settings.referrals'),
                 'optional' => in_array(self::STEP_INVITE_TEAMMATE, self::OPTIONAL_STEPS, true),
             ],
         ];

@@ -79,8 +79,12 @@
         <meta name="ahrefs-site-verification" content="{{ config('services.ahrefs.site_verification') }}">
     @endif
 
-    {{-- Open Graph --}}
-    @php $ogImageUrl = $ogImage ?? config('app.url') . '/og-image.png'; @endphp
+    {{-- Open Graph.
+         `?v=2` cache-buster on the default OG image: WhatsApp/Facebook/Telegram
+         cache scraped OG images for weeks under the original URL. Changing the
+         query string forces a re-scrape. Bump the number whenever public/og-image.png
+         is regenerated. --}}
+    @php $ogImageUrl = $ogImage ?? (config('app.url') . '/og-image.png?v=2'); @endphp
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? 'OT1-Pro — Every message. One closing inbox.' }}">
     <meta property="og:description" content="{{ $description ?? 'Every customer message in one place, answered by an AI in your voice.' }}">
@@ -96,7 +100,12 @@
     <meta name="twitter:description" content="{{ $description ?? 'Every message. One closing inbox.' }}">
     <meta name="twitter:image" content="{{ $ogImageUrl }}">
 
-    <link rel="icon" href="/logo.png" type="image/png">
+    {{-- Marketing pages also declare the icon here so brand pages get the new bot mark
+         without waiting on partials/head.blade.php (which only loads for app pages). --}}
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any">
+    <link rel="icon" href="/favicon-32.png?v=2" type="image/png" sizes="32x32">
+    <link rel="icon" href="/favicon-16.png?v=2" type="image/png" sizes="16x16">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
 
     {{-- Brand typography: Inter (body) + Instrument Serif (headline treatments) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">

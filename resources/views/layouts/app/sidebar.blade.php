@@ -24,8 +24,9 @@
             @endphp
             <flux:sidebar.header class="px-4 py-5">
                 <a href="{{ route('dashboard') }}" wire:navigate.hover class="flex items-center gap-2.5 group min-w-0 flex-1">
-                    <img src="/logo.png" alt="OT1-Pro" class="size-8 rounded-lg flex-shrink-0 object-cover" />
-                    <p class="text-sm font-bold text-zinc-900 leading-tight truncate">{{ __('OT1-Pro') }}</p>
+                    {{-- Wide brand mark (bot + wordmark). Fits inside the sidebar header on its own,
+                         so the redundant text label was removed. --}}
+                    <img src="/logo/logo-light.png" alt="OT1-Pro" class="h-8 w-auto flex-shrink-0" />
                 </a>
                 <flux:sidebar.collapse class="lg:hidden ml-1 text-zinc-400 hover:text-zinc-600" />
             </flux:sidebar.header>
@@ -379,6 +380,33 @@
             @if($team)
                 <x-onboarding.progress-pill :team="$team" />
             @endif
+
+            {{-- Language switcher — writes ?lang= to current URL; SetLocale middleware
+                 persists the choice in a long-lived cookie so it survives CDN cache strip. --}}
+            @php
+                $currentLocale = app()->getLocale();
+                $languages = ['en' => 'English', 'ar' => 'العربية'];
+                $currentLangUrlBase = request()->fullUrlWithoutQuery('lang');
+                $joiner = str_contains($currentLangUrlBase, '?') ? '&' : '?';
+            @endphp
+            <flux:dropdown position="bottom" align="end">
+                <button class="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 transition-colors cursor-pointer"
+                        title="{{ __('Language') }}">
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                    <span class="text-[11px] font-semibold uppercase tracking-wider">{{ $currentLocale }}</span>
+                </button>
+                <flux:menu>
+                    @foreach($languages as $code => $label)
+                        <flux:menu.item as="a"
+                                        href="{{ $currentLangUrlBase . $joiner . 'lang=' . $code }}"
+                                        :icon="$currentLocale === $code ? 'check' : null">
+                            {{ $label }}
+                        </flux:menu.item>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
 
             {{-- Notification bell --}}
             <div class="relative">

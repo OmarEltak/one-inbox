@@ -16,10 +16,13 @@
 
 <title>{{ $title ?? config('app.name') }}</title>
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
-<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+{{-- Favicon cache-buster: bump the ?v= number whenever public/favicon-*.png is regenerated.
+     Browsers cache favicons extremely aggressively — without this, users see the old
+     purple square for weeks even after the file changes. --}}
+<link rel="icon" href="/favicon.ico?v=2" sizes="any">
+<link rel="icon" href="/favicon-32.png?v=2" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16.png?v=2" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
 
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700&display=swap" rel="stylesheet" />

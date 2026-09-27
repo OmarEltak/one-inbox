@@ -331,6 +331,9 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     // Admin Management
     Route::get('settings/admins', \App\Livewire\Settings\AdminManagement::class)->middleware('permission:manage-admins')->name('settings.admins');
 
+    // Referrals
+    Route::get('/settings/referrals', \App\Livewire\Settings\Referrals::class)->name('settings.referrals');
+
     // Quick Replies
     Route::get('settings/quick-replies', \App\Livewire\Settings\QuickReplies::class)->middleware('permission:ai-settings')->name('settings.quick-replies');
 

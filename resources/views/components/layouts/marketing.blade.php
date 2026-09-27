@@ -62,7 +62,7 @@
 
     {{-- Open Graph: 1200×630 branded image. Page can override via $ogImage slot.
          PNG is the default — Facebook and LinkedIn ignore SVG og:images. --}}
-    @php $ogImageUrl = $ogImage ?? config('app.url') . '/og-image.png'; @endphp
+    @php $ogImageUrl = $ogImage ?? (config('app.url') . '/og-image.png?v=2'); @endphp
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? 'OT1-Pro — Unified Social Inbox with AI Sales Responder' }}">
     <meta property="og:description" content="{{ $description ?? 'Manage all your social conversations from Facebook, Instagram, WhatsApp, and Telegram in one place.' }}">
