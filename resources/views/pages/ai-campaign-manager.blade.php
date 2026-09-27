@@ -273,7 +273,7 @@
                 <div class="mt-6 bg-white border border-line rounded-xl p-4">
                     <div class="text-xs text-ink/50 mb-1">Q1</div>
                     <div class="text-sm font-medium mb-3">{{ __('What do you sell?') }}</div>
-                    <div class="text-xs text-ink/70 italic border-l-2 border-emer-500 pl-3">"Handmade leather bags shipped to UAE and Saudi within 3 days"</div>
+                    <div class="text-xs text-ink/70 italic border-l-2 border-emer-500 pl-3">"{{ __('Handmade leather bags shipped to UAE and Saudi within 3 days') }}"</div>
                 </div>
             </div>
             <div class="relative md:mt-32">
