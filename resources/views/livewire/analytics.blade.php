@@ -35,7 +35,7 @@
             {{-- Header with period selector --}}
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{{ __('Analytics') }}</h1>
+                    <h1 class="font-serif text-3xl text-ink dark:text-zinc-50">{{ __('Analytics') }}</h1>
                     <div class="mt-1 flex items-center gap-3">
                         <p class="text-sm text-zinc-700 dark:text-zinc-300">{{ __('AI performance and sales insights') }}</p>
                         <span wire:loading class="inline-flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300">
@@ -272,9 +272,9 @@
                                 @php
                                     $speedup = $data['responseTime']['human_avg'] > 0 ? round($data['responseTime']['human_avg'] / max($data['responseTime']['ai_avg'], 1)) : 0;
                                 @endphp
-                                <div class="rounded-lg bg-white/5 p-3">
-                                    <p class="text-sm text-white/40">
-                                        {{ __('AI responds') }} <span class="font-bold text-green-400">{{ $speedup }}x {{ __('faster') }}</span> {{ __('than human agents') }}
+                                <div class="rounded-lg bg-ink text-cream p-3">
+                                    <p class="text-sm text-cream/80">
+                                        {{ __('AI responds') }} <span class="font-bold text-emer-400">{{ $speedup }}x {{ __('faster') }}</span> {{ __('than human agents') }}
                                     </p>
                                 </div>
                             @endif
