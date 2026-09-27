@@ -61,21 +61,13 @@
                                 </span>
                                 <span class="text-xs text-zinc-500">#{{ $req->id }} · {{ $req->created_at->diffForHumans() }}</span>
                             </div>
-                            <div class="text-base font-medium text-zinc-900 dark:text-zinc-100">
+                            <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                                 {{ $req->business_name ?: __('(no business name)') }}
                             </div>
-                            <div class="text-sm text-zinc-500 mt-0.5">
-                                {{ __('Team') }}: <span class="text-zinc-700 dark:text-zinc-300">{{ $req->team?->name ?? '?' }}</span>
-                                · {{ __('Requested by') }} {{ $req->requestedBy?->name ?? '?' }} ({{ $req->requestedBy?->email ?? '?' }})
-                                @if($req->contact_phone)
-                                    · {{ $req->contact_phone }}
-                                @endif
+                            <div class="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
+                                {{ __('Team') }}: <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $req->team?->name ?? '?' }}</span>
+                                · {{ __('Requested by') }} {{ $req->requestedBy?->name ?? '?' }}
                             </div>
-                            @if($req->page_url)
-                                <a href="{{ $req->page_url }}" target="_blank" class="text-sm text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block break-all">
-                                    {{ $req->page_url }}
-                                </a>
-                            @endif
                         </div>
 
                         @if($req->status === 'pending')
@@ -85,12 +77,55 @@
                         @endif
                     </div>
 
-                    @if($req->notes)
-                        <div class="mb-3 rounded-md bg-zinc-50 dark:bg-zinc-800/50 p-3 text-sm text-zinc-700 dark:text-zinc-300">
-                            <span class="text-xs uppercase tracking-wide text-zinc-500 block mb-1">{{ __('Customer notes') }}</span>
-                            {{ $req->notes }}
-                        </div>
-                    @endif
+                    {{-- Submitted details grid — everything the customer filled in the request form,
+                         laid out for one-glance scanning. Phone links to wa.me, email to mailto:,
+                         page URL opens in new tab. Renders every field even when empty so the
+                         reviewer sees at a glance what was and wasn't provided. --}}
+                    <div class="mb-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-4">
+                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400 font-semibold mb-3">{{ __('Submitted details') }}</div>
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Contact email') }}</dt>
+                                <dd class="mt-0.5 text-zinc-900 dark:text-zinc-100 font-medium break-all">
+                                    @if($req->contact_email)
+                                        <a href="mailto:{{ $req->contact_email }}" class="text-emerald-700 dark:text-emerald-400 hover:underline">{{ $req->contact_email }}</a>
+                                    @elseif($req->requestedBy?->email)
+                                        <a href="mailto:{{ $req->requestedBy->email }}" class="text-emerald-700 dark:text-emerald-400 hover:underline">{{ $req->requestedBy->email }}</a>
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400 ml-1">({{ __('account email') }})</span>
+                                    @else
+                                        <span class="text-zinc-400 dark:text-zinc-500 italic">{{ __('not provided') }}</span>
+                                    @endif
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('WhatsApp') }}</dt>
+                                <dd class="mt-0.5 font-medium">
+                                    @if($req->contact_phone)
+                                        @php $waNumber = preg_replace('/\D+/', '', $req->contact_phone); @endphp
+                                        <a href="https://wa.me/{{ $waNumber }}" target="_blank" class="text-emerald-700 dark:text-emerald-400 hover:underline">{{ $req->contact_phone }}</a>
+                                    @else
+                                        <span class="text-zinc-400 dark:text-zinc-500 italic">{{ __('not provided') }}</span>
+                                    @endif
+                                </dd>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Page URL') }}</dt>
+                                <dd class="mt-0.5 font-medium break-all">
+                                    @if($req->page_url)
+                                        <a href="{{ $req->page_url }}" target="_blank" class="text-emerald-700 dark:text-emerald-400 hover:underline">{{ $req->page_url }}</a>
+                                    @else
+                                        <span class="text-zinc-400 dark:text-zinc-500 italic">{{ __('not provided') }}</span>
+                                    @endif
+                                </dd>
+                            </div>
+                            @if($req->notes)
+                                <div class="sm:col-span-2">
+                                    <dt class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Notes') }}</dt>
+                                    <dd class="mt-0.5 text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap">{{ $req->notes }}</dd>
+                                </div>
+                            @endif
+                        </dl>
+                    </div>
 
                     @if($req->status === 'completed' && $req->resultingPage)
                         <div class="text-sm text-green-700 dark:text-green-400">

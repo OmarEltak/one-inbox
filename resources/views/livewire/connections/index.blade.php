@@ -327,7 +327,7 @@
                         <p class="text-emerald-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $igReq->created_at->diffForHumans()]) }}</p>
                     </div>
                 @else
-                    <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full" style="background: linear-gradient(135deg, #833AB4, #E1306C); border: none;">
+                    <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full">
                         {{ $instagramPages->isNotEmpty() ? __('Add another page') : __('Request connection') }}
                     </flux:button>
                 @endif
@@ -1256,73 +1256,96 @@
         @endif
     </flux:modal>
 
-    {{-- Managed onboarding request form (FB/IG while Meta unverified) --}}
+    {{-- Managed onboarding request form (FB/IG while Meta unverified).
+         Rewritten for the light brand theme — the previous dark-theme classes
+         (bg-blue-500/5, text-blue-200, text-white/60) rendered near-invisible
+         on cream. Hand-rolled inputs used per contrast-guardrails skill because
+         flux:input defaults typed text to zinc-500 (illegible in a wizard). --}}
     <flux:modal name="onboarding-request" class="md:w-[560px]">
+        @php
+            $platformLabel = ucfirst($requestPlatform ?? 'facebook');
+            $isInstagram   = ($requestPlatform ?? '') === 'instagram';
+            // Step 1 wording differs slightly between FB and IG (IG needs the linked FB page)
+            $step1 = $isInstagram
+                ? __('Open the Facebook page linked to your Instagram → Settings → Page setup → Page access → Add new → add our user with basic control (not full control). Instagram inherits the access through its linked Page.')
+                : __('Open your Facebook Business Page → Settings → Page setup → Page access → Add new → add our user with basic control (not full control)');
+        @endphp
         <form wire:submit.prevent="submitOnboardingRequest" class="space-y-5">
             <div>
-                <flux:heading size="lg">{{ __('Request') }} {{ ucfirst($requestPlatform) }} {{ __('connection') }}</flux:heading>
-                <flux:text class="mt-2">
-                    {{ __('To connect your :platform page, we need temporary admin access via our account.', ['platform' => ucfirst($requestPlatform)]) }}
-                </flux:text>
+                <flux:heading size="lg" class="!text-ink">{{ __('Request :platform connection', ['platform' => $platformLabel]) }}</flux:heading>
+                <p class="mt-2 text-sm text-zinc-700 leading-relaxed">
+                    {{ __('To connect your :platform page, we need temporary admin access via our account.', ['platform' => $platformLabel]) }}
+                </p>
             </div>
 
-            <div class="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm space-y-2">
-                <p class="font-medium text-blue-200">{{ __('Before submitting:') }}</p>
-                <ol class="list-decimal list-inside text-blue-100/80 space-y-1 leading-relaxed">
-                    <li>{{ __('Open your Facebook Business Page → Settings → Page setup → Page access → Add new → add our user with basic control (not full control)') }}</li>
+            {{-- Instructions block — solid brand-blue on light bg, per contrast skill failure modes 4/5.
+                 Uses paired -50 background + -900 text so it passes WCAG AA on both light and dark themes. --}}
+            <div class="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800/60 dark:bg-blue-900/20 p-4 text-sm space-y-2">
+                <p class="font-semibold text-blue-900 dark:text-blue-100">{{ __('Before submitting:') }}</p>
+                <ol class="list-decimal list-inside text-blue-900 dark:text-blue-100 space-y-1 leading-relaxed">
+                    <li>{{ $step1 }}</li>
                     <li>{{ __('Add') }}
-                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-medium hover:text-white">
+                        <a href="https://www.facebook.com/omarEltak88/" target="_blank" class="underline font-semibold text-blue-900 dark:text-blue-100 hover:text-blue-700">
                             {{ __('our admin account') }}
                         </a>
                         {{ __('with basic control (not full control)') }}</li>
                     <li>{{ __('Submit this form so we know which page is yours') }}</li>
                 </ol>
-                <p class="text-amber-200/90 text-xs pt-1">{{ __('Note: Meta sometimes redirects you to Meta Business Suite, and in some cases the "Add new" option is only available in the Meta Business Suite mobile app — not on desktop. If you cannot find it on PC, please use the phone app.') }}</p>
-                <p class="text-blue-100/60 text-xs pt-1">{{ __("Our admin needs to accept your Page invitation on Facebook before we can finish. This usually happens within a few hours during business hours (9am–9pm Cairo). You'll get an email the moment the connection is live.") }}</p>
+                <p class="rounded-md bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-900/20 dark:border-amber-800/60 dark:text-amber-100 text-xs px-3 py-2 mt-3">{{ __('Note: Meta sometimes redirects you to Meta Business Suite, and in some cases the "Add new" option is only available in the Meta Business Suite mobile app — not on desktop. If you cannot find it on PC, please use the phone app.') }}</p>
+                <p class="text-xs text-blue-900/80 dark:text-blue-100/80 pt-1">{{ __("Our admin needs to accept your Page invitation on Facebook before we can finish. This usually happens within a few hours during business hours (9am–9pm Cairo). You'll get an email the moment the connection is live.") }}</p>
             </div>
 
-            <flux:input
-                wire:model="requestBusinessName"
-                label="{{ __('Business / Page name') }}"
-                placeholder="{{ __('e.g. Brandk') }}"
-                required
-            />
+            {{-- Hand-rolled inputs per contrast-guardrails failure mode 2:
+                 flux:input defaults typed text to zinc-500 (illegible). --}}
+            <div>
+                <label for="request-business-name" class="block text-sm font-medium text-ink mb-1.5">{{ __('Business / Page name') }} <span class="text-red-600">*</span></label>
+                <input id="request-business-name" type="text" required
+                       wire:model="requestBusinessName"
+                       placeholder="{{ __('e.g. Brandk') }}"
+                       class="block w-full rounded-lg border border-zinc-300 bg-white text-ink placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition" />
+            </div>
 
-            <flux:input
-                wire:model="requestPageUrl"
-                label="{{ __('Page URL') }}"
-                placeholder="https://www.facebook.com/yourpage"
-                description="{{ __('Helps us find the right page if multiple are admin-shared.') }}"
-            />
+            <div>
+                <label for="request-page-url" class="block text-sm font-medium text-ink mb-1.5">{{ __('Page URL') }}</label>
+                <input id="request-page-url" type="url"
+                       wire:model="requestPageUrl"
+                       placeholder="https://www.facebook.com/yourpage"
+                       class="block w-full rounded-lg border border-zinc-300 bg-white text-ink placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition" />
+                <p class="mt-1 text-xs text-zinc-600">{{ __('Helps us find the right page if multiple are admin-shared.') }}</p>
+            </div>
 
-            <flux:input
-                wire:model="requestContactEmail"
-                type="email"
-                label="{{ __('Contact email') }}"
-                placeholder="you@company.com"
-                description="{{ __('We will not send marketing — we only email you if we need something to complete your setup.') }}"
-                required
-            />
+            <div>
+                <label for="request-contact-email" class="block text-sm font-medium text-ink mb-1.5">{{ __('Contact email') }} <span class="text-red-600">*</span></label>
+                <input id="request-contact-email" type="email" required
+                       wire:model="requestContactEmail"
+                       placeholder="you@company.com"
+                       class="block w-full rounded-lg border border-zinc-300 bg-white text-ink placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition" />
+                <p class="mt-1 text-xs text-zinc-600">{{ __('We will not send marketing — we only email you if we need something to complete your setup.') }}</p>
+            </div>
 
-            <flux:input
-                wire:model="requestContactPhone"
-                label="{{ __('WhatsApp number (optional)') }}"
-                placeholder="+201234567890"
-                description="{{ __('Optional. We only message you if we need clarification — never marketing.') }}"
-            />
+            <div>
+                <label for="request-contact-phone" class="block text-sm font-medium text-ink mb-1.5">{{ __('WhatsApp number (optional)') }}</label>
+                <input id="request-contact-phone" type="tel"
+                       wire:model="requestContactPhone"
+                       placeholder="+201234567890"
+                       class="block w-full rounded-lg border border-zinc-300 bg-white text-ink placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition" />
+                <p class="mt-1 text-xs text-zinc-600">{{ __('Optional. We only message you if we need clarification — never marketing.') }}</p>
+            </div>
 
-            <flux:textarea
-                wire:model="requestNotes"
-                label="{{ __('Anything we should know? (optional)') }}"
-                rows="3"
-                placeholder="{{ __('e.g. multiple admins, business verification status...') }}"
-            />
+            <div>
+                <label for="request-notes" class="block text-sm font-medium text-ink mb-1.5">{{ __('Anything we should know? (optional)') }}</label>
+                <textarea id="request-notes" rows="3"
+                          wire:model="requestNotes"
+                          placeholder="{{ __('e.g. multiple admins, business verification status...') }}"
+                          class="block w-full rounded-lg border border-zinc-300 bg-white text-ink placeholder:text-zinc-400 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition resize-y"></textarea>
+            </div>
 
-            <div class="flex justify-end gap-2 pt-2 border-t border-zinc-200/10">
+            {{-- Outline Cancel (not ghost — invisible on light per contrast skill failure mode 3) --}}
+            <div class="flex justify-end gap-2 pt-3 border-t border-zinc-200 dark:border-zinc-700">
                 <flux:modal.close>
-                    <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
+                    <button type="button" class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-zinc-50 transition">{{ __('Cancel') }}</button>
                 </flux:modal.close>
-                <flux:button variant="primary" type="submit">{{ __('Submit request') }}</flux:button>
+                <button type="submit" class="rounded-lg bg-emer-600 hover:bg-emer-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition">{{ __('Submit request') }}</button>
             </div>
         </form>
     </flux:modal>
