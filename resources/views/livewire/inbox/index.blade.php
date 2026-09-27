@@ -41,7 +41,7 @@
                 <flux:badge as="button" wire:click="setFilter('unread')" :variant="$filter === 'unread' ? 'solid' : 'outline'" color="red" size="sm" :class="$filter !== 'unread' ? '!text-zinc-900' : ''">
                     {{ __('Unread') }} {{ $this->unreadCount > 0 ? "({$this->unreadCount})" : '' }}
                 </flux:badge>
-                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="purple" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">{{ __('Mine') }}</flux:badge>
+                <flux:badge as="button" wire:click="setFilter('mine')" :variant="$filter === 'mine' ? 'solid' : 'outline'" color="emerald" size="sm" :class="$filter !== 'mine' ? '!text-zinc-900' : ''">{{ __('Mine') }}</flux:badge>
                 @if(!$pageId)
                 <flux:badge as="button" wire:click="setFilter('facebook')" :variant="$filter === 'facebook' ? 'solid' : 'outline'" color="blue" size="sm" :class="$filter !== 'facebook' ? '!text-zinc-900' : ''">FB</flux:badge>
                 <flux:badge as="button" wire:click="setFilter('instagram')" :variant="$filter === 'instagram' ? 'solid' : 'outline'" color="pink" size="sm" :class="$filter !== 'instagram' ? '!text-zinc-900' : ''">IG</flux:badge>
