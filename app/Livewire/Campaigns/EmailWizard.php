@@ -89,8 +89,11 @@ class EmailWizard extends Component
 
     public function uploadAndPreview(): void
     {
+        // 2 MB / ~20k rows cap while parse is still sync (see docs/OT1_LIMITS.md §5.3).
         $this->validate([
-            'file' => 'required|file|max:10240|mimes:csv,txt,xlsx',
+            'file' => 'required|file|max:2048|mimes:csv,txt,xlsx',
+        ], [
+            'file.max' => 'File is too large. The current limit is 2 MB (~20,000 contacts). For larger lists, email support@ot1-pro.com — the async importer is coming.',
         ]);
 
         $team = Auth::user()->currentTeam;
@@ -141,6 +144,10 @@ class EmailWizard extends Component
             'emailColumn.required' => 'Pick which column contains the email address.',
             'emailColumn.in'       => 'Email column must match one of the detected headers.',
         ]);
+
+        // Belt-and-suspenders guards while parse is sync.
+        @ini_set('memory_limit', '256M');
+        @set_time_limit(90);
 
         $team = Auth::user()->currentTeam;
         $absolute = Storage::disk('local')->path($this->storedPath);

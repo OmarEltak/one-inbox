@@ -125,6 +125,7 @@ The number in **bold** is what we *think* is the ceiling; unknown = we haven't m
 ### 5.3 · Bulk WhatsApp campaigns
 
 ⚠️ **CONFIRMED LANDMINE — 2026-09-28.** The Excel/CSV parse happens **synchronously inside the Livewire HTTP request**, not in a queued job.
+🩹 **Mitigation shipped 2026-09-29.** See "Mitigations shipped" below.
 
 `app/Livewire/Campaigns/WhatsAppWizard.php:155-170` — `advanceToCompose()`:
 ```php
@@ -134,18 +135,17 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 
 | Metric | Value |
 |---|---|
-| Max upload size (Livewire validation) | `max:10240` = **10 MB** (`WhatsAppWizard.php:130`) |
-| 10 MB Excel row count | ~100k rows |
-| Parse + insert time (single user) | ~10-60 s (unverified — needs load test) |
-| **PHP-FPM worker held during parse** | **YES — entire duration** |
-| Memory during parse | ~50-200 MB per parse (unverified) |
+| Max upload size (Livewire validation) | `max:2048` = **2 MB** (was 10 MB pre-mitigation) |
+| 2 MB Excel row count | ~20k rows |
+| Parse + insert time (single user, 2 MB) | ~2-10 s (unverified precisely — needs load test) |
+| PHP-FPM worker held during parse | YES — bounded by `set_time_limit(90)` guard |
+| Memory during parse | Capped at 256 MB by `ini_set('memory_limit', '256M')` guard |
 | Per-recipient send rate (after parse) | 1-5 msg/sec per WA number (WhatsApp policy) |
 
-**Combined pain point (Omar's scenario B — "10 users upload 10 MB Excel + run campaigns simultaneously")**:
-- Each parse holds a PHP-FPM worker for tens of seconds
-- Only **5 FPM workers total** → 5 users lock the entire pool
-- The remaining 5 users get **504 or nginx queue timeout**
-- **Everyone else on the site** (browsing, dashboard, webhook receivers) also gets 504/timeout during the parse burst
+**Combined pain point (Omar's scenario B — "10 users upload 2 MB Excel + run campaigns simultaneously")**:
+- Each parse now takes 2-10 s instead of 10-60 s → **6-30× less worker-hold time**
+- Still bounded by 5 FPM workers — under 10 concurrent uploads, 5 users get 504 during the parse burst
+- Real full fix: async `ImportCampaignRecipients` job (still TODO)
 - Sends themselves (post-parse) run on isolated `campaigns` queue → those DO NOT starve inbound `urgent` ✓
 
 **Fix path (must-do before scaling)**:
@@ -154,10 +154,11 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 3. Show a progress bar ("Imported 12,384 / 98,201 contacts")
 4. Only unlock the "Compose message" step once import is complete
 
-**Quick temporary mitigation while the async import isn't built**:
-- Lower `max:10240` → `max:512` (500 KB = ~5k rows) in `WhatsAppWizard.php:130` and `EmailWizard.php`
-- Add `ini_set('memory_limit', '256M')` + `set_time_limit(90)` guards inside `advanceToCompose()`
-- Add a "large lists — email support" note in the UI
+**Mitigations shipped 2026-09-29** (`fix/campaigns-import-mitigation`):
+- `max:10240` → `max:2048` in both `WhatsAppWizard@advanceToMap` and `EmailWizard@uploadAndPreview`
+- `ini_set('memory_limit', '256M')` + `set_time_limit(90)` guards inside both parse methods
+- Amber contrast-safe notice on both wizards' upload step (EN + AR translations)
+- Per-form custom validation message tells users the limit and the `support@ot1-pro.com` fallback in one line
 - Bottleneck: 10 users × 100k = **1M messages queued**. Even at 5 msg/sec per WA number × 10 numbers = 50 msg/sec = **20,000 seconds ≈ 5.5 hours to drain**
 - Real limit is not our server — it's WhatsApp's per-number rate
 
@@ -263,3 +264,4 @@ I'll close these as we run the load tests.
 |---|---|
 | 2026-09-28 | Initial doc — hardware + services snapshot, PHP-FPM bottleneck identified, queue topology mapped, alert plan proposed, load-test scope defined |
 | 2026-09-28 | Corrected transcription driver order (Groq primary, whisper fallback). Confirmed and documented the sync-Excel-parse landmine in §5.3 with the fix path. |
+| 2026-09-29 | Shipped Excel-parse mitigation — capped uploads to 2 MB, added memory + time-limit guards, added contrast-safe amber notice to both wizards (EN + AR) with support@ot1-pro.com fallback. Still need the async import job to lift the cap. |

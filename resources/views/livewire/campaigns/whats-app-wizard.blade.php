@@ -97,11 +97,23 @@
     {{-- Step 1 — Upload --}}
     @if ($step === 'upload')
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-6">
+            {{-- Temporary import-size notice (see docs/OT1_LIMITS.md §5.3). Uses the
+                 -50/-900 pattern from the contrast-guardrails skill so text stays legible
+                 on the tinted background. Remove this box once the async importer ships. --}}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-amber-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
+                </svg>
+                <p class="text-sm text-amber-900 leading-relaxed">
+                    <strong class="font-semibold">Current upload limit: 2 MB (~20,000 contacts)</strong> while we ship a background import for larger lists. If you need to import more than that, email <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a> and we'll do it for you.
+                </p>
+            </div>
+
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <h2 class="text-lg font-semibold text-zinc-900">Upload contact list</h2>
                     <p class="mt-1 text-sm text-zinc-800">
-                        CSV or Excel (.xlsx), up to 10 MB and 50,000 rows.
+                        CSV or Excel (.xlsx), up to 2 MB (~20,000 contacts).
                     </p>
                 </div>
                 <a href="/samples/whatsapp-campaign-contacts.csv"
@@ -135,7 +147,7 @@
                             </div>
                             <div class="text-center">
                                 <p class="text-base font-semibold text-zinc-900">Click to choose a file</p>
-                                <p class="mt-1 text-sm text-zinc-800">.csv or .xlsx up to 10 MB</p>
+                                <p class="mt-1 text-sm text-zinc-800">.csv or .xlsx up to 2 MB (~20,000 contacts)</p>
                             </div>
                         </div>
                         <div wire:loading wire:target="file" class="flex items-center gap-2 text-sm font-medium text-blue-700">

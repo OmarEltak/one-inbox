@@ -126,8 +126,13 @@ class WhatsAppWizard extends Component
 
     public function advanceToMap(): void
     {
+        // 2 MB / ~20k rows cap while the parse is still sync inside the HTTP
+        // request (see docs/OT1_LIMITS.md §5.3 — landmine). Async importer
+        // will lift this.
         $this->validate([
-            'file' => 'required|file|mimes:csv,txt,xlsx|max:10240',
+            'file' => 'required|file|mimes:csv,txt,xlsx|max:2048',
+        ], [
+            'file.max' => 'File is too large. The current limit is 2 MB (~20,000 contacts). For larger lists, email support@ot1-pro.com — the async importer is coming.',
         ]);
 
         $teamId = $this->currentTeamId();
@@ -151,6 +156,12 @@ class WhatsAppWizard extends Component
             'phoneColumn'    => 'required|string',
             'defaultCountry' => ['required', 'string', 'size:2', Rule::in($supported)],
         ]);
+
+        // Belt-and-suspenders while parse is still sync: cap PHP memory and
+        // wall-clock time so a runaway import can't crash-loop an FPM worker.
+        // Removed once the ImportCampaignRecipients queued job lands.
+        @ini_set('memory_limit', '256M');
+        @set_time_limit(90);
 
         $absolute = Storage::path($this->storedPath);
         $parser = new SpreadsheetParser($absolute, $this->extension);

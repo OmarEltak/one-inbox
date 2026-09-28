@@ -285,10 +285,12 @@ it('Nudge3 plaintext preserves raw & in unsubscribe URL (not HTML-escaped)', fun
     $signedUrl = URL::signedRoute('onboarding.nudges.unsubscribe',
         ['team' => $team->id], now()->addDays(30));
 
-    $mail = new OnboardingNudge3PersonalFromOmar($user, $team, $signedUrl);
-    $rendered = $mail->render();
+    // Render the plaintext view directly — $mail->render() returns HTML
+    // (primary in multipart) where {{ }} correctly escapes & to &amp;.
+    $rendered = view('emails.onboarding.nudge-3-personal', [
+        'user' => $user, 'team' => $team, 'unsubscribeUrl' => $signedUrl,
+    ])->render();
 
-    // The raw signed URL contains &expires=...&signature=... — must survive.
     expect($rendered)->toContain($signedUrl);
     expect(stripos($rendered, '&amp;signature='))->toBeFalse();
 });
