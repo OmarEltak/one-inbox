@@ -109,32 +109,55 @@ The number in **bold** is what we *think* is the ceiling; unknown = we haven't m
 
 ### 5.2 · Voice notes (audio → text → AI reply)
 
+**Driver order** (verified in `AppServiceProvider@register`): **Groq is PRIMARY, whisper.cpp is FALLBACK.** `TranscriptionRouter` tries drivers in order until one succeeds. `CircuitBreaker` cools each driver individually on `RateLimitedException` — so if Groq hits its rate limit, the router transparently switches to local whisper.cpp for that call, and Groq is re-tried after its cool-down.
+
 | Metric | Value |
 |---|---|
 | ffmpeg conversion (any → OGG) | ~500 ms per 60 s audio |
-| Whisper transcription (whisper.cpp base model, 2 vCPU) | **~30-60 s per minute of audio (verify)** |
-| Concurrent Whisper jobs supported | **1-2** at a time on 2 vCPU before contention |
-| Per-team throttle | 5 in-flight (already enforced) ✓ |
-| Storage per voice note | Original OGG + transcribed text row |
+| **Groq (primary)** transcription | **~1 s per minute of audio** (network round-trip dominates) |
+| **whisper.cpp (fallback)** on 2 vCPU | ~30-60 s per minute of audio (needs empirical verify) |
+| Concurrent transcription (Groq) | Bounded by Groq rate limit + our per-team cap |
+| Per-team throttle | 5 in-flight (enforced by `TranscribeAudio` job) ✓ |
+| Fallback trigger | Groq `RateLimitedException` → circuit breaker cools Groq → next job uses whisper.cpp |
 
-**Choke point**: Whisper is CPU-bound + single-process. A burst of >2 concurrent audio jobs = queue backup. Two mitigation paths:
-1. Offload Whisper to Groq API (`GroqDriver` already exists) — trades $ for latency (~1 s/minute vs 30+ s)
-2. Add second worker box just for transcription
+**Practical implication**: Whisper's CPU cost only bites during Groq outage or quota exhaustion. In steady state you're paying pennies to Groq for ~1 s transcriptions. Local Whisper is insurance so voice notes never fail hard. **CPU contention on this box is a fallback-only concern, not a normal-day concern.**
 
 ### 5.3 · Bulk WhatsApp campaigns
 
+⚠️ **CONFIRMED LANDMINE — 2026-09-28.** The Excel/CSV parse happens **synchronously inside the Livewire HTTP request**, not in a queued job.
+
+`app/Livewire/Campaigns/WhatsAppWizard.php:155-170` — `advanceToCompose()`:
+```php
+$rows = iterator_to_array($parser->stream());   // loads entire file into memory
+$importer->import(rows: $rows, ...);            // inserts every row synchronously
+```
+
 | Metric | Value |
 |---|---|
-| Excel upload | (verify max file size in `client_max_body_size` — likely 100 MB default) |
-| Parser (10 MB Excel ≈ 100k rows) | **~10-30 s to parse + insert 100k `campaign_recipients` rows** (verify) |
-| Per-recipient send rate | Bounded by Wuzapi WhatsApp gateway rate limits + Meta's per-number throttle |
-| Effective send rate through Wuzapi | **~1-5 msg/sec per WA number** (WhatsApp policy) |
-| Circuit-breaker per page | (verify — code refs "page circuit-breaker" in routes/console) |
+| Max upload size (Livewire validation) | `max:10240` = **10 MB** (`WhatsAppWizard.php:130`) |
+| 10 MB Excel row count | ~100k rows |
+| Parse + insert time (single user) | ~10-60 s (unverified — needs load test) |
+| **PHP-FPM worker held during parse** | **YES — entire duration** |
+| Memory during parse | ~50-200 MB per parse (unverified) |
+| Per-recipient send rate (after parse) | 1-5 msg/sec per WA number (WhatsApp policy) |
 
 **Combined pain point (Omar's scenario B — "10 users upload 10 MB Excel + run campaigns simultaneously")**:
-- Excel parse is CPU-bound → 10 parallel parses on 2 vCPU = each takes 10× longer (100-300 s)
-- **The parse alone can starve web workers** — parse is likely a queued job (`ProcessCampaign`), not sync — need to confirm
-- Once parsed, sends flow through the isolated `campaigns` queue → **won't starve inbound `urgent`** ✓
+- Each parse holds a PHP-FPM worker for tens of seconds
+- Only **5 FPM workers total** → 5 users lock the entire pool
+- The remaining 5 users get **504 or nginx queue timeout**
+- **Everyone else on the site** (browsing, dashboard, webhook receivers) also gets 504/timeout during the parse burst
+- Sends themselves (post-parse) run on isolated `campaigns` queue → those DO NOT starve inbound `urgent` ✓
+
+**Fix path (must-do before scaling)**:
+1. Convert `advanceToCompose()` to enqueue an `ImportCampaignRecipients` job
+2. Return immediately with an `import_id` and poll for progress via Livewire
+3. Show a progress bar ("Imported 12,384 / 98,201 contacts")
+4. Only unlock the "Compose message" step once import is complete
+
+**Quick temporary mitigation while the async import isn't built**:
+- Lower `max:10240` → `max:512` (500 KB = ~5k rows) in `WhatsAppWizard.php:130` and `EmailWizard.php`
+- Add `ini_set('memory_limit', '256M')` + `set_time_limit(90)` guards inside `advanceToCompose()`
+- Add a "large lists — email support" note in the UI
 - Bottleneck: 10 users × 100k = **1M messages queued**. Even at 5 msg/sec per WA number × 10 numbers = 50 msg/sec = **20,000 seconds ≈ 5.5 hours to drain**
 - Real limit is not our server — it's WhatsApp's per-number rate
 
@@ -222,12 +245,13 @@ Each script emits a JSON report → `docs/load-tests/YYYY-MM-DD-<scenario>.json`
 ## 9 · Open verifications (things this doc claims that need proof)
 
 - [ ] Which queues do `one-inbox-queue.service` and `@1..4` actually consume? Systemd unit `ExecStart` will tell.
-- [ ] Is Excel campaign parsing sync (in the HTTP request) or queued? If sync, that's a much bigger risk than described in §5.3.
+- [x] ~~Is Excel campaign parsing sync or queued?~~ **CONFIRMED SYNC — landmine documented in §5.3** (2026-09-28)
 - [ ] Per-team throttle on `SendCampaignWhatsAppJob` — does it exist? What's the limit?
 - [ ] `ScoreLeadJob` trigger + queue name
-- [ ] Actual Whisper transcription latency on this hardware — measure with a 30-second audio file
-- [ ] `client_max_body_size` — what's the actual limit for Excel uploads?
+- [ ] Actual whisper.cpp transcription latency on this hardware — measure with a 30-second audio file
+- [ ] `client_max_body_size` — what's the actual nginx-side limit for Excel uploads?
 - [ ] Reverb concurrent connection ceiling under real message load
+- [x] ~~Transcription driver order~~ **Groq primary, whisper.cpp fallback — verified in `AppServiceProvider@register`** (2026-09-28)
 
 I'll close these as we run the load tests.
 
@@ -238,3 +262,4 @@ I'll close these as we run the load tests.
 | Date | Change |
 |---|---|
 | 2026-09-28 | Initial doc — hardware + services snapshot, PHP-FPM bottleneck identified, queue topology mapped, alert plan proposed, load-test scope defined |
+| 2026-09-28 | Corrected transcription driver order (Groq primary, whisper fallback). Confirmed and documented the sync-Excel-parse landmine in §5.3 with the fix path. |
