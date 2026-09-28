@@ -136,12 +136,6 @@ it('queues Nudge3 as plain text at +3d if still no messages', function () {
     (new SendOnboardingNudge())->handle();
 
     Mail::assertQueued(OnboardingNudge3PersonalFromOmar::class, function ($mail) use ($user) {
-        $rendered = $mail->render();
-
-        // Content is plain-text — does NOT include HTML doctype/chrome.
-        expect(stripos($rendered, '<!DOCTYPE'))->toBeFalse();
-        expect(stripos($rendered, '<html'))->toBeFalse();
-
         return $mail->hasTo($user->email);
     });
 });
@@ -249,17 +243,36 @@ it('Nudge1 envelope from is the founder personal email (omareltak7@gmail.com)', 
     expect($envelope->from->address)->toBe('omareltak7@gmail.com');
 });
 
-it('Nudge3 uses text-only content (no HTML view)', function () {
+it('Nudge3 HTML view contains a styled unsubscribe button (not a raw URL)', function () {
     [$user, $team] = makeNudgeTeam();
-    $mail = new OnboardingNudge3PersonalFromOmar($user, $team, 'https://example.com/u');
-    $mail->unsubscribeUrl = 'https://example.com/u'; // ensure property set for view
+    $url  = 'https://example.com/u?expires=1&signature=abc';
+    $mail = new OnboardingNudge3PersonalFromOmar($user, $team, $url);
 
-    $rendered = $mail->render();
-    // Plain-text mail rendered as plain text — no <html>, no <!DOCTYPE>.
-    expect(stripos($rendered, '<!DOCTYPE'))->toBeFalse();
-    expect(stripos($rendered, '<html'))->toBeFalse();
-    // Should look Gmail-typed — starts with lowercase greeting per template.
-    expect($rendered)->toContain("Omar");
+    $rendered = $mail->render(); // HTML view (primary in multipart)
+    expect($rendered)->toContain('<!DOCTYPE');
+    expect($rendered)->toContain('Unsubscribe from these check-ins');
+    // In an HTML attribute context {{ }} correctly escapes & to &amp; — the
+    // browser decodes it on click, so the outbound request has the raw &.
+    expect($rendered)->toContain('href="' . e($url) . '"');
+});
+
+it('Nudge3 plaintext view preserves raw & in unsubscribe URL (not HTML-escaped)', function () {
+    // Regression: Blade {{ }} in plaintext templates escapes & → &amp;, which
+    // reaches the reader as literal "&amp;" in the mail body. When they click
+    // (or copy-paste), the browser sends "?expires=X&amp;signature=Y" as query
+    // params — the signature param is renamed to "amp;signature" and the
+    // signed middleware 403s. Real prod bug reported 2026-09-28 for team 41.
+    // Fix is {!! !!} — safe because the URL is signed (numeric + hex only).
+    [$user, $team] = makeNudgeTeam();
+    $signedUrl = URL::signedRoute('onboarding.nudges.unsubscribe',
+        ['team' => $team->id], now()->addDays(30));
+
+    $rendered = view('emails.onboarding.nudge-3-personal', [
+        'user' => $user, 'team' => $team, 'unsubscribeUrl' => $signedUrl,
+    ])->render();
+
+    expect($rendered)->toContain($signedUrl);
+    expect(stripos($rendered, '&amp;signature='))->toBeFalse();
 });
 
 it('Nudge3 plaintext preserves raw & in unsubscribe URL (not HTML-escaped)', function () {

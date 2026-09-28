@@ -15,7 +15,7 @@
 <body>
     <div class="card">
         <h1>You're unsubscribed</h1>
-        <p>We won't send any more onboarding nudge emails to <strong>{{ e($team->name) }}</strong>.</p>
+        <p>We won't send any more onboarding nudge emails to <strong>{{ $team->name }}</strong>.</p>
         <p>You'll still receive important account and billing emails. If you want them turned off too, reply to any nudge and I'll handle it manually.</p>
         <p style="margin-top:24px;">— Omar<br><a href="mailto:omareltak7@gmail.com">omareltak7@gmail.com</a></p>
     </div>
