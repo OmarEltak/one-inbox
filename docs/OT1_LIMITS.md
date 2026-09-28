@@ -194,6 +194,55 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 | Concurrent connections | Bounded by port 8080 fd limits (default 1024 per Unix worker) |
 | Load test needed | Yes — spin up 500 fake connections, measure memory |
 
+### 5.7 · Concurrent-user ceilings (best current estimates)
+
+Numbers derived from the per-feature data above. Anything marked **(theory)** hasn't been load-tested yet; **(measured)** is empirically verified.
+
+**Per-feature simultaneous-user ceilings**:
+
+| Feature | Comfortable | Hard ceiling | Root constraint |
+|---|---|---|---|
+| Browsing dashboards / settings / inbox UI | ~50-100 signed-in with normal think-time | **5 truly-simultaneous HTTP requests** | PHP-FPM `max_children = 5` |
+| Landing on homepage (marketing) | ~25 fresh visits/sec | ~100/sec burst before 504 (theory) | 200ms/req × 5 FPM |
+| Sending a message from inbox | 5 users clicking Send at once | Same 5 | Each send holds a FPM worker |
+| Inbound webhook ingest | ~30 msg/sec sustained | ~100/sec burst (theory) | 50ms HMAC-verify + insert × 5 FPM |
+| AI replies to inbound | 5-10 simultaneous | **10 calls/sec** before NaraRouter cooldown | 5 `urgent` workers + provider quota |
+| AI lead scoring | Shares AI reply budget | 10 calls/sec — but doubles the AI rate (every inbound = 1 reply + 1 score) | 5 `default` workers, 1 NaraRouter call each |
+| Voice notes (Groq path) | ~50 in-flight globally (5/team × 10 teams) | Groq API rate limit | Per-team cap + Groq quota |
+| Voice notes (Whisper fallback) | 1-2 concurrent (theory) | 2 | 2 vCPU, Whisper CPU-bound |
+| Bulk WhatsApp campaigns | 1 team fast, others queue behind | **1-5 msg/sec per WA number** (WhatsApp policy) | 1 `campaigns` worker + WA gateway |
+| Excel upload (contacts import) | 5 users uploading 2 MB simultaneously | Same 5 (FPM cap, held ≤90s by guards) | FPM + sync parse |
+| Comment automation (FB/IG) | ~1 comment/sec end-to-end | Same | Only 1 worker on each comment queue |
+| Analytics dashboards | ~5-10 concurrent viewers (theory) | Blocked first by MySQL sort-memory on `webhook_logs` aggregates | FPM + MySQL |
+| Live inbox updates (Reverb WS) | ~500-1000 idle connected users (theory) | 1024 fd default | Reverb port 8080 |
+
+**Total-user rollups** (what "N users at the same time" really means):
+
+| Interpretation | Users |
+|---|---|
+| Actively hammering the site, no think-time | ~5-25 |
+| Signed-in with normal usage (click every 5-10s) | **~50-100** |
+| Passively logged in with dashboard open, receiving Reverb pushes | ~500-1000 (Reverb ceiling, untested) |
+| Actively receiving inbound messages that trigger AI replies | ~30 msg/sec across all customers → **~5-10 customers actively conversing at once** |
+| Running bulk campaigns at the same time | 1 gets fast throughput; others wait |
+
+**Where ceilings break first** (in order):
+
+1. **PHP-FPM = 5** — loudest failure mode. >5 heavy concurrent requests → others see 504/lag.
+2. **NaraRouter provider cooldown** — 10 AI calls/sec practical ceiling. Every inbound = 2 AI calls → cooldown at ~5 inbound/sec sustained across all customers.
+3. **Single-worker queues** (campaigns, comments-ingest, comments-send, transcription) — no per-team fairness, first user monopolizes.
+4. **MySQL sort-memory** on `webhook_logs` — already shipped once; can re-blow on concurrent analytics.
+
+**Growth triggers** (when to act):
+
+| Signal | Action |
+|---|---|
+| 5+ signups/day OR active campaigns from 3+ teams | Bump FPM `max_children` 5 → 20 (10-min prod change) |
+| >10 messages/sec sustained inbound | Add throttle on `ScoreLeadJob` OR make scoring conditional (every 3rd msg) |
+| >2 teams running large campaigns concurrently | Add per-team throttle on `SendCampaignWhatsAppJob` mirroring `TranscribeAudio` |
+| Regular comment volume from 2+ FB/IG pages | Add `comments-ingest`+`comments-send` to `one-inbox-queue@1..4` |
+| >100 concurrent signed-in users | Upgrade to 4 vCPU / 16 GB |
+
 ---
 
 ## 6 · Combined-load stress scenarios to test
@@ -271,3 +320,4 @@ I'll close these as we run the load tests.
 | 2026-09-28 | Corrected transcription driver order (Groq primary, whisper fallback). Confirmed and documented the sync-Excel-parse landmine in §5.3 with the fix path. |
 | 2026-09-29 | Shipped Excel-parse mitigation — capped uploads to 2 MB, added memory + time-limit guards, added contrast-safe amber notice to both wizards (EN + AR) with support@ot1-pro.com fallback. Still need the async import job to lift the cap. |
 | 2026-09-29 | Closed 4 open verifications: (1) documented per-service queue assignments (main worker also handles comment queues; @1..4 do not; comment queues have only 1 worker each — potential bottleneck); (2) confirmed NO per-team throttle on `SendCampaignWhatsAppJob` — one team can monopolize the 1 campaigns worker; (3) mapped `ScoreLeadJob` — dispatched from every inbound message, runs on `default` with 5-min timeout, doubles NaraRouter call rate under inbound bursts; (4) clarified the `one-inbox-whisper.service` naming (it's a Laravel queue worker, not the whisper.cpp daemon). |
+| 2026-09-29 | Added §5.7 concurrent-user ceilings — per-feature comfortable/hard-cap table, total-user rollups, breaking-point order, growth-signal triggers. Answers the "how many users can this box hold at once" question. |
