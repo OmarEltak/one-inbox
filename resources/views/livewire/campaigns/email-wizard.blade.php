@@ -42,6 +42,20 @@
     {{-- STEP 1: UPLOAD --}}
     @if($step === 'upload')
         <div class="aio-card rounded-2xl p-8 space-y-4">
+            {{-- Temporary import-size notice (see docs/OT1_LIMITS.md §5.3). Dark-surface
+                 pairing per contrast-guardrails skill: amber-900/40 bg + amber-100 text
+                 (never text-amber-500 over dark — fails AA). Remove once async importer ships. --}}
+            <div class="rounded-lg border border-amber-700 bg-amber-900/40 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-amber-200 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
+                </svg>
+                <p class="text-sm text-amber-100 leading-relaxed">
+                    <strong class="font-semibold">{{ __('Current upload limit: 2 MB (~20,000 contacts)') }}</strong>
+                    {{ __('while we ship a background import for larger lists. For anything bigger, email') }}
+                    <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a>.
+                </p>
+            </div>
+
             <div>
                 <label class="block text-sm font-semibold text-white mb-2">{{ __('CSV or Excel file') }}</label>
                 <input type="file" wire:model="file"
@@ -51,7 +65,7 @@
                               file:text-sm file:font-semibold
                               file:bg-[#059669]/20 file:text-[#34d399]
                               hover:file:bg-[#059669]/30 cursor-pointer" />
-                <p class="text-xs text-white/40 mt-2">{{ __('.csv or .xlsx, up to 10 MB, max 50,000 rows.') }}</p>
+                <p class="text-xs text-white/40 mt-2">{{ __('.csv or .xlsx, up to 2 MB (~20,000 contacts).') }}</p>
                 @error('file') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
 

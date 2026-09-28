@@ -2056,3 +2056,47 @@ Real-usage feedback from Omar (posted comments on Brandk to test end-to-end):
 **Verified live-fire:**
 - Real comment payload replayed → `IngestCommentJob` → `SendAiCommentReplyJob` → 200 from `/messages` endpoint → Meta returned `message_id m_Qch3W...` → Omar confirmed receiving the DM in Messenger.
 - Second replay hit `#10900 "Activity already replied to"` — Meta's one-DM-per-comment enforcement working as designed.
+
+---
+
+## 2026-09-29 · Excel campaign-import sync-parse mitigation
+
+**Problem** (confirmed 2026-09-28): `advanceToCompose()` in `WhatsAppWizard`
+and `uploadAndPreview()` + `confirmMapAndImport()` in `EmailWizard` were
+parsing + inserting the full spreadsheet **synchronously inside the
+Livewire HTTP request**. Combined with `max:10240` (10 MB / ~100k rows),
+this held a PHP-FPM worker for tens of seconds per upload. With only 5
+FPM workers in the pool, 5 concurrent 10 MB uploads could lock the
+entire pool and 504 everyone else on the site — including webhook
+receivers, dashboard loads, message sends.
+
+**Mitigation shipped** (branch `fix/campaigns-import-mitigation`):
+
+- Both wizards now validate `max:2048` (2 MB / ~20k rows). Custom
+  `file.max` validation message tells the user the limit and points to
+  `support@ot1-pro.com` for larger lists in one line.
+- Both parse methods now call `ini_set('memory_limit', '256M')` +
+  `set_time_limit(90)` — so a runaway parse can't crash-loop an FPM
+  worker or OOM the box.
+- Upload step in both wizards now shows an amber contrast-safe notice
+  explaining the temporary limit and the support fallback. Follows the
+  `contrast-guardrails` skill: light surface uses `bg-amber-50` +
+  `text-amber-900` + `border-amber-200`; dark surface (email wizard) uses
+  `bg-amber-900/40` + `text-amber-100` + `border-amber-700`.
+- Arabic translations added for the notice + the ".csv or .xlsx, up to
+  2 MB (~20,000 contacts)." helper text.
+
+**Not shipped yet**: the real fix — an `ImportCampaignRecipients` queued
+job that streams the parse in the background, polled via Livewire so the
+user sees "Imported 12,384 / 98,201 contacts" while it runs. That lifts
+the cap back to the original 10 MB (or higher).
+
+**Doc updated**: `docs/OT1_LIMITS.md` §5.3 now shows the pre/post
+numbers, the mitigation list, and marks the async-import job as the
+still-open TODO. Change log entry added.
+
+**Testing**: 15/15 Pest tests pass locally. `php artisan view:cache`
+compiled all blades cleanly. Browser eyeball skipped (Chrome extension
+offline while Omar is away). Amber notice markup follows verified
+contrast-guardrails pairs so I'm confident on legibility both light and
+dark.
