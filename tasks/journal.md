@@ -2151,3 +2151,29 @@ change log.
 - Whisper.cpp actual latency on this hardware (needs a 30s audio test)
 - nginx `client_max_body_size` (need direct nginx.conf grep)
 - Reverb concurrent connection ceiling (needs load test)
+
+---
+
+## 2026-09-29 · OT1_LIMITS §5.7 concurrent-user ceilings
+
+Added a new section §5.7 answering "how many users can we hold at
+once". Derived numbers from existing per-feature data (FPM=5, per-queue
+worker counts, provider rate limits). Three tables:
+
+1. Per-feature comfortable / hard-cap / root-constraint
+2. Total-user rollups for different interpretations of "at the same time"
+3. Growth triggers — the observable signal that says "time to scale X"
+
+Not new measurements, just a synthesis so Omar has one place to look up
+"if I get 50 concurrent users, does the box hold?" (answer: yes if
+they're clicking normally; no if they're all hammering).
+
+Key headlines from the table:
+- ~50-100 concurrent signed-in users comfortably (normal think-time)
+- 5-25 if they're actively hammering
+- 500-1000 passively logged in with Reverb open (untested)
+- Inbound message ceiling: ~5-10 customers actively conversing at once
+  (bounded by NaraRouter provider cooldown, since every inbound = 2
+  AI calls — reply + score)
+- 1 team can monopolize campaigns / comments / transcription queues
+  (no per-team throttles on those)
