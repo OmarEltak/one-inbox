@@ -22,4 +22,4 @@ either way, thanks for giving it a look.
 omareltak7@gmail.com
 
 --
-you're getting this because you signed up for OT1-Pro. unsubscribe from these check-ins: {{ $unsubscribeUrl }}
+you're getting this because you signed up for OT1-Pro. unsubscribe from these check-ins: {!! $unsubscribeUrl !!}
