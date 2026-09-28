@@ -261,3 +261,21 @@ it('Nudge3 uses text-only content (no HTML view)', function () {
     // Should look Gmail-typed — starts with lowercase greeting per template.
     expect($rendered)->toContain("Omar");
 });
+
+it('Nudge3 plaintext preserves raw & in unsubscribe URL (not HTML-escaped)', function () {
+    // Regression: Blade {{ }} in plaintext templates escapes & → &amp;, which
+    // reaches the reader as literal "&amp;" in the mail body. When they click
+    // (or copy-paste), the browser sends "?expires=X&amp;signature=Y" as query
+    // params — the signature param is renamed to "amp;signature" and the
+    // signed middleware 403s. Real prod bug reported 2026-09-28 for team 41.
+    [$user, $team] = makeNudgeTeam();
+    $signedUrl = URL::signedRoute('onboarding.nudges.unsubscribe',
+        ['team' => $team->id], now()->addDays(30));
+
+    $mail = new OnboardingNudge3PersonalFromOmar($user, $team, $signedUrl);
+    $rendered = $mail->render();
+
+    // The raw signed URL contains &expires=...&signature=... — must survive.
+    expect($rendered)->toContain($signedUrl);
+    expect(stripos($rendered, '&amp;signature='))->toBeFalse();
+});
