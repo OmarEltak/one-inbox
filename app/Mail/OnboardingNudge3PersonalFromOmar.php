@@ -16,8 +16,9 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Phase C nudge #3 — +3 days after signup if no message ever received/sent.
  *
- * PLAIN TEXT ONLY. No HTML template chrome — this is supposed to look like
- * Omar typed it in Gmail at 11pm. See Phase C spec + acceptance criteria.
+ * Multipart: HTML alternative keeps the Gmail-typed tone but renders the
+ * unsubscribe link as a styled button (user feedback 2026-09-28). Plaintext
+ * alternative preserves the founder-typed feel for text-only clients.
  */
 class OnboardingNudge3PersonalFromOmar extends Mailable
 {
@@ -32,18 +33,19 @@ class OnboardingNudge3PersonalFromOmar extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address('omareltak7@gmail.com', 'Omar Eltakrori'),
-            replyTo: [new Address('omareltak7@gmail.com', 'Omar Eltakrori')],
+            from: new Address('omareltak7@gmail.com', 'Omar Eltak'),
+            replyTo: [new Address('omareltak7@gmail.com', 'Omar Eltak')],
             subject: 'quick question about your OT1-Pro setup',
         );
     }
 
     public function content(): Content
     {
-        // text: only — no HTML view. Keeps deliverability high (personal
-        // Gmail-shaped mail) and matches the "founder wrote this himself"
-        // frame required by the acceptance criteria.
+        // Multipart: HTML view carries a styled unsubscribe button (readers
+        // asked for a button, not a raw URL, on 2026-09-28), plaintext view
+        // is still sent as the multipart alternative for text-only clients.
         return new Content(
+            view: 'emails.onboarding.nudge-3-personal-html',
             text: 'emails.onboarding.nudge-3-personal',
             with: [
                 'user'           => $this->user,
