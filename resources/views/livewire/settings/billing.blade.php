@@ -102,11 +102,16 @@
                             <ul class="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-200 mb-4">
                                 <li class="flex items-center gap-2">
                                     <flux:icon name="check" class="w-4 h-4 text-green-500 flex-shrink-0" />
-                                    {{ $plan['ai_credits'] === -1 ? __('Unlimited') : number_format($plan['ai_credits']) }} {{ __('AI credits/mo') }}
+                                    {{-- Single translatable phrase, avoids Str::plural on non-English words --}}
+                                    {{ $plan['ai_credits'] === -1
+                                        ? __('Unlimited AI credits / month')
+                                        : __(':n AI credits / month', ['n' => number_format($plan['ai_credits'])]) }}
                                 </li>
                                 <li class="flex items-center gap-2">
                                     <flux:icon name="check" class="w-4 h-4 text-green-500 flex-shrink-0" />
-                                    {{ $plan['pages'] === -1 ? __('Unlimited') : $plan['pages'] }} {{ __('connected') }} {{ Str::plural(__('page'), $plan['pages'] === -1 ? 2 : $plan['pages']) }}
+                                    {{ $plan['pages'] === -1
+                                        ? __('Unlimited connected pages')
+                                        : trans_choice(':count connected page|:count connected pages', $plan['pages'], ['count' => $plan['pages']]) }}
                                 </li>
                             </ul>
 
