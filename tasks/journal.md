@@ -2100,3 +2100,54 @@ compiled all blades cleanly. Browser eyeball skipped (Chrome extension
 offline while Omar is away). Amber notice markup follows verified
 contrast-guardrails pairs so I'm confident on legibility both light and
 dark.
+
+---
+
+## 2026-09-29 · OT1_LIMITS §9 verification round
+
+Closed 4 open verification items from `docs/OT1_LIMITS.md` §9 by reading
+systemd units + code:
+
+**(1) Systemd queue assignments** (via `systemctl cat`):
+- `one-inbox-queue.service` (1 worker) → `urgent, default, comments-ingest, comments-send` (priority order)
+- `one-inbox-queue@1..4` (4 workers) → `urgent, default` ONLY
+- `one-inbox-queue-campaigns.service` (1 worker) → `campaigns` only, `--max-jobs=1000 --timeout=60`
+- `one-inbox-whisper.service` (1 worker) → `transcription` only, `--tries=1 --timeout=90`. **Name is misleading — this is a Laravel queue worker, not the whisper.cpp HTTP daemon.**
+
+Implication: `comments-ingest` and `comments-send` each have only ONE
+worker. Any Facebook/IG comment burst will back these up. Not urgent
+now (comment volume is low), but flag for later scaling.
+
+**(2) `SendCampaignWhatsAppJob` per-team throttle** — read `handle()`
+and `CampaignScheduler`. **NO throttle exists.** Rate control is only
+upstream via the `campaigns:dispatch-recipients` scheduled command
+(per-minute batches). With ONE `campaigns` worker + `--max-jobs=1000`,
+a single team's 100k-row campaign monopolizes the queue and delays
+every other team's campaigns. Inbound `urgent` stays safe (dedicated
+worker), but campaign latency is uneven across teams. **Future work**:
+mirror the `TranscribeAudio` `Cache::add("...:inflight:{team_id}", ...)`
+pattern.
+
+**(3) `ScoreLeadJob` trigger + queue**:
+- Trigger: dispatched from **11 sites in `ProcessIncomingMessage`** —
+  essentially every inbound-message-with-linked-contact
+- Queue: `default` (no `onQueue()` call)
+- Workers: 5 (shares with `urgent` on main + @1..4 instances)
+- `$tries = 2`, `$timeout = 300` — the 300s timeout has a pointed comment
+  citing a 2026-08-25 queue-cascade incident where the 60s default
+  caused SIGKILL cascading stalls (`docs/incidents/2026-08-25-queue-cascade.md`)
+- Cost: 1 NaraRouter call per score
+
+Compound implication: every inbound message = 1 AI reply (urgent) + 1
+ScoreLead (default) = **2× NaraRouter calls**. Under a 50/sec inbound
+burst = 100 NaraRouter calls/sec = cooldown near-certain. Both queues
+drain slowly because ScoreLead's 5-min timeout means a stuck score
+holds a `default` worker for the whole duration.
+
+**Doc updated**: `docs/OT1_LIMITS.md` §2, §4, §5.4, §9 checklist,
+change log.
+
+**Still open**:
+- Whisper.cpp actual latency on this hardware (needs a 30s audio test)
+- nginx `client_max_body_size` (need direct nginx.conf grep)
+- Reverb concurrent connection ceiling (needs load test)

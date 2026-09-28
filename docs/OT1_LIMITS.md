@@ -31,10 +31,10 @@ Anytime you change the hardware, add a service, tune PHP-FPM/MySQL/nginx, or run
 | `mysql` (8.0) | Primary DB | `one_inbox` schema |
 | `redis-server` | Queues + cache + session | Backing store for horizon-style queue processing |
 | `docker` + `containerd` | Wuzapi WhatsApp gateway container | Bound to `127.0.0.1:8082` (see prod-ops runbook) |
-| `one-inbox-queue.service` | Main queue worker | `default` + `urgent` queues (?) |
-| `one-inbox-queue@1..4` | 4× worker instances | Parallel processing of default/urgent |
-| `one-inbox-queue-campaigns.service` | Dedicated campaigns worker | Reads only `campaigns` queue — isolated so bulk sends don't starve inbound |
-| `one-inbox-whisper.service` | Whisper transcription daemon | `whisper.cpp` HTTP server; called by `TranscribeAudio` job via `WhisperCppDriver` |
+| `one-inbox-queue.service` | Main queue worker | Consumes `urgent, default, comments-ingest, comments-send` in that priority order (verified 2026-09-29) |
+| `one-inbox-queue@1..4` | 4× worker instances | Consume `urgent, default` ONLY — do NOT process comment queues (verified 2026-09-29) |
+| `one-inbox-queue-campaigns.service` | Dedicated campaigns worker | Consumes `campaigns` only. `--max-jobs=1000 --timeout=60` (verified 2026-09-29) |
+| `one-inbox-whisper.service` | Transcription queue worker | Consumes `transcription` only. `--tries=1 --timeout=90`. This is a Laravel queue worker (misnamed "whisper" — the actual whisper.cpp HTTP daemon is separate). Verified 2026-09-29 |
 | `one-inbox-reverb.service` | Reverb WebSocket | Port 8080 — live inbox updates |
 | `ffmpeg` (7.x) | Audio conversion | Used by `ConvertAudioToOgg` job |
 
@@ -69,17 +69,18 @@ The app uses **6 named queues** on Redis. Workers are dedicated per role so a bu
 
 | Queue | Purpose | Workers | Failure impact if backed up |
 |---|---|---|---|
-| `urgent` | Inbound messages, AI responses, platform sends | `one-inbox-queue` + `@1..4` (5 total) | **Customers see silence** — real messages don't get replied to |
-| `transcription` | Whisper voice-note transcription | (which worker consumes this? — verify) | Voice notes fail to become text; AI can't respond to them |
-| `campaigns` | Bulk WhatsApp/email per-recipient sends | `one-inbox-queue-campaigns` (dedicated) | Campaigns run slowly; inbound unaffected |
-| `comments-ingest` | Meta comment webhooks classification | (verify) | AI comment replies delayed |
-| `comments-send` | Publishing AI comment replies | (verify) | Same |
-| `default` | Audio conversion (`ConvertAudioToOgg`), image describe | (verify) | Voice + image previews delayed |
+| `urgent` | Inbound messages, AI responses, platform sends | **5 workers** (`one-inbox-queue` + `@1..4`) | **Customers see silence** — real messages don't get replied to |
+| `transcription` | Voice-note transcription (Groq primary, whisper.cpp fallback) | **1 worker** (`one-inbox-whisper.service`) | Voice notes fail to become text; AI can't respond to them |
+| `campaigns` | Bulk WhatsApp/email per-recipient sends | **1 worker** (`one-inbox-queue-campaigns.service`) | Campaigns run slowly; inbound unaffected |
+| `comments-ingest` | Meta comment webhooks classification | **1 worker** (main service only — `@1..4` do NOT process) | AI comment replies delayed |
+| `comments-send` | Publishing AI comment replies | **1 worker** (same) | Same |
+| `default` | `ConvertAudioToOgg`, `DescribeImage`, `ScoreLeadJob`, misc | **5 workers** (`one-inbox-queue` + `@1..4`) | Lead scoring + voice/image previews delayed |
 
-**Per-team throttles already in place**:
+**Per-team throttles**:
 
-- `TranscribeAudio` — `transcribe:inflight:{team_id}` capped at **5** in-flight per team. 6th job releases back with a 3-second delay. **This prevents one user's 100-voice-note burst from monopolizing Whisper.** ✓
-- (audit: does `SendCampaignWhatsAppJob` have an equivalent per-team throttle? — need to verify against `CampaignScheduler`)
+- `TranscribeAudio` — `transcribe:inflight:{team_id}` capped at **5** in-flight per team. 6th job releases back with a 3-second delay. **This prevents one user's 100-voice-note burst from monopolizing transcription.** ✓
+- `SendCampaignWhatsAppJob` — **NO per-team throttle** (verified 2026-09-29 by reading `handle()` and `CampaignScheduler`). Rate control is upstream only — `campaigns:dispatch-recipients` scheduled command dispatches in per-minute batches. With ONE `campaigns` worker + `--max-jobs=1000`, a single team's 100k-row campaign monopolizes the queue and delays every other team's campaigns (inbound `urgent` still unaffected). **Future work**: mirror the transcription pattern with `Cache::add("campaign:inflight:{team_id}", ...)`.
+- `ScoreLeadJob` — no throttle. Dispatched from **11 call sites** in `ProcessIncomingMessage` — every inbound message-with-contact spawns one. Uses `default` queue with `$timeout = 300` (per-file comment references a real 2026-08-25 queue-cascade incident where the 60 s default caused SIGKILL cascading stalls). Each score = 1 NaraRouter call → an inbound burst = ScoreLead burst = NaraRouter cooldown risk. Under a big inbound spike, `default` queue backs up.
 
 **Alert threshold**:
 - `queues:urgent` depth ≥ 50 for > 60 s → real customer messages piling up
@@ -166,11 +167,15 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 
 | Metric | Value |
 |---|---|
-| `ScoreLeadJob` runs per | (verify trigger — every N inbound? on conversation close?) |
-| Cost per score | 1 NaraRouter call (text chain) |
-| Ceiling | Same as AI reply rate — ~10 calls/sec before cooldown |
+| Trigger | **Every inbound message with a linked contact** — dispatched at 11 sites in `ProcessIncomingMessage` (verified 2026-09-29) |
+| Queue | `default` (no `onQueue()` call in `ScoreLeadJob`) |
+| Workers | 5 (shares with `urgent` on the main + `@1..4` instances) |
+| `$tries` / `$timeout` | 2 / **300 s** (comment cites 2026-08-25 queue-cascade incident — the 60 s default caused SIGKILL and cascading stalls) |
+| Cost per score | 1 NaraRouter call (`scoreMessage()` — text chain) |
+| AI ceiling | Same as AI reply rate — ~10 calls/sec before NaraRouter provider cooldown |
+| Failure mode | Exception → logged as warning, no retry loop (returns silently) |
 
-Need to inspect `ScoreLeadJob.php` to fill in trigger + queue.
+**Combined-load implication**: every inbound message = 1 AI reply call (urgent queue) + 1 ScoreLead call (default queue). A burst of N inbound messages produces **2N NaraRouter calls**. Under a 50/sec inbound burst that's 100 calls/sec → NaraRouter cooldown almost certain. Both queues will drain slowly (5-min per-job timeout on ScoreLead means each stuck score holds a `default` worker for 5 min).
 
 ### 5.5 · Analytics dashboards (`/analytics`, `/super-admin/analytics`)
 
@@ -245,10 +250,10 @@ Each script emits a JSON report → `docs/load-tests/YYYY-MM-DD-<scenario>.json`
 
 ## 9 · Open verifications (things this doc claims that need proof)
 
-- [ ] Which queues do `one-inbox-queue.service` and `@1..4` actually consume? Systemd unit `ExecStart` will tell.
-- [x] ~~Is Excel campaign parsing sync or queued?~~ **CONFIRMED SYNC — landmine documented in §5.3** (2026-09-28)
-- [ ] Per-team throttle on `SendCampaignWhatsAppJob` — does it exist? What's the limit?
-- [ ] `ScoreLeadJob` trigger + queue name
+- [x] ~~Which queues do `one-inbox-queue.service` and `@1..4` actually consume?~~ **main = urgent+default+comments-ingest+comments-send; @1..4 = urgent+default only (comment queues have only 1 worker)** — documented in §2 + §4 (2026-09-29)
+- [x] ~~Is Excel campaign parsing sync or queued?~~ **CONFIRMED SYNC — landmine documented in §5.3** (2026-09-28); mitigation shipped 2026-09-29
+- [x] ~~Per-team throttle on `SendCampaignWhatsAppJob`?~~ **NO throttle exists — documented in §4 with future-work note** (2026-09-29)
+- [x] ~~`ScoreLeadJob` trigger + queue name~~ **dispatched from every inbound-message-with-contact (11 sites in `ProcessIncomingMessage`); runs on `default`; timeout 300s; 2 tries** — documented in §5.4 (2026-09-29)
 - [ ] Actual whisper.cpp transcription latency on this hardware — measure with a 30-second audio file
 - [ ] `client_max_body_size` — what's the actual nginx-side limit for Excel uploads?
 - [ ] Reverb concurrent connection ceiling under real message load
@@ -265,3 +270,4 @@ I'll close these as we run the load tests.
 | 2026-09-28 | Initial doc — hardware + services snapshot, PHP-FPM bottleneck identified, queue topology mapped, alert plan proposed, load-test scope defined |
 | 2026-09-28 | Corrected transcription driver order (Groq primary, whisper fallback). Confirmed and documented the sync-Excel-parse landmine in §5.3 with the fix path. |
 | 2026-09-29 | Shipped Excel-parse mitigation — capped uploads to 2 MB, added memory + time-limit guards, added contrast-safe amber notice to both wizards (EN + AR) with support@ot1-pro.com fallback. Still need the async import job to lift the cap. |
+| 2026-09-29 | Closed 4 open verifications: (1) documented per-service queue assignments (main worker also handles comment queues; @1..4 do not; comment queues have only 1 worker each — potential bottleneck); (2) confirmed NO per-team throttle on `SendCampaignWhatsAppJob` — one team can monopolize the 1 campaigns worker; (3) mapped `ScoreLeadJob` — dispatched from every inbound message, runs on `default` with 5-min timeout, doubles NaraRouter call rate under inbound bursts; (4) clarified the `one-inbox-whisper.service` naming (it's a Laravel queue worker, not the whisper.cpp daemon). |
