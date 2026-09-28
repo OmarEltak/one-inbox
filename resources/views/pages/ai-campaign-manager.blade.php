@@ -114,7 +114,7 @@
                         <div class="mockup-chat-header flex items-center gap-3 border-b border-line px-4 py-3">
                             <img id="chat-avatar" class="w-8 h-8 rounded-full object-cover flex-shrink-0" src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=80&h=80&fit=crop&auto=format" alt="">
                             <div class="flex-1 min-w-0">
-                                <div id="chat-name" class="text-sm font-semibold truncate">Sara Ahmed</div>
+                                <div id="chat-name" class="text-sm font-semibold truncate">{{ __('demo.chat.customer1_name') }}</div>
                                 <div class="subline text-[11px] text-ink/50 flex items-center gap-1.5">
                                     <span id="chat-plat-name">Instagram DM</span>
                                     <span class="text-ink/30">·</span>
@@ -305,10 +305,10 @@
                     </div>
                     <div class="space-y-2">
                         @foreach([
-                            ['https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=80&h=80&fit=crop&auto=format', 'Layla',  '"Is the small tote still…"',      'now'],
-                            ['https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=80&h=80&fit=crop&auto=format', 'Ahmed',  '"Ok I\'ll take it — please…"',    '2m'],
-                            ['https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=80&h=80&fit=crop&auto=format', 'Marco',  '"Do you deliver in Rome?"',       '5m'],
-                            ['https://images.unsplash.com/photo-1591561954557-26941169b49e?w=80&h=80&fit=crop&auto=format', 'Fatima', '"Hi, do you have red in the small…"', '7m'],
+                            ['https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=80&h=80&fit=crop&auto=format', __('demo.inbox.name1'), __('demo.inbox.preview1'), 'now'],
+                            ['https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=80&h=80&fit=crop&auto=format', __('demo.inbox.name2'), __('demo.inbox.preview2'), '2m'],
+                            ['https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=80&h=80&fit=crop&auto=format', __('demo.inbox.name3'), __('demo.inbox.preview3'), '5m'],
+                            ['https://images.unsplash.com/photo-1591561954557-26941169b49e?w=80&h=80&fit=crop&auto=format', __('demo.inbox.name4'), __('demo.inbox.preview4'), '7m'],
                         ] as [$img, $name, $preview, $when])
                             <div class="bg-ink2 rounded-lg p-3 flex items-center gap-3">
                                 <img class="w-8 h-8 rounded-full object-cover flex-shrink-0" src="{{ $img }}" alt="">
@@ -362,12 +362,12 @@
                 <div class="flex items-center gap-2 mb-4">
                     <img class="w-8 h-8 rounded-full object-cover" src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=80&h=80&fit=crop&auto=format" alt="">
                     <div>
-                        <div class="text-sm font-semibold">Layla · Instagram</div>
+                        <div class="text-sm font-semibold">{{ __('demo.hover.name') }} · Instagram</div>
                         <div class="text-[11px] text-ink/50">{{ __('Repeat customer · 3 orders') }}</div>
                     </div>
                 </div>
                 <div class="space-y-3">
-                    <div class="text-right"><span class="inline-block bg-cream2 text-ink px-3 py-2 rounded-2xl rounded-br-sm text-sm max-w-[80%]">Hey! Do you still have the small crossbody in mustard? Need it for Friday 🙏</span></div>
+                    <div class="text-right"><span class="inline-block bg-cream2 text-ink px-3 py-2 rounded-2xl rounded-br-sm text-sm max-w-[80%]">{{ __('demo.hover.customer_msg') }}</span></div>
                     <div class="text-right text-[10px] text-ink/40">10:24 AM · Read</div>
                     <div><span class="inline-block bg-emer-600 text-white px-3 py-2 rounded-2xl rounded-bl-sm text-sm max-w-[80%]">
                         <span class="text-[10px] uppercase tracking-widest opacity-80 block mb-1">{{ __('AI · replying now') }}</span>
@@ -637,30 +637,32 @@ document.querySelectorAll('.tab-btn').forEach(function (btn) {
 
 // Live inbox ticker
 (function () {
+    // Localised per-language demo data. Blade renders __() for each string at
+    // page-load time; the JS just cycles through the pre-localised array.
     var inboxData = [
-        { name: 'Sara Ahmed',
+        { name: @json(__('demo.chat.customer1_name')),
           photo: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=80&h=80&fit=crop&auto=format',
           platform: 'Instagram DM',
           messages: [
-            { from: 'user', text: 'Hi! Do you have the leather crossbody in black?' },
-            { from: 'ai',   text: 'Hey Sara! Yes, black is in stock — £62, ships free to UK. Want the checkout link?' },
-            { from: 'user', text: 'Yes please 🙌' },
+            { from: 'user', text: @json(__('demo.chat.customer1_msg1')) },
+            { from: 'ai',   text: @json(__('demo.chat.customer1_ai1')) },
+            { from: 'user', text: @json(__('demo.chat.customer1_msg2')) },
         ]},
-        { name: 'Marco Rossi',
+        { name: @json(__('demo.chat.customer2_name')),
           photo: 'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=80&h=80&fit=crop&auto=format',
           platform: 'Facebook Messenger',
           messages: [
-            { from: 'user', text: 'Ciao, do you deliver to Rome?' },
-            { from: 'ai',   text: 'Ciao Marco! Yes — 4 days to Rome via DHL, €14 shipping. What are you looking at?' },
-            { from: 'user', text: 'The mustard tote 😍' },
+            { from: 'user', text: @json(__('demo.chat.customer2_msg1')) },
+            { from: 'ai',   text: @json(__('demo.chat.customer2_ai1')) },
+            { from: 'user', text: @json(__('demo.chat.customer2_msg2')) },
         ]},
-        { name: 'Fatima Al-Rashid',
+        { name: @json(__('demo.chat.customer3_name')),
           photo: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=80&h=80&fit=crop&auto=format',
           platform: 'WhatsApp Business',
           messages: [
-            { from: 'user', text: 'Salaam, do you have red in the small bag?' },
-            { from: 'ai',   text: 'Wa alaikum salaam! Red small is available — 240 AED, delivery to Riyadh in 3 days. Reserve one?' },
-            { from: 'user', text: 'Yes please' },
+            { from: 'user', text: @json(__('demo.chat.customer3_msg1')) },
+            { from: 'ai',   text: @json(__('demo.chat.customer3_ai1')) },
+            { from: 'user', text: @json(__('demo.chat.customer3_msg2')) },
         ]},
     ];
 
@@ -746,7 +748,7 @@ document.querySelectorAll('.tab-btn').forEach(function (btn) {
     });
 
     // AI live-typing (feature block 2)
-    var aiReplyText = "Yes — mustard small is in stock! I can ship priority for Friday delivery, £4 extra. Reserve it now?";
+    var aiReplyText = @json(__('demo.hover.ai_reply'));
     var charIdx = 0;
     function typeAi() {
         var el = document.getElementById('ai-live-text');
