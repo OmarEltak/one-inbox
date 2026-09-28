@@ -183,10 +183,10 @@
 
         <div id="tab-before" class="tab-panel grid md:grid-cols-4 gap-4">
             @foreach([
-                ['Tuesday, 3:47am',    'Instagram DM',      '"Do you have the tote in black?"',        'Unread 14 hours.'],
-                ['Tuesday, 8:12am',    'WhatsApp',          '"Guys are you open tomorrow?"',           'Missed. They bought elsewhere.'],
-                ['Tuesday, 11:20am',   'Facebook Messenger','"Salaam, price for the leather bag?"',    'Answered 6h later. Ghosted.'],
-                ['Tuesday, 2:15pm',    'Telegram',          '"Do you ship to Dubai?"',                 'Still typing… 4 days later.'],
+                [__('Tuesday, 3:47am'),    __('Instagram DM'),      '"' . __('Do you have the tote in black?') . '"',        __('Unread 14 hours.')],
+                [__('Tuesday, 8:12am'),    __('WhatsApp'),          '"' . __('Guys are you open tomorrow?') . '"',           __('Missed. They bought elsewhere.')],
+                [__('Tuesday, 11:20am'),   __('Facebook Messenger'),'"' . __('Salaam, price for the leather bag?') . '"',    __('Answered 6h later. Ghosted.')],
+                [__('Tuesday, 2:15pm'),    __('Telegram'),          '"' . __('Do you ship to Dubai?') . '"',                 __('Still typing… 4 days later.')],
             ] as [$time, $platform, $msg, $fail])
                 <div class="bg-white border border-line rounded-xl p-5">
                     <div class="text-xs text-ink/50 mb-2">{{ $time }}</div>
@@ -206,9 +206,9 @@
                     </div>
                     <div class="space-y-2">
                         @foreach([
-                            '"Yes, black totes are in stock. £48 with free UK shipping. Want me to send the direct checkout link?"',
-                            '"We\'re open tomorrow 10-6, but ordering online means you skip the queue. Do you want a link?"',
-                            '"Wa alaikum salaam, the leather crossbody is £62 today, and yes we ship to Dubai in 3 days. Shall I hold one?"',
+                            '"' . __('Yes, black totes are in stock. £48 with free UK shipping. Want me to send the direct checkout link?') . '"',
+                            '"' . __("We're open tomorrow 10-6, but ordering online means you skip the queue. Do you want a link?") . '"',
+                            '"' . __('Wa alaikum salaam, the leather crossbody is £62 today, and yes we ship to Dubai in 3 days. Shall I hold one?') . '"',
                         ] as $reply)
                             <div class="bg-white text-ink rounded-lg p-3 text-sm flex items-start gap-2">
                                 <span class="w-6 h-6 rounded-full bg-emer-100 text-emer-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0">AI</span>
