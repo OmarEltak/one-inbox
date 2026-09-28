@@ -30,7 +30,7 @@
             {{-- ── Welcome Header ── --}}
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="font-serif text-3xl text-ink dark:text-white">{{ __('Welcome to All in One') }}
+                    <h1 class="font-serif text-3xl text-ink dark:text-white">{{ __('Welcome back, :name', ['name' => auth()->user()->name]) }}
                         <span class="inline-block text-xl ml-1 text-emer-600">✦</span>
                     </h1>
                     <p class="mt-1 text-sm text-zinc-500">{{ __("Here's your business overview for today.") }}</p>
