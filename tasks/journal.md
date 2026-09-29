@@ -2209,3 +2209,77 @@ disk stays white. Verified via `php artisan view:cache` — blades compile.
 Phases 2-5 documented in §11 with effort estimates, waiting for Omar to
 pick which one next. My rec: Phase 3 (async Excel import) — kills the
 biggest current bottleneck and lets us lift the 2 MB cap.
+
+---
+
+## 2026-09-29 · Phases 2-4 of the 5-phase load plan shipped
+
+Marathon session — shipped 3 more phases of the load-management
+architecture Omar proposed. Details in docs/OT1_LIMITS.md §11.
+
+**Phase 2 — Plan-tier monthly campaign limits (PR #62)**
+- `config/campaigns.php` gains `monthly_limits` keyed by plan slug
+- Free = 1/mo, Starter = 5, Pro = 25, Enterprise = ∞
+- `Team::canCreateCampaign()`, `monthlyCampaignLimit()`,
+  `campaignsCreatedThisMonth()`, `campaignsRemainingThisMonth()`
+- Rolling 30-day window (not calendar month) — fairer for new signups
+- Gated at all 3 create sites (Campaigns\Index@save, both wizards' launch)
+- Emerald/amber/red quota chip on /campaigns index; Upgrade CTA → /pricing
+- 5 Pest tests
+- Contrast-safe pairs per contrast-guardrails skill
+
+**Phase 3 — Async Excel import for WhatsApp wizard (PR #63)**
+- New job `ImportCampaignRecipients` on default queue, timeout=600, tries=1
+- Per-team throttle Cache::add lock so one team can't monopolize the
+  default queue with a big import
+- WhatsAppWizard STEPS gains 'importing' between 'map' and 'compose'
+- advanceToCompose() now creates ContactImport row + dispatches job
+- checkImportProgress() polled by wire:poll.2s updates counts and
+  auto-advances to compose on completion
+- retryImport() re-dispatches on failure
+- Blade: animated spinner + progress bar + "you can close this tab"
+  reassurance + failed-state retry button
+- Upload cap lifted 2 MB → 10 MB (~100k rows). Removed the sync-parse
+  memory/time guards.
+- Upload-step notice re-cast from amber "temporary limit" to emerald
+  "feature announcement — imports run in background"
+- 4 Pest tests
+- EN + AR translations for all new strings
+- **Email wizard deferred as Phase 3b** — same pattern needed, but WA
+  is the primary MENA use case. Documented in §11 progress tracker.
+
+**Phase 4 — Per-team throttle on SendCampaignWhatsAppJob (PR #64)**
+- handle() now caps concurrent sends at 3 per team via
+  Cache::add + increment + try/finally decrement
+- 4th+ concurrent recipient releases with 5s delay (goes back to queue,
+  picked up shortly)
+- Emerald info line under progress bar on /campaigns/{id} sets user
+  expectations about the throttle + WhatsApp's own 1-5 msg/sec cap
+- 2 Pest tests
+- **Full "you are #N in queue" UI deferred as Phase 4b** — requires
+  Redis LLEN endpoint + Reverb push infrastructure not built here.
+  The per-team throttle is the load-critical piece; the position UI
+  is UX polish for later.
+
+**Phase 5 — Row-count JS deferred**
+- Original plan: JS preview of row count on file selection
+- Effectively addressed by Phase 3's progress bar + "~100,000 contacts"
+  copy — users no longer risk uploading a large file only to hit a
+  low server cap. Formal JS preview deferred as low-ROI.
+
+**Testing note**: Chrome extension was offline during the session so
+visual browser eyeball was skipped. All blades verified via
+`php artisan view:cache`. All 11 new Pest tests pass. Post-deploy
+visual verification pending until Omar returns.
+
+**Not done that user asked for**:
+- Local browser eyeball (chrome extension disconnected)
+- Prod browser eyeball (will do next session)
+- Phase 3b (Email wizard async import) — same pattern as WA, not
+  critical because MENA users default to WA campaigns
+- Phase 4b full queue-position UI
+
+**Recommended next-session focus**:
+- Reconnect chrome extension → eyeball each phase on prod
+- Ship Phase 3b (Email wizard async import)
+- Then move to "other issues" then k6
