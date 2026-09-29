@@ -51,8 +51,9 @@
                 </svg>
                 <p class="text-sm text-amber-100 leading-relaxed">
                     <strong class="font-semibold">{{ __('Current upload limit: 2 MB (~20,000 contacts)') }}</strong>
-                    {{ __('while we ship a background import for larger lists. For anything bigger, email') }}
-                    <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a>.
+                    {{ __('while we ship a background import for larger lists. Need more?') }}
+                    <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%2020%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">{{ __('Message me on WhatsApp') }}</a>
+                    {{ __('or email') }} <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a>.
                 </p>
             </div>
 

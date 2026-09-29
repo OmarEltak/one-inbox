@@ -2177,3 +2177,35 @@ Key headlines from the table:
   AI calls — reply + score)
 - 1 team can monopolize campaigns / comments / transcription queues
   (no per-team throttles on those)
+
+---
+
+## 2026-09-29 · Phase 1 shipped — support link everywhere
+
+Omar proposed a 5-phase load-management architecture (better than what I
+had): queue-position UX + plan-tier limits + async import + visible
+support. See docs/OT1_LIMITS.md §11.
+
+**Phase 1 shipped now** — the support link piece:
+
+- `resources/views/layouts/app/sidebar.blade.php` — new emerald pill
+  "Message the founder" above the user profile section. Persistent on
+  every authenticated page. Opens `wa.me/201026361218` with prefilled
+  context (workspace name + user email) so Omar sees who's asking.
+- `resources/views/livewire/campaigns/whats-app-wizard.blade.php` —
+  amber upload-limit notice now includes "Message me on WhatsApp"
+  inline link with prefilled "I need to import more than 20,000
+  contacts" text.
+- Same treatment on `email-wizard.blade.php` (dark surface — kept
+  amber-100 text over amber-900/40 bg per contrast-guardrails).
+- 5 new i18n keys (Need help? / Message the founder / Message me on
+  WhatsApp / while we ship... Need more? / or email) with Arabic
+  translations.
+
+Contrast: sidebar uses `bg-emerald-50 + text-emerald-900 + border-emerald-200`
+(contrast-guardrails safe pair for light surface). Icon on solid emerald-600
+disk stays white. Verified via `php artisan view:cache` — blades compile.
+
+Phases 2-5 documented in §11 with effort estimates, waiting for Omar to
+pick which one next. My rec: Phase 3 (async Excel import) — kills the
+biggest current bottleneck and lets us lift the 2 MB cap.
