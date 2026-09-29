@@ -219,6 +219,16 @@ class EmailWizard extends Component
     {
         $team = Auth::user()->currentTeam;
 
+        // Phase 2 monthly-cap gate — see WhatsAppWizard@launch comment.
+        abort_unless(
+            $team->canCreateCampaign(),
+            429,
+            __('You have reached your monthly campaign limit (:used/:limit). Upgrade your plan to launch another.', [
+                'used'  => $team->campaignsCreatedThisMonth(),
+                'limit' => $team->monthlyCampaignLimit(),
+            ])
+        );
+
         $campaign = Campaign::create([
             'team_id'            => $team->id,
             'created_by'         => Auth::id(),
