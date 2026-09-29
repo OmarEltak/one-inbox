@@ -1,23 +1,25 @@
-<div class="p-6 space-y-6" x-data="{ tab: 'all' }">
-    <div class="flex items-center justify-between">
+<div class="p-4 sm:p-6 space-y-4 sm:space-y-6" x-data="{ tab: 'all' }">
+    {{-- Header: stack title above buttons on mobile so both CTAs are always visible. --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="font-serif text-3xl text-ink">{{ __('Campaigns') }}</h1>
+            <h1 class="font-serif text-2xl sm:text-3xl text-ink">{{ __('Campaigns') }}</h1>
             <p class="mt-1 text-sm text-zinc-600">{{ __('Send broadcast messages to your contacts across all platforms.') }}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
             <a href="{{ route('campaigns.email.new') }}" wire:navigate
-               class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-ink transition-all bg-white hover:bg-cream border border-line">
-                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+               class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold text-ink transition-all bg-white hover:bg-cream border border-line whitespace-nowrap">
+                <svg class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                {{ __('Email Campaign') }}
+                <span class="hidden xs:inline sm:inline">{{ __('Email') }}</span>
             </a>
             <button wire:click="openCreateModal"
-                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary">
-                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all aio-btn-primary whitespace-nowrap">
+                <svg class="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                {{ __('New Campaign') }}
+                <span>{{ __('New') }}</span>
+                <span class="hidden sm:inline">{{ __('Campaign') }}</span>
             </button>
         </div>
     </div>
@@ -141,7 +143,9 @@
                 x-show="tab === 'all' || tab === '{{ $campaign->status }}'"
                 class="aio-card rounded-2xl p-4"
             >
-                <div class="flex items-start justify-between gap-4">
+                {{-- Mobile: stack info above actions so title has full width.
+                     Desktop (sm+): side-by-side. --}}
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                     <div class="min-w-0 flex-1 space-y-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-semibold text-zinc-900">{{ $campaign->name }}</span>
@@ -209,7 +213,7 @@
                         @endif
                     </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
+                    <div class="flex flex-wrap items-center gap-2 sm:shrink-0 pt-1 sm:pt-0 border-t border-zinc-100 sm:border-0 -mx-4 sm:mx-0 px-4 sm:px-0">
                         <a href="{{ route('campaigns.show', $campaign->id) }}" wire:navigate
                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">
                             <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
