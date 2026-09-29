@@ -102,6 +102,19 @@
                 <div class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
                      style="width: {{ $pct }}%"></div>
             </div>
+
+            {{-- Phase 4 (docs/OT1_LIMITS.md §11) — set send-rate expectations.
+                 Emerald-50 + emerald-900 per contrast-guardrails skill. --}}
+            @if($campaign->status === 'active' && $c['pending'] > 0)
+                <div class="mt-3 flex items-start gap-2 text-xs text-emerald-900">
+                    <svg class="h-4 w-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="leading-relaxed">
+                        {{ __('Sending up to 3 messages at a time per team so other users\' campaigns keep flowing. WhatsApp itself caps each number at 1–5 messages/second.') }}
+                    </p>
+                </div>
+            @endif
         </div>
     @endif
 
