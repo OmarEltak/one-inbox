@@ -44,6 +44,21 @@ class SendCampaignWhatsAppJob implements ShouldQueue
             return;
         }
 
+        // Phase 4 per-team throttle (docs/OT1_LIMITS.md §11) — mirrors
+        // TranscribeAudio's Cache::add pattern. Caps concurrent sends per
+        // team at 3 so one team's 100k-row campaign can't monopolize the
+        // single `campaigns` queue worker and delay every other team's
+        // campaigns. If we're over the cap, release with a small delay so
+        // the recipient goes back to the queue and gets picked up shortly.
+        $throttleKey = "campaign:send:inflight:{$campaign->team_id}";
+        $current = (int) \Illuminate\Support\Facades\Cache::add($throttleKey, 1, 60) ? 1
+            : (int) \Illuminate\Support\Facades\Cache::increment($throttleKey);
+        if ($current > 3) {
+            \Illuminate\Support\Facades\Cache::decrement($throttleKey);
+            $this->release(5);
+            return;
+        }
+
         $page = $campaign->senderPage;
         if (! $page || ! $page->is_active) {
             $r->update(['status' => 'failed', 'last_error' => 'sender page unavailable']);
@@ -51,7 +66,12 @@ class SendCampaignWhatsAppJob implements ShouldQueue
         }
 
         $body = $this->renderBody((string) $campaign->message_template, $r);
-        $result = $sender->send($page, (string) $r->phone, $body);
+
+        try {
+            $result = $sender->send($page, (string) $r->phone, $body);
+        } finally {
+            \Illuminate\Support\Facades\Cache::decrement($throttleKey);
+        }
 
         if ($result->sent) {
             $r->update(['status' => 'sent', 'sent_at' => now()]);
