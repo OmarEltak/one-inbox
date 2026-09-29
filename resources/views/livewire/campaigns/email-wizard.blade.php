@@ -195,7 +195,7 @@
             <div>
                 <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Subject') }}</label>
                 <input type="text" wire:model="subject"
-                       placeholder="Quick question about {{ '{{name}}' }}'s setup"
+                       placeholder="Quick question about @{{name}}'s setup"
                        class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
                 @error('subject') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -205,9 +205,12 @@
                 <textarea wire:model="body" rows="8"
                           class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono"></textarea>
                 <p class="text-xs text-white/40 mt-1">
-                    Variables: <code>{{ '{{name}}' }}</code>, <code>{{ '{{email}}' }}</code>
+                    Variables: <code>@{{name}}</code>, <code>@{{email}}</code>
                     @foreach($customColumns as $c)
-                        @if($c), <code>{{ '{{'.$c.'}}' }}</code>@endif
+                        @if($c)
+                            @php $varToken = '{{' . $c . '}}'; @endphp
+                            , <code>{{ $varToken }}</code>
+                        @endif
                     @endforeach
                 </p>
                 @error('body') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
