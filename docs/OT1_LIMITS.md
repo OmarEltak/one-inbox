@@ -79,7 +79,7 @@ The app uses **6 named queues** on Redis. Workers are dedicated per role so a bu
 **Per-team throttles**:
 
 - `TranscribeAudio` — `transcribe:inflight:{team_id}` capped at **5** in-flight per team. 6th job releases back with a 3-second delay. **This prevents one user's 100-voice-note burst from monopolizing transcription.** ✓
-- `SendCampaignWhatsAppJob` — **NO per-team throttle** (verified 2026-09-29 by reading `handle()` and `CampaignScheduler`). Rate control is upstream only — `campaigns:dispatch-recipients` scheduled command dispatches in per-minute batches. With ONE `campaigns` worker + `--max-jobs=1000`, a single team's 100k-row campaign monopolizes the queue and delays every other team's campaigns (inbound `urgent` still unaffected). **Future work**: mirror the transcription pattern with `Cache::add("campaign:inflight:{team_id}", ...)`.
+- `SendCampaignWhatsAppJob` — ~~NO per-team throttle~~ **SHIPPED 2026-09-29 (Phase 4, PR #64)** — capped at 3 concurrent sends per team via `Cache::add("campaign:send:inflight:{team_id}", 1, 60)` + `try/finally` symmetric decrement. Between-team fairness restored; within-team throughput unchanged (3 concurrent × ~1-5 msg/sec WhatsApp cap ≈ same effective rate as pre-throttle).
 - `ScoreLeadJob` — no throttle. Dispatched from **11 call sites** in `ProcessIncomingMessage` — every inbound message-with-contact spawns one. Uses `default` queue with `$timeout = 300` (per-file comment references a real 2026-08-25 queue-cascade incident where the 60 s default caused SIGKILL cascading stalls). Each score = 1 NaraRouter call → an inbound burst = ScoreLead burst = NaraRouter cooldown risk. Under a big inbound spike, `default` queue backs up.
 
 **Alert threshold**:
@@ -125,8 +125,7 @@ The number in **bold** is what we *think* is the ceiling; unknown = we haven't m
 
 ### 5.3 · Bulk WhatsApp campaigns
 
-⚠️ **CONFIRMED LANDMINE — 2026-09-28.** The Excel/CSV parse happens **synchronously inside the Livewire HTTP request**, not in a queued job.
-🩹 **Mitigation shipped 2026-09-29.** See "Mitigations shipped" below.
+⚠️ ~~**CONFIRMED LANDMINE — 2026-09-28.**~~ **RESOLVED for WhatsApp wizard 2026-09-29 (PR #63)** — parse now runs in the async `ImportCampaignRecipients` job. Email wizard (`EmailWizard@confirmMapAndImport`) still sync as of 2026-09-29 — deferred as Phase 3b.
 
 `app/Livewire/Campaigns/WhatsAppWizard.php:155-170` — `advanceToCompose()`:
 ```php
@@ -322,6 +321,9 @@ I'll close these as we run the load tests.
 | 2026-09-29 | Closed 4 open verifications: (1) documented per-service queue assignments (main worker also handles comment queues; @1..4 do not; comment queues have only 1 worker each — potential bottleneck); (2) confirmed NO per-team throttle on `SendCampaignWhatsAppJob` — one team can monopolize the 1 campaigns worker; (3) mapped `ScoreLeadJob` — dispatched from every inbound message, runs on `default` with 5-min timeout, doubles NaraRouter call rate under inbound bursts; (4) clarified the `one-inbox-whisper.service` naming (it's a Laravel queue worker, not the whisper.cpp daemon). |
 | 2026-09-29 | Added §5.7 concurrent-user ceilings — per-feature comfortable/hard-cap table, total-user rollups, breaking-point order, growth-signal triggers. Answers the "how many users can this box hold at once" question. |
 | 2026-09-29 | Phase 1 of the 5-phase load-management plan (§11 below) shipped — permanent "Message the founder" WhatsApp link in the sidebar + inline WhatsApp support link in both campaign wizards' amber notice. Contrast-safe emerald pair. EN + AR. |
+| 2026-09-29 | Phase 2 shipped (PR #62) — plan-tier monthly campaign limits (Free=1, Starter=5, Pro=25, Enterprise=∞). Rolling 30-day window. Gated at all 3 create sites. Emerald/amber/red quota chip on `/campaigns` index. 5 tests. |
+| 2026-09-29 | Phase 3 shipped for WhatsApp wizard (PR #63) — async `ImportCampaignRecipients` job on `default` queue with per-team throttle. Wizard has new `importing` step with progress bar polled every 2s. Upload cap lifted 2 MB → 10 MB. Sync-parse guards removed. Email wizard deferred as Phase 3b. 4 tests. |
+| 2026-09-29 | Phase 4 shipped (PR #64) — per-team throttle on `SendCampaignWhatsAppJob` (3 concurrent per team) using the `Cache::add + increment/decrement` pattern with `try/finally` for symmetric release. Info line on `/campaigns/{id}` sets user expectations. 2 tests. Full queue-position UI deferred as Phase 4b (needs Reverb push infra). Row-count JS preview (Phase 5) effectively subsumed by Phase 3's progress bar + copy — deferred as low-ROI. |
 
 ---
 
@@ -338,47 +340,55 @@ The 5 phases, ranked by ROI:
 - EN + AR translations
 - Contrast-safe: `bg-emerald-50` + `text-emerald-900` + `border-emerald-200` (contrast-guardrails skill safe pair)
 
-### Phase 2 — Plan-tier campaign limits (2-3 hrs)
+### Phase 2 — Plan-tier campaign limits ✅ SHIPPED 2026-09-29 (PR #62)
 - Free tier: **1 campaign/month**
 - Starter ($29): **5 campaigns/month**
 - Pro ($79): **25 campaigns/month**
-- Enterprise: custom
-- Enforcement lives in `Team::canDispatchCampaign()` (new method, mirrors `canDispatchAi()`)
-- Called at campaign-create time (Wizard step 1) + at campaign-launch time (defence-in-depth)
-- User-visible: "You've used 3/5 campaigns this month" chip on the campaigns index
-- Kills the load problem (fewer campaigns fired) AND creates a monetization pressure point
-- Config in `config/campaigns.php` — plan → monthly cap
-- Reset window: rolling 30 days from account creation, NOT calendar month (fairer for new signups)
+- Enterprise: `PHP_INT_MAX` (effectively unlimited)
+- Rolling 30-day window (not calendar month) — fairer for new signups
+- Config: `config/campaigns.php` → `monthly_limits` array, env-overridable
+- Enforcement: `Team::canCreateCampaign()` + `campaignsCreatedThisMonth()` + `monthlyCampaignLimit()` + `campaignsRemainingThisMonth()`
+- Gated at all 3 create sites: `Campaigns\Index@save`, `WhatsAppWizard@launch`, `EmailWizard@launch` (defence-in-depth against concurrent tabs)
+- UI chip on `/campaigns` index — emerald under limit, amber at ≥80%, red at 0. Upgrade CTA → `/pricing`.
+- Fallback for unknown plan slugs → free-tier cap
+- 5 Pest tests: `tests/Feature/Campaigns/PlanMonthlyLimitTest.php`
 
-### Phase 3 — Async Excel import w/ progress bar (4-6 hrs)
-- Create `ImportCampaignRecipients` job (on `default` queue with per-team throttle)
-- `advanceToCompose()` / `confirmMapAndImport()` return immediately with `import_id`
-- Livewire polls `/api/campaigns/imports/{id}/progress` every 2 s
-- Progress bar UI: "Imported 12,384 / 98,201 contacts (13%)"
-- User can close the tab — job continues on server; result appears when they return
-- Removes the confirmed sync-parse FPM landmine
-- Lifts the 2 MB cap back to 10 MB (or higher — real limit becomes server disk + import time)
-- Removes `ini_set('memory_limit')` + `set_time_limit()` guards from the wizards
+### Phase 3 — Async Excel import w/ progress bar ✅ SHIPPED 2026-09-29 (PR #63, WhatsApp wizard)
+- `App\Jobs\ImportCampaignRecipients` — runs on `default` queue, `timeout=600`, `tries=1`
+- Per-team throttle: `Cache::add("campaign:import:inflight:{team_id}", 1, 900)` — 1 in-flight per team; concurrent releases with 10s delay
+- `WhatsAppWizard@advanceToCompose` creates `ContactImport` row + dispatches job + transitions to new `'importing'` step (added to `STEPS` const)
+- `checkImportProgress()` polled by `wire:poll.2s` reads row status, auto-advances to `compose` on completion
+- `retryImport()` re-dispatches on failure
+- Progress bar UI: "12,384 of 98,201 processed" with animated fill (emerald-100 track + emerald-600 fill)
+- Reassurance panel: "You can close this tab — the import will keep running on our server"
+- Failed state shows retry button + last error (red-50/red-900 per contrast-guardrails)
+- Upload cap lifted 2 MB → **10 MB (~100k rows)**. Removed `ini_set/set_time_limit` guards.
+- Upload-step notice re-cast from amber "temporary limit" to emerald "feature announcement"
+- 4 Pest tests: `tests/Feature/Campaigns/ImportCampaignRecipientsJobTest.php`
+- **Still open** (Phase 3b): Email wizard (`EmailWizard@confirmMapAndImport`) still parses sync. Same landmine class; deferred because the WhatsApp path is the primary campaign use case in MENA.
 
-### Phase 4 — Queue-position UI on campaign launch (3-4 hrs)
-- On "Launch campaign" click, if `campaigns` queue depth > 5, show: "You are #7 in queue. Estimated start in ~4 minutes."
-- Backed by a new endpoint `/api/campaigns/queue-position` that reads Redis LLEN + estimates avg send time
-- User can leave the page — status page shows live position via Reverb push
-- Implies: per-team throttle on `SendCampaignWhatsAppJob` (mirror `TranscribeAudio` pattern) so one team can't monopolize
-- Kill switch alert if queue depth > 500 → surfaces to Omar
+### Phase 4 — Per-team send throttle ✅ SHIPPED 2026-09-29 (PR #64)
+- `SendCampaignWhatsAppJob@handle` now enforces `Cache::add("campaign:send:inflight:{team_id}", 1, 60)` + `Cache::increment/decrement` capping concurrent sends at **3 per team**
+- Mirrors `TranscribeAudio` pattern that already protects the transcription queue
+- `try/finally` around `WhatsAppSender::send` so no code path leaks the lock (success, transient, permanent-error all pass through finally)
+- 4th+ concurrent recipient for a team releases with 5s delay so other teams keep flowing
+- Emerald info line under progress bar on `/campaigns/{id}` for active campaigns with pending recipients: "Sending up to 3 messages at a time per team so other users' campaigns keep flowing"
+- 2 Pest tests: `tests/Feature/Campaigns/PerTeamSendThrottleTest.php`
+- **Deferred** (originally scoped): full queue-position UI ("You are #7 in queue, ~4 min wait"). The per-team throttle is the load-critical piece; the position UI is UX polish that needs a Redis LLEN + Reverb push infrastructure not built here. Note as future work.
 
-### Phase 5 — Row-count guidance (1 hr — bundle with Phase 3)
-- On file upload (before Livewire round-trip), JS reads first N bytes to estimate row count
-- Display: "~7,842 rows detected (0.9 MB). Under the 20,000 limit ✓"
-- If over: "~28,000 rows detected. Split into 2 files or WhatsApp me to bulk-import."
-- Prevents users from uploading a 2 MB file only to hit the row cap on the server side
+### Phase 5 — Row-count guidance (nice-to-have, deferred)
+- Original plan: JS reads file first-N-bytes to preview row count before upload
+- **Effectively addressed** by Phase 3's new upload-step notice + explicit "~100,000 contacts" copy + async progress bar
+- Users no longer risk uploading a large file only to hit a low server cap (cap is 10 MB, and progress is visible immediately). Formal JS-side preview deferred as low-ROI.
 
-### Cross-cutting: usage-quota banner
-When a team hits 80% of their monthly campaign quota, show a top-bar warning that links to `/billing`. When they hit 100%, hard-block the launch step with an "Upgrade to launch another campaign" CTA. Reuses the pattern from `partials/ai-quota-banner.blade.php` (already exists — good precedent).
+### Cross-cutting: usage-quota banner (still open)
+When a team hits 80% of their monthly campaign quota, show a top-bar warning that links to `/billing`. When they hit 100%, hard-block the launch step with an "Upgrade to launch another campaign" CTA. Reuses the pattern from `partials/ai-quota-banner.blade.php`. **Status**: 80%/100% signalling already covered by the amber/red chip on `/campaigns` index (Phase 2); top-bar version is UX polish, not shipped.
 
 ### Progress tracker
-- [x] Phase 1 — Support visibility (2026-09-29)
-- [ ] Phase 2 — Plan-tier campaign limits
-- [ ] Phase 3 — Async Excel import w/ progress bar
-- [ ] Phase 4 — Queue-position UI on campaign launch
-- [ ] Phase 5 — Row-count guidance JS
+- [x] Phase 1 — Support visibility (2026-09-29, PR #61)
+- [x] Phase 2 — Plan-tier campaign limits (2026-09-29, PR #62)
+- [x] Phase 3 — Async Excel import w/ progress bar — WhatsApp wizard (2026-09-29, PR #63)
+- [ ] Phase 3b — Async Excel import for Email wizard (deferred; same pattern as WA)
+- [x] Phase 4 — Per-team send throttle (2026-09-29, PR #64)
+- [ ] Phase 4b — Queue-position UI ("you are #N") — deferred (needs Reverb push infra)
+- [x] Phase 5 — Row-count guidance — addressed by Phase 3's copy + progress bar; JS preview deferred as low-ROI
