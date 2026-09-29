@@ -97,25 +97,25 @@
     {{-- Step 1 — Upload --}}
     @if ($step === 'upload')
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-6">
-            {{-- Temporary import-size notice (see docs/OT1_LIMITS.md §5.3). Uses the
-                 -50/-900 pattern from the contrast-guardrails skill so text stays legible
-                 on the tinted background. Remove this box once the async importer ships. --}}
-            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
-                <svg class="h-5 w-5 shrink-0 text-amber-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
+            {{-- Info notice for larger lists (Phase 3 shipped — async importer live).
+                 Emerald-50 + emerald-900 per contrast-guardrails skill. --}}
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-emerald-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-sm text-amber-900 leading-relaxed">
-                    <strong class="font-semibold">Current upload limit: 2 MB (~20,000 contacts)</strong> while we ship a background import for larger lists. Need more?
-                    <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%2020%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">Message me on WhatsApp</a>
-                    or email <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a> and I'll do it for you.
+                <p class="text-sm text-emerald-900 leading-relaxed">
+                    <strong class="font-semibold">{{ __('Upload up to 10 MB (~100,000 contacts).') }}</strong>
+                    {{ __('Imports run in the background — you can close this tab and come back later.') }}
+                    {{ __('For anything bigger,') }}
+                    <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%20100%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">{{ __('message me on WhatsApp') }}</a>.
                 </p>
             </div>
 
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                    <h2 class="text-lg font-semibold text-zinc-900">Upload contact list</h2>
+                    <h2 class="text-lg font-semibold text-zinc-900">{{ __('Upload contact list') }}</h2>
                     <p class="mt-1 text-sm text-zinc-800">
-                        CSV or Excel (.xlsx), up to 2 MB (~20,000 contacts).
+                        {{ __('CSV or Excel (.xlsx), up to 10 MB (~100,000 contacts).') }}
                     </p>
                 </div>
                 <a href="/samples/whatsapp-campaign-contacts.csv"
@@ -149,7 +149,7 @@
                             </div>
                             <div class="text-center">
                                 <p class="text-base font-semibold text-zinc-900">Click to choose a file</p>
-                                <p class="mt-1 text-sm text-zinc-800">.csv or .xlsx up to 2 MB (~20,000 contacts)</p>
+                                <p class="mt-1 text-sm text-zinc-800">{{ __('.csv or .xlsx up to 10 MB (~100,000 contacts)') }}</p>
                             </div>
                         </div>
                         <div wire:loading wire:target="file" class="flex items-center gap-2 text-sm font-medium text-blue-700">
@@ -278,6 +278,73 @@
                 <flux:button wire:click="back" variant="ghost">← Back</flux:button>
                 <flux:button wire:click="advanceToCompose" variant="primary">Import &amp; continue</flux:button>
             </div>
+        </div>
+
+    {{-- Step 2.5 — Importing (Phase 3 async parse, docs/OT1_LIMITS.md §11) --}}
+    @elseif ($step === 'importing')
+        <div wire:poll.2s="checkImportProgress"
+             class="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm space-y-6">
+
+            @php
+                $isFailed = $importStatus === 'failed';
+                $isDone   = $importStatus === 'completed';
+                $pct      = $this->importProgressPercent;
+            @endphp
+
+            @if($isFailed)
+                {{-- Failed state. red-50 + red-900 per contrast-guardrails skill. --}}
+                <div class="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+                    <svg class="h-5 w-5 shrink-0 text-red-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
+                    </svg>
+                    <div class="text-sm text-red-900 leading-relaxed flex-1">
+                        <p class="font-semibold">{{ __('Import failed') }}</p>
+                        @if($importError)
+                            <p class="mt-1 opacity-90 font-mono text-xs">{{ $importError }}</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex justify-between pt-2">
+                    <flux:button wire:click="back" variant="ghost">← {{ __('Back') }}</flux:button>
+                    <flux:button wire:click="retryImport" variant="primary">{{ __('Retry import') }}</flux:button>
+                </div>
+            @else
+                <div class="flex items-center gap-3">
+                    <div class="relative size-11 shrink-0">
+                        <svg class="animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="text-lg font-semibold text-zinc-900">{{ __('Importing your contacts') }}</h2>
+                        <p class="mt-0.5 text-sm text-zinc-700">
+                            @if($totalRows > 0)
+                                {{ __(':done of :total processed', ['done' => number_format($importedCount + $skippedCount + $invalidCount), 'total' => number_format($totalRows)]) }}
+                            @else
+                                {{ __('Preparing…') }}
+                            @endif
+                        </p>
+                    </div>
+                    <span class="shrink-0 text-2xl font-semibold text-emerald-700 tabular-nums">{{ $pct }}%</span>
+                </div>
+
+                {{-- Progress bar. bg-emerald-100 track + solid bg-emerald-600 fill.
+                     Contrast-safe pair for the fill numerals on hover states. --}}
+                <div class="w-full rounded-full bg-emerald-100 h-2 overflow-hidden">
+                    <div class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: {{ max(3, $pct) }}%;"></div>
+                </div>
+
+                {{-- Reassurance card. cream/zinc-50 bg + zinc-900 text. --}}
+                <div class="rounded-lg bg-zinc-50 border border-zinc-200 p-3 flex items-start gap-3">
+                    <svg class="h-5 w-5 shrink-0 text-zinc-700 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-sm text-zinc-900 leading-relaxed">
+                        {{ __('You can close this tab — the import will keep running on our server. Come back to this page any time to check progress and continue building your campaign.') }}
+                    </p>
+                </div>
+            @endif
         </div>
 
     {{-- Step 3 — Compose --}}

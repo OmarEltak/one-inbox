@@ -23,8 +23,9 @@ class WhatsAppWizard extends Component
 {
     use WithFileUploads;
 
-    /** Ordered step machine — kept as a const so the Blade indicator and back() share one source of truth. */
-    public const STEPS = ['upload', 'map', 'compose', 'test', 'review', 'launched'];
+    /** Ordered step machine — kept as a const so the Blade indicator and back() share one source of truth.
+     *  'importing' is Phase 3's async parse step (docs/OT1_LIMITS.md §11) — sits between 'map' and 'compose'. */
+    public const STEPS = ['upload', 'map', 'importing', 'compose', 'test', 'review', 'launched'];
 
     public string $step = 'upload';
     public $file = null;
@@ -52,6 +53,9 @@ class WhatsAppWizard extends Component
     public int $importedCount = 0;
     public int $skippedCount  = 0;
     public int $invalidCount  = 0;
+    public int $totalRows     = 0;
+    public string $importStatus = 'pending';   // pending | processing | completed | failed
+    public ?string $importError = null;
     public ?int $createdCampaignId = null;
 
     public string $testPhone = '';
@@ -126,13 +130,12 @@ class WhatsAppWizard extends Component
 
     public function advanceToMap(): void
     {
-        // 2 MB / ~20k rows cap while the parse is still sync inside the HTTP
-        // request (see docs/OT1_LIMITS.md §5.3 — landmine). Async importer
-        // will lift this.
+        // Phase 3 shipped the async importer — cap lifted back to 10 MB.
+        // Actual per-team throttle enforced by ImportCampaignRecipients job.
         $this->validate([
-            'file' => 'required|file|mimes:csv,txt,xlsx|max:2048',
+            'file' => 'required|file|mimes:csv,txt,xlsx|max:10240',
         ], [
-            'file.max' => 'File is too large. The current limit is 2 MB (~20,000 contacts). For larger lists, email support@ot1-pro.com — the async importer is coming.',
+            'file.max' => __('File is too large. The current upload limit is 10 MB (~100,000 contacts).'),
         ]);
 
         $teamId = $this->currentTeamId();
@@ -149,6 +152,12 @@ class WhatsAppWizard extends Component
         $this->step = 'map';
     }
 
+    /**
+     * Phase 3 (docs/OT1_LIMITS.md §11) — creates a ContactImport row + dispatches
+     * ImportCampaignRecipients job, then transitions to the 'importing' step
+     * where the blade polls checkImportProgress() every 2 s. User can close the
+     * tab — the job continues on the server.
+     */
     public function advanceToCompose(): void
     {
         $supported = array_column(SupportedCountries::LIST, 'iso2');
@@ -157,35 +166,96 @@ class WhatsAppWizard extends Component
             'defaultCountry' => ['required', 'string', 'size:2', Rule::in($supported)],
         ]);
 
-        // Belt-and-suspenders while parse is still sync: cap PHP memory and
-        // wall-clock time so a runaway import can't crash-loop an FPM worker.
-        // Removed once the ImportCampaignRecipients queued job lands.
-        @ini_set('memory_limit', '256M');
-        @set_time_limit(90);
+        $tag = 'imported:' . pathinfo($this->originalName ?? $this->storedPath, PATHINFO_FILENAME);
 
-        $absolute = Storage::path($this->storedPath);
-        $parser = new SpreadsheetParser($absolute, $this->extension);
-        $rows = iterator_to_array($parser->stream());
+        $import = \App\Models\ContactImport::create([
+            'team_id'       => $this->currentTeamId(),
+            'user_id'       => Auth::id(),
+            'channel'       => 'whatsapp',
+            'filename'      => $this->originalName ?? basename($this->storedPath),
+            'original_name' => $this->originalName ?? basename($this->storedPath),
+            'tag'           => $tag,
+            'status'        => \App\Models\ContactImport::STATUS_PENDING,
+        ]);
 
-        $importer = app(PhoneContactImporter::class);
-        $result = $importer->import(
-            teamId: $this->currentTeamId(),
-            channel: 'whatsapp',
-            filename: $this->originalName ?? basename($this->storedPath),
-            defaultCountry: strtoupper($this->defaultCountry),
-            phoneColumn: $this->phoneColumn,
-            nameColumn: $this->nameColumn ?: null,
-            optedInAtColumn: null,
-            customColumns: $this->customColumns,
-            rows: $rows,
+        \App\Jobs\ImportCampaignRecipients::dispatch(
+            $import->id,
+            $this->storedPath,
+            $this->extension,
+            [
+                'phoneColumn'    => $this->phoneColumn,
+                'defaultCountry' => strtoupper($this->defaultCountry),
+                'nameColumn'     => $this->nameColumn ?: null,
+                'customColumns'  => $this->customColumns,
+            ],
         );
 
-        $this->importId = $result->importId;
-        $this->importedCount = $result->importedRows;
-        $this->skippedCount  = $result->skippedRows;
-        $this->invalidCount  = $result->invalidRows;
-        $this->importTag = 'imported:' . pathinfo($this->originalName ?? $this->storedPath, PATHINFO_FILENAME);
-        $this->step = 'compose';
+        $this->importId     = $import->id;
+        $this->importTag    = $tag;
+        $this->importStatus = \App\Models\ContactImport::STATUS_PENDING;
+        $this->step         = 'importing';
+    }
+
+    /**
+     * Polled by wire:poll.2s from the 'importing' step blade. Reads the fresh
+     * ContactImport row and copies status/totals to the wizard's public
+     * properties. Auto-advances to 'compose' when status flips to completed.
+     */
+    public function checkImportProgress(): void
+    {
+        if ($this->step !== 'importing' || $this->importId === null) {
+            return;
+        }
+
+        $import = \App\Models\ContactImport::find($this->importId);
+        if ($import === null) {
+            return;
+        }
+
+        $this->totalRows     = (int) $import->total_rows;
+        $this->importedCount = (int) $import->imported_rows;
+        $this->skippedCount  = (int) $import->skipped_rows;
+        $this->invalidCount  = (int) $import->invalid_rows;
+        $this->importStatus  = (string) $import->status;
+        $this->importError   = $import->last_error;
+
+        if ($this->importStatus === \App\Models\ContactImport::STATUS_COMPLETED) {
+            $this->step = 'compose';
+        }
+    }
+
+    public function retryImport(): void
+    {
+        if ($this->importId === null || $this->importStatus !== \App\Models\ContactImport::STATUS_FAILED) {
+            return;
+        }
+        $import = \App\Models\ContactImport::find($this->importId);
+        if (! $import) return;
+
+        $import->update(['status' => \App\Models\ContactImport::STATUS_PENDING, 'last_error' => null]);
+        $this->importStatus = \App\Models\ContactImport::STATUS_PENDING;
+        $this->importError  = null;
+
+        \App\Jobs\ImportCampaignRecipients::dispatch(
+            $import->id,
+            $this->storedPath,
+            $this->extension,
+            [
+                'phoneColumn'    => $this->phoneColumn,
+                'defaultCountry' => strtoupper($this->defaultCountry),
+                'nameColumn'     => $this->nameColumn ?: null,
+                'customColumns'  => $this->customColumns,
+            ],
+        );
+    }
+
+    /** Public computed for the progress bar in the blade. */
+    #[Computed]
+    public function importProgressPercent(): int
+    {
+        if ($this->totalRows <= 0) return 0;
+        $done = $this->importedCount + $this->skippedCount + $this->invalidCount;
+        return min(100, (int) floor(($done / $this->totalRows) * 100));
     }
 
     public function advanceToTest(): void
