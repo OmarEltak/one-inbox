@@ -114,7 +114,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">Custom fields to keep (for {{ '{{column_name}}' }} variables)</label>
+                <label class="block text-xs font-semibold text-white/70 mb-1">Custom fields to keep (for @{{column_name}} variables)</label>
                 <div class="flex flex-wrap gap-2">
                     @foreach($detectedHeaders as $h)
                         <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 cursor-pointer text-xs text-white/80">
