@@ -298,6 +298,32 @@
 
             <flux:spacer />
 
+            {{-- Contact support — always visible so users can reach the founder
+                 directly when frustrated (e.g. upload limit hits, plan quota,
+                 anything unclear). Opens WhatsApp in a new tab with a prefilled
+                 message tagged with the team + user context. Emerald-100/900
+                 pair per the contrast-guardrails skill so text stays legible. --}}
+            <div class="px-3 pb-2">
+                @php
+                    $supportMsg = 'Hi Omar, I need help with OT1-Pro.'
+                        . ($team ? "\nWorkspace: {$team->name}" : '')
+                        . "\nMy account: " . auth()->user()->email;
+                    $supportUrl = 'https://wa.me/201026361218?text=' . rawurlencode($supportMsg);
+                @endphp
+                <a href="{{ $supportUrl }}" target="_blank" rel="noopener"
+                   class="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors group">
+                    <span class="inline-flex items-center justify-center size-7 rounded-lg bg-emerald-600 text-white flex-shrink-0 shadow-sm">
+                        <svg class="size-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1.1-.2.2-.3.2-.6.1s-1.2-.4-2.3-1.4c-.9-.8-1.4-1.7-1.6-2s-.02-.4.1-.5c.1-.1.2-.3.4-.4.1-.1.2-.2.3-.4.1-.2.05-.3-.02-.4-.1-.1-.6-1.5-.8-2s-.4-.5-.6-.5h-.5c-.2 0-.5.05-.7.3-.3.3-.9.9-.9 2.2s1 2.6 1.1 2.7c.1.2 1.9 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3zM12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3zm0 16.5a7.5 7.5 0 0 1-3.8-1l-.3-.2-2.8.7.7-2.7-.2-.3A7.5 7.5 0 1 1 12 19.5z"/>
+                        </svg>
+                    </span>
+                    <span class="min-w-0 flex-1 text-left">
+                        <span class="block text-[10px] uppercase tracking-widest text-emerald-700 font-semibold leading-tight">{{ __('Need help?') }}</span>
+                        <span class="block text-sm font-semibold text-emerald-900 leading-tight">{{ __('Message the founder') }}</span>
+                    </span>
+                </a>
+            </div>
+
             {{-- Bottom: User info --}}
             <div class="px-3 pb-4">
                 <div class="border-t border-zinc-200 pt-4">

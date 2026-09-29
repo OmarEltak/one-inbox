@@ -321,3 +321,64 @@ I'll close these as we run the load tests.
 | 2026-09-29 | Shipped Excel-parse mitigation — capped uploads to 2 MB, added memory + time-limit guards, added contrast-safe amber notice to both wizards (EN + AR) with support@ot1-pro.com fallback. Still need the async import job to lift the cap. |
 | 2026-09-29 | Closed 4 open verifications: (1) documented per-service queue assignments (main worker also handles comment queues; @1..4 do not; comment queues have only 1 worker each — potential bottleneck); (2) confirmed NO per-team throttle on `SendCampaignWhatsAppJob` — one team can monopolize the 1 campaigns worker; (3) mapped `ScoreLeadJob` — dispatched from every inbound message, runs on `default` with 5-min timeout, doubles NaraRouter call rate under inbound bursts; (4) clarified the `one-inbox-whisper.service` naming (it's a Laravel queue worker, not the whisper.cpp daemon). |
 | 2026-09-29 | Added §5.7 concurrent-user ceilings — per-feature comfortable/hard-cap table, total-user rollups, breaking-point order, growth-signal triggers. Answers the "how many users can this box hold at once" question. |
+| 2026-09-29 | Phase 1 of the 5-phase load-management plan (§11 below) shipped — permanent "Message the founder" WhatsApp link in the sidebar + inline WhatsApp support link in both campaign wizards' amber notice. Contrast-safe emerald pair. EN + AR. |
+
+---
+
+## 11 · Load-management architecture — 5-phase plan (Omar 2026-09-29)
+
+Omar's proposal (better than the earlier one I had): treat the two biggest bottlenecks (Excel parse + campaign send) as **queue-position UX + plan-tier limits + async work**. Solves the technical bottleneck AND creates a revenue lever.
+
+The 5 phases, ranked by ROI:
+
+### Phase 1 — Support visibility ✅ SHIPPED 2026-09-29
+- Emerald "Message the founder" chip permanently in the app sidebar (all authenticated pages)
+- Inline WhatsApp link in both campaign wizards' amber upload-limit notice
+- Both WhatsApp links open `wa.me/201026361218` with prefilled context (team + email in sidebar version)
+- EN + AR translations
+- Contrast-safe: `bg-emerald-50` + `text-emerald-900` + `border-emerald-200` (contrast-guardrails skill safe pair)
+
+### Phase 2 — Plan-tier campaign limits (2-3 hrs)
+- Free tier: **1 campaign/month**
+- Starter ($29): **5 campaigns/month**
+- Pro ($79): **25 campaigns/month**
+- Enterprise: custom
+- Enforcement lives in `Team::canDispatchCampaign()` (new method, mirrors `canDispatchAi()`)
+- Called at campaign-create time (Wizard step 1) + at campaign-launch time (defence-in-depth)
+- User-visible: "You've used 3/5 campaigns this month" chip on the campaigns index
+- Kills the load problem (fewer campaigns fired) AND creates a monetization pressure point
+- Config in `config/campaigns.php` — plan → monthly cap
+- Reset window: rolling 30 days from account creation, NOT calendar month (fairer for new signups)
+
+### Phase 3 — Async Excel import w/ progress bar (4-6 hrs)
+- Create `ImportCampaignRecipients` job (on `default` queue with per-team throttle)
+- `advanceToCompose()` / `confirmMapAndImport()` return immediately with `import_id`
+- Livewire polls `/api/campaigns/imports/{id}/progress` every 2 s
+- Progress bar UI: "Imported 12,384 / 98,201 contacts (13%)"
+- User can close the tab — job continues on server; result appears when they return
+- Removes the confirmed sync-parse FPM landmine
+- Lifts the 2 MB cap back to 10 MB (or higher — real limit becomes server disk + import time)
+- Removes `ini_set('memory_limit')` + `set_time_limit()` guards from the wizards
+
+### Phase 4 — Queue-position UI on campaign launch (3-4 hrs)
+- On "Launch campaign" click, if `campaigns` queue depth > 5, show: "You are #7 in queue. Estimated start in ~4 minutes."
+- Backed by a new endpoint `/api/campaigns/queue-position` that reads Redis LLEN + estimates avg send time
+- User can leave the page — status page shows live position via Reverb push
+- Implies: per-team throttle on `SendCampaignWhatsAppJob` (mirror `TranscribeAudio` pattern) so one team can't monopolize
+- Kill switch alert if queue depth > 500 → surfaces to Omar
+
+### Phase 5 — Row-count guidance (1 hr — bundle with Phase 3)
+- On file upload (before Livewire round-trip), JS reads first N bytes to estimate row count
+- Display: "~7,842 rows detected (0.9 MB). Under the 20,000 limit ✓"
+- If over: "~28,000 rows detected. Split into 2 files or WhatsApp me to bulk-import."
+- Prevents users from uploading a 2 MB file only to hit the row cap on the server side
+
+### Cross-cutting: usage-quota banner
+When a team hits 80% of their monthly campaign quota, show a top-bar warning that links to `/billing`. When they hit 100%, hard-block the launch step with an "Upgrade to launch another campaign" CTA. Reuses the pattern from `partials/ai-quota-banner.blade.php` (already exists — good precedent).
+
+### Progress tracker
+- [x] Phase 1 — Support visibility (2026-09-29)
+- [ ] Phase 2 — Plan-tier campaign limits
+- [ ] Phase 3 — Async Excel import w/ progress bar
+- [ ] Phase 4 — Queue-position UI on campaign launch
+- [ ] Phase 5 — Row-count guidance JS

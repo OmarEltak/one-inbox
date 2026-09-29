@@ -105,7 +105,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
                 </svg>
                 <p class="text-sm text-amber-900 leading-relaxed">
-                    <strong class="font-semibold">Current upload limit: 2 MB (~20,000 contacts)</strong> while we ship a background import for larger lists. If you need to import more than that, email <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a> and we'll do it for you.
+                    <strong class="font-semibold">Current upload limit: 2 MB (~20,000 contacts)</strong> while we ship a background import for larger lists. Need more?
+                    <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%2020%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">Message me on WhatsApp</a>
+                    or email <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a> and I'll do it for you.
                 </p>
             </div>
 
