@@ -228,6 +228,19 @@ class WhatsAppWizard extends Component
     {
         $team = Auth::user()->currentTeam;
 
+        // Phase 2 monthly-cap gate — mirrors Team::canDispatchAi() pattern.
+        // Enforced here too (not just at wizard mount) as defence-in-depth,
+        // since a user could sit on the last step from before their quota
+        // resets or from a concurrent tab.
+        abort_unless(
+            $team->canCreateCampaign(),
+            429,
+            __('You have reached your monthly campaign limit (:used/:limit). Upgrade your plan to launch another.', [
+                'used'  => $team->campaignsCreatedThisMonth(),
+                'limit' => $team->monthlyCampaignLimit(),
+            ])
+        );
+
         $campaign = Campaign::create([
             'team_id'            => $team->id,
             'created_by'         => Auth::id(),

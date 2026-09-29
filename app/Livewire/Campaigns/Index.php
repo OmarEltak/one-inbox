@@ -175,6 +175,19 @@ class Index extends Component
     {
         $team = Auth::user()->currentTeam;
 
+        // Phase 2 monthly-cap gate — see docs/OT1_LIMITS.md §11.
+        if (! $team->canCreateCampaign()) {
+            session()->flash(
+                'error',
+                __('You have reached your monthly campaign limit (:used/:limit). Upgrade your plan to create another.', [
+                    'used'  => $team->campaignsCreatedThisMonth(),
+                    'limit' => $team->monthlyCampaignLimit(),
+                ])
+            );
+            $this->showModal = false;
+            return;
+        }
+
         // WhatsApp via Wuzapi is now the default path — the message is plain text
         // (no template approval). We keep messageCategory available for Cloud-API
         // integrations if the operator later flips a page to Cloud API, but it is

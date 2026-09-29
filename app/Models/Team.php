@@ -155,6 +155,40 @@ class Team extends Model
         return $this->ai_enabled;
     }
 
+    /**
+     * Phase 2 of the 5-phase load-management plan (docs/OT1_LIMITS.md §11).
+     *
+     * Rolling 30-day campaign count. Config in config/campaigns.php sets the
+     * per-plan monthly cap. Free = 1, Starter = 5, Pro = 25, Enterprise ∞.
+     *
+     * Uses rolling window (created_at >= now-30d) rather than calendar month
+     * so a Nov 30 signup doesn't get one campaign then reset the next day.
+     */
+    public function campaignsCreatedThisMonth(): int
+    {
+        return (int) $this->campaigns()
+            ->where('created_at', '>=', now()->subDays(30))
+            ->count();
+    }
+
+    public function monthlyCampaignLimit(): int
+    {
+        $plan   = $this->subscription_plan ?: 'free';
+        $limits = (array) config('campaigns.monthly_limits', []);
+
+        return (int) ($limits[$plan] ?? $limits['free'] ?? 1);
+    }
+
+    public function campaignsRemainingThisMonth(): int
+    {
+        return max(0, $this->monthlyCampaignLimit() - $this->campaignsCreatedThisMonth());
+    }
+
+    public function canCreateCampaign(): bool
+    {
+        return $this->campaignsCreatedThisMonth() < $this->monthlyCampaignLimit();
+    }
+
     public function hasFeature(string $key): bool
     {
         return (bool) data_get($this->features, $key, false);

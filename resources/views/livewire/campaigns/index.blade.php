@@ -26,6 +26,56 @@
         <flux:callout variant="success" icon="check-circle">{{ session('success') }}</flux:callout>
     @endif
 
+    @if(session('error'))
+        <flux:callout variant="danger" icon="exclamation-triangle">{{ session('error') }}</flux:callout>
+    @endif
+
+    {{-- Phase 2 quota chip. Colors per contrast-guardrails skill:
+         - >20% remaining → emerald-50 + emerald-900 (safe under limit)
+         - ≤20% remaining → amber-50 + amber-900 (warning)
+         - 0 remaining    → red-50 + red-900 (blocked)
+         Skipped entirely on "unlimited" plans (enterprise). --}}
+    @php
+        $team = auth()->user()->currentTeam;
+        $used = $team?->campaignsCreatedThisMonth() ?? 0;
+        $limit = $team?->monthlyCampaignLimit() ?? 1;
+        $remaining = $team?->campaignsRemainingThisMonth() ?? 0;
+        $showQuota = $team && $limit < PHP_INT_MAX;
+        if ($showQuota) {
+            $pct = $limit > 0 ? ($used / $limit) : 1;
+            [$bg, $text, $ring, $tone] = match (true) {
+                $remaining === 0                => ['bg-red-50',     'text-red-900',     'ring-red-200',     'blocked'],
+                $pct >= 0.8                     => ['bg-amber-50',   'text-amber-900',   'ring-amber-200',   'warning'],
+                default                         => ['bg-emerald-50', 'text-emerald-900', 'ring-emerald-200', 'ok'],
+            };
+        }
+    @endphp
+    @if($showQuota)
+        <div class="rounded-xl {{ $bg }} ring-1 {{ $ring }} px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <svg class="size-5 shrink-0 {{ $text }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                </svg>
+                <p class="text-sm {{ $text }} leading-snug">
+                    @if($tone === 'blocked')
+                        <strong class="font-semibold">{{ __('Monthly limit reached') }}</strong> · {{ __(':used of :limit campaigns used in the last 30 days. Upgrade to launch more.', ['used' => $used, 'limit' => $limit]) }}
+                    @elseif($tone === 'warning')
+                        <strong class="font-semibold">{{ __(':remaining left this month', ['remaining' => $remaining]) }}</strong> · {{ __(':used of :limit campaigns used (rolling 30 days).', ['used' => $used, 'limit' => $limit]) }}
+                    @else
+                        <strong class="font-semibold">{{ __(':remaining of :limit campaigns left', ['remaining' => $remaining, 'limit' => $limit]) }}</strong>
+                        <span class="opacity-75">· {{ __('rolling 30-day window') }}</span>
+                    @endif
+                </p>
+            </div>
+            @if($tone !== 'ok')
+                <a href="{{ route('pricing') }}" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500 transition">
+                    {{ __('Upgrade plan') }}
+                    <svg class="size-3.5 rtl:rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            @endif
+        </div>
+    @endif
+
     {{-- Stat Chips --}}
     @php
         $allCampaigns = $this->campaigns;
