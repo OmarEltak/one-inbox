@@ -35,3 +35,12 @@ Schedule::job(new \App\Jobs\TrialExpiryCheck())
     ->dailyAt('09:00')
     ->name('trial-expiry-check')
     ->withoutOverlapping();
+
+// Proactive capacity monitor (docs/OT1_LIMITS.md §7). Runs every 5 min,
+// emails Omar when any signal trips a threshold. Per-signal 60-min
+// cool-down inside the command itself so we don't spam during a
+// sustained incident.
+Schedule::command('capacity:health-check')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->runInBackground();

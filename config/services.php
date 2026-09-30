@@ -18,6 +18,20 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    // Proactive capacity monitor — see app/Console/Commands/CapacityHealthCheck.php
+    // and docs/OT1_LIMITS.md §7. All env-overridable so we can tune during
+    // an incident without a code deploy.
+    'capacity_alerts' => [
+        'to'                       => env('CAPACITY_ALERTS_TO', 'omareltak7@gmail.com'),
+        'cpu_load_max'             => (float) env('CAPACITY_CPU_LOAD_MAX', 1.8),
+        'ram_free_min_mb'          => (int) env('CAPACITY_RAM_FREE_MIN_MB', 500),
+        'disk_free_min_gb'         => (int) env('CAPACITY_DISK_FREE_MIN_GB', 5),
+        'queue_urgent_max'         => (int) env('CAPACITY_QUEUE_URGENT_MAX', 50),
+        'queue_transcription_max'  => (int) env('CAPACITY_QUEUE_TRANSCRIPTION_MAX', 20),
+        'queue_campaigns_max'      => (int) env('CAPACITY_QUEUE_CAMPAIGNS_MAX', 5000),
+        'queue_default_max'        => (int) env('CAPACITY_QUEUE_DEFAULT_MAX', 100),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],
