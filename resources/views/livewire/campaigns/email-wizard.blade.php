@@ -1,16 +1,19 @@
-<div class="p-6 max-w-4xl mx-auto space-y-6">
+<div class="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
 
-    {{-- Header --}}
-    <div class="flex items-center justify-between">
+    {{-- Header. Was designed for a dark app shell but the actual shell is
+         light — all text-white/* was invisible. Full sweep to zinc palette
+         per contrast-guardrails skill. --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">{{ __('New Email Campaign') }}</h1>
-            <p class="mt-1 text-sm text-white/40">{{ __('Upload a CSV/Excel sheet of contacts and send a bulk email blast.') }}</p>
+            <p class="mt-1 text-sm text-zinc-700">{{ __('Upload a CSV/Excel sheet of contacts and send a bulk email blast.') }}</p>
         </div>
         <a href="{{ route('campaigns.index') }}" wire:navigate
-           class="text-sm text-white/60 hover:text-white">← {{ __('Back to campaigns') }}</a>
+           class="text-sm font-medium text-zinc-700 hover:text-zinc-900">← {{ __('Back to campaigns') }}</a>
     </div>
 
-    {{-- Step indicator --}}
+    {{-- Step indicator. Contrast-safe pairs: emerald-600/white for current,
+         emerald-100/emerald-900 for done, zinc-100/zinc-700 for future. --}}
     @php
         $steps = [
             'upload'   => __('1. Upload'),
@@ -22,18 +25,18 @@
         $stepKeys = array_keys($steps);
         $current  = array_search($step, $stepKeys, true);
     @endphp
-    <div class="flex items-center gap-2 text-xs">
+    <div class="flex items-center gap-2 text-xs flex-wrap">
         @foreach($steps as $key => $label)
             @php $i = array_search($key, $stepKeys, true); @endphp
             <div class="flex items-center gap-2">
-                <span class="px-3 py-1.5 rounded-lg
-                    {{ $i < $current ? 'bg-green-500/20 text-green-300' : '' }}
-                    {{ $i === $current ? 'bg-[#059669]/30 text-[#34d399] font-semibold' : '' }}
-                    {{ $i > $current ? 'bg-white/[0.04] text-white/40' : '' }}">
+                <span class="px-3 py-1.5 rounded-lg font-medium
+                    {{ $i < $current ? 'bg-emerald-100 text-emerald-900' : '' }}
+                    {{ $i === $current ? 'bg-emerald-600 text-white font-semibold shadow-sm' : '' }}
+                    {{ $i > $current ? 'bg-zinc-100 text-zinc-700' : '' }}">
                     {{ $label }}
                 </span>
                 @if(!$loop->last)
-                    <span class="text-white/20">→</span>
+                    <span class="text-zinc-400">→</span>
                 @endif
             </div>
         @endforeach
@@ -41,15 +44,14 @@
 
     {{-- STEP 1: UPLOAD --}}
     @if($step === 'upload')
-        <div class="aio-card rounded-2xl p-8 space-y-4">
-            {{-- Temporary import-size notice (see docs/OT1_LIMITS.md §5.3). Dark-surface
-                 pairing per contrast-guardrails skill: amber-900/40 bg + amber-100 text
-                 (never text-amber-500 over dark — fails AA). Remove once async importer ships. --}}
-            <div class="rounded-lg border border-amber-700 bg-amber-900/40 p-3 flex items-start gap-3">
-                <svg class="h-5 w-5 shrink-0 text-amber-200 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+            {{-- Import-size notice. Now on a LIGHT surface — use amber-50/amber-900
+                 per contrast-guardrails skill (was amber-900/40 + amber-100 for dark). --}}
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-amber-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
                 </svg>
-                <p class="text-sm text-amber-100 leading-relaxed">
+                <p class="text-sm text-amber-900 leading-relaxed">
                     <strong class="font-semibold">{{ __('Current upload limit: 2 MB (~20,000 contacts)') }}</strong>
                     {{ __('while we ship a background import for larger lists. Need more?') }}
                     <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%2020%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">{{ __('Message me on WhatsApp') }}</a>
@@ -58,24 +60,24 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-white mb-2">{{ __('CSV or Excel file') }}</label>
+                <label class="block text-sm font-semibold text-zinc-900 mb-2">{{ __('CSV or Excel file') }}</label>
                 <input type="file" wire:model="file"
                        accept=".csv,.txt,.xlsx"
-                       class="block w-full text-sm text-white/80
+                       class="block w-full text-sm text-zinc-900
                               file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
                               file:text-sm file:font-semibold
-                              file:bg-[#059669]/20 file:text-[#34d399]
-                              hover:file:bg-[#059669]/30 cursor-pointer" />
-                <p class="text-xs text-white/40 mt-2">{{ __('.csv or .xlsx, up to 2 MB (~20,000 contacts).') }}</p>
-                @error('file') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                              file:bg-emerald-100 file:text-emerald-900
+                              hover:file:bg-emerald-200 cursor-pointer" />
+                <p class="text-xs text-zinc-700 mt-2">{{ __('.csv or .xlsx, up to 2 MB (~20,000 contacts).') }}</p>
+                @error('file') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div wire:loading wire:target="file" class="text-sm text-white/60">{{ __('Uploading…') }}</div>
+            <div wire:loading wire:target="file" class="text-sm text-zinc-700">{{ __('Uploading…') }}</div>
 
             @if($file)
                 <button wire:click="uploadAndPreview"
                         wire:loading.attr="disabled"
-                        class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition">
                     {{ __('Preview & map columns') }} →
                 </button>
             @endif
@@ -84,27 +86,27 @@
 
     {{-- STEP 2: MAP --}}
     @if($step === 'map')
-        <div class="aio-card rounded-2xl p-6 space-y-4">
-            <h2 class="text-lg font-semibold text-white">{{ __('Map columns') }}</h2>
-            <p class="text-sm text-white/50">{{ __('We detected :count columns. Tell us which one holds the email address.', ['count' => count($detectedHeaders)]) }}</p>
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
+            <h2 class="text-lg font-semibold text-zinc-900">{{ __('Map columns') }}</h2>
+            <p class="text-sm text-zinc-700">{{ __('We detected :count columns. Tell us which one holds the email address.', ['count' => count($detectedHeaders)]) }}</p>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Email column (required)') }}</label>
+                    <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Email column (required)') }}</label>
                     <select wire:model="emailColumn"
-                            class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+                            class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
                         <option value="">{{ __('— pick a column —') }}</option>
                         @foreach($detectedHeaders as $h)
                             <option value="{{ $h }}">{{ $h }}</option>
                         @endforeach
                     </select>
-                    @error('emailColumn') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                    @error('emailColumn') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Name column (optional)') }}</label>
+                    <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Name column (optional)') }}</label>
                     <select wire:model="nameColumn"
-                            class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+                            class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
                         <option value="">{{ __('— none —') }}</option>
                         @foreach($detectedHeaders as $h)
                             <option value="{{ $h }}">{{ $h }}</option>
@@ -114,11 +116,11 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">Custom fields to keep (for @{{column_name}} variables)</label>
+                <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Custom fields to keep (for @{{column_name}} variables)') }}</label>
                 <div class="flex flex-wrap gap-2">
                     @foreach($detectedHeaders as $h)
-                        <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 cursor-pointer text-xs text-white/80">
-                            <input type="checkbox" wire:model="customColumns" value="{{ $h }}" class="rounded">
+                        <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-50 border border-zinc-300 hover:bg-zinc-100 cursor-pointer text-xs text-zinc-900">
+                            <input type="checkbox" wire:model="customColumns" value="{{ $h }}" class="rounded border-zinc-400 text-emerald-600 focus:ring-emerald-500">
                             {{ $h }}
                         </label>
                     @endforeach
@@ -127,21 +129,21 @@
 
             {{-- Preview --}}
             <div>
-                <p class="text-xs font-semibold text-white/70 mb-2">Preview (first {{ count($previewRows) }} rows)</p>
-                <div class="overflow-x-auto rounded-lg border border-white/10">
+                <p class="text-xs font-semibold text-zinc-900 mb-2">{{ __('Preview (first :n rows)', ['n' => count($previewRows)]) }}</p>
+                <div class="overflow-x-auto rounded-lg border border-zinc-200">
                     <table class="min-w-full text-xs">
-                        <thead class="bg-white/[0.04]">
+                        <thead class="bg-zinc-50">
                             <tr>
                                 @foreach($detectedHeaders as $h)
-                                    <th class="px-3 py-2 text-left text-white/70 font-semibold">{{ $h }}</th>
+                                    <th class="px-3 py-2 text-left text-zinc-900 font-semibold">{{ $h }}</th>
                                 @endforeach
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($previewRows as $row)
-                                <tr class="border-t border-white/5">
+                                <tr class="border-t border-zinc-100">
                                     @foreach($detectedHeaders as $h)
-                                        <td class="px-3 py-1.5 text-white/70">{{ \Illuminate\Support\Str::limit($row[$h] ?? '', 40) }}</td>
+                                        <td class="px-3 py-1.5 text-zinc-700">{{ \Illuminate\Support\Str::limit($row[$h] ?? '', 40) }}</td>
                                     @endforeach
                                 </tr>
                             @endforeach
@@ -150,11 +152,11 @@
                 </div>
             </div>
 
-            <div class="flex gap-2">
-                <button wire:click="$set('step', 'upload')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← {{ __('Back') }}</button>
+            <div class="flex flex-wrap gap-2">
+                <button wire:click="$set('step', 'upload')" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">← {{ __('Back') }}</button>
                 <button wire:click="confirmMapAndImport"
                         wire:loading.attr="disabled"
-                        class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition disabled:opacity-60">
                     <span wire:loading.remove wire:target="confirmMapAndImport">{{ __('Import contacts') }} →</span>
                     <span wire:loading wire:target="confirmMapAndImport">{{ __('Importing…') }}</span>
                 </button>
@@ -164,27 +166,33 @@
 
     {{-- STEP 3: COMPOSE --}}
     @if($step === 'compose')
-        <div class="aio-card rounded-2xl p-6 space-y-4">
-            <flux:callout variant="success" icon="check-circle">
-                Imported <strong>{{ $importedCount }}</strong> contact{{ $importedCount === 1 ? '' : 's' }} (tagged <code class="text-[#34d399]">{{ $importTag }}</code>).
-            </flux:callout>
-
-            <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Campaign name') }}</label>
-                <input type="text" wire:model="campaignName"
-                       class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
-                @error('campaignName') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-emerald-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <p class="text-sm text-emerald-900 leading-relaxed">
+                    {{ __('Imported') }} <strong>{{ $importedCount }}</strong> {{ __('contact(s), tagged') }} <code class="text-emerald-900 bg-emerald-100 px-1 py-0.5 rounded">{{ $importTag }}</code>.
+                </p>
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Sender (your connected email account)') }}</label>
+                <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Campaign name') }}</label>
+                <input type="text" wire:model="campaignName"
+                       class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
+                @error('campaignName') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Sender (your connected email account)') }}</label>
                 @if($this->emailSenders->isEmpty())
-                    <flux:callout variant="warning" icon="exclamation-triangle">
-                        No connected email accounts. <a href="{{ route('connections.index') }}" wire:navigate class="underline text-[#34d399]">Connect one →</a>
-                    </flux:callout>
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                        {{ __('No connected email accounts.') }}
+                        <a href="{{ route('connections.index') }}" wire:navigate class="underline font-medium">{{ __('Connect one') }} →</a>
+                    </div>
                 @else
                     <select wire:model="senderPageId"
-                            class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+                            class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
                         @foreach($this->emailSenders as $p)
                             <option value="{{ $p->id }}">{{ $p->name }}</option>
                         @endforeach
@@ -193,56 +201,58 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Subject') }}</label>
+                <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Subject') }}</label>
                 <input type="text" wire:model="subject"
                        placeholder="Quick question about @{{name}}'s setup"
-                       class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
-                @error('subject') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                       class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
+                @error('subject') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Body') }}</label>
+                <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Body') }}</label>
                 <textarea wire:model="body" rows="8"
-                          class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono"></textarea>
-                <p class="text-xs text-white/40 mt-1">
-                    Variables: <code>@{{name}}</code>, <code>@{{email}}</code>
+                          class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 font-mono focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none"></textarea>
+                <p class="text-xs text-zinc-700 mt-1">
+                    {{ __('Variables:') }}
+                    <code class="bg-zinc-100 text-zinc-900 px-1 py-0.5 rounded">@{{name}}</code>,
+                    <code class="bg-zinc-100 text-zinc-900 px-1 py-0.5 rounded">@{{email}}</code>
                     @foreach($customColumns as $c)
                         @if($c)
                             @php $varToken = '{{' . $c . '}}'; @endphp
-                            , <code>{{ $varToken }}</code>
+                            , <code class="bg-zinc-100 text-zinc-900 px-1 py-0.5 rounded">{{ $varToken }}</code>
                         @endif
                     @endforeach
                 </p>
-                @error('body') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                @error('body') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Daily cap') }}</label>
+                    <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Daily cap') }}</label>
                     <input type="number" wire:model="dailyCap" min="1" max="10000"
-                           class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+                           class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Jitter min (s)') }}</label>
+                    <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Jitter min (s)') }}</label>
                     <input type="number" wire:model="jitterMin" min="0" max="3600"
-                           class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+                           class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-white/70 mb-1">{{ __('Jitter max (s)') }}</label>
+                    <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Jitter max (s)') }}</label>
                     <input type="number" wire:model="jitterMax" min="0" max="3600"
-                           class="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-white">
+                           class="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:outline-none">
                 </div>
             </div>
 
-            <label class="flex items-center gap-2 text-sm text-white/80">
-                <input type="checkbox" wire:model="aiPersonalize" class="rounded">
+            <label class="flex items-center gap-2 text-sm text-zinc-900">
+                <input type="checkbox" wire:model="aiPersonalize" class="rounded border-zinc-400 text-emerald-600 focus:ring-emerald-500">
                 {{ __('AI-personalize each email (uses Gemini; costs more)') }}
             </label>
 
-            <div class="flex gap-2">
-                <button wire:click="$set('step', 'map')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← {{ __('Back') }}</button>
+            <div class="flex flex-wrap gap-2">
+                <button wire:click="$set('step', 'map')" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">← {{ __('Back') }}</button>
                 <button wire:click="gotoReview"
-                        class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition">
                     {{ __('Review') }} →
                 </button>
             </div>
@@ -252,39 +262,44 @@
     {{-- STEP 4: REVIEW --}}
     @if($step === 'review')
         @php $stats = $this->reviewStats; @endphp
-        <div class="aio-card rounded-2xl p-6 space-y-4">
-            <h2 class="text-lg font-semibold text-white">{{ __('Review & launch') }}</h2>
-            <div class="grid grid-cols-3 gap-3">
-                <div class="aio-card rounded-xl p-4 text-center">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
+            <h2 class="text-lg font-semibold text-zinc-900">{{ __('Review & launch') }}</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="rounded-xl bg-zinc-50 border border-zinc-200 p-4 text-center">
                     <p class="text-2xl font-bold text-zinc-900">{{ number_format($stats['total']) }}</p>
-                    <p class="text-xs text-white/40 mt-1">{{ __('Recipients') }}</p>
+                    <p class="text-xs text-zinc-700 mt-1">{{ __('Recipients') }}</p>
                 </div>
-                <div class="aio-card rounded-xl p-4 text-center">
+                <div class="rounded-xl bg-zinc-50 border border-zinc-200 p-4 text-center">
                     <p class="text-2xl font-bold text-zinc-900">{{ number_format($dailyCap) }}</p>
-                    <p class="text-xs text-white/40 mt-1">{{ __('Per day cap') }}</p>
+                    <p class="text-xs text-zinc-700 mt-1">{{ __('Per day cap') }}</p>
                 </div>
-                <div class="aio-card rounded-xl p-4 text-center">
+                <div class="rounded-xl bg-zinc-50 border border-zinc-200 p-4 text-center">
                     <p class="text-2xl font-bold text-zinc-900">~{{ $stats['days'] }}</p>
-                    <p class="text-xs text-white/40 mt-1">{{ $stats['days'] === 1 ? __('Day to send all') : __('Days to send all') }}</p>
+                    <p class="text-xs text-zinc-700 mt-1">{{ $stats['days'] === 1 ? __('Day to send all') : __('Days to send all') }}</p>
                 </div>
             </div>
 
-            <div class="space-y-1 text-sm text-white/70">
-                <div><span class="text-white/40">{{ __('Name') }}:</span> {{ $campaignName }}</div>
-                <div><span class="text-white/40">{{ __('Subject') }}:</span> {{ $subject }}</div>
-                <div><span class="text-white/40">{{ __('Sender') }}:</span> {{ optional($this->emailSenders->firstWhere('id', $senderPageId))->name ?? '—' }}</div>
-                <div><span class="text-white/40">{{ __('AI personalize') }}:</span> {{ $aiPersonalize ? __('yes') : __('no') }}</div>
+            <div class="space-y-1 text-sm text-zinc-900">
+                <div><span class="text-zinc-700">{{ __('Name') }}:</span> <strong>{{ $campaignName }}</strong></div>
+                <div><span class="text-zinc-700">{{ __('Subject') }}:</span> <strong>{{ $subject }}</strong></div>
+                <div><span class="text-zinc-700">{{ __('Sender') }}:</span> <strong>{{ optional($this->emailSenders->firstWhere('id', $senderPageId))->name ?? '—' }}</strong></div>
+                <div><span class="text-zinc-700">{{ __('AI personalize') }}:</span> <strong>{{ $aiPersonalize ? __('yes') : __('no') }}</strong></div>
             </div>
 
-            <flux:callout variant="warning" icon="information-circle">
-                {{ __('Each email includes a mandatory unsubscribe link and an open-tracking pixel. Recipients who unsubscribe are saved to your team suppression list and skipped in all future campaigns.') }}
-            </flux:callout>
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-amber-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-sm text-amber-900 leading-relaxed">
+                    {{ __('Each email includes a mandatory unsubscribe link and an open-tracking pixel. Recipients who unsubscribe are saved to your team suppression list and skipped in all future campaigns.') }}
+                </p>
+            </div>
 
-            <div class="flex gap-2">
-                <button wire:click="$set('step', 'compose')" class="px-4 py-2 rounded-xl text-sm text-white/70 bg-white/[0.04]">← {{ __('Back') }}</button>
+            <div class="flex flex-wrap gap-2">
+                <button wire:click="$set('step', 'compose')" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">← {{ __('Back') }}</button>
                 <button wire:click="launch"
                         wire:loading.attr="disabled"
-                        class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition disabled:opacity-60">
                     <span wire:loading.remove wire:target="launch">{{ __('Launch campaign') }} 🚀</span>
                     <span wire:loading wire:target="launch">{{ __('Scheduling…') }}</span>
                 </button>
@@ -294,19 +309,19 @@
 
     {{-- STEP 5: LAUNCHED --}}
     @if($step === 'launched')
-        <div class="aio-card rounded-2xl p-8 text-center space-y-4">
-            <div class="size-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
-                <svg class="size-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <div class="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm text-center space-y-4">
+            <div class="size-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
+                <svg class="size-8 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
-            <h2 class="text-xl font-bold text-white">{{ __('Campaign launched') }}</h2>
-            <p class="text-sm text-white/60">{{ __('Your email blast is scheduled. The dispatcher runs every minute and will respect your daily cap and jitter settings.') }}</p>
-            <div class="flex gap-2 justify-center">
+            <h2 class="text-xl font-bold text-zinc-900">{{ __('Campaign launched') }}</h2>
+            <p class="text-sm text-zinc-700">{{ __('Your email blast is scheduled. The dispatcher runs every minute and will respect your daily cap and jitter settings.') }}</p>
+            <div class="flex flex-wrap gap-2 justify-center">
                 <a href="{{ route('campaigns.show', $createdCampaignId) }}" wire:navigate
-                   class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white aio-btn-primary">{{ __('View progress') }}</a>
+                   class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition">{{ __('View progress') }}</a>
                 <a href="{{ route('campaigns.index') }}" wire:navigate
-                   class="px-5 py-2.5 rounded-xl text-sm text-white/70 bg-white/[0.04]">{{ __('All campaigns') }}</a>
+                   class="px-5 py-2.5 rounded-xl text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">{{ __('All campaigns') }}</a>
             </div>
         </div>
     @endif

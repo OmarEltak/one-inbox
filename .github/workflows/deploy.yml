@@ -29,6 +29,18 @@ jobs:
             composer install --no-dev --optimize-autoloader
             npm ci && npm run build
             php artisan migrate --force
+
+            # HOME/XDG_CONFIG_HOME shims — deploy user's $HOME (/var/www) isn't
+            # writable by artisan subprocesses; psysh will explode without these
+            # ("Writing to directory /var/www/.config/psysh is not allowed").
+            # Also clear caches FIRST so a stale compiled view/config from a
+            # prior deploy (or a manual run as the wrong user) can't linger
+            # and re-explode. See ot1-pro-prod-ops skill rule #1 +
+            # 2026-09-29 email-wizard/config-cache combo incident.
+            export XDG_CONFIG_HOME=/tmp HOME=/tmp
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
