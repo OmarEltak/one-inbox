@@ -2337,3 +2337,49 @@ hardened so this can't recur.
 **Test status**: 62/63 campaigns+onboarding Pest tests pass. The 1
 failing (`TestSendThrottleTest > first five test sends…`) is pre-existing
 (last touched in `81a7a82`) — unrelated to this session's work.
+
+---
+
+## 2026-09-30 · Tasks A → D shipped (PRs #72-75)
+
+Per Omar's "we will go them a then b then c then d then e" — 4 tasks
+sequential, each verified live on prod.
+
+**A. Analytics prod-log bug fixes (PR #72)**
+- round() TypeError on MySQL AVG() → cast to float at both sites
+- Duplicate column '?' SQL error → rewrote SELECT-FROM-SELECT to plain IN(?,?,?)
+- 3 Pest tests in tests/Feature/AnalyticsRegressionTest.php
+
+**B. capacity:health-check alert command (PR #73)**
+- New artisan command, scheduled every 5 min
+- Reads /proc/loadavg + /proc/meminfo + disk_free_space + Redis LLEN
+  on 4 queues + Cache('nararouter:cooldown_until')
+- Cool-down cache (60 min per signal) so we don't spam
+- Env-overridable thresholds in config/services.php
+- Email via existing Mail infrastructure (omareltak7@gmail.com)
+- 4 Pest tests; verified live on prod ("All capacity signals within
+  thresholds")
+
+**C. Phase 3b — Email wizard async import (PR #74)**
+- Mirror of Phase 3 WA wizard: ImportEmailRecipients job + 'importing'
+  step + wire:poll.2s progress polling + retry
+- Upload cap lifted 2 MB → 10 MB
+- 6-step indicator visible on prod at /campaigns/email/new
+
+**D. k6 load-testing scaffold (PR #75)**
+- scripts/load/{README,homepage,webhook-ingest}.js
+- No staging box yet — deferred to a separate call. But the harness is
+  ready to point at any TARGET when ops greenlight a staging mirror.
+
+**Test status**: 66+ Pest tests, all pass except 1 pre-existing flaky
+throttle test (unrelated).
+
+**Task E** (marketing campaigns FB/IG/ChatGPT/Google) not started — big
+scope, needs strategic direction (which platforms exactly, budget,
+creative direction). Awaiting Omar's steer.
+
+**Next session focus**:
+- Task E scope-check
+- Spin up staging.ot1-pro.com (Hetzner CX22 ≈ \$5/mo) so Task D scripts
+  can capture real numbers
+- Comment queue worker expansion (§4 gap flagged 2026-09-29)
