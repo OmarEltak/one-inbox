@@ -303,15 +303,19 @@ class Analytics extends Component
                       AND i.created_at < o.created_at
                       AND TIMESTAMPDIFF(SECOND, i.created_at, o.created_at) < 86400
                       AND c.team_id = ?
-                      AND c.page_id IN (SELECT * FROM (SELECT ?) x)
+                      AND c.page_id IN (__PAGE_IDS__)
                 ) ranked
                 WHERE rn = 1
                 GROUP BY sender_type
             SQL;
 
-            // Explode pageIds into a repeated ? list. Small (< a few dozen).
+            // Expand pageIds into a plain `IN (?,?,?)` list. The previous
+            // `SELECT * FROM (SELECT ?,?,?) x` trick generated a derived
+            // table where every column was named "?" — MySQL 8 rejects
+            // that with "Duplicate column name '?'". Prod incident
+            // 2026-09-30. Small ($pageIds < a few dozen) so direct IN is fine.
             $inList = implode(',', array_fill(0, count($pageIds), '?'));
-            $sql = str_replace('SELECT * FROM (SELECT ?) x', "SELECT * FROM (SELECT $inList) x", $sql);
+            $sql = str_replace('__PAGE_IDS__', $inList, $sql);
 
             $bindings = array_merge([$since, $teamId], $pageIds);
             $results = collect(DB::select($sql, $bindings))->keyBy('sender_type');
@@ -391,7 +395,10 @@ class Analytics extends Component
             ->keyBy('lead_status')
             ->map(fn ($row) => [
                 'count' => $row->total,
-                'avg_score' => round($row->avg_score, 1),
+                // MySQL AVG() returns a DECIMAL string; PHP 8.4 round() requires
+                // int|float. Cast so we don't TypeError on any team that has
+                // non-null lead_score events. Prod incident 2026-09-30.
+                'avg_score' => round((float) $row->avg_score, 1),
             ])
             ->all();
     }
@@ -459,7 +466,8 @@ class Analytics extends Component
         return $events->map(fn ($e) => [
             'reason' => $e->reason,
             'occurrences' => $e->occurrences,
-            'avg_impact' => round($e->avg_impact, 1),
+            // See getLeadFunnel — MySQL AVG() = string; PHP 8.4 round() rejects.
+            'avg_impact' => round((float) $e->avg_impact, 1),
         ])->all();
     }
 
