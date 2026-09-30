@@ -26,7 +26,10 @@ class EmailWizard extends Component
 {
     use WithFileUploads;
 
-    public string $step = 'upload'; // upload | map | compose | review | launched
+    // Phase 3b (docs/OT1_LIMITS.md §11) adds the 'importing' step between
+    // 'map' and 'compose' — async ImportEmailRecipients job runs the parse,
+    // the wizard polls checkImportProgress() every 2s and auto-advances.
+    public string $step = 'upload'; // upload | map | importing | compose | review | launched
 
     public $file = null; // uploaded TemporaryUploadedFile
 
@@ -49,6 +52,11 @@ class EmailWizard extends Component
     public ?int $importId = null;
     public ?string $importTag = null;
     public int $importedCount = 0;
+    public int $skippedCount  = 0;
+    public int $invalidCount  = 0;
+    public int $totalRows     = 0;
+    public string $importStatus = 'pending';
+    public ?string $importError = null;
 
     // Compose
     public string $campaignName = '';
@@ -89,11 +97,11 @@ class EmailWizard extends Component
 
     public function uploadAndPreview(): void
     {
-        // 2 MB / ~20k rows cap while parse is still sync (see docs/OT1_LIMITS.md §5.3).
+        // Phase 3b shipped the async importer — cap lifted 2 MB → 10 MB.
         $this->validate([
-            'file' => 'required|file|max:2048|mimes:csv,txt,xlsx',
+            'file' => 'required|file|max:10240|mimes:csv,txt,xlsx',
         ], [
-            'file.max' => 'File is too large. The current limit is 2 MB (~20,000 contacts). For larger lists, email support@ot1-pro.com — the async importer is coming.',
+            'file.max' => __('File is too large. The current upload limit is 10 MB (~100,000 contacts).'),
         ]);
 
         $team = Auth::user()->currentTeam;
@@ -136,7 +144,12 @@ class EmailWizard extends Component
         return '';
     }
 
-    public function confirmMapAndImport(ContactImporter $importer): void
+    /**
+     * Phase 3b (docs/OT1_LIMITS.md §11) — dispatches ImportEmailRecipients
+     * async instead of parsing sync inside the Livewire request. Wizard
+     * transitions to 'importing' and polls checkImportProgress() every 2s.
+     */
+    public function confirmMapAndImport(): void
     {
         $this->validate([
             'emailColumn' => 'required|string|in:'.implode(',', $this->detectedHeaders),
@@ -145,35 +158,91 @@ class EmailWizard extends Component
             'emailColumn.in'       => 'Email column must match one of the detected headers.',
         ]);
 
-        // Belt-and-suspenders guards while parse is sync.
-        @ini_set('memory_limit', '256M');
-        @set_time_limit(90);
-
         $team = Auth::user()->currentTeam;
-        $absolute = Storage::disk('local')->path($this->storedPath);
+        $tag  = 'imported:' . pathinfo($this->originalName ?? $this->storedPath, PATHINFO_FILENAME);
 
-        $parser = new SpreadsheetParser($absolute, $this->extension);
-        $importerInstance = new ContactImporter($parser);
+        $import = \App\Models\ContactImport::create([
+            'team_id'       => $team->id,
+            'user_id'       => Auth::id(),
+            'filename'      => $this->storedPath,
+            'original_name' => $this->originalName ?? basename($this->storedPath),
+            'tag'           => $tag,
+            'status'        => \App\Models\ContactImport::STATUS_PENDING,
+        ]);
 
-        $import = $importerInstance->import(
-            teamId: $team->id,
-            userId: Auth::id(),
-            filename: $this->storedPath,
-            originalName: $this->originalName,
-            map: [
+        \App\Jobs\ImportEmailRecipients::dispatch(
+            $import->id,
+            $this->storedPath,
+            $this->extension,
+            [
                 'email'  => $this->emailColumn,
                 'name'   => $this->nameColumn ?: null,
                 'custom' => array_values(array_filter($this->customColumns)),
             ],
         );
 
-        $this->importId = $import->id;
-        $this->importTag = $import->tag;
-        $this->importedCount = $import->imported_rows;
-        $this->campaignName = 'Email blast — '.$import->original_name;
-        $this->step = 'compose';
+        $this->importId     = $import->id;
+        $this->importTag    = $tag;
+        $this->importStatus = \App\Models\ContactImport::STATUS_PENDING;
+        $this->step         = 'importing';
 
         unset($this->emailSenders);
+    }
+
+    public function checkImportProgress(): void
+    {
+        if ($this->step !== 'importing' || $this->importId === null) {
+            return;
+        }
+
+        $import = \App\Models\ContactImport::find($this->importId);
+        if ($import === null) {
+            return;
+        }
+
+        $this->totalRows     = (int) $import->total_rows;
+        $this->importedCount = (int) $import->imported_rows;
+        $this->skippedCount  = (int) $import->skipped_rows;
+        $this->invalidCount  = (int) $import->invalid_rows;
+        $this->importStatus  = (string) $import->status;
+        $this->importError   = $import->last_error;
+
+        if ($this->importStatus === \App\Models\ContactImport::STATUS_COMPLETED) {
+            $this->campaignName = 'Email blast — ' . ($import->original_name ?? 'list');
+            $this->step         = 'compose';
+        }
+    }
+
+    public function retryImport(): void
+    {
+        if ($this->importId === null || $this->importStatus !== \App\Models\ContactImport::STATUS_FAILED) {
+            return;
+        }
+        $import = \App\Models\ContactImport::find($this->importId);
+        if (! $import) return;
+
+        $import->update(['status' => \App\Models\ContactImport::STATUS_PENDING, 'last_error' => null]);
+        $this->importStatus = \App\Models\ContactImport::STATUS_PENDING;
+        $this->importError  = null;
+
+        \App\Jobs\ImportEmailRecipients::dispatch(
+            $import->id,
+            $this->storedPath,
+            $this->extension,
+            [
+                'email'  => $this->emailColumn,
+                'name'   => $this->nameColumn ?: null,
+                'custom' => array_values(array_filter($this->customColumns)),
+            ],
+        );
+    }
+
+    #[Computed]
+    public function importProgressPercent(): int
+    {
+        if ($this->totalRows <= 0) return 0;
+        $done = $this->importedCount + $this->skippedCount + $this->invalidCount;
+        return min(100, (int) floor(($done / $this->totalRows) * 100));
     }
 
     public function gotoReview(): void
