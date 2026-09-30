@@ -16,11 +16,12 @@
          emerald-100/emerald-900 for done, zinc-100/zinc-700 for future. --}}
     @php
         $steps = [
-            'upload'   => __('1. Upload'),
-            'map'      => __('2. Map columns'),
-            'compose'  => __('3. Compose'),
-            'review'   => __('4. Review'),
-            'launched' => __('5. Launched'),
+            'upload'    => __('1. Upload'),
+            'map'       => __('2. Map columns'),
+            'importing' => __('3. Import'),
+            'compose'   => __('4. Compose'),
+            'review'    => __('5. Review'),
+            'launched'  => __('6. Launched'),
         ];
         $stepKeys = array_keys($steps);
         $current  = array_search($step, $stepKeys, true);
@@ -45,17 +46,16 @@
     {{-- STEP 1: UPLOAD --}}
     @if($step === 'upload')
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
-            {{-- Import-size notice. Now on a LIGHT surface — use amber-50/amber-900
-                 per contrast-guardrails skill (was amber-900/40 + amber-100 for dark). --}}
-            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
-                <svg class="h-5 w-5 shrink-0 text-amber-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
+            {{-- Phase 3b shipped — async importer live. Emerald-50/-900 pair. --}}
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-emerald-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-sm text-amber-900 leading-relaxed">
-                    <strong class="font-semibold">{{ __('Current upload limit: 2 MB (~20,000 contacts)') }}</strong>
-                    {{ __('while we ship a background import for larger lists. Need more?') }}
-                    <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%2020%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">{{ __('Message me on WhatsApp') }}</a>
-                    {{ __('or email') }} <a href="mailto:support@ot1-pro.com" class="underline font-medium">support@ot1-pro.com</a>.
+                <p class="text-sm text-emerald-900 leading-relaxed">
+                    <strong class="font-semibold">{{ __('Upload up to 10 MB (~100,000 contacts).') }}</strong>
+                    {{ __('Imports run in the background — you can close this tab and come back later.') }}
+                    {{ __('For anything bigger,') }}
+                    <a href="https://wa.me/201026361218?text=Hi%20Omar%2C%20I%20need%20to%20import%20more%20than%20100%2C000%20contacts%20for%20a%20campaign." target="_blank" rel="noopener" class="underline font-medium">{{ __('message me on WhatsApp') }}</a>.
                 </p>
             </div>
 
@@ -68,7 +68,7 @@
                               file:text-sm file:font-semibold
                               file:bg-emerald-100 file:text-emerald-900
                               hover:file:bg-emerald-200 cursor-pointer" />
-                <p class="text-xs text-zinc-700 mt-2">{{ __('.csv or .xlsx, up to 2 MB (~20,000 contacts).') }}</p>
+                <p class="text-xs text-zinc-700 mt-2">{{ __('.csv or .xlsx up to 10 MB (~100,000 contacts)') }}</p>
                 @error('file') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -164,6 +164,69 @@
                     <span wire:loading wire:target="confirmMapAndImport">{{ __('Importing…') }}</span>
                 </button>
             </div>
+        </div>
+    @endif
+
+    {{-- STEP 2.5: IMPORTING (Phase 3b async parse) --}}
+    @if($step === 'importing')
+        <div wire:poll.2s="checkImportProgress"
+             class="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm space-y-6">
+
+            @php
+                $isFailed = $importStatus === 'failed';
+                $pct      = $this->importProgressPercent;
+            @endphp
+
+            @if($isFailed)
+                <div class="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+                    <svg class="h-5 w-5 shrink-0 text-red-900 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.5m0 3v.01M4.93 19h14.14a2 2 0 001.75-2.98l-7.07-12a2 2 0 00-3.5 0l-7.07 12A2 2 0 004.93 19z"/>
+                    </svg>
+                    <div class="text-sm text-red-900 leading-relaxed flex-1">
+                        <p class="font-semibold">{{ __('Import failed') }}</p>
+                        @if($importError)
+                            <p class="mt-1 opacity-90 font-mono text-xs">{{ $importError }}</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex justify-between pt-2">
+                    <button wire:click="$set('step', 'map')" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200">← {{ __('Back') }}</button>
+                    <button wire:click="retryImport" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition">{{ __('Retry import') }}</button>
+                </div>
+            @else
+                <div class="flex items-center gap-3">
+                    <div class="relative size-11 shrink-0">
+                        <svg class="animate-spin text-emerald-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="text-lg font-semibold text-zinc-900">{{ __('Importing your contacts') }}</h2>
+                        <p class="mt-0.5 text-sm text-zinc-700">
+                            @if($totalRows > 0)
+                                {{ __(':done of :total processed', ['done' => number_format($importedCount + $skippedCount + $invalidCount), 'total' => number_format($totalRows)]) }}
+                            @else
+                                {{ __('Preparing…') }}
+                            @endif
+                        </p>
+                    </div>
+                    <span class="shrink-0 text-2xl font-semibold text-emerald-700 tabular-nums">{{ $pct }}%</span>
+                </div>
+
+                <div class="w-full rounded-full bg-emerald-100 h-2 overflow-hidden">
+                    <div class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: {{ max(3, $pct) }}%;"></div>
+                </div>
+
+                <div class="rounded-lg bg-zinc-50 border border-zinc-200 p-3 flex items-start gap-3">
+                    <svg class="h-5 w-5 shrink-0 text-zinc-700 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-sm text-zinc-900 leading-relaxed">
+                        {{ __('You can close this tab — the import will keep running on our server. Come back to this page any time to check progress and continue building your campaign.') }}
+                    </p>
+                </div>
+            @endif
         </div>
     @endif
 
