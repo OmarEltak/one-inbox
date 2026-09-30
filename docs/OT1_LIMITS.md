@@ -392,3 +392,46 @@ When a team hits 80% of their monthly campaign quota, show a top-bar warning tha
 - [x] Phase 4 — Per-team send throttle (2026-09-29, PR #64)
 - [ ] Phase 4b — Queue-position UI ("you are #N") — deferred (needs Reverb push infra)
 - [x] Phase 5 — Row-count guidance — addressed by Phase 3's copy + progress bar; JS preview deferred as low-ROI
+| 2026-09-29 → 2026-09-30 | Campaigns index mobile-responsive fix (PR #66) — header stacks, campaign card layout stacks, button labels shorten so both CTAs visible on ~490px viewports. |
+| 2026-09-29 → 2026-09-30 | Email-wizard `/campaigns/email/new` 500 rabbit hole — 4 fragile Blade escapes (`{{ '{{...}}' }}`) at lines 117, 198, 208, 210 all rewritten to canonical `@{{...}}` verbatim escape or `@php $var = '{{'.$c.'}}'; @endphp` pattern. PRs #67, #68, #70. Full contrast rewrite of email wizard from dark-shell (invisible white text on light shell) to light zinc palette in PR #69. |
+| 2026-09-30 | **Deploy workflow hardened** (`.github/workflows/deploy.yml` in PR #69) — added `export HOME=/tmp XDG_CONFIG_HOME=/tmp` (deploy user's real `$HOME` not writable by psysh subprocess) + explicit `config:clear`/`route:clear`/`view:clear` BEFORE the `:cache` commands so stale compiled artifacts from a prior deploy or wrong-user manual run can't linger and re-explode. Root cause of a `MissingAppKeyException` storm on 2026-09-29 that stacked on top of the email-wizard 500. |
+
+---
+
+## 12 · Deploy pipeline (updated 2026-09-30)
+
+`.github/workflows/deploy.yml` runs on push to `main`. Auto-deploys in ~24s via SSH as the `deploy` user.
+
+**Sequence** (post-2026-09-30 hardening):
+
+1. `cd /var/www/ot1-pro.com && git pull origin main`
+2. `.env` guards — idempotent writes for `APP_DEBUG=false`, `FLARE_KEY`, `LOG_STACK`
+3. `composer install --no-dev --optimize-autoloader`
+4. `npm ci && npm run build`
+5. `php artisan migrate --force`
+6. **`export XDG_CONFIG_HOME=/tmp HOME=/tmp`** — required for psysh subprocess; deploy user's real `$HOME` (`/var/www`) is not writable
+7. **`config:clear`, `route:clear`, `view:clear`** — kill stale compiled artifacts (added 2026-09-30 after the MissingAppKey storm)
+8. `config:cache`, `route:cache`, `view:cache` — rebuild fresh, all as `deploy` user (never root — see `ot1-pro-prod-ops` skill rule #1)
+9. `queue:restart` — pick up new job classes
+10. `sudo systemctl reload php8.4-fpm` — clear opcache so FPM workers see the new bootstrap
+
+**What broke before the hardening** (2026-09-29 incident):
+- A blade parse error was fixed on `main` and deployed
+- Old `config:cache` step ran WITHOUT prior `config:clear` — sometimes leaves the previous file in a partial state depending on when the write completes
+- Simultaneously, some historical run had produced a `bootstrap/cache/config.php` unreadable by www-data
+- Result: `MissingAppKeyException` on random requests for ~10 minutes until manual recovery
+
+**Prevention**: the new sequence guarantees fresh compiled artifacts on every deploy. Cost is ~2 seconds of extra deploy time. Worth it.
+
+**Runbook** (if MissingAppKey ever fires again despite the guards):
+```bash
+ssh root@187.77.67.94 'cd /var/www/ot1-pro.com \
+  && rm -f bootstrap/cache/config.php \
+  && sudo -u deploy XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan config:cache \
+  && systemctl reload php8.4-fpm'
+```
+And confirm APP_KEY visibility:
+```bash
+sudo -u www-data XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan tinker --execute="echo strlen(config('app.key'));"
+```
+Expect a number > 30. Zero = APP_KEY missing from `.env`. See `ot1-pro-prod-ops` skill rule #1 for the full runbook.

@@ -2283,3 +2283,57 @@ visual verification pending until Omar returns.
 - Reconnect chrome extension → eyeball each phase on prod
 - Ship Phase 3b (Email wizard async import)
 - Then move to "other issues" then k6
+
+---
+
+## 2026-09-30 · Rabbit hole — 4 PRs to fix one file
+
+Started as "click Email button → 500" bug reported by Omar. Ended up as
+a chain of failures:
+
+1. **PR #66** — /campaigns index mobile responsiveness. Cleared up
+   header buttons wrap + campaign card layout on ~490px. Working good.
+
+2. **PR #67** — email-wizard 500 fix, attempt 1. Killed `{{ '{{column_name}}' }}`
+   at line 117 by switching to `@{{column_name}}`. Compiled locally.
+   Deployed. Prod STILL 500.
+
+3. **PR #68** — email-wizard 500 fix, attempt 2. Prod log revealed 3
+   MORE identical fragile escapes at lines 198, 208, 210. Killed all
+   three. Compiled locally. Deployed. Prod STILL 500 — but this time
+   with a different error: MissingAppKeyException.
+
+4. **Manual runbook** — deleted `bootstrap/cache/config.php`, rebuilt as
+   deploy user, reloaded FPM. Fixed the AppKey storm. Page renders. But
+   sees the dark-mode drift: WA wizard has scoped CSS override to force
+   light; email wizard doesn't — every `text-white/*` is invisible on
+   the light app shell.
+
+5. **PR #69** — full contrast rewrite of email-wizard to zinc palette
+   per contrast-guardrails skill. AND hardened the deploy workflow to
+   run `config:clear + route:clear + view:clear` BEFORE `:cache` +
+   exported `HOME=/tmp XDG_CONFIG_HOME=/tmp` so psysh doesn't explode.
+
+6. **PR #70** — the rewrite REINTRODUCED the trap I was fixing.
+   Wrote `{{ __('Custom fields (for @{{column_name}} variables)') }}` —
+   `@{{` inside `__()` is fragile too. Third 500 in a day. Fixed by
+   pulling code sample OUT of the translation string.
+
+**Result now**: Page renders on prod (verified via screenshot). All text
+legible in zinc + emerald. Amber notice contrast-safe. Deploy pipeline
+hardened so this can't recur.
+
+**Lessons added to `tasks/lessons.md`**:
+- Never `@{{...}}` inside `__()` — split into separate Blade nodes
+- Always `config:clear` before `config:cache` in deploy
+- New forms use the actual shell palette from the start, don't invent
+  scoped CSS overrides
+
+**Docs updated**:
+- `docs/OT1_LIMITS.md` change log gained rows for PRs #66-70
+- New `docs/OT1_LIMITS.md §12 Deploy pipeline` documents the hardened
+  sequence + runbook for MissingAppKey recovery
+
+**Test status**: 62/63 campaigns+onboarding Pest tests pass. The 1
+failing (`TestSendThrottleTest > first five test sends…`) is pre-existing
+(last touched in `81a7a82`) — unrelated to this session's work.

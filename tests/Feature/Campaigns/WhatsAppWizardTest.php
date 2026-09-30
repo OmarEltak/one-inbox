@@ -43,6 +43,13 @@ class WhatsAppWizardTest extends TestCase
             ->set('nameColumn', 'name')
             ->set('defaultCountry', 'EG')
             ->call('advanceToCompose')
+            // Phase 3 (docs/OT1_LIMITS.md §11): advanceToCompose now dispatches
+            // the async ImportCampaignRecipients job + transitions to 'importing'.
+            // Under sync queue driver (test default) the job runs immediately,
+            // so a single checkImportProgress() call sees completed status and
+            // auto-advances to 'compose'.
+            ->assertSet('step', 'importing')
+            ->call('checkImportProgress')
             ->assertSet('step', 'compose')
             ->set('campaignName', 'August Promo')
             ->set('body', 'Hi {{name}}, we have a deal for you')

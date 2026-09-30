@@ -181,3 +181,71 @@ chmod -R 775 /var/www/ot1-pro.com/storage /var/www/ot1-pro.com/bootstrap/cache
 ```
 
 **Preventive rule:** On any new VPS Laravel deployment, always set storage + bootstrap/cache to `owner:www-data` group with `775`. Add `chmod -R 775 storage bootstrap/cache` to the deploy script so it's enforced on every deploy. Also set `.env` to `600` immediately after upload.
+
+## Session 2026-09-29/30 · Blade parse traps + deploy pipeline
+
+### The `@{{...}}` inside `__()` trap (3 shipped 500s)
+
+**BAD:**
+```blade
+{{ __('Custom fields (for {{column_name}} variables)') }}
+{{ __('Custom fields (for @{{column_name}} variables)') }}
+placeholder="Hi {{ '{{name}}' }}"
+```
+
+All three of these compile-explode with `Unclosed '(' does not match '}'`
+in some contexts. Blade's tokenizer parses inner `{{...}}` even when it's
+inside a PHP string literal in a `__()` argument.
+
+**GOOD:**
+```blade
+{{ __('Custom fields to keep') }}
+<span>— {{ __('used in') }} <code>@{{column_name}}</code> {{ __('variables') }}</span>
+```
+
+Or for dynamic values in a loop:
+```blade
+@foreach($customColumns as $c)
+    @php $var = '{{' . $c . '}}'; @endphp
+    <code>{{ $var }}</code>
+@endforeach
+```
+
+**Rule**: NEVER put a Blade escape sequence (`@{{...}}`, `{!!...!!}`, literal
+`{{...}}`) inside a `__()` argument or any `{{...}}` interpolation. Split
+translatable text and code samples into separate Blade nodes.
+
+Real cost of ignoring this: 4 emergency PRs (#67, #68, #69, #70) all
+chasing the same class of bug across the same file. Grep after any Blade
+change:
+
+```bash
+grep -Pn "@\{\{[^}]*\}\}[^ ]*'\)|'\{\{[^}]*\}\}'" resources/views/
+```
+
+### The `config:cache` needs `config:clear` first
+
+CI deploy that runs `php artisan config:cache` WITHOUT a preceding
+`php artisan config:clear` can leave `bootstrap/cache/config.php` in a
+half-written state where APP_KEY is missing. Also verified 2026-09-29
+after a normal PR merge produced a `MissingAppKeyException` storm for
+~10 minutes.
+
+`.github/workflows/deploy.yml` now runs `config:clear + route:clear +
+view:clear` before the `:cache` commands + exports `XDG_CONFIG_HOME=/tmp
+HOME=/tmp` so psysh doesn't blow up on the deploy user's non-writable
+`$HOME`. Full pipeline documented in `docs/OT1_LIMITS.md §12`.
+
+### The dark-theme-in-light-shell drift
+
+Two of our forms (`WhatsAppWizard`, `EmailWizard`) were built when the
+app shell was still dark, using `text-white/*` for all copy. When the
+shell went light, WA wizard got a scoped `.wa-wizard` CSS override; email
+wizard was missed. Result: for months, `/campaigns/email/new` had an
+invisible subtitle, invisible "Back to campaigns" link, and invisible
+future-step labels on the step indicator.
+
+**Rule for future new forms**: don't invent scoped CSS overrides — write
+the form in the actual shell palette from the start (zinc palette for
+light shell, per `contrast-guardrails` skill safe pairs). Overrides drift
+into "the form has its own bespoke theme" over time.
