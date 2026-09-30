@@ -116,7 +116,10 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-zinc-900 mb-1">{{ __('Custom fields to keep (for @{{column_name}} variables)') }}</label>
+                <label class="block text-xs font-semibold text-zinc-900 mb-1">
+                    {{ __('Custom fields to keep') }}
+                    <span class="font-normal text-zinc-700">— {{ __('used in') }} <code class="bg-zinc-100 text-zinc-900 px-1 py-0.5 rounded">@{{column_name}}</code> {{ __('variables') }}</span>
+                </label>
                 <div class="flex flex-wrap gap-2">
                     @foreach($detectedHeaders as $h)
                         <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-50 border border-zinc-300 hover:bg-zinc-100 cursor-pointer text-xs text-zinc-900">
