@@ -747,6 +747,7 @@ class ProcessIncomingMessage implements ShouldQueue
         $mediaKind    = null;
         $mediaDescriptor = null;
 
+        $isSticker = false;
         if (! empty($messageBody['audioMessage'])) {
             $mediaKind = 'audio';
             $mediaDescriptor = $messageBody['audioMessage'];
@@ -759,6 +760,13 @@ class ProcessIncomingMessage implements ShouldQueue
         } elseif (! empty($messageBody['documentMessage'])) {
             $mediaKind = 'document';
             $mediaDescriptor = $messageBody['documentMessage'];
+        } elseif (! empty($messageBody['stickerMessage'])) {
+            // Stickers are WebP images encrypted with the image media keys, so
+            // the image download decrypts them. Stored + shown as an image
+            // (was a bare "[Sticker]" text bubble). No vision call — see below.
+            $mediaKind = 'image';
+            $mediaDescriptor = $messageBody['stickerMessage'];
+            $isSticker = true;
         }
 
         if ($mediaKind !== null && $mediaDescriptor !== null && config('services.media.ingest_enabled')) {
@@ -788,7 +796,7 @@ class ProcessIncomingMessage implements ShouldQueue
 
                     // Overwrite the [Audio]/[Image] placeholder so inbox previews
                     // are consistent with the Cloud API path.
-                    $content = match ($mediaKind) {
+                    $content = $isSticker ? '[Sticker]' : match ($mediaKind) {
                         'image'    => $mediaDescriptor['caption']  ?? '[image]',
                         'audio'    => '[voice note]',
                         'video'    => $mediaDescriptor['caption']  ?? '[video]',
@@ -852,7 +860,7 @@ class ProcessIncomingMessage implements ShouldQueue
 
             $team = $page->team;
             if ($team->canDispatchAi()) {
-                if ($mediaAssetId !== null && $mediaKind === 'image' && config('services.ai_media.vision_enabled')) {
+                if ($mediaAssetId !== null && $mediaKind === 'image' && ! $isSticker && config('services.ai_media.vision_enabled')) {
                     \App\Jobs\DescribeImage::dispatch($message->id);
                 } elseif ($mediaAssetId !== null && $mediaKind === 'audio'
                     && config('services.ai_media.transcription_enabled')
