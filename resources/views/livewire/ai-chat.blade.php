@@ -15,8 +15,19 @@
     },
     onNewContent() {
         if (this.isNearBottom) { this.scrollToBottom(); } else { this.showNewMessageBadge = true; }
+    },
+    stickToBottom() {
+        // One scroll on init lands short: web fonts, images and long Arabic
+        // lines keep growing the thread after first paint. Re-pin to the
+        // bottom whenever the thread resizes, unless the user scrolled up.
+        const content = $refs.chatContent;
+        if (!content || !window.ResizeObserver) return;
+        new ResizeObserver(() => {
+            const el = $refs.chatContainer;
+            if (el && this.isNearBottom) el.scrollTop = el.scrollHeight;
+        }).observe(content);
     }
-}" x-init="scrollToBottom()" @message-sent.window="scrollToBottom()"
+}" x-init="scrollToBottom(); stickToBottom()" @message-sent.window="scrollToBottom()"
    x-on:livewire:morph.window="onNewContent()">
 
     {{-- Header --}}
@@ -39,7 +50,7 @@
     </div>
 
     {{-- Messages Area --}}
-    <div class="flex-1 overflow-y-auto px-6 py-4" x-ref="chatContainer" @scroll.debounce.50ms="checkScroll()">
+    <div class="flex-1 min-h-0 overflow-y-auto px-6 py-4" x-ref="chatContainer" @scroll.debounce.50ms="checkScroll()">
         {{-- New messages badge --}}
         <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
             <button @click="scrollToBottom(); showNewMessageBadge = false"
@@ -158,7 +169,7 @@
                 </div>
             </div>
         @else
-            <div class="mx-auto max-w-3xl space-y-4">
+            <div class="mx-auto max-w-3xl space-y-4" x-ref="chatContent">
                 @foreach($messages as $msg)
                     @if($msg['role'] === 'user')
                         <div class="flex justify-end">
