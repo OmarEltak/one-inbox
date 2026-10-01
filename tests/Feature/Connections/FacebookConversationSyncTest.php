@@ -22,5 +22,6 @@ test('long previews are truncated, the import continues, archived chats stay arc
 
     expect(Conversation::where('page_id', $page->id)->count())->toBe(3)
         ->and(mb_strlen(Conversation::where('platform_conversation_id', 'U1')->value('last_message_preview')))->toBeLessThanOrEqual(255)
-        ->and(Conversation::where('platform_conversation_id', 'U2')->value('status'))->toBe('archived');
+        ->and(Conversation::where('platform_conversation_id', 'U2')->value('status'))->toBe('archived')
+        ->and($page->fresh()->metadata['last_conversation_sync'])->toMatchArray(['imported' => 3, 'skipped' => 0, 'error' => null]);
 });

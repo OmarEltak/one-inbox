@@ -43,6 +43,8 @@ class SyncPageConversations implements ShouldQueue
         // requirements scoped chained backfill to Instagram only.
         if ($page->platform === 'facebook') {
             $platform->fetchConversations($page);
+            // Then pull each chat's recent history so the AI can read it.
+            BackfillPageMessages::dispatch($page->id)->delay(now()->addSeconds(30));
             return;
         }
 

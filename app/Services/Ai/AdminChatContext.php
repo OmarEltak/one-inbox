@@ -111,7 +111,7 @@ class AdminChatContext
         $byConversation = Message::whereIn('conversation_id', $conversations->pluck('id'))
             ->where('direction', 'inbound')
             ->whereNotNull('content')
-            ->orderByDesc('id')
+            ->orderByRaw('COALESCE(platform_sent_at, created_at) DESC')
             ->limit($maxConversations * 20)
             ->get(['conversation_id', 'content'])
             ->groupBy('conversation_id');
@@ -198,7 +198,7 @@ class AdminChatContext
         }
         $head .= " | {$conversation->platform}";
 
-        $messages = $conversation->messages()->orderByDesc('id')->limit(12)->get(['direction', 'sender_type', 'content', 'content_type', 'created_at'])->reverse();
+        $messages = $conversation->messages()->orderByRaw('COALESCE(platform_sent_at, created_at) DESC')->limit(12)->get(['direction', 'sender_type', 'content', 'content_type', 'created_at'])->reverse();
         $lastInbound = $messages->where('direction', 'inbound')->last()?->created_at;
 
         $reach = 'can be messaged';

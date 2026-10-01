@@ -25,8 +25,13 @@ Container sessions cannot reach ot1-pro.com or SSH; ask the user for `/super-adm
 3. Subscriptions: Reset/Revoke shows a green toast bottom-corner.
 4. Inbox document chip: darker inset card, readable on hover.
 
+## PR #82 (history backfill + diagnostics + stickers)
+- `Jobs/BackfillPageMessages`: imports last 25 messages per chat (via `fetchAndStoreMessages`, side-effect free — no AI, no broadcast) in batches of 40, self-re-dispatching, stops after 3 Meta refusals. Queued 30 s after every Messenger conversation sync; migration `000003` re-runs the Messenger sync (→ backfill) and backfills Instagram pages on deploy. Imported rows get `created_at = platform_sent_at`.
+- `fetchConversations` writes `metadata.last_conversation_sync {at, imported, skipped, error}` on the page → visible at `/super-admin/pages/{id}/diagnose`. **If Mishkah (page 33) still shows 28 chats, read that block first**: `error` = Meta refused (token/permission → reconnect page); `imported` ≈ 28 = Graph only returns that many to this token.
+- Inbox: `[Sticker]`, `[Reaction]`, `[voice note]`… placeholders render as icon + translated label (stickers are still not downloaded as images — `ProcessIncomingMessage` stores them as text; downloading the webp via Wuzapi is open).
+
 ## Still open / not done
-- **Full Facebook history is not imported** — only one-line previews per chat; messages arriving after connect are stored in full. A backfill (last ~20 messages per conversation via `FacebookPlatform::fetchMessages`, must NOT dispatch AI replies, paced for Meta rate limits) was offered, not built.
+- Sticker images are not downloaded (Wuzapi `stickerMessage` → text placeholder).
 - **Root cause of "Sorry, I encountered an error" (exception inside `chatWithAdmin`) is unconfirmed** — logging added; read the next occurrence.
 - `Analytics.php:321` query (`SELECT sender_type, …`) hits MySQL max_execution_time repeatedly — pre-existing, not touched.
 - Page "Omar Eltak" conversation fetch fails with OAuthException 190 (token lacks page permissions) — reconnect that page.
