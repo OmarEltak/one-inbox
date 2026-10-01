@@ -166,9 +166,18 @@ class Team extends Model
      */
     public function campaignsCreatedThisMonth(): int
     {
-        return (int) $this->campaigns()
-            ->where('created_at', '>=', now()->subDays(30))
-            ->count();
+        $query = $this->campaigns();
+
+        // "Reset campaigns" on /super-admin/subscriptions restarts the window:
+        // only campaigns created strictly after the reset count.
+        $resetAt = data_get($this->settings, 'campaign_quota_reset_at');
+        if ($resetAt && ($reset = \Illuminate\Support\Carbon::parse($resetAt))->gt(now()->subDays(30))) {
+            $query->where('created_at', '>', $reset);
+        } else {
+            $query->where('created_at', '>=', now()->subDays(30));
+        }
+
+        return (int) $query->count();
     }
 
     public function monthlyCampaignLimit(): int

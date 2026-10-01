@@ -13,10 +13,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Customers extends Component
 {
+    #[Url]
+    public string $sort = 'newest'; // newest | oldest | name
+
     public bool $showCreateModal = false;
     public string $companyName = '';
     public string $ownerName = '';
@@ -41,8 +45,22 @@ class Customers extends Component
             ->whereHas('owner', fn ($q) => $q->where('is_super_admin', false))
             ->withCount('pages')
             ->withCount('members')
-            ->orderBy('name')
+            ->when(
+                $this->sort === 'name',
+                fn ($q) => $q->orderBy('name'),
+                // Sign-up = when the owner's account was created.
+                fn ($q) => $q->orderBy(
+                    User::select('created_at')->whereColumn('users.id', 'teams.owner_id'),
+                    $this->sort === 'oldest' ? 'asc' : 'desc',
+                ),
+            )
             ->get();
+    }
+
+    public function sortBy(string $sort): void
+    {
+        $this->sort = in_array($sort, ['newest', 'oldest', 'name'], true) ? $sort : 'newest';
+        unset($this->customers, $this->summary);
     }
 
     /**

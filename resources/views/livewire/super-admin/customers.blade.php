@@ -47,12 +47,25 @@
             <p class="text-sm text-zinc-700">{{ __('No customers yet. Click "New Customer" to provision the first one.') }}</p>
         </div>
     @else
+        <div class="mb-3 flex flex-wrap items-center gap-2 text-xs">
+            <span class="font-medium text-zinc-700">{{ __('Sort') }}:</span>
+            <button type="button" wire:click="sortBy('{{ $sort === 'newest' ? 'oldest' : 'newest' }}')"
+                    class="rounded-full border px-3 py-1 font-medium cursor-pointer {{ $sort !== 'name' ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-zinc-300 bg-white text-zinc-800' }}">
+                {{ __('Sign-up date') }} {{ $sort === 'oldest' ? '↑' : '↓' }} {{ $sort === 'oldest' ? __('oldest first') : __('newest first') }}
+            </button>
+            <button type="button" wire:click="sortBy('name')"
+                    class="rounded-full border px-3 py-1 font-medium cursor-pointer {{ $sort === 'name' ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-zinc-300 bg-white text-zinc-800' }}">
+                {{ __('Name A–Z') }}
+            </button>
+        </div>
+
         <div class="space-y-3">
             @foreach($this->customers as $team)
                 @php
                     $limit = $this->aiCreditLimit($team);
                     $used = (int) ($team->ai_credits_used ?? 0);
                     $pct = $limit ? min(100, (int) round($used / max(1, $limit) * 100)) : null;
+                    $signedUp = $team->owner?->created_at ?? $team->created_at;
                 @endphp
                 <div class="rounded-xl border border-zinc-200 bg-white p-4" wire:key="customer-{{ $team->id }}">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -66,6 +79,11 @@
                             @if($team->owner)
                                 <p class="mt-1 text-xs text-zinc-700 break-all">
                                     {{ __('Owner') }}: {{ $team->owner->name }} &middot; {{ $team->owner->email }}
+                                </p>
+                            @endif
+                            @if($signedUp)
+                                <p class="mt-0.5 text-xs text-zinc-700">
+                                    {{ __('Signed up') }} {{ $signedUp->format('M j, Y') }} ({{ $signedUp->diffForHumans() }})
                                 </p>
                             @endif
                         </div>

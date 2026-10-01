@@ -198,6 +198,15 @@
                                     >
                                         {{ __('Reset AI') }}
                                     </flux:button>
+                                    <flux:button
+                                        wire:click="resetCampaignQuota({{ $team->id }})"
+                                        wire:confirm="Reset the campaign quota for {{ $team->name }}? They can create a full month of campaigns again from now."
+                                        size="sm"
+                                        variant="outline"
+                                        icon="megaphone"
+                                    >
+                                        {{ __('Reset campaigns') }}
+                                    </flux:button>
                                     @if($plan !== 'free' || $team->subscription_ends_at)
                                         <flux:button
                                             wire:click="revoke({{ $team->id }})"

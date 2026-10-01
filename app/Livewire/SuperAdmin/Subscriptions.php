@@ -180,6 +180,20 @@ class Subscriptions extends Component
         unset($this->teams);
     }
 
+    /** Campaign quota is a rolling 30-day count; resetting restarts the window from now. */
+    public function resetCampaignQuota(int $teamId): void
+    {
+        $team = Team::find($teamId);
+        if (! $team) {
+            return;
+        }
+
+        $used = $team->campaignsCreatedThisMonth();
+        $team->update(['settings' => array_merge((array) $team->settings, ['campaign_quota_reset_at' => now()->toIso8601String()])]);
+        session()->flash('success', "Reset campaign quota for {$team->name} (was {$used}/{$team->monthlyCampaignLimit()}).");
+        unset($this->teams);
+    }
+
     public function bulkResetAiQuota(): void
     {
         $ids = array_values(array_filter(array_map('intval', $this->selected)));
