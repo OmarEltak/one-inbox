@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class FacebookPlatform extends AbstractPlatform
 {
@@ -847,53 +848,65 @@ class FacebookPlatform extends AbstractPlatform
             $pageUsername = $page->metadata['username'] ?? null;
 
             foreach ($response->json('data', []) as $convData) {
-                $participant = collect($convData['participants']['data'] ?? [])
-                    ->first(fn ($p) => $p['id'] !== $page->platform_page_id
-                        && (! $pageUsername || ($p['username'] ?? null) !== $pageUsername));
+                try {
+                    $participant = collect($convData['participants']['data'] ?? [])
+                        ->first(fn ($p) => $p['id'] !== $page->platform_page_id
+                            && (! $pageUsername || ($p['username'] ?? null) !== $pageUsername));
 
-                if (! $participant) {
-                    continue;
-                }
+                    if (! $participant) {
+                        continue;
+                    }
 
-                $contactPlatform = ContactPlatform::where('platform', $page->platform)
-                    ->where('platform_contact_id', $participant['id'])
-                    ->first();
+                    $contactPlatform = ContactPlatform::where('platform', $page->platform)
+                        ->where('platform_contact_id', $participant['id'])
+                        ->first();
 
-                $contact = $contactPlatform?->contact;
+                    $contact = $contactPlatform?->contact;
 
-                if (! $contact) {
-                    $displayName = $participant['name'] ?? $participant['username'] ?? null;
-                    $contact = Contact::create([
-                        'team_id' => $page->team_id,
-                        'name' => $displayName,
-                        'first_seen_at' => now(),
-                        'last_interaction_at' => now(),
-                    ]);
+                    if (! $contact) {
+                        $displayName = $participant['name'] ?? $participant['username'] ?? null;
+                        $contact = Contact::create([
+                            'team_id' => $page->team_id,
+                            'name' => $displayName,
+                            'first_seen_at' => now(),
+                            'last_interaction_at' => now(),
+                        ]);
 
-                    ContactPlatform::create([
-                        'contact_id' => $contact->id,
-                        'platform' => $page->platform,
-                        'platform_contact_id' => $participant['id'],
-                        'platform_name' => $displayName,
-                    ]);
-                }
+                        ContactPlatform::create([
+                            'contact_id' => $contact->id,
+                            'platform' => $page->platform,
+                            'platform_contact_id' => $participant['id'],
+                            'platform_name' => $displayName,
+                        ]);
+                    }
 
-                $conversation = Conversation::updateOrCreate(
-                    [
+                    $conversation = Conversation::firstOrNew([
                         'team_id' => $page->team_id,
                         'platform' => $page->platform,
                         'platform_conversation_id' => $participant['id'],
-                    ],
-                    [
+                    ]);
+                    $conversation->fill([
                         'page_id' => $page->id,
                         'contact_id' => $contact->id,
                         'last_message_at' => $convData['updated_time'] ?? now(),
-                        'last_message_preview' => $convData['snippet'] ?? null,
-                        'status' => 'open',
-                    ]
-                );
+                        // varchar(255): a longer snippet threw and aborted the import.
+                        'last_message_preview' => isset($convData['snippet']) ? Str::limit($convData['snippet'], 250) : null,
+                    ]);
+                    // A re-sync must not reopen chats the team archived.
+                    if (! $conversation->exists) {
+                        $conversation->status = 'open';
+                    }
+                    $conversation->save();
 
-                $conversations->push($conversation);
+                    $conversations->push($conversation);
+                } catch (\Throwable $e) {
+                    // One bad row used to abort the whole import (Mishkah
+                    // stopped at 28 of hundreds of chats). Skip it instead.
+                    Log::warning('Skipped a conversation during sync', [
+                        'page' => $page->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
 
             $nextUrl = $response->json('paging.next');

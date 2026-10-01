@@ -177,7 +177,7 @@ class AiChat extends Component
         $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
         $digest = $pageIds
             ? collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
-                $team->id, charBudget: intdiv(14000, count($pageIds)), pageId: $id,
+                $team->id, charBudget: intdiv(10000, count($pageIds)), pageId: $id,
             ))->implode("\n\n")
             : $chatContext->customerDigest($team->id);
 
@@ -205,6 +205,11 @@ class AiChat extends Component
             $provider = app(AiProviderInterface::class);
             $response = $provider->chatWithAdmin($text, $team->id, $analyticsContext, $history);
         } catch (\Throwable $e) {
+            // Logged so it shows in /super-admin/errors — it used to vanish.
+            Log::error('AI chat request failed: ' . $e->getMessage(), [
+                'exception' => $e::class,
+                'at'        => $e->getFile() . ':' . $e->getLine(),
+            ]);
             $response = 'Sorry, I encountered an error processing your request. Please try again.';
         }
 

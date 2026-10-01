@@ -6,15 +6,23 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
-            <p class="text-sm font-medium text-green-900 dark:text-green-200">{{ session('success') }}</p>
-        </div>
-    @endif
+    {{-- Corner toast: the flash used to render only at the top of a long table,
+         so a click on Reset/Revoke further down showed no confirmation. --}}
+    @if(session('success') || session('error'))
+        <div class="fixed bottom-4 end-4 z-50 w-[min(26rem,calc(100vw-2rem))] shadow-lg"
+             wire:key="flash-{{ md5(session('success') . session('error')) }}"
+             x-data="{ show: true }" x-init="setTimeout(() => show = false, 7000)" x-show="show" x-transition>
+        @if(session('success'))
+            <div class="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
+                <p class="text-sm font-medium text-green-900 dark:text-green-200">{{ session('success') }}</p>
+            </div>
+        @endif
 
-    @if(session('error'))
-        <div class="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
-            <p class="text-sm font-medium text-red-900 dark:text-red-200">{{ session('error') }}</p>
+        @if(session('error'))
+            <div class="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+                <p class="text-sm font-medium text-red-900 dark:text-red-200">{{ session('error') }}</p>
+            </div>
+        @endif
         </div>
     @endif
 
