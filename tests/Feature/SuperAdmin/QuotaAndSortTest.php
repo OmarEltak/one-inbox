@@ -29,8 +29,18 @@ test('customers show the sign-up date and sort by it both ways', function () {
     $newTeam->update(['name' => 'New Co']);
 
     Livewire::test(Customers::class)
-        ->assertSee('Signed up '.now()->subDays(40)->format('M j, Y'))
+        ->assertSee('Signed up '.now()->subDays(40)->translatedFormat('j F Y'))
         ->assertSeeInOrder(['New Co', 'Old Co'])
         ->call('sortBy', 'oldest')
         ->assertSeeInOrder(['Old Co', 'New Co']);
+});
+
+test('customers page renders in Arabic', function () {
+    app()->setLocale('ar');
+    makeUserWithTeam();
+
+    Livewire::test(Customers::class)
+        ->assertSee('سجّل في')
+        ->assertSee('الأحدث أولًا')
+        ->assertDontSee('Sign-up date');
 });

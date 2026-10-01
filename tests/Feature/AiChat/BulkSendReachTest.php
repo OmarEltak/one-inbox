@@ -85,3 +85,12 @@ test('AI context spells out per-page reach for Messenger pages', function () {
     expect($context)->toContain("Brandk | facebook | 3 contacts, only 1 reachable now")
         ->toContain('2 outside Meta\'s 24h window');
 });
+
+test('confirmation summary is translated with the numbers filled in', function () {
+    app()->setLocale('ar');
+
+    $summary = ($this->call)('describeBulkMessage', ['page_id' => $this->page->id, 'message' => 'Sale'], $this->team->id);
+
+    expect($summary)->toContain('إرسال رسالة جماعية إلى 1 جهة اتصال (الصفحة: Brandk)')
+        ->toContain('⚠ 2 آخرون على ماسنجر/إنستجرام لن تصلهم الرسالة');
+});

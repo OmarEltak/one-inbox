@@ -50,6 +50,8 @@
     - **Publish flow:** commit → push → auto-deploy → SSH `php artisan db:seed --class='Database\\Seeders\\...' --force` (seeders do NOT auto-run). Then submit each new slug in Google Search Console URL Inspection to nudge indexing.
     - **Batch 17 (2026-08-06)** is the current reference batch. If you need a template, copy `database/seeders/AiSeoBlogSeederBatch17MetaFounderCluster.php` — it hits every rule above.
 
+12. **Every front-end edit must work in Arabic.** The app ships `en` + `ar` (`SetLocale::SUPPORTED`, RTL layout). Every user-visible string you add or change — Blade text, placeholders, `wire:confirm`, flash/validation messages, AI-chat suggestion prompts, confirm-bar sentences — goes through `__()` with placeholders (`__('Sent to :count contacts', ['count' => $n])`, never string interpolation) AND gets an entry in `lang/ar.json`. Use logical Tailwind classes (`text-start`, `ps-*`, `end-*`), `dir="auto"` on free-text inputs/bubbles, and `translatedFormat()` for dates. Run `tests/Unit/ArabicTranslationCoverageTest.php`; add any screen you fully translate to its list.
+
 If your task touches AI, messaging, connections, sales flow, or the sidebar — **grep the relevant ARCHITECTURE section** before writing code. Every pin above corresponds to a real bug shipped by a previous session that thought they were helping.
 
 ## Debugging discipline (mandatory)

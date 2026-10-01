@@ -200,7 +200,7 @@
                                     </flux:button>
                                     <flux:button
                                         wire:click="resetCampaignQuota({{ $team->id }})"
-                                        wire:confirm="Reset the campaign quota for {{ $team->name }}? They can create a full month of campaigns again from now."
+                                        wire:confirm="{{ __('Reset the campaign quota for :name? They can create a full month of campaigns again from now.', ['name' => $team->name]) }}"
                                         size="sm"
                                         variant="outline"
                                         icon="megaphone"
