@@ -2383,3 +2383,23 @@ creative direction). Awaiting Omar's steer.
 - Spin up staging.ot1-pro.com (Hetzner CX22 ≈ \$5/mo) so Task D scripts
   can capture real numbers
 - Comment queue worker expansion (§4 gap flagged 2026-09-29)
+
+---
+
+## 2026-10-01 · Instagram "connected but no messages" — restore Direct IG Login
+
+**Symptom:** user connected Instagram from `/connections` → zero DMs arrive. User confirmed the Meta app is still NOT approved (Standard Access) and that it "worked in the past".
+
+**Root cause (two stacked regressions, from git history + prior journal evidence):**
+1. `8c46719` (2026-09-27) removed the "Connect Direct (IG Login)" button. The only remaining "Connect via Meta" runs on the main app (1469090344742803) on Standard Access → Meta only sends webhooks for DMs from people with an app role. Real customer DMs never arrive (same outcome as Mishkah IG page 36 in April). Direct IG Login (sub-app "OT1 Direct Connect", `/api/webhooks/meta-ig`) is the path that received real DMs (2026-05-05, page 39).
+2. `6885287` (2026-09-06) changed `FacebookPlatform::IG_SUBSCRIBED_FIELDS` to `messages,comments`. Business Login tokens lack `instagram_business_manage_comments` → Meta 400s the whole `subscribed_apps` call ("Application does not have the capability", seen on IG page 22 on 2026-09-06) → `messages` never subscribed, callback still said "Connected".
+
+**Fix (`2e54e88`):** Direct IG Login back as primary IG button (Via Meta kept as outline secondary for managed onboarding, plus a hint line while unapproved); `IG_SUBSCRIBED_FIELDS = 'messages'`; `handleInstagramCallback` records `metadata.subscription_error = subscribe_failed` and the callback flashes an error instead of "Connected". Tests: `tests/Feature/Connections/InstagramDirectLoginTest.php` (3/4 fail on old code); fixed stale assertion in `ConciergeFramingTest` that was already red on main.
+
+**Deploy:** fast-forward push to `main` → GitHub Actions "Deploy to Production". Code + view only: no migration, no `.env` change.
+
+**Post-deploy (user):** on `/connections` click **Connect Direct (IG Login)** for the IG account (updates the same page row; no disconnect needed). Account must be an accepted Instagram Tester on the sub-app. Any IG account connected directly after 2026-09-06 needs one reconnect.
+
+**Rollback:** `git revert 2e54e88 && git push origin main`
+
+**Known, not fixed:** super-admin re-OAuth via Meta re-creates pages on the holding team → `Page::booted()` observer deactivates pages already reassigned to customers (managed onboarding). Separate fix.
