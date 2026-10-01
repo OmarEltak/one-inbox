@@ -81,18 +81,21 @@ class AdminChatContext
      * Recent customer messages across every chat, newest conversations first,
      * capped by a character budget so the prompt stays small.
      */
-    public function customerDigest(int $teamId, int $days = 30, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 12000): string
+    public function customerDigest(int $teamId, int $days = 30, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 12000, ?int $pageId = null): string
     {
         $since = now()->subDays($days);
+        $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;
+        $scope = $pageName ? " ON PAGE \"{$pageName}\"" : '';
 
         $base = Conversation::where('team_id', $teamId)
+            ->when($pageId, fn ($q) => $q->where('page_id', $pageId))
             ->where('sales_stage', '!=', Conversation::STAGE_SPAM)
             ->where('last_message_at', '>=', $since)
             ->whereHas('messages', fn ($q) => $q->where('direction', 'inbound'));
 
         $activeTotal = (clone $base)->count();
         if ($activeTotal === 0) {
-            return "=== CUSTOMER CONVERSATIONS (last {$days} days) ===\nNo customer messages in this period.";
+            return "=== CUSTOMER CONVERSATIONS{$scope} (last {$days} days) ===\nNo customer messages in this period.";
         }
 
         $conversations = $base->with(['contact:id,name,lead_status', 'page:id,name'])
@@ -137,9 +140,30 @@ class AdminChatContext
 
         $sampled = count($blocks);
 
-        return "=== CUSTOMER CONVERSATIONS (last {$days} days — {$sampled} most recent of {$activeTotal} active conversations; customer messages only, oldest→newest) ===\n"
+        return "=== CUSTOMER CONVERSATIONS{$scope} (last {$days} days — {$sampled} most recent of {$activeTotal} active conversations; customer messages only, oldest→newest) ===\n"
             . 'Use this to answer what customers want, ask about, complain about, and object to. Quote it as evidence.' . "\n"
             . implode("\n", $blocks);
+    }
+
+    /**
+     * Pages the operator named ("customers for mishkah", typo "brandak" →
+     * Brandk). The current message wins; earlier operator turns are only
+     * used when it names none (follow-ups like "and their complaints?").
+     *
+     * @return array<int, int>
+     */
+    public function mentionedPageIds(int $teamId, string $text, string $recentUserText = ''): array
+    {
+        $pages = \App\Models\Page::where('team_id', $teamId)->where('is_active', true)->get(['id', 'name']);
+
+        foreach ([$this->normalize($text), $this->normalize($recentUserText)] as $haystack) {
+            $ids = $pages->filter(fn ($p) => $this->matchScore((string) $p->name, $haystack) > 0)->pluck('id')->take(3)->all();
+            if ($ids !== []) {
+                return $ids;
+            }
+        }
+
+        return [];
     }
 
     private function contactBlock(Contact $contact): string
@@ -157,7 +181,7 @@ class AdminChatContext
         }
         $head .= " | {$conversation->platform}";
 
-        $messages = $conversation->messages()->orderByDesc('id')->limit(20)->get(['direction', 'sender_type', 'content', 'content_type', 'created_at'])->reverse();
+        $messages = $conversation->messages()->orderByDesc('id')->limit(15)->get(['direction', 'sender_type', 'content', 'content_type', 'created_at'])->reverse();
         $lastInbound = $messages->where('direction', 'inbound')->last()?->created_at;
 
         $reach = 'can be messaged';
@@ -178,7 +202,7 @@ class AdminChatContext
             $who = $m->direction === 'inbound' ? 'Customer' : ($m->sender_type === 'ai' ? 'AI' : 'Agent');
             $body = MediaPlaceholders::isPlaceholder($m->content)
                 ? '(sent ' . MediaPlaceholders::label($m->content_type, $m->content) . ')'
-                : $this->clip($m->content, 300);
+                : $this->clip($m->content, 250);
             $lines[] = "  {$who}: {$body}";
         }
 
@@ -201,13 +225,33 @@ class AdminChatContext
         }
 
         foreach (explode(' ', $normalized) as $token) {
-            if (mb_strlen($token) >= 3 && ! in_array($token, self::STOPWORDS, true) && $this->containsWord($haystack, $token)) {
+            if (mb_strlen($token) >= 3 && ! in_array($token, self::STOPWORDS, true)
+                && ($this->containsWord($haystack, $token) || $this->nearWord($haystack, $token))) {
                 return 1;
             }
         }
 
         return 0;
     }
+
+    /** One typo away ("brandak" → brandk, "wagdi" → wagdy), Latin names of 5+ letters only. */
+    private function nearWord(string $haystack, string $token): bool
+    {
+        if (strlen($token) < 5 || ! preg_match('/^[a-z0-9]+$/', $token)) {
+            return false;
+        }
+
+        foreach ($this->words[$haystack] ??= array_unique(explode(' ', $haystack)) as $word) {
+            if (abs(strlen($word) - strlen($token)) <= 1 && preg_match('/^[a-z0-9]+$/', $word) && levenshtein($word, $token) <= 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @var array<string, array<int, string>> haystack => words */
+    private array $words = [];
 
     private function containsWord(string $haystack, string $needle): bool
     {

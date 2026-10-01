@@ -153,7 +153,8 @@
                 @endforeach
 
                 {{-- Loading indicator --}}
-                <div wire:loading wire:target="sendMessage" class="flex justify-start gap-2">
+                {{-- .flex: plain wire:loading shows as inline-block, which stacked the dots under the avatar --}}
+                <div wire:loading.flex wire:target="sendMessage" class="justify-start gap-2">
                     <div class="mt-1 flex-shrink-0">
                         <div class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#10b981]">
                             <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

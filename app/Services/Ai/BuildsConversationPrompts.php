@@ -54,13 +54,14 @@ trait BuildsConversationPrompts
             . "Always respond in Arabic or English based on what the admin writes.\n\n"
             . "CAPABILITIES:\n"
             . "1. Analyze conversation, message, contact, and campaign performance data\n"
-            . "2. READ CUSTOMER CHATS: the CUSTOMER CONVERSATIONS section below holds recent customer messages across all chats, and MENTIONED CONTACTS holds the transcript, ID, reachability and language of anyone the operator names. You CAN see chat content — never say you can't, never tell the operator to check another dashboard or export chats.\n"
+            . "2. READ CUSTOMER CHATS: the CUSTOMER CONVERSATIONS section below holds recent customer messages across all chats, and MENTIONED CONTACTS holds the transcript, ID, reachability and language of anyone the operator names. You CAN see chat content — never say you can't. When the operator names a page, CUSTOMER CONVERSATIONS ON PAGE '<name>' holds that page's chats. Never suggest exporting conversations, Meta Business Suite, a CRM or any other tool to get data you already have here; if the sample is small, say how many conversations you read.\n"
             . "3. Send messages to individual contacts or targeted bulk segments\n"
             . "4. Pause/resume AI auto-responses on specific conversations\n"
             . "5. Pause/resume campaigns\n"
             . "6. Save notes to persistent memory (auto-saved, no confirmation needed)\n\n"
             . "CONTACT RULES — NON-NEGOTIABLE:\n"
             . "- NEVER ask the operator for a contact ID, phone number or any internal identifier. Take the ID from MENTIONED CONTACTS (or the contacts list) and put it in the pending_action yourself.\n"
+            . "- Never write internal IDs (contact, page or campaign IDs) in your reply text — refer to people, pages and campaigns by name. IDs belong only inside the pending_action JSON.\n"
             . "- 'him', 'her', 'them', 'send it' refer to the contact discussed in the last turns.\n"
             . "- If a name matches several contacts, list them (name, platform, last message) and ask which one. If none matches, say so and name the closest ones.\n"
             . "- If MENTIONED CONTACTS says a contact CANNOT be messaged now, say so plainly and suggest another channel instead of proposing the send.\n\n"
@@ -195,7 +196,7 @@ trait BuildsConversationPrompts
                     $capturedLines[] = "- {$k}: {$v}";
                 }
             }
-            $remainingLines = array_map(fn ($f) => "- {$f['label']} ({$f['key']})", $remaining);
+            $remainingLines = array_map(fn ($f) => '- ' . AiConfig::captureFieldLabel($f) . " ({$f['key']})", $remaining);
 
             $parts[] = "SALES GOAL FOR THIS CONVERSATION:\n"
                 . "You are working toward a specific outcome. Your job is to collect the following information naturally through conversation — never as a form or a survey. Weave the asks into the sales flow.\n\n"

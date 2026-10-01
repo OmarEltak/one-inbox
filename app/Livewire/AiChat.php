@@ -88,6 +88,21 @@ class AiChat extends Component
         $this->sendMessage();
     }
 
+    /**
+     * Operators think in names: drop "(ID: 11)", ", ID: 11", "contact ID:123"
+     * the model copies from its context into prose. Action JSON is already
+     * stripped by now, so this never touches what gets executed. A bare
+     * "order ID: 5531" in a customer quote is left alone.
+     */
+    protected static function stripInternalIds(string $text): string
+    {
+        $text = preg_replace('/\s*\(\s*(?:(?:page|contact|campaign)[\s_]*)?id\s*[:#=]?\s*\d+\s*\)/iu', '', $text) ?? $text;
+        $text = preg_replace('/,\s*(?:(?:page|contact|campaign)[\s_]*)?id\s*[:#=]\s*\d+/iu', '', $text) ?? $text;
+        $text = preg_replace('/\b(?:page|contact|campaign)[\s_]*id\s*[:#=]?\s*\d+/iu', '', $text) ?? $text;
+
+        return trim(preg_replace('/[ \t]{2,}/', ' ', $text) ?? $text);
+    }
+
     protected static function isConfirmation(string $text): bool
     {
         return (bool) preg_match(
@@ -153,16 +168,32 @@ class AiChat extends Component
         // him…" resolves), plus a digest of recent customer messages so insight
         // questions are answered from real quotes.
         $chatContext = app(AdminChatContext::class);
-        $recentTalk = collect($this->messages)->slice(-6, 5)->pluck('content')->implode("\n");
+        $recent = collect($this->messages)->slice(-6, 5);
+        $recentTalk = $recent->pluck('content')->implode("\n");
+        $recentUserTalk = $recent->where('role', 'user')->pluck('content')->implode("\n");
+
+        // A named page ("last 30 customers on Mishkah") gets that page's own
+        // chats; otherwise the digest spans every page.
+        $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
+        $digest = $pageIds
+            ? collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
+                $team->id, charBudget: intdiv(14000, count($pageIds)), pageId: $id,
+            ))->implode("\n\n")
+            : $chatContext->customerDigest($team->id);
+
         $analyticsContext = $this->buildAnalyticsContext($team->id)
             . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
-            . "\n\n" . $chatContext->customerDigest($team->id);
+            . "\n\n" . $digest;
 
+        // Last 12 turns, each clipped: the page loads 60 past messages and the
+        // whole thread used to be re-sent every time, growing until the model
+        // rejected the request ("AI service is temporarily unavailable").
         $history = collect($this->messages)
             ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
+            ->slice(-12)
             ->map(fn ($m) => [
                 'role' => $m['role'] === 'user' ? 'user' : 'model',
-                'content' => $m['content'],
+                'content' => Str::limit((string) $m['content'], 2000),
             ])
             ->values()
             ->all();
@@ -179,6 +210,8 @@ class AiChat extends Component
         if ($actionResult) {
             $response .= "\n\n" . $actionResult;
         }
+
+        $response = self::stripInternalIds($response);
 
         // A reply that was only an action block used to render as an empty bubble.
         if (trim($response) === '') {
@@ -791,6 +824,7 @@ class AiChat extends Component
         $lines[] = "\n--- Campaigns (ID, Name, Type, Status, Sent/Total, Replies) ---";
         $campaigns = Campaign::where('team_id', $teamId)
             ->orderByDesc('created_at')
+            ->limit(20)
             ->get();
         $lines[] = 'Total campaigns: ' . $campaigns->count();
         foreach ($campaigns as $campaign) {
