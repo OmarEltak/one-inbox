@@ -86,3 +86,20 @@ test('assistant replies render Markdown with raw HTML stripped', function () {
         ->assertSeeHtml('<li>one</li>')
         ->assertDontSeeHtml('<script>alert(1)</script>');
 });
+
+test('chats imported at connect time (preview only, no messages) still reach the digest', function () {
+    $page = makeEmailPage($this->team, 'mishkah@example.com');
+    $page->update(['platform' => 'facebook', 'name' => 'Mishkah University']);
+    $contact = Contact::create(['team_id' => $this->team->id, 'platform' => 'facebook', 'platform_user_id' => 'm1', 'name' => 'Sara']);
+    Conversation::create([
+        'team_id' => $this->team->id, 'page_id' => $page->id, 'contact_id' => $contact->id, 'platform' => 'facebook',
+        'platform_conversation_id' => 'm1', 'status' => 'open', 'last_message_at' => now()->subMonths(3),
+        'last_message_preview' => 'عايزة اعرف سعر الدبلومة',
+    ]);
+
+    $digest = app(AdminChatContext::class)->customerDigest($this->team->id, pageId: $page->id);
+
+    expect($digest)->toContain('ON PAGE "Mishkah University"')
+        ->toContain('(last-message preview, sender unknown) عايزة اعرف سعر الدبلومة')
+        ->toContain('only their last-message preview is stored');
+});
