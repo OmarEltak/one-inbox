@@ -31,7 +31,7 @@ Container sessions cannot reach ot1-pro.com or SSH; ask the user for `/super-adm
 - Inbox: `[Sticker]`, `[Reaction]`, `[voice note]`… placeholders render as icon + translated label (stickers are still not downloaded as images — `ProcessIncomingMessage` stores them as text; downloading the webp via Wuzapi is open).
 
 ## Still open / not done
-- Sticker images are not downloaded (Wuzapi `stickerMessage` → text placeholder).
+- WhatsApp (Wuzapi) stickers are now downloaded as images (PR #83, image download path, no vision call). Stickers received BEFORE #83 stay as the "😊 Sticker" label. Facebook/IG stickers unchanged. Not verified live against Wuzapi from the container — if a new sticker still shows the label, check `Wuzapi media download failed` warnings.
 - **Root cause of "Sorry, I encountered an error" (exception inside `chatWithAdmin`) is unconfirmed** — logging added; read the next occurrence.
 - `Analytics.php:321` query (`SELECT sender_type, …`) hits MySQL max_execution_time repeatedly — pre-existing, not touched.
 - Page "Omar Eltak" conversation fetch fails with OAuthException 190 (token lacks page permissions) — reconnect that page.
