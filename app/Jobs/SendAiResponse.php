@@ -247,6 +247,16 @@ class SendAiResponse implements ShouldQueue
                 return;
             }
 
+            // Never send attachment placeholders as text. History narrates
+            // media, but weak models still echo "[image]" / "[voice note]"
+            // (a customer got a bubble reading exactly that). Strip them; if
+            // nothing real is left, stay silent per ARCHITECTURE §12.
+            $responseText = \App\Services\Ai\MediaPlaceholders::strip($responseText);
+            if ($responseText === '') {
+                Log::info("AI reply for conversation {$conversation->id} was only media placeholders — skipped");
+                return;
+            }
+
             // Wait out the REMAINING typing-indicator budget (if any) BEFORE
             // storing/sending, so the customer sees the reply at ~desiredDelaySec
             // after their message — same UX as before, without stacking the AI

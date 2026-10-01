@@ -272,14 +272,12 @@ trait BuildsConversationPrompts
             ->reverse();
 
         return $messages->map(function (Message $msg) {
-            $content = $msg->content ?? match ($msg->content_type) {
-                'image'    => '[Image]',
-                'reaction' => '[Reaction]',
-                'video'    => '[Video]',
-                'audio'    => '[Audio/Voice message]',
-                'file'     => '[Document/File]',
-                default    => '[Media]',
-            };
+            // Bare "[image]" / "[voice note]" placeholders get narrated in
+            // words — verbatim, weak models echo them back as the reply.
+            $isPlaceholder = MediaPlaceholders::isPlaceholder($msg->content);
+            $content = $isPlaceholder
+                ? MediaPlaceholders::narrate($msg->content_type, $msg->content, $msg->isInbound())
+                : $msg->content;
 
             // Inject cached vision description for image messages so the AI
             // can actually reason about what the customer sent. Without this,
@@ -289,9 +287,7 @@ trait BuildsConversationPrompts
             if ($msg->mediaAsset && $msg->mediaAsset->kind === 'image') {
                 $desc = trim($msg->mediaAsset->metadata['ai_description'] ?? '');
                 if ($desc !== '') {
-                    $caption = ($content && ! in_array($content, ['[image]', '[Image]'], true))
-                        ? "\nCaption / تعليق: {$content}"
-                        : '';
+                    $caption = $isPlaceholder ? '' : "\nCaption / تعليق: {$content}";
                     $content = "[صورة العميل | Customer image] Vision description (respond in the customer's language): {$desc}{$caption}";
                 }
             }
