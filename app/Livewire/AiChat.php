@@ -68,12 +68,12 @@ class AiChat extends Component
     public function suggestions(): array
     {
         return [
-            ['label' => __('What customers want'), 'prompt' => 'Read my customer chats from the last 30 days. What do customers ask for most, and which products or services are most requested? Give counts and real quotes with names.'],
-            ['label' => __('Top problems & objections'), 'prompt' => 'What are the biggest complaints, problems and objections in my chats? For each: how often it comes up, a real quote, and the exact reply I should use.'],
-            ['label' => __('Who is ready to buy'), 'prompt' => 'Which contacts are closest to buying right now? List the top 5 with the reason (quote their message) and the exact message I should send each, in their language.'],
-            ['label' => __('Win back quiet leads'), 'prompt' => 'Find interested leads who went quiet in the last 2 weeks. Write a short win-back message for them in the language and dialect they use, and tell me who can be reached on which channel.'],
-            ['label' => __('Why deals are lost'), 'prompt' => 'Look at conversations that did not convert. Why did customers drop off? Give the top reasons with real examples and what to change in my offer or AI replies.'],
-            ['label' => __('This week vs last week'), 'prompt' => 'How did this week go compared to last week (conversations, messages, AI vs human replies, new contacts)? Give 3 concrete actions to improve next week.'],
+            ['label' => __('What customers want'), 'prompt' => __('Read my customer chats from the last 30 days. What do customers ask for most, and which products or services are most requested? Give counts and real quotes with names.')],
+            ['label' => __('Top problems & objections'), 'prompt' => __('What are the biggest complaints, problems and objections in my chats? For each: how often it comes up, a real quote, and the exact reply I should use.')],
+            ['label' => __('Who is ready to buy'), 'prompt' => __('Which contacts are closest to buying right now? List the top 5 with the reason (quote their message) and the exact message I should send each, in their language.')],
+            ['label' => __('Win back quiet leads'), 'prompt' => __('Find interested leads who went quiet in the last 2 weeks. Write a short win-back message for them in the language and dialect they use, and tell me who can be reached on which channel.')],
+            ['label' => __('Why deals are lost'), 'prompt' => __('Look at conversations that did not convert. Why did customers drop off? Give the top reasons with real examples and what to change in my offer or AI replies.')],
+            ['label' => __('This week vs last week'), 'prompt' => __('How did this week go compared to last week (conversations, messages, AI vs human replies, new contacts)? Give 3 concrete actions to improve next week.')],
         ];
     }
 
@@ -216,8 +216,8 @@ class AiChat extends Component
         // A reply that was only an action block used to render as an empty bubble.
         if (trim($response) === '') {
             $response = $this->pendingAction
-                ? 'Ready — review the action below and confirm.'
-                : 'I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.';
+                ? __('Ready — review the action below and confirm.')
+                : __('I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.');
         }
 
         AiCommand::create([
@@ -255,13 +255,14 @@ class AiChat extends Component
         $this->pendingAction = null;
         $this->pendingActionSummary = '';
 
-        $this->messages[] = ['role' => 'assistant', 'content' => "Done: {$result}"];
+        $done = __('Done: :result', ['result' => $result]);
+        $this->messages[] = ['role' => 'assistant', 'content' => $done];
 
         // Persist the real outcome ("queued to 2, skipped 96…") on the turn
         // that proposed it, so a reload shows what happened instead of only
         // the AI's pre-confirmation draft.
         $lastCommand = AiCommand::where('team_id', $team->id)->where('user_id', Auth::id())->latest('id')->first();
-        $lastCommand?->update(['response' => trim($lastCommand->response . "\n\nDone: {$result}")]);
+        $lastCommand?->update(['response' => trim($lastCommand->response . "\n\n" . $done)]);
 
         $this->dispatch('message-sent');
     }
@@ -271,7 +272,7 @@ class AiChat extends Component
         $this->pendingAction = null;
         $this->pendingActionSummary = '';
 
-        $this->messages[] = ['role' => 'assistant', 'content' => 'Action cancelled.'];
+        $this->messages[] = ['role' => 'assistant', 'content' => __('Action cancelled.')];
         $this->dispatch('message-sent');
     }
 
@@ -351,14 +352,14 @@ class AiChat extends Component
     {
         $contactId = $action['contact_id'] ?? $this->contactIdFromName($action, $teamId);
         $text = $action['message'] ?? '';
-        $name = 'Unknown contact';
+        $name = __('Unknown contact');
 
         if ($contactId) {
             $contact = Contact::where('team_id', $teamId)->find($contactId);
-            $name = $contact?->name ?? "Contact #{$contactId}";
+            $name = $contact?->name ?? __('Contact #:id', ['id' => $contactId]);
         }
 
-        return "Send message to {$name}: \"{$text}\"";
+        return __('Send message to :name: ":text"', ['name' => $name, 'text' => $text]);
     }
 
     protected function describeBulkMessage(array $action, int $teamId): string
@@ -373,16 +374,16 @@ class AiChat extends Component
 
         $pageName = $pageId ? Page::where('team_id', $teamId)->find($pageId)?->name : null;
 
-        $filter = $pageName ? "page: {$pageName}" : 'all pages';
+        $filter = $pageName ? __('page: :name', ['name' => $pageName]) : __('all pages');
         if ($minScore !== null) {
-            $filter .= ", score ≥ {$minScore}";
+            $filter .= ', ' . __('score ≥ :score', ['score' => $minScore]);
         } elseif ($status) {
-            $filter .= ", status: {$status}";
+            $filter .= ', ' . __('status: :status', ['status' => $status]);
         }
 
         if ($scheduledAtRaw) {
             try {
-                $when = \Carbon\Carbon::parse($scheduledAtRaw)->format('M j, Y g:ia');
+                $when = \Carbon\Carbon::parse($scheduledAtRaw)->translatedFormat('M j, Y g:ia');
             } catch (\Throwable $e) {
                 $when = $scheduledAtRaw; // the executor surfaces the parse error on confirm
             }
@@ -390,17 +391,17 @@ class AiChat extends Component
             // The Meta window is re-checked at the scheduled time, so quote the
             // full audience and say that the filter happens then.
             $total = $eligible->count() + $stale;
-            $sentence = "Schedule bulk message to up to {$total} contacts ({$filter}) [{$when}]: \"{$text}\"";
+            $sentence = __('Schedule bulk message to up to :count contacts (:filter) [:when]: ":text"', ['count' => $total, 'filter' => $filter, 'when' => $when, 'text' => $text]);
             if ($stale > 0 || $eligible->contains(fn ($c) => in_array($c->platform, self::META_WINDOW_PLATFORMS, true))) {
-                $sentence .= '  ⚠ Messenger/Instagram contacts who have not messaged within 24h of the send time will be skipped (Meta rule).';
+                $sentence .= '  ' . __('⚠ Messenger/Instagram contacts who have not messaged within 24h of the send time will be skipped (Meta rule).');
             }
 
             return $sentence;
         }
 
-        $sentence = "Send bulk message to {$eligible->count()} contacts ({$filter}) [now]: \"{$text}\"";
+        $sentence = __('Send bulk message to :count contacts (:filter) [now]: ":text"', ['count' => $eligible->count(), 'filter' => $filter, 'text' => $text]);
         if ($stale > 0) {
-            $sentence .= "  ⚠ {$stale} more on Messenger/Instagram will NOT receive it — they have not messaged within the last 24 hours and Meta blocks sends outside that window.";
+            $sentence .= '  ' . __('⚠ :count more on Messenger/Instagram will NOT receive it — they have not messaged within the last 24 hours and Meta blocks sends outside that window.', ['count' => $stale]);
         }
 
         return $sentence;
@@ -464,12 +465,16 @@ class AiChat extends Component
 
         if ($contactId) {
             $contact = Contact::where('team_id', $teamId)->find($contactId);
-            $name = $contact?->name ?? "Contact #{$contactId}";
+            $name = $contact?->name ?? __('Contact #:id', ['id' => $contactId]);
 
-            return ucfirst($mode) . " AI responses for {$name}";
+            return $mode === 'pause'
+                ? __('Pause AI responses for :name', ['name' => $name])
+                : __('Resume AI responses for :name', ['name' => $name]);
         }
 
-        return ucfirst($mode) . ' AI responses for all conversations';
+        return $mode === 'pause'
+            ? __('Pause AI responses for all conversations')
+            : __('Resume AI responses for all conversations');
     }
 
     protected function describeCampaignToggle(array $action, int $teamId, string $mode): string
@@ -478,12 +483,14 @@ class AiChat extends Component
 
         if ($campaignId) {
             $campaign = Campaign::where('team_id', $teamId)->find($campaignId);
-            $name = $campaign?->name ?? "Campaign #{$campaignId}";
+            $name = $campaign?->name ?? __('Campaign #:id', ['id' => $campaignId]);
 
-            return ucfirst($mode) . " campaign: {$name}";
+            return $mode === 'pause'
+                ? __('Pause campaign: :name', ['name' => $name])
+                : __('Resume campaign: :name', ['name' => $name]);
         }
 
-        return ucfirst($mode) . ' campaign (unknown ID)';
+        return $mode === 'pause' ? __('Pause campaign (unknown ID)') : __('Resume campaign (unknown ID)');
     }
 
     protected function runAction(array $action, int $teamId): string
@@ -601,7 +608,7 @@ class AiChat extends Component
         ['eligible' => $eligible, 'stale' => $skippedStale] = $this->resolveBulkTargets($action, $teamId);
 
         if ($eligible->isEmpty() && $skippedStale > 0) {
-            return "Nothing sent: all {$skippedStale} matching contacts are on Messenger/Instagram and none has messaged within the last 24 hours. Meta blocks sends outside that window (error 2018278) — reach them on WhatsApp / Telegram / email instead, or wait until they message the Page.";
+            return __('Nothing sent: all :count matching contacts are on Messenger/Instagram and none has messaged within the last 24 hours. Meta blocks sends outside that window (error 2018278) — reach them on WhatsApp / Telegram / email instead, or wait until they message the Page.', ['count' => $skippedStale]);
         }
 
         $sent = 0;
@@ -616,14 +623,14 @@ class AiChat extends Component
             }
         }
 
-        $parts = ["Queued message to {$sent} contacts."];
+        $parts = [__('Queued message to :count contacts.', ['count' => $sent])];
         if ($skippedStale > 0) {
-            $parts[] = "Skipped {$skippedStale} on Messenger/Instagram because Meta will not accept messages to contacts who have not replied within the last 24 hours — this is Meta's rule, not ours, and sends outside it come back with error 2018278 ('outside the allowed time frame'). WhatsApp / Telegram / email do not have this limit; broadcasting to those platforms reaches everyone.";
+            $parts[] = __('Skipped :count on Messenger/Instagram because Meta will not accept messages to contacts who have not replied within the last 24 hours — this is Meta\'s rule, not ours, and sends outside it come back with error 2018278 (\'outside the allowed time frame\'). WhatsApp / Telegram / email do not have this limit; broadcasting to those platforms reaches everyone.', ['count' => $skippedStale]);
         }
         if ($failed > 0) {
-            $parts[] = "{$failed} failed to queue.";
+            $parts[] = __(':count failed to queue.', ['count' => $failed]);
         }
-        $parts[] = "Note: 'queued' means the send job was dispatched to our queue. Actual delivery is confirmed on the message row's platform_message_id — check the inbox for green checkmarks.";
+        $parts[] = __('Note: \'queued\' means the send job was dispatched to our queue. Actual delivery is confirmed on the message row\'s platform_message_id — check the inbox for green checkmarks.');
 
         return implode(' ', $parts);
     }

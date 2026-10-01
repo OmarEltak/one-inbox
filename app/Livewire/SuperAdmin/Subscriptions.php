@@ -190,7 +190,7 @@ class Subscriptions extends Component
 
         $used = $team->campaignsCreatedThisMonth();
         $team->update(['settings' => array_merge((array) $team->settings, ['campaign_quota_reset_at' => now()->toIso8601String()])]);
-        session()->flash('success', "Reset campaign quota for {$team->name} (was {$used}/{$team->monthlyCampaignLimit()}).");
+        session()->flash('success', __('Reset campaign quota for :team (was :used/:limit).', ['team' => $team->name, 'used' => $used, 'limit' => $team->monthlyCampaignLimit()]));
         unset($this->teams);
     }
 

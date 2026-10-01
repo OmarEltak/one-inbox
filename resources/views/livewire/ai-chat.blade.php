@@ -55,7 +55,7 @@
         <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
             <button @click="scrollToBottom(); showNewMessageBadge = false"
                     class="rounded-full bg-[#10b981] px-4 py-1.5 text-xs font-medium text-white shadow-lg cursor-pointer hover:bg-emerald-500">
-                New messages
+                {{ __('New messages') }}
             </button>
         </div>
 
@@ -77,7 +77,7 @@
                 </span>
 
                 {{-- Welcome message box --}}
-                <div class="w-full rounded-xl aio-card p-5 mb-8 text-left">
+                <div class="w-full rounded-xl aio-card p-5 mb-8 text-start">
                     <p class="text-sm text-zinc-700 font-medium mb-3">{{ __('I can help you with:') }}</p>
                     <ul class="space-y-2 text-sm text-zinc-500">
                         <li class="flex items-center gap-2">
@@ -109,7 +109,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                     @foreach($this->suggestions() as $i => $suggestion)
                         <button type="button" wire:click="useSuggestion({{ $i }})" wire:loading.attr="disabled"
-                                class="rounded-xl aio-card p-3 text-left hover:border-[#10b981] transition-colors cursor-pointer">
+                                class="rounded-xl aio-card p-3 text-start hover:border-[#10b981] transition-colors cursor-pointer">
                             <p class="text-sm font-medium text-zinc-800">{{ $suggestion['label'] }}</p>
                             <p class="mt-0.5 text-xs text-zinc-600 line-clamp-2">{{ $suggestion['prompt'] }}</p>
                         </button>
@@ -121,7 +121,7 @@
                 @foreach($messages as $msg)
                     @if($msg['role'] === 'user')
                         <div class="flex justify-end">
-                            <div class="max-w-[80%] rounded-2xl rounded-br-md bg-[#10b981] px-4 py-2.5 text-sm text-white">
+                            <div class="max-w-[80%] rounded-2xl rounded-br-md bg-[#10b981] px-4 py-2.5 text-sm text-white" dir="auto">
                                 @if(! empty($msg['media_url']))
                                     @if(str_starts_with($msg['media_type'] ?? '', 'image/'))
                                         <img src="{{ $msg['media_url'] }}" alt="Shared image" class="max-w-full rounded-lg mb-1 cursor-pointer" onclick="window.open(this.src, '_blank')" loading="lazy" />
@@ -250,6 +250,7 @@
                     <flux:textarea
                         wire:model="message"
                         placeholder="{{ __('Ask about your analytics...') }}"
+                        dir="auto"
                         autocomplete="off"
                         wire:loading.attr="disabled"
                         rows="1"

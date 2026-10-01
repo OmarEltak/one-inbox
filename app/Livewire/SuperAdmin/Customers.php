@@ -112,11 +112,11 @@ class Customers extends Component
     public function connectionType(Page $page): string
     {
         return match ($page->platform) {
-            'whatsapp'  => ! empty($page->connectedAccount?->metadata['gateway_mode']) ? 'WhatsApp QR' : 'WhatsApp Cloud API',
-            'instagram' => ($page->metadata['auth_type'] ?? null) === 'instagram_business' ? 'Instagram (Direct login)' : 'Instagram (via Meta)',
-            'facebook'  => 'Messenger',
-            'telegram'  => 'Telegram',
-            'email'     => 'Email',
+            'whatsapp'  => ! empty($page->connectedAccount?->metadata['gateway_mode']) ? __('WhatsApp QR') : __('WhatsApp Cloud API'),
+            'instagram' => ($page->metadata['auth_type'] ?? null) === 'instagram_business' ? __('Instagram (Direct login)') : __('Instagram (via Meta)'),
+            'facebook'  => __('Messenger'),
+            'telegram'  => __('Telegram'),
+            'email'     => __('Email'),
             default     => ucfirst((string) $page->platform),
         };
     }

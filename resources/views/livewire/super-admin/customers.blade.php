@@ -83,7 +83,7 @@
                             @endif
                             @if($signedUp)
                                 <p class="mt-0.5 text-xs text-zinc-700">
-                                    {{ __('Signed up') }} {{ $signedUp->format('M j, Y') }} ({{ $signedUp->diffForHumans() }})
+                                    {{ __('Signed up') }} {{ $signedUp->translatedFormat('j F Y') }} ({{ $signedUp->diffForHumans() }})
                                 </p>
                             @endif
                         </div>
@@ -103,7 +103,7 @@
                             @endif
                             <flux:button
                                 wire:click="deleteCustomer({{ $team->id }})"
-                                wire:confirm="Delete customer '{{ addslashes($team->name) }}' and its owner? This cannot be undone."
+                                wire:confirm="{{ __('Delete customer :name and its owner? This cannot be undone.', ['name' => $team->name]) }}"
                                 size="sm"
                                 variant="outline"
                                 icon="trash"
