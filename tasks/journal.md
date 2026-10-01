@@ -2403,3 +2403,18 @@ creative direction). Awaiting Omar's steer.
 **Rollback:** `git revert 2e54e88 && git push origin main`
 
 **Known, not fixed:** super-admin re-OAuth via Meta re-creates pages on the holding team → `Page::booted()` observer deactivates pages already reassigned to customers (managed onboarding). Separate fix.
+
+---
+
+## 2026-10-01 (later) · IG Login callback hardening + inbox contrast pass
+
+**Shipped (each fast-forwarded to `main`, deploys #393–#395 green):**
+- `22f0779` — `instagramCallback` no longer TypeErrors on a redirect without `code` (`exchangeInstagramCode(null)`); handles `error` / `error_code` / missing code like `facebookCallback` does.
+- `8a52998` — when Instagram sends neither `code` nor an error field, the flash now lists the params it DID send (minus `code`, Blade-escaped) so the cause is visible without SSH. Full query also logged: `grep 'Instagram OAuth error or missing code' storage/logs/laravel*.log`.
+- `c9581ad` — inbox contrast-guardrails pass, light theme only (user rejected restoring the old dark rows). Real-browser audit (computed colours, alpha-blended bg): 28 inbox WCAG failures → 0. Root cause: `2a521f7` removed `@fluxAppearance`, so `!text-white` rows/pills designed against `dark:bg-*` rendered white-on-light.
+
+**Open:**
+- IG Login for the OT1 business account returns to the callback with no `code` and no error (personal account, an accepted Instagram Tester, connects fine). Next attempt's flash shows what Instagram sent. Likely the OT1 IG account lacks an accepted Instagram Tester role on "OT1 Direct Connect" (Standard Access) — unconfirmed.
+- User reports 500 on "Mark as Lost/Converted". NOT reproducible locally (SQLite, with score-history open, repeated clicks → all 200). Needs the prod exception: `grep -h 'production.ERROR' storage/logs/laravel*.log | tail -5`.
+
+**Rollback:** `git revert c9581ad 8a52998 22f0779 && git push origin main`
