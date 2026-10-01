@@ -46,7 +46,9 @@ proxy). Don't stall on SSH commands — ask the user to open, as a super-admin:
 https://ot1-pro.com/super-admin/pages/{pageId}/diagnose
 ```
 
-(`pageId` is the `?pageId=` in the inbox URL.) Read-only JSON, no tokens/secrets
+(`pageId` is the `?pageId=` in the inbox URL.) For any **500**, have them reproduce it and
+open `https://ot1-pro.com/super-admin/errors` (newest `laravel.log` errors: message,
+`thrown_at`, first app frame). Both are read-only JSON, no tokens/secrets
 (`app/Http/Controllers/SuperAdmin/PageDiagnosticController.php`). Ask them to send a fresh
 DM ~30 s before opening it. Then read it in this order:
 
@@ -71,10 +73,10 @@ to a test customer. 30 seconds with the report vs. an hour of theorising.
 ## 3. Live test protocol (do this before declaring a channel "works")
 
 1. **Record the sender.** Note whether the sending account has a role on the Meta app
-   (admin/developer/tester). On an unapproved app Meta's docs say Standard Access only
-   delivers notifications *from* role users — so a DM from your own (admin) account proves
-   nothing about real customers. Test with a role account AND a no-role account and
-   write down which one you used.
+   (admin/developer/tester). On Standard Access (unapproved) Meta only delivers DMs *from*
+   role users. Confirmed for IG via Meta on 2026-10-01. So a DM from your own (admin)
+   account proves nothing about real customers. Test with a role account AND a no-role
+   account and write down which one you used.
 2. Send the DM; open the diagnostic; confirm the webhook row + conversation (§2).
 3. Open the inbox **as the page's team** and check the conversation renders.
 4. Reply from the inbox → customer receives it → an echo row arrives (`is_echo:true`) and
@@ -149,9 +151,10 @@ Journal every prod change (`ot1-pro-prod-ops` skill).
 
 | Issue | Status (2026-10-01) |
 |---|---|
-| Are via-Meta IG DMs from **no-role** senders delivered? | Delivery proven for page 22, sender's role not recorded — verify per §3.1, then fix the IG card hint text accordingly |
+| Are via-Meta IG DMs from **no-role** senders delivered? | **Answered 2026-10-01: NO** on Standard Access (admin's DMs arrive, a stranger's produce no webhook). Needs App Review → Advanced Access for `instagram_manage_messages` |
+| Does Direct IG Login deliver DMs from no-role senders? | April evidence says yes (amdo7a, tester invite pending); re-verify with §3 and record |
 | Direct IG Login for `ot1.pro` returns to callback with no `code`, no error | Unexplained; flash now lists received params — get them |
-| "Mark as Lost/Converted" → 500 | Not reproducible locally; need `production.ERROR` log line |
+| "Mark as Lost/Converted" → 500, and `/inbox?pageId=22` → 500 | Not reproducible locally; read `/super-admin/errors` right after reproducing |
 | Super-admin re-OAuth steals assigned pages | Code-reading only; needs a test + fix |
 | `app_subscriptions` for the Instagram app | Not queryable with our creds (OAuthException 190) — check in App Dashboard |
 

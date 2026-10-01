@@ -22,10 +22,13 @@ table. Almost every IG bug in this repo came from mixing them up. Identify the p
 **Verified 2026-10-01 (page 22, `ot1.pro`, app NOT approved):** DMs delivered as webhooks,
 routed, stored; history backfilled (21 messages); survives reassignment to a customer
 team. Token scopes include `instagram_manage_messages` targeting the IG id.
-**Not yet verified:** whether DMs from senders with **no app role** are delivered on
-Standard Access — record the sender's role on the next test (SKILL §3.1). The April 2026
-"Mishkah IG gets nothing via Meta" conclusion was never measured with the diagnostic and
-is contradicted by page 22 — treat it as unproven.
+**Verified 2026-10-01 (user test, app NOT approved):** only DMs **from accounts with a role
+on the app** (the admin's own account) are delivered on this path. A DM from an ordinary
+person to `ot1.pro` produced **no webhook at all**, although the page token carries
+`instagram_manage_messages`. A granted scope is not an access level: Standard Access limits
+delivery to app-role users. **Fix = App Review → Advanced Access for
+`instagram_manage_messages`.** No code change can work around it. (The April "Mishkah gets
+nothing" observation was the same effect.)
 
 ## Path B — "Connect Direct (IG Login)" (Instagram API with Instagram Login)
 
