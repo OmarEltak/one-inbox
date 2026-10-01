@@ -181,7 +181,13 @@ class ConnectionController extends Controller
             $team?->clearActivePagesCache();
             if ($team) $this->maybePromptAiSetup($team);
 
-            $igCount = $account->pages()->where('platform', 'instagram')->count();
+            $igPages = $account->pages()->where('platform', 'instagram')->get();
+            $igCount = $igPages->count();
+
+            if ($igPages->contains(fn ($p) => isset($p->metadata['subscription_error']))) {
+                return redirect()->route('connections.index')
+                    ->with('error', 'Instagram connected, but Meta refused the message subscription — DMs will not arrive. Please try connecting again.');
+            }
 
             return redirect()->route('connections.index')
                 ->with('success', "Connected Instagram: found {$igCount} account(s).")

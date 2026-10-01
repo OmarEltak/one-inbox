@@ -68,7 +68,7 @@ it('shows the direct Facebook OAuth button when META_APP_VERIFIED is true', func
     $component
         ->assertSeeHtml(route('connections.facebook.redirect'))
         ->assertSeeHtml(route('connections.instagram-via-facebook.redirect'))
-        ->assertSee('Or request concierge connection');
+        ->assertSeeHtml(route('connections.instagram.redirect'));
 });
 
 it('treats super-admin users as verified regardless of META_APP_VERIFIED', function () {

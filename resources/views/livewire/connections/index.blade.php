@@ -302,11 +302,21 @@
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
-                    {{-- Single-CTA per Omar's ask. Direct IG-Login + concierge escape hatch
-                         were removed — Meta path is the correct default; support handles edge cases. --}}
-                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="primary" size="sm" class="w-full">
+                    {{-- Direct IG Login MUST stay while the main Meta app lacks Advanced Access.
+                         "Via Meta" (FB Login, main app) on Standard Access only gets webhooks for
+                         DMs from people with an app role — real customer DMs never arrive. Direct
+                         IG Login (Instagram sub-app, /api/webhooks/meta-ig) does receive them.
+                         Removing it on 2026-09-27 (8c46719) is why new IG connections went silent.
+                         Via Meta stays for managed onboarding of customer pages. --}}
+                    <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="primary" size="sm" class="w-full">
+                        {{ $instagramAccounts->isNotEmpty() ? __('Add Direct (IG Login)') : __('Connect Direct (IG Login)') }}
+                    </flux:button>
+                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="outline" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? __('Add via Meta') : __('Connect via Meta') }}
                     </flux:button>
+                    @unless(config('services.meta.app_verified'))
+                        <p class="text-xs text-zinc-700">{{ __('Use Direct (IG Login) to receive DMs. "Via Meta" only receives DMs from app testers until Meta approves the app.') }}</p>
+                    @endunless
                 @elseif(isset($this->openOnboardingByPlatform['instagram']))
                     @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
                     <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs">

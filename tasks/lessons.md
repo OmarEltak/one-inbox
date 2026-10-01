@@ -249,3 +249,30 @@ future-step labels on the step indicator.
 the form in the actual shell palette from the start (zinc palette for
 light shell, per `contrast-guardrails` skill safe pairs). Overrides drift
 into "the form has its own bespoke theme" over time.
+
+## 2026-10-01 — "Connected Instagram, receive no messages"
+
+### Two silent regressions stacked on the same path
+1. `8c46719` (2026-09-27) removed the "Connect Direct (IG Login)" button to get
+   a single CTA. The only remaining button, "Connect via Meta", runs on the
+   main app — which is on **Standard Access** (not approved), so Meta only
+   delivers webhooks for DMs from people with an app role. Real customer DMs
+   never arrive. Direct IG Login (Instagram sub-app → `/api/webhooks/meta-ig`)
+   is the path that actually received DMs.
+2. `6885287` (2026-09-06) changed `IG_SUBSCRIBED_FIELDS` from `messages` to
+   `messages,comments`. Business Login tokens don't carry
+   `instagram_business_manage_comments`, so Meta rejected the WHOLE
+   `subscribed_apps` call — `messages` never got subscribed either — and the
+   callback still flashed "Connected".
+
+### Rules
+- **When the user says "it worked before", run `git log` on the files in the
+  failing path FIRST** — before theorizing about Meta-side causes. The user had
+  to point me at the connections change; the answer was a 4-day-old commit.
+- **Never remove a connect path without checking which Meta app / access level
+  it runs on.** Under Standard Access, "Via Meta" and "Direct IG Login" are not
+  interchangeable: only the latter receives customer DMs.
+- **Every webhook field must be backed by a scope we actually request.** Adding a
+  field the token can't hold doesn't just skip that field — Meta 400s the whole
+  subscription. Pinned by `tests/Feature/Connections/InstagramDirectLoginTest.php`.
+- **A failed subscription must never be reported as a successful connection.**

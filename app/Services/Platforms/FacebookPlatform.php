@@ -27,10 +27,16 @@ class FacebookPlatform extends AbstractPlatform
     public const FB_SUBSCRIBED_FIELDS = 'messages,message_echoes,message_deliveries,message_reads,messaging_postbacks,feed';
 
     /**
-     * Page-level subscribed_fields for Instagram Business pages.
-     * `comments` = comment webhooks. Same two-layer subscription rule applies.
+     * subscribed_fields for Instagram Business Login pages (graph.instagram.com).
+     *
+     * `messages` ONLY. Do NOT add `comments` back: it needs
+     * instagram_business_manage_comments, which getInstagramConnectUrl() does
+     * not request, and Meta rejects the WHOLE call (400 "Application does not
+     * have the capability") — so `messages` silently never gets subscribed and
+     * the account shows "Connected" but receives zero DMs. Shipped that way
+     * 2026-09-06 → 2026-10-01. Add `comments` only together with the scope.
      */
-    public const IG_SUBSCRIBED_FIELDS = 'messages,comments';
+    public const IG_SUBSCRIBED_FIELDS = 'messages';
 
     protected string $graphUrl;
     protected string $appId;
@@ -304,7 +310,16 @@ class FacebookPlatform extends AbstractPlatform
             ]);
         }
 
-        $this->subscribeInstagramPage($page);
+        // Record the outcome so the callback can tell the user — a failed
+        // subscription means no DMs will ever arrive for this account.
+        $meta = $page->metadata ?? [];
+        if ($this->subscribeInstagramPage($page)) {
+            unset($meta['subscription_error']);
+        } else {
+            $meta['subscription_error'] = 'subscribe_failed';
+        }
+        $page->update(['metadata' => $meta]);
+
         \App\Jobs\SyncPageConversations::dispatch(pageId: $page->id);
 
         return $account;
