@@ -117,25 +117,25 @@
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
-                                <span class="font-medium text-sm truncate {{ $selectedConversationId === $conversation->id ? '!text-white dark:!text-white' : '!text-zinc-900 dark:!text-zinc-900 group-hover:!text-white dark:group-hover:!text-white' }}">
+                                <span class="font-medium text-sm truncate !text-zinc-900">
                                     {{ $conversation->contact?->name ?? 'Unknown' }}
                                 </span>
-                                <span class="text-xs text-ink/60 flex-shrink-0 ml-2">
+                                <span class="text-xs flex-shrink-0 ml-2 text-zinc-600">
                                     {{ $conversation->last_message_at?->shortAbsoluteDiffForHumans() }}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between mt-0.5">
-                                <p class="text-xs truncate {{ $selectedConversationId === $conversation->id ? '!text-white dark:!text-white' : '!text-zinc-900 dark:!text-zinc-900 group-hover:!text-white dark:group-hover:!text-white' }}">
+                                <p class="text-xs truncate !text-zinc-900">
                                     {{ $conversation->last_message_preview ?? __('No messages yet') }}
                                 </p>
                                 <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                                     @if($conversation->contact && $conversation->contact->lead_score > 0)
                                         <span class="text-xs font-bold {{ match(true) {
-                                            $conversation->contact->lead_score >= 86 => 'text-red-500',
-                                            $conversation->contact->lead_score >= 71 => 'text-orange-500',
-                                            $conversation->contact->lead_score >= 51 => 'text-yellow-500',
-                                            $conversation->contact->lead_score >= 26 => 'text-blue-500',
-                                            default => 'text-gray-400',
+                                            $conversation->contact->lead_score >= 86 => 'text-red-700',
+                                            $conversation->contact->lead_score >= 71 => 'text-orange-700',
+                                            $conversation->contact->lead_score >= 51 => 'text-yellow-700',
+                                            $conversation->contact->lead_score >= 26 => 'text-blue-700',
+                                            default => 'text-zinc-600',
                                         } }}">{{ $conversation->contact->lead_score }}</span>
                                     @endif
                                     @if($conversation->sales_stage === 'escalated')
@@ -156,7 +156,7 @@
                                         <span class="text-[9px] px-1 py-0.5 rounded font-medium bg-{{ \App\Livewire\Inbox\Index::LABELS[$label] ?? 'zinc' }}-100 text-{{ \App\Livewire\Inbox\Index::LABELS[$label] ?? 'zinc' }}-700 dark:bg-{{ \App\Livewire\Inbox\Index::LABELS[$label] ?? 'zinc' }}-900/30 dark:text-{{ \App\Livewire\Inbox\Index::LABELS[$label] ?? 'zinc' }}-400">{{ $label }}</span>
                                     @endforeach
                                     @if($conversation->unread_count > 0)
-                                        <span class="bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                                        <span class="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
                                             {{ $conversation->unread_count }}
                                         </span>
                                     @endif
@@ -262,7 +262,7 @@
                     <div x-data="{ showScoreHistory: false }" class="relative">
                         <button
                             @click="showScoreHistory = !showScoreHistory; if(showScoreHistory) { $wire.loadScoreHistory({{ $conv->contact->id }}) }"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors !text-white dark:!text-white {{ match(true) {
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors !text-zinc-900 dark:!text-zinc-900 {{ match(true) {
                                 $conv->contact->lead_score >= 86 => 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200',
                                 $conv->contact->lead_score >= 71 => 'bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200',
                                 $conv->contact->lead_score >= 51 => 'bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200',
@@ -566,10 +566,10 @@
                     <div class="flex w-full {{ $message->isInbound() ? 'justify-start' : 'justify-end' }}">
                         <div class="max-w-[80%] sm:max-w-[70%] rounded-2xl px-4 py-2 break-words {{ $message->isInbound()
                             ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
-                            : ($message->isFromAi() ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white')
+                            : ($message->isFromAi() ? 'bg-emerald-700 text-white' : 'bg-blue-600 text-white')
                         }}" style="overflow-wrap: anywhere;">
                             @if($message->isFromAi())
-                                <div class="flex items-center gap-1.5 mb-1 text-xs opacity-80">
+                                <div class="flex items-center gap-1.5 mb-1 text-xs">
                                     <flux:icon name="sparkles" class="w-3 h-3 flex-shrink-0" />
                                     <span class="font-semibold">{{ __('Replied by AI') }}</span>
                                     @if($message->ai_confidence)
@@ -578,7 +578,7 @@
                                                 ? round($message->ai_confidence * 100)
                                                 : round($message->ai_confidence);
                                         @endphp
-                                        <span class="opacity-75">&middot; {{ $confidencePct }}% {{ __('confidence') }}</span>
+                                        <span class="opacity-90">&middot; {{ $confidencePct }}% {{ __('confidence') }}</span>
                                     @endif
                                 </div>
                             @elseif($message->isFromUser() && $message->sentByUser)
@@ -615,7 +615,7 @@
                                     <p class="text-sm italic opacity-60">📎 Media</p>
                                 @endif
                             @endif
-                            <span class="text-xs opacity-60 mt-1 block">
+                            <span class="text-xs opacity-90 mt-1 block">
                                 {{ ($message->platform_sent_at ?? $message->created_at)->format('M j, g:i A') }}
                                 @if($message->isOutbound() && $message->delivered_at) &middot; {{ __('Delivered') }} @endif
                                 @if($message->isOutbound() && $message->read_at) &middot; {{ __('Read') }} @endif
