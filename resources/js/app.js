@@ -76,21 +76,22 @@ document.addEventListener('alpine:init', () => {
             });
 
             this.picker.addEventListener('emoji:select', (event) => {
-                // Get the Livewire input and append the emoji
-                const input = this.$refs.textInput;
-                if (input) {
-                    // For Flux input components, find the actual input element inside
-                    const actualInput = input.tagName === 'INPUT' ? input : input.querySelector('input');
-                    if (actualInput) {
-                        const start = actualInput.selectionStart ?? actualInput.value.length;
-                        const end = actualInput.selectionEnd ?? actualInput.value.length;
-                        const value = actualInput.value;
-                        actualInput.value = value.slice(0, start) + event.emoji + value.slice(end);
-                        actualInput.selectionStart = actualInput.selectionEnd = start + event.emoji.length;
-                        actualInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        actualInput.focus();
-                    }
-                }
+                // Composers are <flux:textarea>, so look for the textarea first
+                // (an earlier text input in the form may be a search box). The
+                // textInput ref can sit in a nested x-data scope that $refs
+                // can't see (inbox), so fall back to the component root.
+                const scope = this.$refs.textInput ?? this.$root;
+                const field = scope?.matches?.('textarea, input')
+                    ? scope
+                    : scope?.querySelector('textarea') ?? scope?.querySelector('input[type="text"], input:not([type])');
+                if (!field) return;
+
+                const start = field.selectionStart ?? field.value.length;
+                const end = field.selectionEnd ?? field.value.length;
+                field.value = field.value.slice(0, start) + event.emoji + field.value.slice(end);
+                field.selectionStart = field.selectionEnd = start + event.emoji.length;
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.focus();
             });
         },
 
