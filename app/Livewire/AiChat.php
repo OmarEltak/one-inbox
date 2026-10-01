@@ -22,6 +22,9 @@ class AiChat extends Component
 {
     use WithFileUploads;
 
+    /** Platforms where Meta only accepts outbound within 24h of the contact's last message. */
+    protected const META_WINDOW_PLATFORMS = ['facebook', 'instagram'];
+
     public string $message = '';
 
     public array $messages = [];
@@ -158,6 +161,13 @@ class AiChat extends Component
         $this->pendingActionSummary = '';
 
         $this->messages[] = ['role' => 'assistant', 'content' => "Done: {$result}"];
+
+        // Persist the real outcome ("queued to 2, skipped 96…") on the turn
+        // that proposed it, so a reload shows what happened instead of only
+        // the AI's pre-confirmation draft.
+        $lastCommand = AiCommand::where('team_id', $team->id)->where('user_id', Auth::id())->latest('id')->first();
+        $lastCommand?->update(['response' => trim($lastCommand->response . "\n\nDone: {$result}")]);
+
         $this->dispatch('message-sent');
     }
 
@@ -251,34 +261,9 @@ class AiChat extends Component
         $pageId = $action['page_id'] ?? null;
         $scheduledAtRaw = $action['scheduled_at'] ?? null;
 
-        $query = Conversation::where('team_id', $teamId)
-            ->where('status', '!=', 'archived')
-            ->whereHas('contact');
+        ['eligible' => $eligible, 'stale' => $stale] = $this->resolveBulkTargets($action, $teamId);
 
-        if ($pageId !== null) {
-            $query->where('page_id', $pageId);
-        }
-
-        if ($minScore !== null) {
-            $query->whereHas('contact', fn ($q) => $q->where('lead_score', '>=', $minScore));
-        }
-
-        if ($status) {
-            $query->whereHas('contact', fn ($q) => $q->where('lead_status', $status));
-        }
-
-        $count = $query->distinct('contact_id')->count('contact_id');
-
-        // Lookup page + platform so we can warn about the Meta 24h rule inline,
-        // before the operator confirms. If the page is on facebook or instagram
-        // and the operator hasn't been told about the window filter yet, showing
-        // it here beats surfacing it only after the send attempt.
-        $page = null;
-        $pageName = null;
-        if ($pageId) {
-            $page = Page::where('team_id', $teamId)->find($pageId);
-            $pageName = $page?->name;
-        }
+        $pageName = $pageId ? Page::where('team_id', $teamId)->find($pageId)?->name : null;
 
         $filter = $pageName ? "page: {$pageName}" : 'all pages';
         if ($minScore !== null) {
@@ -287,30 +272,82 @@ class AiChat extends Component
             $filter .= ", status: {$status}";
         }
 
-        // Base sentence with scheduling annotation.
-        $verb = 'Send bulk message';
-        $when = 'now';
         if ($scheduledAtRaw) {
             try {
-                $scheduledAt = \Carbon\Carbon::parse($scheduledAtRaw);
-                $verb = 'Schedule bulk message';
-                $when = $scheduledAt->format('M j, Y g:ia');
+                $when = \Carbon\Carbon::parse($scheduledAtRaw)->format('M j, Y g:ia');
             } catch (\Throwable $e) {
-                // Fall back to unscheduled sentence; the executor will surface a
-                // proper error message during confirm.
+                $when = $scheduledAtRaw; // the executor surfaces the parse error on confirm
             }
+
+            // The Meta window is re-checked at the scheduled time, so quote the
+            // full audience and say that the filter happens then.
+            $total = $eligible->count() + $stale;
+            $sentence = "Schedule bulk message to up to {$total} contacts ({$filter}) [{$when}]: \"{$text}\"";
+            if ($stale > 0 || $eligible->contains(fn ($c) => in_array($c->platform, self::META_WINDOW_PLATFORMS, true))) {
+                $sentence .= '  ⚠ Messenger/Instagram contacts who have not messaged within 24h of the send time will be skipped (Meta rule).';
+            }
+
+            return $sentence;
         }
 
-        $sentence = "{$verb} to ~{$count} contacts ({$filter}) [{$when}]: \"{$text}\"";
-
-        // Meta 24-hour window warning: show inline for Facebook / Instagram so
-        // the operator sees the caveat BEFORE approving. Non-Meta platforms have
-        // no window, so no warning needed.
-        if ($page && in_array($page->platform, ['facebook', 'instagram'], true)) {
-            $sentence .= "  ⚠ Meta only allows sending to contacts who replied within the last 24 hours on {$page->platform} — stale contacts will be automatically skipped when this fires.";
+        $sentence = "Send bulk message to {$eligible->count()} contacts ({$filter}) [now]: \"{$text}\"";
+        if ($stale > 0) {
+            $sentence .= "  ⚠ {$stale} more on Messenger/Instagram will NOT receive it — they have not messaged within the last 24 hours and Meta blocks sends outside that window.";
         }
 
         return $sentence;
+    }
+
+    /**
+     * Who a send_bulk_message would actually reach. Shared by the confirmation
+     * summary and the executor so the number the operator approves is the
+     * number that gets sent. Messenger/Instagram conversations whose last
+     * inbound is older than 24h are split out: Meta rejects those sends with
+     * error 2018278 ("outside the allowed time frame"), and counting them as
+     * recipients is how "sent to 98" turned into 2 delivered.
+     *
+     * @return array{eligible: \Illuminate\Support\Collection<int, Conversation>, stale: int}
+     */
+    protected function resolveBulkTargets(array $action, int $teamId): array
+    {
+        $query = Conversation::where('team_id', $teamId)
+            ->where('status', '!=', 'archived')
+            ->whereHas('contact');
+
+        if (($action['page_id'] ?? null) !== null) {
+            $query->where('page_id', $action['page_id']);
+        }
+
+        if (($action['min_score'] ?? null) !== null) {
+            $query->whereHas('contact', fn ($q) => $q->where('lead_score', '>=', $action['min_score']));
+        }
+
+        if (! empty($action['status'])) {
+            $query->whereHas('contact', fn ($q) => $q->where('lead_status', $action['status']));
+        }
+
+        // Most recent conversation per contact.
+        $conversations = $query->orderByDesc('last_message_at')->get()->unique('contact_id')->values();
+
+        $metaIds = $conversations->whereIn('platform', self::META_WINDOW_PLATFORMS)->pluck('id');
+        $lastInbound = $metaIds->isEmpty() ? collect() : Message::whereIn('conversation_id', $metaIds)
+            ->where('direction', 'inbound')
+            ->selectRaw('conversation_id, MAX(COALESCE(platform_sent_at, created_at)) as last_at')
+            ->groupBy('conversation_id')
+            ->pluck('last_at', 'conversation_id');
+
+        // WhatsApp (Wuzapi session), Telegram and email have no server-side window.
+        $cutoff = now()->subHours(24);
+        [$eligible, $stale] = $conversations->partition(function (Conversation $c) use ($lastInbound, $cutoff) {
+            if (! in_array($c->platform, self::META_WINDOW_PLATFORMS, true)) {
+                return true;
+            }
+            $at = $lastInbound[$c->id] ?? null;
+
+            return $at && \Carbon\Carbon::parse($at)->gt($cutoff);
+        });
+
+        return ['eligible' => $eligible->values(), 'stale' => $stale->count()];
     }
 
     protected function describeAiToggle(array $action, int $teamId, string $mode): string
@@ -387,7 +424,6 @@ class AiChat extends Component
     protected function actionSendBulkMessage(array $action, int $teamId): string
     {
         $text = $action['message'] ?? null;
-        $minScore = $action['min_score'] ?? null;
         $status = $action['status'] ?? null;
         $scheduledAtRaw = $action['scheduled_at'] ?? null;
 
@@ -454,65 +490,10 @@ class AiChat extends Component
             return "Campaign scheduled: '{$campaign->name}' will send at {$when} on {$page->name} ({$page->platform}).{$windowNote}";
         }
 
-        $query = Conversation::where('team_id', $teamId)
-            ->where('status', '!=', 'archived')
-            ->whereHas('contact');
+        ['eligible' => $eligible, 'stale' => $skippedStale] = $this->resolveBulkTargets($action, $teamId);
 
-        if ($pageId !== null) {
-            $query->where('page_id', $pageId);
-        }
-
-        if ($minScore !== null) {
-            $query->whereHas('contact', fn ($q) => $q->where('lead_score', '>=', $minScore));
-        }
-
-        if ($status) {
-            $query->whereHas('contact', fn ($q) => $q->where('lead_status', $status));
-        }
-
-        // Get the most recent conversation per contact
-        $conversations = $query->orderByDesc('last_message_at')->get()
-            ->unique('contact_id');
-
-        // Pre-filter: on Facebook Messenger and Instagram Direct, Meta rejects
-        // any outbound sent to a contact whose last inbound is > 24h ago with
-        // error code 10 / subcode 2018278 ("outside the allowed time frame").
-        // The HUMAN_AGENT tag fallback in SendPlatformMessage requires prior
-        // Meta App Review approval, which the current app does NOT have, so
-        // both the standard send AND the fallback fail on stale contacts.
-        // Skipping them here means the AI report reflects reality instead of
-        // "sent to 98" when Meta silently rejected 96 downstream.
-        //
-        // WhatsApp (Wuzapi / QR gateway) uses a real WhatsApp Web session and
-        // does NOT enforce a 24h server-side window, so we do not filter it.
-        // Telegram and email have no window at all. Only Meta platforms get
-        // this pre-check.
-        $metaPlatforms = ['facebook', 'instagram'];
-        $now = now();
-        $eligible = [];
-        $skippedStale = 0;
-
-        foreach ($conversations as $conversation) {
-            if (! in_array($conversation->platform, $metaPlatforms, true)) {
-                $eligible[] = $conversation;
-                continue;
-            }
-
-            $lastInboundAt = Message::where('conversation_id', $conversation->id)
-                ->where('direction', 'inbound')
-                ->latest('id')
-                ->value('platform_sent_at')
-                ?? Message::where('conversation_id', $conversation->id)
-                    ->where('direction', 'inbound')
-                    ->latest('id')
-                    ->value('created_at');
-
-            if (! $lastInboundAt || \Carbon\Carbon::parse($lastInboundAt)->diffInHours($now) >= 24) {
-                $skippedStale++;
-                continue;
-            }
-
-            $eligible[] = $conversation;
+        if ($eligible->isEmpty() && $skippedStale > 0) {
+            return "Nothing sent: all {$skippedStale} matching contacts are on Messenger/Instagram and none has messaged within the last 24 hours. Meta blocks sends outside that window (error 2018278) — reach them on WhatsApp / Telegram / email instead, or wait until they message the Page.";
         }
 
         $sent = 0;
@@ -699,11 +680,36 @@ class AiChat extends Component
             $lines[] = "{$contactName} ({$conv->platform}) - last message: " . ($conv->last_message_at?->diffForHumans() ?? 'N/A');
         }
 
-        // Pages (for page_id targeting in bulk messages)
-        $lines[] = "\n--- Connected Pages (ID, Name, Platform) ---";
+        // Pages (for page_id targeting in bulk messages). Reach is spelled out
+        // per page so the AI quotes what a broadcast will really hit: on
+        // Messenger/Instagram only contacts who messaged within 24h can be
+        // reached, and quoting the full audience is how "sent to 98" happened.
+        $lines[] = "\n--- Connected Pages (ID, Name, Platform, Audience) ---";
         $pages = Page::where('team_id', $teamId)->get(['id', 'name', 'platform']);
+        $audience = Conversation::where('team_id', $teamId)
+            ->where('status', '!=', 'archived')
+            ->selectRaw('page_id, count(distinct contact_id) as total')
+            ->groupBy('page_id')
+            ->pluck('total', 'page_id');
+        $windowStart = now()->subHours(24);
+        $reachable = Conversation::where('team_id', $teamId)
+            ->where('status', '!=', 'archived')
+            ->whereIn('platform', self::META_WINDOW_PLATFORMS)
+            ->whereHas('messages', fn ($q) => $q->where('direction', 'inbound')
+                ->whereRaw('COALESCE(platform_sent_at, created_at) >= ?', [$windowStart]))
+            ->selectRaw('page_id, count(distinct contact_id) as total')
+            ->groupBy('page_id')
+            ->pluck('total', 'page_id');
         foreach ($pages as $page) {
-            $lines[] = "ID:{$page->id} | {$page->name} | {$page->platform}";
+            $total = (int) ($audience[$page->id] ?? 0);
+            if (in_array($page->platform, self::META_WINDOW_PLATFORMS, true)) {
+                $now = (int) ($reachable[$page->id] ?? 0);
+                $reach = "{$total} contacts, only {$now} reachable now (messaged within 24h); "
+                    . ($total - $now) . ' outside Meta\'s 24h window and CANNOT be messaged';
+            } else {
+                $reach = "{$total} contacts, all reachable (no messaging window)";
+            }
+            $lines[] = "ID:{$page->id} | {$page->name} | {$page->platform} | {$reach}";
         }
 
         // Campaigns
