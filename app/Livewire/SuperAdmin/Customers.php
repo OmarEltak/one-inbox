@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\SuperAdmin;
 
+use App\Models\Message;
 use App\Models\Page;
 use App\Models\Team;
 use App\Models\User;
@@ -35,12 +36,71 @@ class Customers extends Component
     public function customers()
     {
         return Team::query()
-            ->with('owner')
+            ->with(['owner', 'pages' => fn ($q) => $q->with('connectedAccount:id,metadata')
+                ->orderByDesc('is_active')->orderBy('platform')->orderBy('name')])
             ->whereHas('owner', fn ($q) => $q->where('is_super_admin', false))
             ->withCount('pages')
             ->withCount('members')
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * AI replies actually sent per team in the last 30 days (one grouped
+     * query). Plan credits can be reset or comped; this is the real usage.
+     *
+     * @return array<int, int> team_id => count
+     */
+    #[Computed]
+    public function aiReplies30d(): array
+    {
+        return Message::query()
+            ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
+            ->where('messages.sender_type', 'ai')
+            ->where('messages.direction', 'outbound')
+            ->where('messages.created_at', '>=', now()->subDays(30))
+            ->groupBy('conversations.team_id')
+            ->selectRaw('conversations.team_id, count(*) as total')
+            ->pluck('total', 'conversations.team_id')
+            ->map(fn ($n) => (int) $n)
+            ->all();
+    }
+
+    /** Headline numbers for the summary strip. */
+    #[Computed]
+    public function summary(): array
+    {
+        $pages = $this->customers->flatMap->pages->where('is_active', true);
+
+        return [
+            'customers'      => $this->customers->count(),
+            'with_connection' => $this->customers->filter(fn ($t) => $t->pages->contains('is_active', true))->count(),
+            'active_pages'   => $pages->count(),
+            'ai_replies_30d' => array_sum($this->aiReplies30d),
+            'by_type'        => $pages->countBy(fn (Page $p) => $this->connectionType($p))->sortDesc()->all(),
+        ];
+    }
+
+    /** Plan AI-credit allowance; null = unlimited. */
+    public function aiCreditLimit(Team $team): ?int
+    {
+        $plan = config('stripe.plans.' . ($team->subscription_plan ?? 'free'), config('stripe.plans.free'));
+        $limit = (int) ($plan['ai_credits'] ?? 0);
+
+        return $limit === -1 ? null : $limit;
+    }
+
+    /** How the page is connected — the distinction matters for what it can receive. */
+    public function connectionType(Page $page): string
+    {
+        return match ($page->platform) {
+            'whatsapp'  => ! empty($page->connectedAccount?->metadata['gateway_mode']) ? 'WhatsApp QR' : 'WhatsApp Cloud API',
+            'instagram' => ($page->metadata['auth_type'] ?? null) === 'instagram_business' ? 'Instagram (Direct login)' : 'Instagram (via Meta)',
+            'facebook'  => 'Messenger',
+            'telegram'  => 'Telegram',
+            'email'     => 'Email',
+            default     => ucfirst((string) $page->platform),
+        };
     }
 
     public function openCreateModal(): void
@@ -82,7 +142,7 @@ class Customers extends Component
         });
 
         $this->showCreateModal = false;
-        unset($this->customers);
+        unset($this->customers, $this->summary);
 
         session()->flash('success', "Customer \"{$this->companyName}\" provisioned. Share the login with {$this->ownerEmail}.");
     }
@@ -159,7 +219,7 @@ class Customers extends Component
             }
         });
 
-        unset($this->customers);
+        unset($this->customers, $this->summary);
         session()->flash('success', "Customer \"{$name}\" deleted.");
     }
 
