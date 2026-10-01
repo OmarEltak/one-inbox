@@ -2551,5 +2551,12 @@
     "End the paid plan of :name now and move the team back to the free tier?": "إنهاء الباقة المدفوعة لـ :name الآن وإرجاع الفريق إلى الباقة المجانية؟",
     "Ends the paid plan immediately and moves the team to the free tier": "ينهي الباقة المدفوعة فورًا ويُرجع الفريق إلى الباقة المجانية",
     "Revoked access — :team is back on the free tier.": "تم إلغاء الوصول — :team عاد إلى الباقة المجانية.",
-    "Document": "مستند"
+    "Document": "مستند",
+    "Sticker": "ملصق",
+    "Reaction": "تفاعل",
+    "Photo": "صورة",
+    "Voice note": "رسالة صوتية",
+    "Video": "فيديو",
+    "Location": "موقع",
+    "Media": "وسائط"
 }

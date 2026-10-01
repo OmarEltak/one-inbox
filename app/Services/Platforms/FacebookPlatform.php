@@ -829,6 +829,8 @@ class FacebookPlatform extends AbstractPlatform
             : $this->graphUrl;
         $conversations = collect();
         $nextUrl = null;
+        $skipped = 0;
+        $syncError = null;
 
         do {
             $response = $nextUrl
@@ -842,6 +844,7 @@ class FacebookPlatform extends AbstractPlatform
 
             if ($response->failed()) {
                 Log::error('Failed to fetch conversations', ['page' => $page->name, 'body' => $response->body()]);
+                $syncError = mb_substr($response->body(), 0, 300);
                 break;
             }
 
@@ -900,6 +903,7 @@ class FacebookPlatform extends AbstractPlatform
 
                     $conversations->push($conversation);
                 } catch (\Throwable $e) {
+                    $skipped++;
                     // One bad row used to abort the whole import (Mishkah
                     // stopped at 28 of hundreds of chats). Skip it instead.
                     Log::warning('Skipped a conversation during sync', [
@@ -912,6 +916,14 @@ class FacebookPlatform extends AbstractPlatform
             $nextUrl = $response->json('paging.next');
 
         } while ($nextUrl);
+
+        // Outcome on the page so /super-admin/pages/{id}/diagnose shows it.
+        $page->forceFill(['metadata' => array_merge($page->metadata ?? [], ['last_conversation_sync' => [
+            'at' => now()->toIso8601String(),
+            'imported' => $conversations->count(),
+            'skipped' => $skipped,
+            'error' => $syncError,
+        ]])])->saveQuietly();
 
         return $conversations;
     }
@@ -1052,6 +1064,11 @@ class FacebookPlatform extends AbstractPlatform
 
             if ($created->wasRecentlyCreated) {
                 $stored++;
+                // Date history rows by when they were sent, not when imported,
+                // so created_at ordering (inbox, AI history) stays chronological.
+                if ($created->platform_sent_at) {
+                    $created->forceFill(['created_at' => $created->platform_sent_at])->saveQuietly();
+                }
             }
         }
 

@@ -609,10 +609,28 @@
                                 @endif
                             @endif
                             @if(! $message->mediaAsset)
-                                @if($message->content)
+                                @php
+                                    // Attachments we could not download are stored as "[Sticker]"
+                                    // etc. — show an icon + label instead of the raw token.
+                                    $placeholder = match (strtolower(trim((string) $message->content))) {
+                                        '[sticker]' => ['😊', __('Sticker')],
+                                        '[reaction]' => ['👍', __('Reaction')],
+                                        '[image]' => ['🖼️', __('Photo')],
+                                        '[voice note]', '[audio]' => ['🎤', __('Voice note')],
+                                        '[video]' => ['🎬', __('Video')],
+                                        '[document]' => ['📄', __('Document')],
+                                        '[location]' => ['📍', __('Location')],
+                                        '[contact]' => ['👤', __('Contact')],
+                                        '[media]' => ['📎', __('Media')],
+                                        default => null,
+                                    };
+                                @endphp
+                                @if($placeholder)
+                                    <p class="flex items-center gap-1.5 text-sm"><span class="text-2xl leading-none">{{ $placeholder[0] }}</span><span>{{ $placeholder[1] }}</span></p>
+                                @elseif($message->content)
                                     <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
                                 @elseif(! $message->media_url)
-                                    <p class="text-sm italic opacity-60">📎 Media</p>
+                                    <p class="text-sm italic opacity-60">📎 {{ __('Media') }}</p>
                                 @endif
                             @endif
                             <span class="text-xs opacity-90 mt-1 block">
