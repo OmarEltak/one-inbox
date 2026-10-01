@@ -728,27 +728,23 @@
                          wire:key="composer-textarea-wrapper"
                          x-data
                          x-init="
+                             {{-- Focus follows deliberate actions only (open a chat, send).
+                                  Never pull it back after the user clicks elsewhere: the old
+                                  blur / morph / window-focus refocus made the composer
+                                  impossible to leave. Opening a chat on touch screens does
+                                  not focus, so the phone keyboard doesn't pop up. --}}
                              const t = $el.querySelector('textarea');
-                             const refocus = () => { if (t && document.activeElement !== t) t.focus(); };
-                             $nextTick(refocus);
-                             $watch('$wire.messageText', (val, oldVal) => { if (!val && oldVal) $nextTick(refocus); });
-                             $watch('$wire.selectedConversationId', () => $nextTick(refocus));
-                             Livewire.hook('morph.updated', () => {
-                                 if (document.activeElement === document.body) $nextTick(refocus);
-                             });
-                             window.addEventListener('focus', () => $nextTick(refocus));
-                             t?.addEventListener('blur', (e) => {
-                                 setTimeout(() => {
-                                     if (document.activeElement === document.body) refocus();
-                                 }, 50);
-                             });
+                             const focusComposer = () => { if (t && document.activeElement !== t) t.focus(); };
+                             const finePointer = window.matchMedia('(pointer: fine)').matches;
+                             if (finePointer) $nextTick(focusComposer);
+                             $watch('$wire.messageText', (val, oldVal) => { if (!val && oldVal) $nextTick(focusComposer); });
+                             $watch('$wire.selectedConversationId', () => { if (finePointer) $nextTick(focusComposer); });
                          ">
                         <flux:textarea
                             wire:model="messageText"
                             placeholder="{{ __('Type a message...') }}"
                             rows="1"
                             class="resize-none max-h-32 text-sm !text-zinc-900 dark:!text-zinc-900"
-                            autofocus
                             x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                             x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                         />
