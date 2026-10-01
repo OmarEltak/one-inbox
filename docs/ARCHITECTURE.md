@@ -320,6 +320,8 @@ Different tone — this is `/ai-chat` for operators, not customer messages:
 - Errors ARE surfaced (operators need to know when things break)
 - Guardrails prevent leaking vendor / model names when asked "are you AI?"
 - Full capability description (send messages, pause AI, save memory, etc.) is in the same prompt
+- Chat content comes from `App\Services\Ai\AdminChatContext` (added 2026-10-01): MENTIONED CONTACTS (names in this or the last few turns → ID, reachability, language, transcript) + CUSTOMER CONVERSATIONS (recent customer messages, 12k-char budget). The prompt forbids asking the operator for IDs. Replies render as Markdown in `ai-chat.blade.php`.
+- Bulk-send reach: `AiChat::resolveBulkTargets` feeds BOTH the confirmation summary and the executor, so the approved count is the sent count (Messenger/IG contacts outside 24h excluded).
 
 ### Do NOT
 - Inline the guardrails into a specific provider — they live in `BuildsConversationPrompts` and must stay identical across providers.

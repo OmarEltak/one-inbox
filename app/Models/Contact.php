@@ -19,6 +19,21 @@ class Contact extends Model
 {
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        // AI Settings → Connectors: a contact marked Converted (inbox button,
+        // contacts page, anywhere) is a closed deal — push it to the sheet.
+        static::updated(function (Contact $contact) {
+            if (! $contact->wasChanged('lead_status') || $contact->lead_status !== 'converted') {
+                return;
+            }
+            $conversation = $contact->conversations()->orderByDesc('last_message_at')->first();
+            if ($conversation) {
+                \App\Services\SalesConnectors\SalesConnectors::notify($conversation, \App\Services\SalesConnectors\SalesConnectors::EVENT_DEAL_CLOSED);
+            }
+        });
+    }
+
     protected $fillable = [
         'team_id',
         'name',

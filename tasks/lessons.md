@@ -276,3 +276,27 @@ into "the form has its own bespoke theme" over time.
   field the token can't hold doesn't just skip that field — Meta 400s the whole
   subscription. Pinned by `tests/Feature/Connections/InstagramDirectLoginTest.php`.
 - **A failed subscription must never be reported as a successful connection.**
+
+## 2026-10-01 — "How the f*** should the user know an ID": admin AI-chat UX
+
+**Symptom:** /ai-chat told the operator it "cannot read the chat", asked for
+"Wagdy's Contact ID" (twice), drafted formal Arabic + an English translation
+for an Egyptian WhatsApp customer, answered "what do customers want" with
+"export your chats", rendered raw `**`/`|---|`, and a customer got an AI
+bubble reading literally `[image]\n\n[voice note]`.
+
+**Root cause:** the assistant was given counts and a top-50 contact list, not
+chat content — so it could only guess, and it pushed the lookup back onto the
+operator. Placeholders were fed to weak models verbatim and parroted.
+
+### Rules
+- **Never make the operator supply an internal identifier.** If the AI needs an
+  ID, resolve it server-side from what the operator said (names, "him" from the
+  last turns) and put it in the context — `AdminChatContext::mentionedContacts`.
+- **An analytics assistant needs the content, not just counts.** Insight
+  questions are answered from `AdminChatContext::customerDigest` (real quotes).
+- **Outbound drafts follow the contact's language and dialect**, no translations.
+- **Render model Markdown** (`Str::markdown`, `html_input => strip`) instead of
+  telling the model not to use it.
+- **Never show a bare attachment token to a model** — narrate it
+  (`MediaPlaceholders::narrate`) and strip tokens from every outgoing reply.

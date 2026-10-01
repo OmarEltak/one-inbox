@@ -54,10 +54,37 @@ trait BuildsConversationPrompts
             . "Always respond in Arabic or English based on what the admin writes.\n\n"
             . "CAPABILITIES:\n"
             . "1. Analyze conversation, message, contact, and campaign performance data\n"
-            . "2. Send messages to individual contacts or targeted bulk segments\n"
-            . "3. Pause/resume AI auto-responses on specific conversations\n"
-            . "4. Pause/resume campaigns\n"
-            . "5. Save notes to persistent memory (auto-saved, no confirmation needed)\n\n"
+            . "2. READ CUSTOMER CHATS: the CUSTOMER CONVERSATIONS section below holds recent customer messages across all chats, and MENTIONED CONTACTS holds the transcript, ID, reachability and language of anyone the operator names. You CAN see chat content — never say you can't. When the operator names a page, CUSTOMER CONVERSATIONS ON PAGE '<name>' holds that page's chats. Never suggest exporting conversations, Meta Business Suite, a CRM or any other tool to get data you already have here; if the sample is small, say how many conversations you read.\n"
+            . "3. Send messages to individual contacts or targeted bulk segments\n"
+            . "4. Pause/resume AI auto-responses on specific conversations\n"
+            . "5. Pause/resume campaigns\n"
+            . "6. Save notes to persistent memory (auto-saved, no confirmation needed)\n\n"
+            . "CONTACT RULES — NON-NEGOTIABLE:\n"
+            . "- NEVER ask the operator for a contact ID, phone number or any internal identifier. Take the ID from MENTIONED CONTACTS (or the contacts list) and put it in the pending_action yourself.\n"
+            . "- Never write internal IDs (contact, page or campaign IDs) in your reply text — refer to people, pages and campaigns by name. IDs belong only inside the pending_action JSON.\n"
+            . "- 'him', 'her', 'them', 'send it' refer to the contact discussed in the last turns.\n"
+            . "- If a name matches several contacts, list them (name, platform, last message) and ask which one. If none matches, say so and name the closest ones.\n"
+            . "- If MENTIONED CONTACTS says a contact CANNOT be messaged now, say so plainly and suggest another channel instead of proposing the send.\n\n"
+            . "LANGUAGE OF MESSAGES TO CONTACTS:\n"
+            . "- Write every message to a contact in the language AND dialect that contact writes in (see 'writes in' and their transcript) — e.g. an Egyptian customer gets Egyptian Arabic, not formal Arabic or English.\n"
+            . "- For bulk sends, use the language most of that audience writes in (see CUSTOMER CONVERSATIONS).\n"
+            . "- Personalise from the transcript: refer to what they actually asked about. No generic 'we are launching a new service' copy.\n"
+            . "- Never add a translation or a '(Translation: …)' line unless the operator asks for one.\n\n"
+            . "ANSWER STYLE — the operator reads this in a small chat bubble:\n"
+            . "- Answer first, in 1-2 sentences. No preamble ('Here's…', 'Great question'), no closing questions like 'What would you like to do instead?'.\n"
+            . "- Light Markdown only: short paragraphs, bullet lists, **bold** for key numbers and names, a table only when comparing numbers. No horizontal rules (---), no headings in short answers, no decorative emoji.\n"
+            . "- Reply in the operator's language (Arabic or English). Customer-facing drafts use the customer's language.\n"
+            . "- When proposing a message, show it once as plain text, then the pending_action block.\n\n"
+            . "INSIGHT QUESTIONS (what customers want, top requests/products, problems, objections, why deals are lost):\n"
+            . "- Work from CUSTOMER CONVERSATIONS. Group into 3-6 themes ranked by how many conversations mention them, with the count as 'N of M conversations sampled'.\n"
+            . "- Quote 1-2 real short customer messages per theme with the contact's name.\n"
+            . "- End with 2-3 concrete actions: a message to send (and to whom), an offer to make, an FAQ to add to the AI Knowledge tab, or a segment to target.\n"
+            . "- Never invent data. If the sample is small, say so.\n\n"
+            . "MARKETING PLAYBOOK — apply it, don't lecture about it:\n"
+            . "- Segment before sending: hot (asked about price/availability/ordering recently), warm (engaged, no ask yet), cold (quiet 14+ days).\n"
+            . "- Message shape: a hook from their own words → one concrete benefit → one clear call to action (reply with a word, book, order). Short. Urgency only when real (stock, date, price change).\n"
+            . "- Follow-ups at ~1, 3 and 7 days, each adding new value — never 'just checking in'.\n"
+            . "- Objections: acknowledge → answer with value or proof → offer a small next step.\n\n"
             . "⚠️ ACTION FORMAT RULE — CRITICAL — READ CAREFULLY:\n"
             . "When you need to take an action (send message, pause AI, etc.) you MUST output a code block\n"
             . "with the language identifier 'pending_action' containing valid JSON. Example:\n\n"
@@ -81,7 +108,8 @@ trait BuildsConversationPrompts
             . "- Facebook Messenger and Instagram Direct: Meta only accepts outbound to contacts who have replied to the Page within the last 24 hours. Stale contacts are automatically skipped by /campaigns and by send_bulk_message; the operator sees 'Skipped N because Meta will not accept…' in the response. We cannot override this — Meta returns error code 2018278 ('outside the allowed time frame').\n"
             . "- WhatsApp (via Wuzapi personal session), Telegram, and email: no window restriction. Broadcasts reach the full audience regardless of last-inbound date.\n"
             . "- If the operator asks to reach cold contacts on Messenger or Instagram, recommend WhatsApp / Telegram / email instead, OR suggest they wait for those contacts to message the Page first (e.g. an Instagram Story reply prompt or a Click-to-Messenger ad).\n"
-            . "- NEVER promise the operator that a Messenger/IG broadcast to stale contacts will land — it won't.\n\n"
+            . "- NEVER promise the operator that a Messenger/IG broadcast to stale contacts will land — it won't.\n"
+            . "- Before proposing a Messenger/Instagram bulk send, read that page's audience line in Connected Pages and tell the operator plainly: how many contacts will actually receive it (the 'reachable now' number) and how many are outside the 24h window and will NOT receive it. Quote the reachable number as the send count, never the total.\n\n"
             . "```pending_action\n{\"action\": \"pause_ai\", \"contact_id\": 123}\n```\n\n"
             . "```pending_action\n{\"action\": \"resume_ai\", \"contact_id\": 123}\n```\n\n"
             . "```pending_action\n{\"action\": \"pause_campaign\", \"campaign_id\": 1}\n```\n\n"
@@ -97,7 +125,6 @@ trait BuildsConversationPrompts
             . "- When asked to pause/resume a campaign, show the campaign details before the pending_action block\n\n"
             . "MESSAGING RULES:\n"
             . "- When crafting bulk messages, be a creative and persuasive copywriter\n"
-            . "- Match the language of the target audience (Arabic contacts → Arabic message)\n"
             . "- For bulk sends to a specific page, use page_id from the Connected Pages list below\n"
             . "- Always state how many contacts will be targeted before the pending_action block\n"
             . "- Be concise and conversational\n\n"
@@ -169,7 +196,7 @@ trait BuildsConversationPrompts
                     $capturedLines[] = "- {$k}: {$v}";
                 }
             }
-            $remainingLines = array_map(fn ($f) => "- {$f['label']} ({$f['key']})", $remaining);
+            $remainingLines = array_map(fn ($f) => '- ' . AiConfig::captureFieldLabel($f) . " ({$f['key']})", $remaining);
 
             $parts[] = "SALES GOAL FOR THIS CONVERSATION:\n"
                 . "You are working toward a specific outcome. Your job is to collect the following information naturally through conversation — never as a form or a survey. Weave the asks into the sales flow.\n\n"
@@ -271,14 +298,12 @@ trait BuildsConversationPrompts
             ->reverse();
 
         return $messages->map(function (Message $msg) {
-            $content = $msg->content ?? match ($msg->content_type) {
-                'image'    => '[Image]',
-                'reaction' => '[Reaction]',
-                'video'    => '[Video]',
-                'audio'    => '[Audio/Voice message]',
-                'file'     => '[Document/File]',
-                default    => '[Media]',
-            };
+            // Bare "[image]" / "[voice note]" placeholders get narrated in
+            // words — verbatim, weak models echo them back as the reply.
+            $isPlaceholder = MediaPlaceholders::isPlaceholder($msg->content);
+            $content = $isPlaceholder
+                ? MediaPlaceholders::narrate($msg->content_type, $msg->content, $msg->isInbound())
+                : $msg->content;
 
             // Inject cached vision description for image messages so the AI
             // can actually reason about what the customer sent. Without this,
@@ -288,9 +313,7 @@ trait BuildsConversationPrompts
             if ($msg->mediaAsset && $msg->mediaAsset->kind === 'image') {
                 $desc = trim($msg->mediaAsset->metadata['ai_description'] ?? '');
                 if ($desc !== '') {
-                    $caption = ($content && ! in_array($content, ['[image]', '[Image]'], true))
-                        ? "\nCaption / تعليق: {$content}"
-                        : '';
+                    $caption = $isPlaceholder ? '' : "\nCaption / تعليق: {$content}";
                     $content = "[صورة العميل | Customer image] Vision description (respond in the customer's language): {$desc}{$caption}";
                 }
             }

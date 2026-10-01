@@ -134,6 +134,7 @@
                             if ($selectedPage && in_array($selectedPage->platform, ['facebook', 'instagram'], true)) {
                                 $tabs['comments'] = ['label' => __('Comments'), 'icon' => 'chat-bubble-oval-left-ellipsis'];
                             }
+                            $tabs['connectors'] = ['label' => __('Connectors'), 'icon' => 'table-cells'];
                         @endphp
                         <div class="flex flex-wrap gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 p-1.5 bg-zinc-50 dark:bg-zinc-900/40">
                             @foreach($tabs as $tabKey => $tabMeta)
@@ -197,8 +198,7 @@
                                     <div class="space-y-2">
                                         @forelse($required_capture_fields as $index => $field)
                                             <div class="flex items-center gap-2">
-                                                <flux:input wire:model="required_capture_fields.{{ $index }}.label" placeholder="{{ __('Label (e.g. Email address)') }}" class="flex-1 text-zinc-900" />
-                                                <flux:input wire:model="required_capture_fields.{{ $index }}.key" placeholder="{{ __('key (e.g. email)') }}" class="w-40 text-zinc-900" />
+                                                <flux:input wire:model.blur="required_capture_fields.{{ $index }}.key" placeholder="{{ __('Field (e.g. email, phone, address)') }}" class="flex-1 text-zinc-900" />
                                                 <flux:select wire:model="required_capture_fields.{{ $index }}.type" class="w-32 text-zinc-900">
                                                     <flux:select.option value="text">{{ __('Text') }}</flux:select.option>
                                                     <flux:select.option value="email">{{ __('Email') }}</flux:select.option>
@@ -796,7 +796,105 @@
                             @endif
                         @endif {{-- /Comments tab --}}
 
-                        {{-- Save --}}
+                        {{-- Tab: Connectors — push closed deals / captured leads to the operator's own sheet --}}
+                        @if($activeTab === 'connectors')
+                            <section class="space-y-5">
+                                <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                                    <p class="text-sm text-emerald-900">{{ __('When the AI captures the info your Sales Goal asks for, or a contact is marked Converted, a row is added to your sheet automatically: date, contact, phone, email, channel, captured info and their last message.') }}</p>
+                                </div>
+
+                                @unless($hasConfig)
+                                    <p class="text-sm text-zinc-800">{{ __('Save the Sales Goal tab first, then add connectors here.') }}</p>
+                                @endunless
+
+                                {{-- Google Sheets --}}
+                                <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3" x-data="{ copied: false }">
+                                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('Google Sheets') }}</h3>
+                                    <ol class="list-decimal ps-5 space-y-1 text-sm text-zinc-800">
+                                        <li>{{ __('Open your Google Sheet → Extensions → Apps Script.') }}</li>
+                                        <li>{{ __('Replace everything with the code below and click Save.') }}</li>
+                                        <li>{{ __('Deploy → New deployment → type "Web app" → Execute as: Me, Who has access: Anyone → Deploy.') }}</li>
+                                        <li>{{ __('Copy the Web app URL (ends with /exec) and paste it here.') }}</li>
+                                    </ol>
+                                    <div class="relative">
+                                        <pre x-ref="code" dir="ltr" class="overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs leading-relaxed text-zinc-100">@verbatim
+function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  if (sheet.getLastRow() === 0) sheet.appendRow(data.headers);
+  sheet.appendRow(data.row);
+  return ContentService.createTextOutput('ok');
+}@endverbatim</pre>
+                                        <button type="button"
+                                                @click="navigator.clipboard.writeText($refs.code.innerText.trim()); copied = true; setTimeout(() => copied = false, 2000)"
+                                                class="absolute top-2 end-2 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-900 hover:bg-zinc-100 cursor-pointer">
+                                            <span x-show="!copied">{{ __('Copy') }}</span>
+                                            <span x-show="copied" x-cloak>{{ __('Copied') }}</span>
+                                        </button>
+                                    </div>
+                                    <flux:field>
+                                        <flux:label>{{ __('Web app URL') }}</flux:label>
+                                        <flux:input wire:model="connector_sheet_url" type="url" dir="ltr" placeholder="https://script.google.com/macros/s/…/exec" />
+                                        <flux:error name="connector_sheet_url" />
+                                    </flux:field>
+                                </div>
+
+                                {{-- Excel / automations --}}
+                                <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
+                                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('Excel, Zapier, Make or your CRM') }}</h3>
+                                    <p class="text-sm text-zinc-800">{{ __('Paste any webhook URL — e.g. Power Automate "When an HTTP request is received" → "Add a row into a table" for Excel Online, or a Zapier / Make / n8n webhook. Each event is sent as JSON with named fields.') }}</p>
+                                    <flux:field>
+                                        <flux:label>{{ __('Webhook URL') }}</flux:label>
+                                        <flux:input wire:model="connector_webhook_url" type="url" dir="ltr" placeholder="https://hooks.zapier.com/…" />
+                                        <flux:error name="connector_webhook_url" />
+                                    </flux:field>
+                                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                                        <flux:button type="button" size="sm" variant="outline" icon="arrow-down-tray" wire:click="exportLeads">
+                                            {{ __('Download leads (Excel CSV)') }}
+                                        </flux:button>
+                                        <span class="text-xs text-zinc-700">{{ __('Everything captured or converted on this page so far.') }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Events --}}
+                                <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-2">
+                                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('Send a row when') }}</h3>
+                                    <label class="flex items-center gap-2 text-sm text-zinc-900">
+                                        <input type="checkbox" wire:model="connector_events" value="lead_captured" class="rounded border-zinc-400 text-emerald-600">
+                                        {{ __('The AI captured all required info (Sales Goal)') }}
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm text-zinc-900">
+                                        <input type="checkbox" wire:model="connector_events" value="deal_closed" class="rounded border-zinc-400 text-emerald-600">
+                                        {{ __('A deal is closed (contact marked Converted)') }}
+                                    </label>
+                                </div>
+
+                                @if($connector_last_delivery)
+                                    <div class="rounded-lg border p-3 text-sm {{ $connector_last_delivery['ok'] ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-red-200 bg-red-50 text-red-900' }}">
+                                        {{ $connector_last_delivery['ok'] ? __('Last row delivered') : __('Last delivery failed') }}
+                                        · {{ \Illuminate\Support\Carbon::parse($connector_last_delivery['at'])->diffForHumans() }}
+                                        @if(! $connector_last_delivery['ok'] && ! empty($connector_last_delivery['error']))
+                                            <span class="block mt-1 break-words text-xs">{{ $connector_last_delivery['error'] }}</span>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-200">
+                                    <flux:button type="button" variant="primary" wire:click="saveConnectors" wire:loading.attr="disabled" :disabled="! $hasConfig">
+                                        {{ __('Save connectors') }}
+                                    </flux:button>
+                                    <flux:button type="button" variant="outline" wire:click="sendTestRow" wire:loading.attr="disabled" :disabled="! $hasConfig">
+                                        {{ __('Send a test row') }}
+                                    </flux:button>
+                                    <x-action-message on="connectors-saved" class="text-green-700">
+                                        {{ __('Saved.') }}
+                                    </x-action-message>
+                                </div>
+                            </section>
+                        @endif {{-- /Connectors tab --}}
+
+                        {{-- Save (the Connectors tab has its own) --}}
+                        @if($activeTab !== 'connectors')
                         <div class="flex items-center gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
                             <flux:button variant="primary" type="submit" wire:loading.attr="disabled">
                                 {{ $hasConfig ? __('Save Changes') : __('Create AI Config') }}
@@ -810,6 +908,7 @@
                                 {{ __('Saved successfully.') }}
                             </x-action-message>
                         </div>
+                        @endif
                     </form>
                 @endif
             </div>

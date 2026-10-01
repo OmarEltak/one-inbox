@@ -15,8 +15,19 @@
     },
     onNewContent() {
         if (this.isNearBottom) { this.scrollToBottom(); } else { this.showNewMessageBadge = true; }
+    },
+    stickToBottom() {
+        // One scroll on init lands short: web fonts, images and long Arabic
+        // lines keep growing the thread after first paint. Re-pin to the
+        // bottom whenever the thread resizes, unless the user scrolled up.
+        const content = $refs.chatContent;
+        if (!content || !window.ResizeObserver) return;
+        new ResizeObserver(() => {
+            const el = $refs.chatContainer;
+            if (el && this.isNearBottom) el.scrollTop = el.scrollHeight;
+        }).observe(content);
     }
-}" x-init="scrollToBottom()" @message-sent.window="scrollToBottom()"
+}" x-init="scrollToBottom(); stickToBottom()" @message-sent.window="scrollToBottom()"
    x-on:livewire:morph.window="onNewContent()">
 
     {{-- Header --}}
@@ -39,7 +50,7 @@
     </div>
 
     {{-- Messages Area --}}
-    <div class="flex-1 overflow-y-auto px-6 py-4" x-ref="chatContainer" @scroll.debounce.50ms="checkScroll()">
+    <div class="flex-1 min-h-0 overflow-y-auto px-6 py-4" x-ref="chatContainer" @scroll.debounce.50ms="checkScroll()">
         {{-- New messages badge --}}
         <div x-show="showNewMessageBadge" x-transition class="sticky top-2 z-10 flex justify-center">
             <button @click="scrollToBottom(); showNewMessageBadge = false"
@@ -94,71 +105,19 @@
                     </p>
                 </div>
 
-                {{-- Quick action chips --}}
-                <div class="grid grid-cols-2 gap-3 w-full">
-                    <button
-                        wire:click="$set('message', 'Show me all my campaigns and their performance')"
-                        class="flex items-center gap-3 rounded-xl aio-card p-3 text-left hover:border-[#3b82f6] transition-colors cursor-pointer group"
-                    >
-                        <div class="rounded-lg bg-[#3b82f6]/10 p-2 group-hover:bg-[#3b82f6]/20 transition-colors">
-                            <svg class="size-4 text-[#3b82f6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-zinc-700">Campaign overview</p>
-                            <p class="text-xs text-zinc-500">Performance & stats</p>
-                        </div>
-                    </button>
-
-                    <button
-                        wire:click="$set('message', 'Send a promotional message to all hot leads')"
-                        class="flex items-center gap-3 rounded-xl aio-card p-3 text-left hover:border-[#10b981] transition-colors cursor-pointer group"
-                    >
-                        <div class="rounded-lg bg-[#10b981]/10 p-2 group-hover:bg-[#10b981]/20 transition-colors">
-                            <svg class="size-4 text-[#10b981]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-zinc-700">Blast hot leads</p>
-                            <p class="text-xs text-zinc-500">Targeted outreach</p>
-                        </div>
-                    </button>
-
-                    <button
-                        wire:click="$set('message', 'Analyze my performance this week and suggest improvements')"
-                        class="flex items-center gap-3 rounded-xl aio-card p-3 text-left hover:border-green-500 transition-colors cursor-pointer group"
-                    >
-                        <div class="rounded-lg bg-green-500/10 p-2 group-hover:bg-green-500/20 transition-colors">
-                            <svg class="size-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-zinc-700">Weekly analysis</p>
-                            <p class="text-xs text-zinc-500">Insights & tips</p>
-                        </div>
-                    </button>
-
-                    <button
-                        wire:click="$set('message', 'Who are my top 5 hottest leads right now?')"
-                        class="flex items-center gap-3 rounded-xl aio-card p-3 text-left hover:border-orange-500 transition-colors cursor-pointer group"
-                    >
-                        <div class="rounded-lg bg-orange-500/10 p-2 group-hover:bg-orange-500/20 transition-colors">
-                            <svg class="size-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-zinc-700">Hot leads</p>
-                            <p class="text-xs text-zinc-500">Top opportunities</p>
-                        </div>
-                    </button>
+                {{-- Quick questions: real marketing work over the operator's own chats --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                    @foreach($this->suggestions() as $i => $suggestion)
+                        <button type="button" wire:click="useSuggestion({{ $i }})" wire:loading.attr="disabled"
+                                class="rounded-xl aio-card p-3 text-left hover:border-[#10b981] transition-colors cursor-pointer">
+                            <p class="text-sm font-medium text-zinc-800">{{ $suggestion['label'] }}</p>
+                            <p class="mt-0.5 text-xs text-zinc-600 line-clamp-2">{{ $suggestion['prompt'] }}</p>
+                        </button>
+                    @endforeach
                 </div>
             </div>
         @else
-            <div class="mx-auto max-w-3xl space-y-4">
+            <div class="mx-auto max-w-3xl space-y-4" x-ref="chatContent">
                 @foreach($messages as $msg)
                     @if($msg['role'] === 'user')
                         <div class="flex justify-end">
@@ -185,15 +144,17 @@
                                     </svg>
                                 </div>
                             </div>
-                            <div class="max-w-[80%] rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-2.5 text-sm text-zinc-900">
-                                {!! nl2br(e($msg['content'])) !!}
+                            <div class="min-w-0 max-w-[85%] rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-2.5 text-sm text-zinc-900">
+                                {{-- Markdown, raw HTML stripped: the AI's **bold**, lists and tables used to show as literal symbols. --}}
+                                <div class="ai-md">{!! \Illuminate\Support\Str::markdown($msg['content'] ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</div>
                             </div>
                         </div>
                     @endif
                 @endforeach
 
                 {{-- Loading indicator --}}
-                <div wire:loading wire:target="sendMessage" class="flex justify-start gap-2">
+                {{-- .flex: plain wire:loading shows as inline-block, which stacked the dots under the avatar --}}
+                <div wire:loading.flex wire:target="sendMessage" class="justify-start gap-2">
                     <div class="mt-1 flex-shrink-0">
                         <div class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] to-[#10b981]">
                             <svg class="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,7 +186,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-semibold text-amber-400 mb-0.5">{{ __('Confirm action') }}</p>
-                        <p class="text-xs text-zinc-600 truncate">{{ $pendingActionSummary }}</p>
+                        <p class="text-xs text-zinc-700 whitespace-pre-line break-words max-h-32 overflow-y-auto" dir="auto">{{ $pendingActionSummary }}</p>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <button
@@ -251,8 +212,18 @@
     @endif
 
     {{-- Input Bar --}}
-    <div class="border-t border-zinc-200 px-6 py-4">
+    <div class="border-t border-zinc-200 px-4 sm:px-6 py-4">
         <div class="mx-auto max-w-3xl">
+            @if(! empty($messages))
+                <div class="mb-2 flex gap-2 overflow-x-auto pb-1">
+                    @foreach($this->suggestions() as $i => $suggestion)
+                        <button type="button" wire:click="useSuggestion({{ $i }})" wire:loading.attr="disabled"
+                                class="shrink-0 rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-medium text-zinc-700 hover:border-[#10b981] hover:text-zinc-900 cursor-pointer">
+                            {{ $suggestion['label'] }}
+                        </button>
+                    @endforeach
+                </div>
+            @endif
             @if($attachment)
                 <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
                     @if(str_starts_with($attachment->getMimeType(), 'image/'))

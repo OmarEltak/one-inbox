@@ -143,7 +143,7 @@ class CaptureExtractor
      */
     private function extractFreeform(array $field, string $content, Conversation $conversation): ?string
     {
-        $label = $field['label'] ?? $field['key'];
+        $label = \App\Models\AiConfig::captureFieldLabel($field);
 
         $systemPrompt = "You extract structured data from customer messages. "
             . "Given a single field description and a raw message, respond with ONLY the extracted value — no quotes, no commentary. "
