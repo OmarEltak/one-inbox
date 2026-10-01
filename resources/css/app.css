@@ -486,3 +486,21 @@ details[open] > :not(summary) { display: revert; }
     background: #FB2C36;
     border: 2px solid #FAFAFA;
 }
+
+/* AI chat replies rendered from Markdown (resources/views/livewire/ai-chat.blade.php).
+   Each block picks its own direction so Arabic and English lines both read right. */
+.ai-md { line-height: 1.6; overflow-wrap: anywhere; }
+.ai-md > * + * { margin-top: 0.6em; }
+.ai-md :is(p, li, h1, h2, h3, h4, td, th, blockquote) { unicode-bidi: plaintext; text-align: start; }
+.ai-md :is(h1, h2, h3, h4) { font-weight: 700; color: #18181b; font-size: 0.95rem; margin-top: 0.9em; }
+.ai-md strong { font-weight: 600; color: #18181b; }
+.ai-md ul { list-style: disc; padding-inline-start: 1.25em; }
+.ai-md ol { list-style: decimal; padding-inline-start: 1.25em; }
+.ai-md li + li { margin-top: 0.25em; }
+.ai-md table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 0.8125rem; }
+.ai-md :is(th, td) { border: 1px solid #d4d4d8; padding: 0.35em 0.6em; }
+.ai-md th { background: #f4f4f5; font-weight: 600; color: #18181b; }
+.ai-md code { background: #f4f4f5; border-radius: 4px; padding: 0 0.3em; font-size: 0.85em; }
+.ai-md blockquote { border-inline-start: 3px solid #6ee7b7; padding-inline-start: 0.75em; color: #3f3f46; }
+.ai-md a { color: #047857; text-decoration: underline; }
+.ai-md hr { display: none; }

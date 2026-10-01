@@ -32,10 +32,20 @@ final class MediaPlaceholders
     /** Words the model can reason about but has no reason to repeat. */
     public static function narrate(?string $contentType, ?string $content, bool $inbound): string
     {
+        $what = self::label($contentType, $content);
+
+        return $inbound
+            ? "[media: the customer sent {$what} you cannot see or hear — never repeat this tag; if it matters, ask briefly what it was]"
+            : "[media: you sent the customer {$what}]";
+    }
+
+    /** "a photo", "a voice note"… from the placeholder text, else the content type. */
+    public static function label(?string $contentType, ?string $content): string
+    {
         $key = strtolower(trim((string) $content, " []\t\n"));
         $kind = self::KIND_BY_PLACEHOLDER[$key] ?? $contentType;
 
-        $what = match ($kind) {
+        return match ($kind) {
             'image'    => 'a photo',
             'audio'    => 'a voice note',
             'video'    => 'a video',
@@ -44,10 +54,6 @@ final class MediaPlaceholders
             'reaction' => 'a reaction',
             default    => 'an attachment',
         };
-
-        return $inbound
-            ? "[media: the customer sent {$what} you cannot see or hear — never repeat this tag; if it matters, ask briefly what it was]"
-            : "[media: you sent the customer {$what}]";
     }
 
     /** Remove placeholder tokens from a reply; '' when nothing real is left. */

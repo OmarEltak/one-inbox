@@ -11,6 +11,7 @@ use App\Models\Message;
 use App\Models\Page;
 use App\Models\Team;
 use App\Contracts\AiProviderInterface;
+use App\Services\Ai\AdminChatContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -58,6 +59,43 @@ class AiChat extends Component
             ->all();
     }
 
+    /**
+     * One-tap questions that use what the assistant can actually see (chat
+     * content, reach, lead status) — real marketing work, not generic chips.
+     *
+     * @return array<int, array{label: string, prompt: string}>
+     */
+    public function suggestions(): array
+    {
+        return [
+            ['label' => __('What customers want'), 'prompt' => 'Read my customer chats from the last 30 days. What do customers ask for most, and which products or services are most requested? Give counts and real quotes with names.'],
+            ['label' => __('Top problems & objections'), 'prompt' => 'What are the biggest complaints, problems and objections in my chats? For each: how often it comes up, a real quote, and the exact reply I should use.'],
+            ['label' => __('Who is ready to buy'), 'prompt' => 'Which contacts are closest to buying right now? List the top 5 with the reason (quote their message) and the exact message I should send each, in their language.'],
+            ['label' => __('Win back quiet leads'), 'prompt' => 'Find interested leads who went quiet in the last 2 weeks. Write a short win-back message for them in the language and dialect they use, and tell me who can be reached on which channel.'],
+            ['label' => __('Why deals are lost'), 'prompt' => 'Look at conversations that did not convert. Why did customers drop off? Give the top reasons with real examples and what to change in my offer or AI replies.'],
+            ['label' => __('This week vs last week'), 'prompt' => 'How did this week go compared to last week (conversations, messages, AI vs human replies, new contacts)? Give 3 concrete actions to improve next week.'],
+        ];
+    }
+
+    public function useSuggestion(int $index): void
+    {
+        $suggestion = $this->suggestions()[$index] ?? null;
+        if (! $suggestion) {
+            return;
+        }
+
+        $this->message = $suggestion['prompt'];
+        $this->sendMessage();
+    }
+
+    protected static function isConfirmation(string $text): bool
+    {
+        return (bool) preg_match(
+            '/^(send|send it|yes|yep|ok|okay|confirm|go|go ahead|do it|sure|ابعت|ابعتها|ابعته|ارسل|أرسل|ارسلها|تمام|نعم|اه|آه|ايوه|أيوه|موافق|يلا)[\s.!]*$/iu',
+            trim($text)
+        );
+    }
+
     public function removeAttachment(): void
     {
         $this->attachment = null;
@@ -69,6 +107,16 @@ class AiChat extends Component
         $hasAttachment = $this->attachment !== null;
 
         if ($text === '' && ! $hasAttachment) {
+            return;
+        }
+
+        // Typing "send" / "yes" / "ابعت" with an action waiting confirms it,
+        // instead of going back to the AI (which used to ask for an ID again).
+        if ($this->pendingAction && ! $hasAttachment && self::isConfirmation($text)) {
+            $this->message = '';
+            $this->messages[] = ['role' => 'user', 'content' => $text];
+            $this->confirmAction();
+
             return;
         }
 
@@ -101,7 +149,14 @@ class AiChat extends Component
             return;
         }
 
-        $analyticsContext = $this->buildAnalyticsContext($team->id);
+        // Chat content: contacts named in this turn or the last few (so "send
+        // him…" resolves), plus a digest of recent customer messages so insight
+        // questions are answered from real quotes.
+        $chatContext = app(AdminChatContext::class);
+        $recentTalk = collect($this->messages)->slice(-6, 5)->pluck('content')->implode("\n");
+        $analyticsContext = $this->buildAnalyticsContext($team->id)
+            . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
+            . "\n\n" . $chatContext->customerDigest($team->id);
 
         $history = collect($this->messages)
             ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
@@ -123,6 +178,13 @@ class AiChat extends Component
         $actionResult = $this->executeActions($response, $team->id);
         if ($actionResult) {
             $response .= "\n\n" . $actionResult;
+        }
+
+        // A reply that was only an action block used to render as an empty bubble.
+        if (trim($response) === '') {
+            $response = $this->pendingAction
+                ? 'Ready — review the action below and confirm.'
+                : 'I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.';
         }
 
         AiCommand::create([
@@ -239,9 +301,22 @@ class AiChat extends Component
         };
     }
 
+    /** Operators name people, not IDs: accept a unique contact_name too. */
+    protected function contactIdFromName(array $action, int $teamId): ?int
+    {
+        $name = trim((string) ($action['contact_name'] ?? ''));
+        if ($name === '') {
+            return null;
+        }
+
+        $ids = Contact::where('team_id', $teamId)->where('name', 'like', '%' . addcslashes($name, '%_') . '%')->limit(2)->pluck('id');
+
+        return $ids->count() === 1 ? $ids->first() : null;
+    }
+
     protected function describeSendMessage(array $action, int $teamId): string
     {
-        $contactId = $action['contact_id'] ?? null;
+        $contactId = $action['contact_id'] ?? $this->contactIdFromName($action, $teamId);
         $text = $action['message'] ?? '';
         $name = 'Unknown contact';
 
@@ -399,11 +474,11 @@ class AiChat extends Component
      */
     protected function actionSendMessage(array $action, int $teamId): string
     {
-        $contactId = $action['contact_id'] ?? null;
+        $contactId = $action['contact_id'] ?? $this->contactIdFromName($action, $teamId);
         $text = $action['message'] ?? null;
 
         if (! $contactId || ! $text) {
-            return "Send message failed: missing contact_id or message.";
+            return 'Send message failed: could not tell which contact to message — mention them by their full name and try again.';
         }
 
         $conversation = Conversation::where('team_id', $teamId)
