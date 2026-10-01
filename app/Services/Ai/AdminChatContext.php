@@ -78,24 +78,29 @@ class AdminChatContext
     }
 
     /**
-     * Recent customer messages across every chat, newest conversations first,
-     * capped by a character budget so the prompt stays small.
+     * The most recent customer conversations (all pages, or one page), newest
+     * first, capped by a character budget so the prompt stays small.
+     *
+     * Chats imported when a Facebook page is connected only carry the
+     * last-message preview (the sync stores no message rows), so those are
+     * included from the preview instead of being skipped — otherwise a page
+     * connected today looks like it has no customers at all.
      */
-    public function customerDigest(int $teamId, int $days = 30, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 12000, ?int $pageId = null): string
+    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 12000, ?int $pageId = null): string
     {
-        $since = now()->subDays($days);
         $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;
         $scope = $pageName ? " ON PAGE \"{$pageName}\"" : '';
 
         $base = Conversation::where('team_id', $teamId)
             ->when($pageId, fn ($q) => $q->where('page_id', $pageId))
             ->where('sales_stage', '!=', Conversation::STAGE_SPAM)
-            ->where('last_message_at', '>=', $since)
-            ->whereHas('messages', fn ($q) => $q->where('direction', 'inbound'));
+            ->where(fn ($q) => $q->whereHas('messages', fn ($m) => $m->where('direction', 'inbound'))
+                ->orWhereNotNull('last_message_preview'));
 
-        $activeTotal = (clone $base)->count();
-        if ($activeTotal === 0) {
-            return "=== CUSTOMER CONVERSATIONS{$scope} (last {$days} days) ===\nNo customer messages in this period.";
+        $total = (clone $base)->count();
+        if ($total === 0) {
+            return "=== CUSTOMER CONVERSATIONS{$scope} ===\nNo conversations are stored for this " . ($pageName ? 'page' : 'account')
+                . ' yet. Say so plainly. Do NOT suggest exporting chats, Meta Business Suite or any other tool.';
         }
 
         $conversations = $base->with(['contact:id,name,lead_status', 'page:id,name'])
@@ -105,7 +110,6 @@ class AdminChatContext
 
         $byConversation = Message::whereIn('conversation_id', $conversations->pluck('id'))
             ->where('direction', 'inbound')
-            ->where('created_at', '>=', $since)
             ->whereNotNull('content')
             ->orderByDesc('id')
             ->limit($maxConversations * 20)
@@ -114,22 +118,31 @@ class AdminChatContext
 
         $blocks = [];
         $used = 0;
+        $previewOnly = 0;
         foreach ($conversations as $conversation) {
-            $texts = ($byConversation[$conversation->id] ?? collect())
+            $raw = ($byConversation[$conversation->id] ?? collect())
                 ->pluck('content')
                 ->reject(fn ($c) => MediaPlaceholders::isPlaceholder($c))
                 ->take($perConversation)
                 ->reverse()
-                ->map(fn ($c) => '  • ' . $this->clip($c, 180));
+                ->values();
+            $lines = $raw->map(fn ($c) => '  • ' . $this->clip($c, 180));
 
-            if ($texts->isEmpty()) {
-                continue;
+            if ($raw->isEmpty()) {
+                $preview = (string) $conversation->last_message_preview;
+                if (MediaPlaceholders::isPlaceholder($preview)) {
+                    continue;
+                }
+                $raw = collect([$preview]);
+                $lines = collect(['  • (last-message preview, sender unknown) ' . $this->clip($preview, 180)]);
+                $previewOnly++;
             }
 
             $name = $conversation->contact?->name ?? 'Unknown';
             $block = "— {$name} (contact ID:{$conversation->contact_id}, {$conversation->platform}, page: "
                 . ($conversation->page?->name ?? '?') . ', status: ' . ($conversation->contact?->lead_status ?? '?')
-                . ', writes in ' . $this->language($texts->all()) . ")\n" . $texts->implode("\n");
+                . ', last message ' . ($conversation->last_message_at?->toDateString() ?? '?')
+                . ', writes in ' . $this->language($raw->all()) . ")\n" . $lines->implode("\n");
 
             if ($used + strlen($block) > $charBudget) {
                 break;
@@ -139,9 +152,13 @@ class AdminChatContext
         }
 
         $sampled = count($blocks);
+        $note = $previewOnly > 0
+            ? "Note: {$previewOnly} of these chats were imported when the page was connected, so only their last-message preview is stored, not the full history. Answer from what is here, say the sample is limited to previews, and do NOT suggest exporting chats, Meta Business Suite or a CRM.\n"
+            : '';
 
-        return "=== CUSTOMER CONVERSATIONS{$scope} (last {$days} days — {$sampled} most recent of {$activeTotal} active conversations; customer messages only, oldest→newest) ===\n"
+        return "=== CUSTOMER CONVERSATIONS{$scope} ({$sampled} most recent of {$total} conversations; customer messages, oldest→newest per chat) ===\n"
             . 'Use this to answer what customers want, ask about, complain about, and object to. Quote it as evidence.' . "\n"
+            . $note
             . implode("\n", $blocks);
     }
 

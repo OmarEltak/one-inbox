@@ -64,7 +64,8 @@ test('only the last 12 turns are sent, each clipped', function () {
 
     [$captured] = askAndCapture('hi');
 
-    expect($captured['history'])->toHaveCount(12)
+    expect(count($captured['history']))->toBeLessThanOrEqual(12)
+        ->and($captured['history'][0]['role'])->toBe('user')
         ->and(end($captured['history'])['content'])->toBe('hi')
         ->and(collect($captured['history'])->max(fn ($m) => mb_strlen($m['content'])))->toBeLessThanOrEqual(2003);
 });

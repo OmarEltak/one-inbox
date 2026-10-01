@@ -191,6 +191,9 @@ class AiChat extends Component
         $history = collect($this->messages)
             ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
             ->slice(-12)
+            // 30 stored pairs + the new message is odd, so a 12-turn window can
+            // open on an assistant turn — some models reject that ("API error").
+            ->skipUntil(fn ($m) => $m['role'] === 'user')
             ->map(fn ($m) => [
                 'role' => $m['role'] === 'user' ? 'user' : 'model',
                 'content' => Str::limit((string) $m['content'], 2000),

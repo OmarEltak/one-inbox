@@ -210,7 +210,8 @@
                                     @if($plan !== 'free' || $team->subscription_ends_at)
                                         <flux:button
                                             wire:click="revoke({{ $team->id }})"
-                                            wire:confirm="Revoke {{ $team->name }}'s plan and reset to free tier?"
+                                            wire:confirm="{{ __('End the paid plan of :name now and move the team back to the free tier?', ['name' => $team->name]) }}"
+                                            title="{{ __('Ends the paid plan immediately and moves the team to the free tier') }}"
                                             size="sm"
                                             variant="outline"
                                             icon="x-mark"

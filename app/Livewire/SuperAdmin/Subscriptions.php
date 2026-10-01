@@ -232,7 +232,7 @@ class Subscriptions extends Component
             'billing_cycle'        => null,
         ]);
 
-        session()->flash('success', "Revoked access — {$team->name} is back on the free tier.");
+        session()->flash('success', __('Revoked access — :team is back on the free tier.', ['team' => $team->name]));
         unset($this->teams);
     }
 
