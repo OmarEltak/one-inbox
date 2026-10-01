@@ -191,8 +191,6 @@ class PageDiagnosticController extends Controller
         $token = $page->page_access_token;
         $appId = config('services.meta.app_id');
         $appToken = $appId.'|'.config('services.meta.app_secret');
-        $igAppId = config('services.meta.instagram_app_id');
-        $igAppToken = $igAppId.'|'.config('services.meta.instagram_app_secret');
 
         $checks = ['path' => null];
 
@@ -217,9 +215,9 @@ class PageDiagnosticController extends Controller
         }
 
         $checks['app_subscriptions_main'] = $this->get("https://graph.facebook.com/{$v}/{$appId}/subscriptions", ['access_token' => $appToken]);
-        if ($igAppId && $igAppId !== $appId) {
-            $checks['app_subscriptions_instagram_app'] = $this->get("https://graph.facebook.com/{$v}/{$igAppId}/subscriptions", ['access_token' => $igAppToken]);
-        }
+        // The Instagram-Login app's app-level webhook subscription belongs to its PARENT Meta app,
+        // whose secret we don't hold — querying with the IG app id/secret returns OAuthException 190.
+        $checks['app_subscriptions_instagram_app'] = 'not checkable via API — see App Dashboard → OT1 Direct Connect → Instagram → Webhooks (callback /api/webhooks/meta-ig)';
 
         return $checks;
     }
