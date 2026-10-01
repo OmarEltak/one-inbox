@@ -151,9 +151,9 @@ it('does not crash when Instagram redirects back with no code and no error', fun
     [$user] = makeIgOwner(superAdmin: true);
 
     $this->actingAs($user)
-        ->get(route('connections.instagram.callback'))
+        ->get(route('connections.instagram.callback', ['state' => 'abc123', 'foo' => 'bar']))
         ->assertRedirect(route('connections.index'))
-        ->assertSessionHas('error');
+        ->assertSessionHas('error', fn ($m) => str_contains($m, 'received: state=abc123, foo=bar'));
 
     Http::assertNothingSent();
 });

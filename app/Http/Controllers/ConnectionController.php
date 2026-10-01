@@ -179,8 +179,18 @@ class ConnectionController extends Controller
                 'query' => $request->except('code'),
             ]);
 
+            // Show what Instagram actually sent back so the cause is visible without
+            // server-log access (values are escaped by Blade when rendered).
+            $received = collect($request->except('code'))
+                ->map(fn ($v, $k) => $k . '=' . (is_scalar($v) ? $v : json_encode($v)))
+                ->implode(', ');
+
             return redirect()->route('connections.index')
-                ->with('error', 'Instagram connection failed: ' . ($metaMessage ?: 'Instagram returned no authorization code. Make sure the account is a Business/Creator account with an accepted Instagram Tester invite, then try again.'));
+                ->with('error', 'Instagram connection failed: ' . ($metaMessage ?: \Illuminate\Support\Str::limit(
+                    'Instagram returned no authorization code (received: ' . ($received ?: 'nothing') . '). '
+                    . 'Make sure the account is a Business/Creator account with an accepted Instagram Tester invite, then try again.',
+                    500
+                )));
         }
 
         try {
