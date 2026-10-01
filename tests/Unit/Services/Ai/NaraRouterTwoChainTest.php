@@ -203,3 +203,9 @@ test('every model replying empty returns empty without the global cooldown', fun
     expect($this->provider->generateText('sys', 'hi'))->toBe('')
         ->and(Cache::get('nararouter:cooldown_until'))->toBeNull();
 });
+
+test('a timeout falls through to the next model instead of escaping', function () {
+    Http::fake(['*' => Http::sequence()->pushFailedConnection()->push(narareply('second model'))]);
+
+    expect($this->provider->generateText('sys', 'hi'))->toBe('second model');
+});

@@ -2558,5 +2558,6 @@
     "Voice note": "رسالة صوتية",
     "Video": "فيديو",
     "Location": "موقع",
-    "Media": "وسائط"
+    "Media": "وسائط",
+    "The AI took too long or returned nothing. Please try again, or ask a more specific question.": "استغرق الذكاء الاصطناعي وقتًا طويلًا أو لم يُرجع ردًا. حاول مرة أخرى، أو اسأل سؤالًا أكثر تحديدًا."
 }
