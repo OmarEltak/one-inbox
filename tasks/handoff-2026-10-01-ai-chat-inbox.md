@@ -1,6 +1,6 @@
 # Handoff — AI chat / inbox / super-admin work (2026-10-01)
 
-Branch `claude/laughing-goodall-65k8l0`. Deployed to prod via PRs #77–#81 (merge → GitHub Actions "Deploy to Production").
+Branch `claude/laughing-goodall-65k8l0`. Deployed to prod via PRs #77–#84 (merge → GitHub Actions "Deploy to Production").
 Container sessions cannot reach ot1-pro.com or SSH; ask the user for `/super-admin/errors` (ERROR level only) and `/super-admin/pages/{id}/diagnose`.
 
 ## Shipped (deployed)
@@ -29,6 +29,15 @@ Container sessions cannot reach ot1-pro.com or SSH; ask the user for `/super-adm
 - `Jobs/BackfillPageMessages`: imports last 25 messages per chat (via `fetchAndStoreMessages`, side-effect free — no AI, no broadcast) in batches of 40, self-re-dispatching, stops after 3 Meta refusals. Queued 30 s after every Messenger conversation sync; migration `000003` re-runs the Messenger sync (→ backfill) and backfills Instagram pages on deploy. Imported rows get `created_at = platform_sent_at`.
 - `fetchConversations` writes `metadata.last_conversation_sync {at, imported, skipped, error}` on the page → visible at `/super-admin/pages/{id}/diagnose`. **If Mishkah (page 33) still shows 28 chats, read that block first**: `error` = Meta refused (token/permission → reconnect page); `imported` ≈ 28 = Graph only returns that many to this token.
 - Inbox: `[Sticker]`, `[Reaction]`, `[voice note]`… placeholders render as icon + translated label (stickers are still not downloaded as images — `ProcessIncomingMessage` stores them as text; downloading the webp via Wuzapi is open).
+
+## PR #84 (AI chat timeouts) — merged, deploy not confirmed by the session
+- Root cause (prod log + Nara request CSV): admin-chat prompts take 30-40 s at Nara; HTTP timeout was 25 s; the `ConnectionException` (cURL 28) was not caught in `NaraRouterProvider::runChain`, so it escaped the cascade → "Sorry, I encountered an error", no other model/key tried.
+- Fix: timeout → next model; admin chat 40 s per model inside a 55 s budget (`$requestTimeout`, `$deadline`, `callTimeout()`), budget exhaustion returns status `empty` (no global cooldown); smaller admin context (digest 6k chars, 20 contacts, 10 campaigns); translated "took too long" message. Test: `NaraRouterTwoChainTest` "a timeout falls through…".
+- Verify: ask "What are last 30 customers for mishkah want" in `/ai-chat`. If it still fails, read `/super-admin/errors` for `AI chat request failed` / `NaraRouter: no model produced a reply`.
+
+## Prod log findings 2026-10-01 21:16–21:21 (not code bugs)
+- Pages **Brandk, OT1-Pro, Omar Eltak**: Graph OAuthException 190 "permission(s) must be granted before impersonating a user's page" on conversation/message fetch → reconnect these pages (Connections). Mishkah unaffected (user confirmed its inbox now loads fully).
+- `MissingAppKeyException` at deploy time (21:16:04–16) from `CachePublicMarketing.php:62` → deploy race while config is cleared; pre-existing (see lessons "config:cache needs config:clear first").
 
 ## Still open / not done
 - WhatsApp (Wuzapi) stickers are now downloaded as images (PR #83, image download path, no vision call). Stickers received BEFORE #83 stay as the "😊 Sticker" label. Facebook/IG stickers unchanged. Not verified live against Wuzapi from the container — if a new sticker still shows the label, check `Wuzapi media download failed` warnings.
