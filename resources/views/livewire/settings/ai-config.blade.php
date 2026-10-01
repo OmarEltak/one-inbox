@@ -451,13 +451,13 @@
 
                                 <div class="flex flex-wrap gap-2 mb-3">
                                     @foreach($escalation_keywords as $index => $kw)
-                                        <div wire:key="kw-{{ $index }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-white pl-3 pr-1 py-1" style="--color-violet-400: white;">
-                                            <flux:input
+                                        <div wire:key="kw-{{ $index }}" class="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 pl-3 pr-1 py-1">
+                                            <input
+                                                type="text"
                                                 wire:model.blur="escalation_keywords.{{ $index }}"
-                                                size="xs"
-                                                class="!w-32 !bg-transparent !p-0 !text-sm"
+                                                class="w-32 bg-transparent border-0 p-0 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-0 focus:outline-none"
                                             />
-                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                            <button type="button" wire:click="removeEscalationKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700">
                                                 <flux:icon name="x-mark" class="w-3 h-3" />
                                             </button>
                                         </div>
@@ -517,11 +517,11 @@
 
                                             <div class="flex flex-wrap gap-2 mb-2">
                                                 @foreach(($topic['keywords'] ?? []) as $kwIndex => $kw)
-                                                    <div wire:key="topic-{{ $topicIndex }}-kw-{{ $kwIndex }}" class="topic-kw-chip flex items-center gap-1 rounded-full bg-zinc-100 border border-zinc-300 pl-3 pr-1 py-1">
-                                                        <flux:input
+                                                    <div wire:key="topic-{{ $topicIndex }}-kw-{{ $kwIndex }}" class="flex items-center gap-1 rounded-full bg-zinc-100 border border-zinc-300 pl-3 pr-1 py-1">
+                                                        <input
+                                                            type="text"
                                                             wire:model.blur="escalation_topics.{{ $topicIndex }}.keywords.{{ $kwIndex }}"
-                                                            size="xs"
-                                                            class="!w-32 !bg-transparent !p-0 !text-sm"
+                                                            class="w-32 bg-transparent border-0 p-0 text-sm text-zinc-900 focus:ring-0 focus:outline-none"
                                                         />
                                                         <button type="button" wire:click="removeTopicKeyword({{ $topicIndex }}, {{ $kwIndex }})" class="w-5 h-5 flex items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-300">
                                                             <flux:icon name="x-mark" class="w-3 h-3" />
@@ -633,9 +633,13 @@
                                             <flux:text size="sm" class="mb-2 text-zinc-900">{{ __('Reply only when the comment contains any of these keywords:') }}</flux:text>
                                             <div class="flex flex-wrap gap-2 mb-3">
                                                 @foreach($comment_reply_keywords as $index => $kw)
-                                                    <div wire:key="crk-{{ $index }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-white pl-3 pr-1 py-1">
-                                                        <flux:input wire:model.blur="comment_reply_keywords.{{ $index }}" size="xs" class="!w-32 !bg-transparent !p-0 !text-sm" />
-                                                        <button type="button" wire:click="removeCommentReplyKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                                    <div wire:key="crk-{{ $index }}" class="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 pl-3 pr-1 py-1">
+                                                        <input
+                                                            type="text"
+                                                            wire:model.blur="comment_reply_keywords.{{ $index }}"
+                                                            class="w-32 bg-transparent border-0 p-0 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-0 focus:outline-none"
+                                                        />
+                                                        <button type="button" wire:click="removeCommentReplyKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700">
                                                             <flux:icon name="x-mark" class="w-3 h-3" />
                                                         </button>
                                                     </div>
@@ -686,9 +690,13 @@
                                             <flux:text size="sm" class="mb-2 text-zinc-900">{{ __('Purchase-intent keywords (comment must contain any of these to trigger a DM):') }}</flux:text>
                                             <div class="flex flex-wrap gap-2 mb-3">
                                                 @foreach($comment_dm_keywords as $index => $kw)
-                                                    <div wire:key="cdk-{{ $index }}" class="kw-chip flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-white pl-3 pr-1 py-1">
-                                                        <flux:input wire:model.blur="comment_dm_keywords.{{ $index }}" size="xs" class="!w-32 !bg-transparent !p-0 !text-sm" />
-                                                        <button type="button" wire:click="removeCommentDmKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-white hover:bg-white/20">
+                                                    <div wire:key="cdk-{{ $index }}" class="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 pl-3 pr-1 py-1">
+                                                        <input
+                                                            type="text"
+                                                            wire:model.blur="comment_dm_keywords.{{ $index }}"
+                                                            class="w-32 bg-transparent border-0 p-0 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-0 focus:outline-none"
+                                                        />
+                                                        <button type="button" wire:click="removeCommentDmKeyword({{ $index }})" class="w-5 h-5 flex items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700">
                                                             <flux:icon name="x-mark" class="w-3 h-3" />
                                                         </button>
                                                     </div>
