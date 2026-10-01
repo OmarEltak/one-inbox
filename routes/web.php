@@ -348,6 +348,8 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('onboarding-requests', \App\Livewire\SuperAdmin\OnboardingRequests::class)->name('onboarding-requests');
         // Read-only JSON report: why aren't messages arriving for this page? (no tokens/secrets in output)
         Route::get('pages/{page}/diagnose', \App\Http\Controllers\SuperAdmin\PageDiagnosticController::class)->name('pages.diagnose');
+        // Read-only: newest ERROR entries from laravel.log (message + first app frame) — for 500s without SSH.
+        Route::get('errors', \App\Http\Controllers\SuperAdmin\RecentErrorsController::class)->name('errors');
         Route::get('billing', \App\Livewire\SuperAdmin\Billing::class)->name('billing');
         Route::get('analytics', \App\Livewire\SuperAdmin\Analytics::class)->name('analytics');
 
