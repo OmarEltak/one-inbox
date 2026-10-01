@@ -2550,5 +2550,6 @@
     "Reset campaign quota for :team (was :used/:limit).": "تم تصفير حصة الحملات لـ :team (كانت :used/:limit).",
     "End the paid plan of :name now and move the team back to the free tier?": "إنهاء الباقة المدفوعة لـ :name الآن وإرجاع الفريق إلى الباقة المجانية؟",
     "Ends the paid plan immediately and moves the team to the free tier": "ينهي الباقة المدفوعة فورًا ويُرجع الفريق إلى الباقة المجانية",
-    "Revoked access — :team is back on the free tier.": "تم إلغاء الوصول — :team عاد إلى الباقة المجانية."
+    "Revoked access — :team is back on the free tier.": "تم إلغاء الوصول — :team عاد إلى الباقة المجانية.",
+    "Document": "مستند"
 }

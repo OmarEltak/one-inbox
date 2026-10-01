@@ -47,10 +47,14 @@
     </div>
 
 @elseif($kind === 'document')
+    {{-- Colors follow the bubble's own text color: a fixed light hover
+         (bg-zinc-50) turned the white filename on blue outbound bubbles
+         into white-on-white. --}}
     <a href="{{ $message->media_url }}" target="_blank" rel="noopener"
-       class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-        <flux:icon.document class="size-5" />
-        <span class="text-sm">{{ $asset->original_filename ?? 'Document' }}</span>
+       class="inline-flex max-w-full items-center gap-2 rounded-lg border border-current/40 px-3 py-2 transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-current">
+        <flux:icon.document class="size-5 shrink-0" />
+        <span class="truncate text-sm font-medium">{{ $asset->original_filename ?? __('Document') }}</span>
+        <flux:icon.arrow-down-tray class="size-4 shrink-0 opacity-80" />
     </a>
 
 @else
