@@ -168,9 +168,19 @@ class ConnectionController extends Controller
      */
     public function instagramCallback(Request $request, FacebookPlatform $facebook)
     {
-        if ($request->has('error')) {
+        // Same two failure shapes as facebookCallback(): ?error=… (cancel) and
+        // ?error_code=…&error_message=… (app/role/scope rejection). Without the
+        // second check a rejected login fell through to exchangeInstagramCode(null).
+        if ($request->has('error') || $request->has('error_code') || ! $request->filled('code')) {
+            $metaMessage = $request->input('error_message')
+                ?? $request->input('error_description')
+                ?? $request->input('error_reason');
+            Log::warning('Instagram OAuth error or missing code', [
+                'query' => $request->except('code'),
+            ]);
+
             return redirect()->route('connections.index')
-                ->with('error', 'Instagram connection was cancelled or failed.');
+                ->with('error', 'Instagram connection failed: ' . ($metaMessage ?: 'Instagram returned no authorization code. Make sure the account is a Business/Creator account with an accepted Instagram Tester invite, then try again.'));
         }
 
         try {

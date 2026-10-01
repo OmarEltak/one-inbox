@@ -128,3 +128,32 @@ it('does not report success when Meta refuses the Instagram message subscription
     $page = Page::where('team_id', $team->id)->where('platform', 'instagram')->sole();
     expect($page->metadata['subscription_error'] ?? null)->toBe('subscribe_failed');
 });
+
+it('shows Meta\'s reason instead of crashing when Instagram returns error_code without a code', function () {
+    Http::fake();
+
+    [$user] = makeIgOwner(superAdmin: true);
+
+    $this->actingAs($user)
+        ->get(route('connections.instagram.callback', [
+            'error_code'    => '400',
+            'error_message' => 'Insufficient developer role',
+        ]))
+        ->assertRedirect(route('connections.index'))
+        ->assertSessionHas('error', 'Instagram connection failed: Insufficient developer role');
+
+    Http::assertNothingSent();
+});
+
+it('does not crash when Instagram redirects back with no code and no error', function () {
+    Http::fake();
+
+    [$user] = makeIgOwner(superAdmin: true);
+
+    $this->actingAs($user)
+        ->get(route('connections.instagram.callback'))
+        ->assertRedirect(route('connections.index'))
+        ->assertSessionHas('error');
+
+    Http::assertNothingSent();
+});
