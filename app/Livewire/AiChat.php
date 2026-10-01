@@ -177,7 +177,7 @@ class AiChat extends Component
         $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
         $digest = $pageIds
             ? collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
-                $team->id, charBudget: intdiv(10000, count($pageIds)), pageId: $id,
+                $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id,
             ))->implode("\n\n")
             : $chatContext->customerDigest($team->id);
 
@@ -784,7 +784,7 @@ class AiChat extends Component
         $lines[] = "\n--- All Contacts (ID, Name, Score, Status) ---";
         $allContacts = Contact::where('team_id', $teamId)
             ->orderByDesc('lead_score')
-            ->limit(50)
+            ->limit(20)
             ->get(['id', 'name', 'lead_score', 'lead_status']);
         foreach ($allContacts as $c) {
             $lines[] = "ID:{$c->id} | {$c->name} | score {$c->lead_score} ({$c->lead_status})";
@@ -839,7 +839,7 @@ class AiChat extends Component
         $lines[] = "\n--- Campaigns (ID, Name, Type, Status, Sent/Total, Replies) ---";
         $campaigns = Campaign::where('team_id', $teamId)
             ->orderByDesc('created_at')
-            ->limit(20)
+            ->limit(10)
             ->get();
         $lines[] = 'Total campaigns: ' . $campaigns->count();
         foreach ($campaigns as $campaign) {

@@ -44,6 +44,21 @@ use Illuminate\Support\Facades\Mail;
  */
 class NaraRouterProvider implements AiProviderInterface
 {
+    /** Per-call HTTP timeout. The admin chat raises it: big prompts take 30-40 s at Nara. */
+    protected int $requestTimeout = 25;
+
+    /** Absolute deadline (microtime) for one admin chat request; null = no budget. */
+    protected ?float $deadline = null;
+
+    protected function callTimeout(): int
+    {
+        if ($this->deadline === null) {
+            return $this->requestTimeout;
+        }
+
+        return (int) max(1, min($this->requestTimeout, floor($this->deadline - microtime(true))));
+    }
+
     use BuildsConversationPrompts;
 
     // Per-chain active-model cache (see invariant #4).
@@ -463,15 +478,21 @@ class NaraRouterProvider implements AiProviderInterface
         // customer path which stays silent). Catch quota + outage specifically
         // so the operator knows what happened; treat empty as a generic error.
         try {
+            // 40 s per model, 55 s overall — under nginx's 60 s gateway timeout.
+            $this->requestTimeout = 40;
+            $this->deadline = microtime(true) + 55;
             $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 4000);
         } catch (AiQuotaExhausted) {
             return 'The AI service is temporarily unavailable — daily quota reached. Try again after the quota resets, or upgrade your plan.';
         } catch (AiAllProvidersUnavailable) {
             return 'The AI service is temporarily unavailable — every model is returning errors. Please try again in a few minutes; if this persists, contact support.';
+        } finally {
+            $this->requestTimeout = 25;
+            $this->deadline = null;
         }
 
         if ($response === '') {
-            return 'The AI service is temporarily unavailable (API error). Please try again in a few minutes.';
+            return __('The AI took too long or returned nothing. Please try again, or ask a more specific question.');
         }
 
         return $response;
@@ -630,6 +651,9 @@ class NaraRouterProvider implements AiProviderInterface
         $keyCount    = max(1, count($this->apiKeys));
 
         foreach ($tryOrder as $tryModel) {
+            if ($this->deadline !== null && $this->deadline - microtime(true) < 5) {
+                return ['status' => 'empty', 'reply' => '', 'attempts' => $attempts, 'last_error' => 'admin time budget used'];
+            }
             for ($k = 0; $k < $keyCount; $k++) {
                 $keyIdx = ($startKeyIdx + $k) % $keyCount;
                 $key    = $this->apiKeys[$keyIdx] ?? '';
@@ -638,17 +662,28 @@ class NaraRouterProvider implements AiProviderInterface
                     continue;
                 }
 
-                $response = Http::withToken($key)
-                    ->acceptJson()
-                    ->asJson()
-                    ->connectTimeout(5)
-                    ->timeout(25)
-                    ->post("{$this->baseUrl}/chat/completions", [
-                        'model'       => $tryModel,
-                        'messages'    => $messages,
-                        'temperature' => 0.7,
-                        'max_tokens'  => $maxOutputTokens,
-                    ]);
+                try {
+                    $response = Http::withToken($key)
+                        ->acceptJson()
+                        ->asJson()
+                        ->connectTimeout(5)
+                        ->timeout($this->callTimeout())
+                        ->post("{$this->baseUrl}/chat/completions", [
+                            'model'       => $tryModel,
+                            'messages'    => $messages,
+                            'temperature' => 0.7,
+                            'max_tokens'  => $maxOutputTokens,
+                        ]);
+                } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                    // Timeout / dropped connection: this model is too slow right now — next
+                    // model (used to escape the whole cascade as an exception). Within an
+                    // admin time budget it counts as 'empty' so it never triggers the cooldown.
+                    $attempts[] = "model={$tryModel} key={$keyIdx} timeout";
+                    $lastError = "timeout on {$tryModel}";
+                    $sawEmpty = $sawEmpty || $this->deadline !== null;
+                    Log::warning('NaraRouter timeout — trying next model', ['chain' => $kind, 'model' => $tryModel]);
+                    break;
+                }
 
                 if ($response->successful()) {
                     $reply = (string) $response->json('choices.0.message.content', '');
