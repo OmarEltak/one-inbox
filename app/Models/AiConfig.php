@@ -84,6 +84,22 @@ class AiConfig extends Model
         'is_active',
     ];
 
+    /**
+     * Human label for a capture field. The separate "Label" input was removed
+     * from the Sales Goal tab, so an empty label falls back to the field name.
+     */
+    public static function captureFieldLabel(array $field): string
+    {
+        $label = trim((string) ($field['label'] ?? ''));
+        if ($label !== '') {
+            return $label;
+        }
+
+        $key = trim((string) ($field['key'] ?? ''));
+
+        return preg_match('/^[\x20-\x7E]+$/', $key) ? \Illuminate\Support\Str::headline($key) : $key;
+    }
+
     protected function casts(): array
     {
         return [

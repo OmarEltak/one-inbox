@@ -198,8 +198,7 @@
                                     <div class="space-y-2">
                                         @forelse($required_capture_fields as $index => $field)
                                             <div class="flex items-center gap-2">
-                                                <flux:input wire:model="required_capture_fields.{{ $index }}.label" placeholder="{{ __('Label (e.g. Email address)') }}" class="flex-1 text-zinc-900" />
-                                                <flux:input wire:model="required_capture_fields.{{ $index }}.key" placeholder="{{ __('key (e.g. email)') }}" class="w-40 text-zinc-900" />
+                                                <flux:input wire:model.blur="required_capture_fields.{{ $index }}.key" placeholder="{{ __('Field (e.g. email, phone, address)') }}" class="flex-1 text-zinc-900" />
                                                 <flux:select wire:model="required_capture_fields.{{ $index }}.type" class="w-32 text-zinc-900">
                                                     <flux:select.option value="text">{{ __('Text') }}</flux:select.option>
                                                     <flux:select.option value="email">{{ __('Email') }}</flux:select.option>

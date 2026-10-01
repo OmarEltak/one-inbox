@@ -192,7 +192,10 @@ class AiConfig extends Component
         // Info-only preset never captures data, regardless of what's in the array.
         $captureFields = $this->sales_goal_preset === AiConfigModel::GOAL_INFO_ONLY
             ? []
-            : array_values(array_filter($this->required_capture_fields, fn ($f) => ! empty(trim($f['key'] ?? ''))));
+            : array_values(array_map(
+                fn ($f) => array_merge($f, ['key' => trim((string) $f['key']), 'label' => AiConfigModel::captureFieldLabel($f)]),
+                array_filter($this->required_capture_fields, fn ($f) => ! empty(trim($f['key'] ?? ''))),
+            ));
 
         $escalationKeywords = array_values(array_filter(
             array_map(fn ($k) => trim((string) $k), $this->escalation_keywords),
@@ -342,6 +345,12 @@ class AiConfig extends Component
      */
     public function updated(string $name): void
     {
+        // No Label input any more: when a field's name changes, drop its old
+        // label so it's re-derived on save (no "Email address" on a phone field).
+        if (preg_match('/^required_capture_fields\.(\d+)\.key$/', $name, $m)) {
+            $this->required_capture_fields[(int) $m[1]]['label'] = '';
+        }
+
         static $trackable = [
             'business_description', 'additional_instructions', 'product_catalog', 'pricing_info', 'faq',
             'tone', 'language', 'response_delay_min_seconds', 'response_delay_max_seconds',
