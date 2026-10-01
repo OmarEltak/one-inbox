@@ -166,18 +166,18 @@
                     </div>
                 </button>
             @empty
-                {{-- Phase C: when onboarding isn't 100% complete, show the
-                     next-step panel instead of the generic empty state. This
-                     is a pure static Blade component — see
-                     .claude/skills/inbox-composer-safety (failure modes
-                     1, 2, 4, 5, 6 all avoided). --}}
+                {{-- Phase C: while required onboarding steps are unfinished, show
+                     the next-step panel instead of the generic empty state.
+                     requiredComplete() ignores optional steps — gating on
+                     percent < 100 kept teams that skip "Invite a friend" stuck
+                     on this panel forever (89%). Pure static Blade component —
+                     see .claude/skills/inbox-composer-safety. --}}
                 @php
                     $__nsTeam = auth()->user()?->currentTeam;
-                    $__nsPercent = $__nsTeam
-                        ? app(\App\Services\Onboarding\ProgressService::class)->percentComplete($__nsTeam)
-                        : 100;
+                    $__nsPending = $__nsTeam
+                        && ! app(\App\Services\Onboarding\ProgressService::class)->requiredComplete($__nsTeam);
                 @endphp
-                @if($__nsTeam && $__nsPercent < 100)
+                @if($__nsPending)
                     <div class="flex flex-col items-center justify-center h-full py-6">
                         <x-onboarding.next-step-panel :team="$__nsTeam" />
                     </div>

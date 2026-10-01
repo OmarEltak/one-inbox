@@ -9,9 +9,10 @@
     $percent  = $progress->percentComplete($team);
     $next     = $progress->nextStep($team);
 
-    // Hide entirely once fully complete — the pill is a "get started" nudge,
-    // not a permanent chrome element. Also hide if we somehow can't compute.
-    if ($percent >= 100 || $next === null) return;
+    // Hide entirely once every required step is done — the pill is a "get
+    // started" nudge, not a permanent chrome element. Optional steps (invite a
+    // friend) must not keep it alive forever at 89%.
+    if ($progress->requiredComplete($team) || $next === null) return;
 
     // Single-hue violet across all progress buckets so the chrome pill matches
     // the wizard's primary color (violet-600). Weight steps up with progress so

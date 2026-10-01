@@ -72,6 +72,23 @@ final class ProgressService
     }
 
     /**
+     * True once every NON-optional step is done. Use this — not
+     * percentComplete() < 100 — to decide whether to keep nudging: optional
+     * steps count at half weight, so a team that skips "Invite a friend"
+     * sits at 89% forever and would otherwise never stop seeing the panel.
+     */
+    public function requiredComplete(Team $team): bool
+    {
+        foreach ($this->stepsFor($team) as $step) {
+            if (! $step['optional'] && ! $step['done']) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Return the first unfinished step, or null if fully done. Used by the
      * empty-inbox next-step panel to point at the highest-priority next
      * action.
