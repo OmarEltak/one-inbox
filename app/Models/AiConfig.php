@@ -80,6 +80,7 @@ class AiConfig extends Model
         'escalation_rules',
         'sales_methodology',
         'comment_settings',
+        'sales_connectors',
         'is_active',
     ];
 
@@ -102,6 +103,7 @@ class AiConfig extends Model
             'response_delay_min_seconds' => 'integer',
             'response_delay_max_seconds' => 'integer',
             'comment_settings' => 'array',
+            'sales_connectors' => 'array',
         ];
     }
 

@@ -92,6 +92,8 @@ class Conversation extends Model
      */
     public function complete(?string $reason = null): void
     {
+        $alreadyCompleted = $this->sales_stage === self::STAGE_COMPLETED;
+
         $this->update([
             'sales_stage' => self::STAGE_COMPLETED,
             'ai_paused'   => true,
@@ -100,6 +102,11 @@ class Conversation extends Model
                 'completed_at'      => now()->toIso8601String(),
             ]),
         ]);
+
+        // AI Settings → Connectors: push the captured lead to the operator's sheet.
+        if (! $alreadyCompleted) {
+            \App\Services\SalesConnectors\SalesConnectors::notify($this, \App\Services\SalesConnectors\SalesConnectors::EVENT_LEAD_CAPTURED);
+        }
     }
 
     public function page(): BelongsTo

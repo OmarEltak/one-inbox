@@ -2,8 +2,12 @@
 
 namespace App\Livewire\Settings;
 
+use App\Jobs\PushSalesConnectorRow;
 use App\Models\AiConfig as AiConfigModel;
+use App\Models\Conversation;
+use App\Services\SalesConnectors\SalesConnectors;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class AiConfig extends Component
@@ -58,6 +62,12 @@ class AiConfig extends Component
     // Consumed by the Blade wire:confirm attribute on page/tab buttons to prevent
     // silent data loss, and by the beforeunload script to warn on browser navigation.
     public bool $dirty = false;
+
+    // Connectors tab — saved by its own button, independent of the main form.
+    public string $connector_sheet_url = '';
+    public string $connector_webhook_url = '';
+    public array  $connector_events = SalesConnectors::EVENTS;
+    public ?array $connector_last_delivery = null;
 
     // UI state
     public bool   $hasConfig = false;
@@ -120,6 +130,12 @@ class AiConfig extends Component
             $this->escalation_topics       = $config->escalation_topics ?? [];
             $this->contact_ai_reply_cap    = (int) ($config->contact_ai_reply_cap ?? 20);
             $this->is_active = $config->is_active ?? true;
+
+            $connectors = (array) ($config->sales_connectors ?? []);
+            $this->connector_sheet_url     = (string) ($connectors['sheet_url'] ?? '');
+            $this->connector_webhook_url   = (string) ($connectors['webhook_url'] ?? '');
+            $this->connector_events        = array_values((array) ($connectors['events'] ?? SalesConnectors::EVENTS));
+            $this->connector_last_delivery = $connectors['last_delivery'] ?? null;
 
             $commentDefaults = AiConfigModel::defaultCommentSettings();
             $comment = is_array($config->comment_settings) ? $config->comment_settings : $commentDefaults;
@@ -483,6 +499,107 @@ class AiConfig extends Component
         $this->comment_dm_keywords = array_values($this->comment_dm_keywords);
     }
 
+    public function saveConnectors(): void
+    {
+        $config = $this->selectedConfig();
+        if (! $config) {
+            $this->addError('connector_sheet_url', __('Save the Sales Goal tab first, then add connectors.'));
+
+            return;
+        }
+
+        $this->connector_sheet_url = trim($this->connector_sheet_url);
+        $this->connector_webhook_url = trim($this->connector_webhook_url);
+
+        $this->validate([
+            'connector_sheet_url'   => ['nullable', 'url', 'max:2000'],
+            'connector_webhook_url' => ['nullable', 'url', 'max:2000'],
+            'connector_events'      => ['array'],
+            'connector_events.*'    => ['in:' . implode(',', SalesConnectors::EVENTS)],
+        ]);
+
+        foreach (['connector_sheet_url', 'connector_webhook_url'] as $field) {
+            if ($this->{$field} !== '' && ! SalesConnectors::isAllowedUrl($this->{$field})) {
+                $this->addError($field, __('Use a public https:// address.'));
+
+                return;
+            }
+        }
+
+        $settings = (array) ($config->sales_connectors ?? []);
+        $settings['sheet_url'] = $this->connector_sheet_url ?: null;
+        $settings['webhook_url'] = $this->connector_webhook_url ?: null;
+        $settings['events'] = array_values(array_intersect(SalesConnectors::EVENTS, $this->connector_events));
+        $config->update(['sales_connectors' => $settings]);
+
+        $this->dispatch('connectors-saved');
+    }
+
+    /** Appends one "Test row" (built from this page's latest chat) so the operator can see it land. */
+    public function sendTestRow(): void
+    {
+        $config = $this->selectedConfig();
+        $settings = (array) ($config?->sales_connectors ?? []);
+        if (empty($settings['sheet_url']) && empty($settings['webhook_url'])) {
+            $this->addError('connector_sheet_url', __('Save a Google Sheet or webhook URL first.'));
+
+            return;
+        }
+
+        $conversation = Conversation::where('page_id', $config->page_id)->orderByDesc('last_message_at')->first();
+        if (! $conversation) {
+            $this->addError('connector_sheet_url', __('This page has no conversations yet to build a test row from.'));
+
+            return;
+        }
+
+        PushSalesConnectorRow::dispatchSync($conversation->id, SalesConnectors::EVENT_TEST);
+        $this->connector_last_delivery = $config->fresh()->sales_connectors['last_delivery'] ?? null;
+    }
+
+    /** CSV of captured leads + closed deals for this page; UTF-8 BOM so Excel shows Arabic correctly. */
+    public function exportLeads()
+    {
+        $config = $this->selectedConfig();
+        if (! $config) {
+            return null;
+        }
+
+        $conversations = Conversation::where('page_id', $config->page_id)
+            ->where(fn ($q) => $q->where('sales_stage', Conversation::STAGE_COMPLETED)
+                ->orWhereHas('contact', fn ($c) => $c->where('lead_status', 'converted')))
+            ->with(['contact', 'page'])
+            ->orderByDesc('last_message_at')
+            ->limit(2000)
+            ->get();
+
+        $filename = 'leads-' . Str::slug($conversations->first()?->page?->name ?? 'page') . '-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($conversations) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, SalesConnectors::HEADERS);
+            foreach ($conversations as $conversation) {
+                $event = $conversation->contact?->lead_status === 'converted'
+                    ? SalesConnectors::EVENT_DEAL_CLOSED
+                    : SalesConnectors::EVENT_LEAD_CAPTURED;
+                $at = $conversation->metadata['completed_at'] ?? $conversation->last_message_at;
+                fputcsv($out, array_values(SalesConnectors::row($conversation, $event, $at)));
+            }
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    protected function selectedConfig(): ?AiConfigModel
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team || ! $this->selectedPageId) {
+            return null;
+        }
+
+        return AiConfigModel::where('team_id', $team->id)->where('page_id', $this->selectedPageId)->first();
+    }
+
     public function setTab(string $tab): void
     {
         if ($tab === 'comments' && $this->selectedPageId !== null) {
@@ -502,6 +619,10 @@ class AiConfig extends Component
 
     protected function resetForm(): void
     {
+        $this->connector_sheet_url = '';
+        $this->connector_webhook_url = '';
+        $this->connector_events = SalesConnectors::EVENTS;
+        $this->connector_last_delivery = null;
         $this->business_description = '';
         $this->additional_instructions = '';
         $this->product_catalog = [];
