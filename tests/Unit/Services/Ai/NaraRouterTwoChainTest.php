@@ -188,3 +188,18 @@ function invokeDispatch(NaraRouterProvider $p, string $kind, array $history, int
     $m->setAccessible(true);
     return $m->invoke($p, $kind, 'system prompt', $history, $maxTokens);
 }
+
+test('an empty 200 reply falls through to the next model', function () {
+    Http::fake(['*' => Http::sequence()
+        ->push(['choices' => [['message' => ['content' => ''], 'finish_reason' => 'length']]])
+        ->push(narareply('real answer'))]);
+
+    expect($this->provider->generateText('sys', 'hi'))->toBe('real answer');
+});
+
+test('every model replying empty returns empty without the global cooldown', function () {
+    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => ''], 'finish_reason' => 'length']]])]);
+
+    expect($this->provider->generateText('sys', 'hi'))->toBe('')
+        ->and(Cache::get('nararouter:cooldown_until'))->toBeNull();
+});

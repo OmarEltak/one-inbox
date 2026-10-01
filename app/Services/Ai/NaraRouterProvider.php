@@ -463,7 +463,7 @@ class NaraRouterProvider implements AiProviderInterface
         // customer path which stays silent). Catch quota + outage specifically
         // so the operator knows what happened; treat empty as a generic error.
         try {
-            $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 2000);
+            $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 4000);
         } catch (AiQuotaExhausted) {
             return 'The AI service is temporarily unavailable — daily quota reached. Try again after the quota resets, or upgrade your plan.';
         } catch (AiAllProvidersUnavailable) {
@@ -556,6 +556,16 @@ class NaraRouterProvider implements AiProviderInterface
             return '';
         }
 
+        // Models answered, just without text: the provider is up, so this is
+        // not an outage. No global cooldown — it would pause AI for every team.
+        if (in_array('empty', [$primaryResult['status'], $secondaryResult['status']], true)) {
+            Log::error('NaraRouter: no model produced a reply (empty content)', [
+                'attempts' => array_merge($primaryResult['attempts'], $secondaryResult['attempts']),
+            ]);
+
+            return '';
+        }
+
         // Both chains exhausted. Set cooldown, email alert, throw.
         $this->setCooldown();
         $this->sendExhaustionAlert(
@@ -615,6 +625,7 @@ class NaraRouterProvider implements AiProviderInterface
 
         $lastError   = null;
         $attempts    = [];
+        $sawEmpty    = false;
         $startKeyIdx = $this->currentKeyIndex($kind);
         $keyCount    = max(1, count($this->apiKeys));
 
@@ -640,6 +651,23 @@ class NaraRouterProvider implements AiProviderInterface
                     ]);
 
                 if ($response->successful()) {
+                    $reply = (string) $response->json('choices.0.message.content', '');
+
+                    // A 200 with no text (e.g. a reasoning model that spent all of
+                    // max_tokens thinking) is not an answer: try the next model
+                    // instead of handing the caller ''. Not an outage — see the
+                    // 'empty' status in dispatch(), which skips the global cooldown.
+                    if (trim($reply) === '') {
+                        $finish = (string) $response->json('choices.0.finish_reason', '?');
+                        $attempts[] = "model={$tryModel} key={$keyIdx} status=200 empty finish_reason={$finish}";
+                        $lastError = "empty reply from {$tryModel} (finish_reason={$finish})";
+                        $sawEmpty = true;
+                        Log::warning('NaraRouter empty reply — trying next model', [
+                            'chain' => $kind, 'model' => $tryModel, 'finish_reason' => $finish,
+                        ]);
+                        break;
+                    }
+
                     $this->markActiveModel($kind, $tryModel);
                     $this->markActiveKey($kind, $keyIdx);
                     Log::info('NaraRouter reply', [
@@ -650,7 +678,7 @@ class NaraRouterProvider implements AiProviderInterface
                     ]);
                     return [
                         'status'     => 'success',
-                        'reply'      => (string) $response->json('choices.0.message.content', ''),
+                        'reply'      => $reply,
                         'attempts'   => $attempts,
                         'last_error' => null,
                     ];
@@ -695,7 +723,7 @@ class NaraRouterProvider implements AiProviderInterface
         }
 
         return [
-            'status'     => 'exhausted',
+            'status'     => $sawEmpty ? 'empty' : 'exhausted',
             'reply'      => '',
             'attempts'   => $attempts,
             'last_error' => $lastError,

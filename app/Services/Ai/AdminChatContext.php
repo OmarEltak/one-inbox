@@ -86,7 +86,7 @@ class AdminChatContext
      * included from the preview instead of being skipped — otherwise a page
      * connected today looks like it has no customers at all.
      */
-    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 12000, ?int $pageId = null): string
+    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 10000, ?int $pageId = null): string
     {
         $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;
         $scope = $pageName ? " ON PAGE \"{$pageName}\"" : '';
@@ -198,7 +198,7 @@ class AdminChatContext
         }
         $head .= " | {$conversation->platform}";
 
-        $messages = $conversation->messages()->orderByDesc('id')->limit(15)->get(['direction', 'sender_type', 'content', 'content_type', 'created_at'])->reverse();
+        $messages = $conversation->messages()->orderByDesc('id')->limit(12)->get(['direction', 'sender_type', 'content', 'content_type', 'created_at'])->reverse();
         $lastInbound = $messages->where('direction', 'inbound')->last()?->created_at;
 
         $reach = 'can be messaged';

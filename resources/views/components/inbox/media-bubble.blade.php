@@ -51,8 +51,10 @@
          (bg-zinc-50) turned the white filename on blue outbound bubbles
          into white-on-white. --}}
     <a href="{{ $message->media_url }}" target="_blank" rel="noopener"
-       class="inline-flex max-w-full items-center gap-2 rounded-lg border border-current/40 px-3 py-2 transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-current">
-        <flux:icon.document class="size-5 shrink-0" />
+       class="flex max-w-full min-w-48 items-center gap-3 rounded-xl bg-black/15 px-3 py-2.5 transition-colors hover:bg-black/25 focus-visible:outline-2 focus-visible:outline-current">
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/25">
+            <flux:icon.document class="size-5" />
+        </span>
         <span class="truncate text-sm font-medium">{{ $asset->original_filename ?? __('Document') }}</span>
         <flux:icon.arrow-down-tray class="size-4 shrink-0 opacity-80" />
     </a>
