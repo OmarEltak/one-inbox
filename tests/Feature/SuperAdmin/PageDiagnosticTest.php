@@ -73,3 +73,19 @@ it('reports the page, its webhooks and unrouted instagram webhooks without leaki
         ->not->toContain('main-secret')
         ->not->toContain('ig-secret');
 });
+
+it('explains why a stored conversation is hidden from the owner inbox and whether the viewer can see the page', function () {
+    $page = Page::factory()->create(['platform' => 'instagram', 'platform_page_id' => '17841400000000077']);
+    $contact = \App\Models\Contact::create(['team_id' => $page->team_id, 'name' => 'Lina']);
+    \App\Models\Conversation::create([
+        'page_id' => $page->id, 'team_id' => $page->team_id, 'platform' => 'instagram',
+        'platform_conversation_id' => 'p1', 'contact_id' => $contact->id, 'status' => 'open',
+        'sales_stage' => \App\Models\Conversation::STAGE_SPAM,
+    ]);
+
+    $this->actingAs(diagUser(true))   // super-admin on a different team than the page
+        ->get(route('super-admin.pages.diagnose', $page))
+        ->assertOk()
+        ->assertJsonPath('viewer.can_see_page_in_own_inbox', false)
+        ->assertJsonPath('conversations.latest.0.hidden_from_owner_inbox_because.0', 'sales_stage=spam (only visible under the Spam filter)');
+});

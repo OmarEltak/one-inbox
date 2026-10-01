@@ -42,9 +42,15 @@ class PageDiagnosticController extends Controller
                 ->where(fn ($q) => $q->whereIn('platform_page_id', $ids))
                 ->get(['id', 'team_id', 'platform', 'platform_page_id', 'is_active', 'connected_account_id', 'updated_at'])
                 ->toArray(),
+            'viewer' => [
+                'user_id'         => auth()->id(),
+                'current_team_id' => auth()->user()?->current_team_id,
+                'can_see_page_in_own_inbox' => auth()->user()?->current_team_id === $page->team_id,
+            ],
             'conversations' => [
                 'count'           => $page->conversations()->count(),
                 'last_message_at' => optional($page->conversations()->max('last_message_at'), fn ($v) => (string) $v),
+                'latest'          => $this->conversationRows($page),
             ],
             'webhooks' => $this->webhooks($ids),
             'meta'     => $this->metaChecks($page, $meta),
@@ -76,6 +82,50 @@ class PageDiagnosticController extends Controller
                 'token_expires_at' => (string) $account->token_expires_at,
             ] : null,
         ];
+    }
+
+    /**
+     * Latest conversations on the page, each with the reasons (if any) the
+     * owning team's inbox would NOT list it — mirrors Inbox\Index::conversations().
+     */
+    private function conversationRows(Page $page): array
+    {
+        $cachedActive = \Illuminate\Support\Facades\Cache::get("team.{$page->team_id}.active_pages");
+
+        return $page->conversations()
+            ->withCount('messages')
+            ->latest('last_message_at')
+            ->take(5)
+            ->get(['id', 'team_id', 'page_id', 'status', 'sales_stage', 'ai_paused', 'unread_count', 'last_message_at', 'last_message_preview'])
+            ->map(function ($c) use ($page, $cachedActive) {
+                $hidden = [];
+                if ($c->team_id !== $page->team_id) {
+                    $hidden[] = "conversation.team_id={$c->team_id} but page.team_id={$page->team_id}";
+                }
+                if ($c->status === 'archived') {
+                    $hidden[] = 'status=archived';
+                }
+                if ($c->sales_stage === \App\Models\Conversation::STAGE_SPAM) {
+                    $hidden[] = 'sales_stage=spam (only visible under the Spam filter)';
+                }
+                if ($cachedActive !== null && ! collect($cachedActive)->pluck('id')->contains($page->id)) {
+                    $hidden[] = "page missing from team {$page->team_id}'s cached active_pages (expires ≤5 min)";
+                }
+
+                return [
+                    'id'              => $c->id,
+                    'team_id'         => $c->team_id,
+                    'status'          => $c->status,
+                    'sales_stage'     => $c->sales_stage,
+                    'ai_paused'       => $c->ai_paused,
+                    'unread_count'    => $c->unread_count,
+                    'messages'        => $c->messages_count,
+                    'last_message_at' => (string) $c->last_message_at,
+                    'preview'         => Str::limit((string) $c->last_message_preview, 60),
+                    'hidden_from_owner_inbox_because' => $hidden,
+                ];
+            })
+            ->all();
     }
 
     /**
