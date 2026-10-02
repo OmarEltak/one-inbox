@@ -1,153 +1,83 @@
-<x-layouts.marketing :title="__('Privacy Policy') . ' — OT1-Pro'" :description="__('OT1-Pro Privacy Policy — how we collect, use, and protect your data.')">
-
+<x-layouts.marketing :title="__('Privacy Policy') . ' — OT1-Pro'" :description="__('How OT Pro collects, uses, shares, retains, and deletes data through OT1-Pro.')">
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-3xl px-6">
             <h1 class="text-4xl font-bold tracking-tight">{{ __('Privacy Policy') }}</h1>
-            <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: March 22, 2025</p>
-            <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: March 22, 2025</p>
+            <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: October 2, 2026</p>
+            <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: October 2, 2026</p>
 
-            <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-600">
-
+            <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-400">
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Introduction') }}</h2>
-                    <p class="mt-3">{{ __('OT1-Pro ("we", "us", or "our") operates a unified social media inbox platform that allows businesses to manage messages from multiple social platforms in one place. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service at ot1-pro.com.') }}</p>
-                    <p class="mt-3">{{ __('By using OT1-Pro, you agree to the collection and use of information in accordance with this policy. If you disagree with any part of this policy, please do not use our service.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Who we are') }}</h2>
+                    <p class="mt-3">{{ __('OT Pro (“OT Pro”, “we”, “us”, or “our”) operates OT1-Pro, a unified inbox and optional AI-assisted messaging service. Our legal business name is OT Pro. Our business address is Cairo, Cairo 171811, Egypt. You can reach us at support@ot1-pro.com or +20 102 636 1218.') }}</p>
+                    <p class="mt-3">{{ __('This policy describes personal data processed when you use ot1-pro.com and OT1-Pro, including data received from Meta products. It does not replace the privacy policy of a business that uses OT1-Pro to communicate with you.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('2. Information We Collect') }}</h2>
-
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.1 Account Information') }}</h3>
-                    <p class="mt-2">{{ __('When you create an account, we collect your name, email address, and password (hashed). If you register via Google OAuth, we receive your Google profile name and email.') }}</p>
-
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.2 Connected Platform Data') }}</h3>
-                    <p class="mt-2">{{ __('When you connect a social media account, we collect and store:') }}</p>
-                    <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
-                        <li>{{ __('OAuth access tokens and refresh tokens required to communicate with the platform API') }}</li>
-                        <li>{{ __('Your page/account name, ID, and profile information as returned by the platform') }}</li>
-                        <li>{{ __('Incoming messages, conversation threads, and sender metadata (name, ID, avatar) from your connected accounts') }}</li>
-                        <li>{{ __('Message timestamps, read status, and delivery receipts') }}</li>
-                    </ul>
-                    <p class="mt-3">{{ __('Platforms currently supported: Facebook Messenger, Instagram Direct, WhatsApp Business, Telegram, TikTok Direct Messages, and Email (IMAP/SMTP).') }}</p>
-
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.3 TikTok-Specific Data') }}</h3>
-                    <p class="mt-2">{{ __('When you connect your TikTok Business account, we access the following permissions with your explicit consent:') }}</p>
-                    <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
-                        <li><strong>message.list.read</strong> — {{ __('To retrieve and display incoming direct messages in your inbox') }}</li>
-                        <li><strong>message.list.send</strong> — {{ __('To send replies to direct messages on your behalf') }}</li>
-                        <li><strong>message.list.manage</strong> — {{ __('To manage conversation state (e.g., mark as read) within your inbox') }}</li>
-                    </ul>
-                    <p class="mt-2">{{ __('We do not access your TikTok content, followers, analytics, videos, or any data beyond what is required for the Business Messaging inbox functionality. TikTok data is used solely to display and manage your direct messages within OT1-Pro and is never shared with or sold to third parties. You can revoke access at any time by disconnecting TikTok from your Connections settings.') }}</p>
-
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.4 Usage Data') }}</h3>
-                    <p class="mt-2">{{ __('We automatically collect certain information about how you interact with our service, including browser type, IP address, pages visited, and actions performed within the app. This data is used solely to improve service performance and reliability.') }}</p>
-
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.5 AI Interaction Data') }}</h3>
-                    <p class="mt-2">{{ __('When you use our AI-powered auto-reply feature, message content is sent to our AI provider partners (such as Anthropic Claude) to generate responses. No message content is retained by these providers beyond the immediate API call, and none of it is used to train their models.') }}</p>
-
-                    <h3 class="text-base font-semibold text-zinc-800 dark:text-zinc-800 mt-5">{{ __('2.6 Voice Note Transcription') }}</h3>
-                    <p class="mt-2">{{ __('When your team enables AI voice-note handling, customer voice notes are sent to Groq (a US-based AI infrastructure provider) for speech-to-text transcription. The audio is transmitted over TLS, is not retained by Groq per their policies, and is used solely to produce a text transcript for the AI reply flow. If your team has disabled voice-note transcription in Settings, no audio ever leaves our servers.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('2. The people this policy covers and our role') }}</h2>
+                    <p class="mt-3">{{ __('There are two distinct groups of people in OT1-Pro: (1) our business customers and their authorized users, and (2) the customers, prospects, and other people who message those businesses through a connected channel.') }}</p>
+                    <p class="mt-3">{{ __('For our business customers’ account, billing, security, and service-administration data, OT Pro generally decides why and how the data is processed. For message and contact data processed on behalf of a business customer, that customer generally decides the purpose of processing and is responsible for its notices and lawful basis; OT Pro processes that data to provide the service. If you are a sender who contacted an OT1-Pro customer, direct your access, correction, or deletion request to that business first. We will assist the business where required.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('3. How We Use Your Information') }}</h2>
-                    <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li>{{ __('To provide and operate the OT1-Pro service, including fetching, displaying, and sending messages on your behalf') }}</li>
-                        <li>{{ __('To generate AI-powered reply suggestions and auto-responses when you enable that feature') }}</li>
-                        <li>{{ __('To display analytics and conversation statistics in your dashboard') }}</li>
-                        <li>{{ __('To send you transactional emails (e.g., password resets, billing receipts)') }}</li>
-                        <li>{{ __('To detect and prevent fraud, abuse, or violations of our Terms of Service') }}</li>
-                        <li>{{ __('To improve and develop new features based on usage patterns') }}</li>
-                        <li>{{ __('To comply with legal obligations') }}</li>
-                    </ul>
-                    <p class="mt-4 font-medium text-zinc-700 dark:text-zinc-700">{{ __('We do not sell, rent, or trade your personal data or your customers\' data to any third party for marketing purposes.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('3. Data we collect') }}</h2>
+                    <h3 class="mt-5 text-base font-semibold text-zinc-800 dark:text-zinc-200">{{ __('Account and service data') }}</h3>
+                    <p class="mt-2">{{ __('We collect names, email addresses, password hashes, authentication details, team and subscription information, support requests, browser and device information, IP address, and security and usage logs.') }}</p>
+                    <h3 class="mt-5 text-base font-semibold text-zinc-800 dark:text-zinc-200">{{ __('Meta Platform Data') }}</h3>
+                    <p class="mt-2">{{ __('When a customer connects Facebook Pages, Instagram professional accounts, or WhatsApp Business, we may receive the data authorized through the relevant Meta permissions and APIs: account or Page identifiers and names, access tokens, connected assets, message and conversation content, sender identifiers and profile data made available by Meta, timestamps, delivery or read status, and interaction data needed to display, send, organize, and secure conversations. We use this data only to provide the connected inbox features, optional AI features, analytics, support, and security; we do not sell Meta Platform Data.') }}</p>
+                    <h3 class="mt-5 text-base font-semibold text-zinc-800 dark:text-zinc-200">{{ __('Other connected-channel and AI data') }}</h3>
+                    <p class="mt-2">{{ __('We process equivalent account, message, and contact data for other channels a customer chooses to connect, such as Telegram, TikTok, or email. If a customer enables AI-assisted replies, lead scoring, image understanding, or voice-note transcription, the relevant message content, image, or audio is processed for that feature. TikTok direct-message data may be included in AI processing only when the customer enables the applicable AI feature; it is not sold or used for advertising.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('4. Data Sharing & Third Parties') }}</h2>
-                    <p class="mt-3">{{ __('We share data only in the following circumstances:') }}</p>
-                    <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li><strong>{{ __('Platform APIs:') }}</strong> {{ __('Data is exchanged with Meta (Facebook, Instagram, WhatsApp), Telegram, TikTok, and email servers solely to provide the inbox functionality.') }}</li>
-                        <li><strong>{{ __('AI Providers:') }}</strong> {{ __('Message content may be sent to our AI provider partners (such as Anthropic Claude) for AI reply generation. This is opt-in and can be disabled from your team settings at any time. Providers do not retain or train on your content.') }}</li>
-                        <li><strong>{{ __('Payment Processor:') }}</strong> {{ __('Billing and payment data is handled by Paddle (paddle.com), our authorised reseller and Merchant of Record. When you subscribe, Paddle collects your payment information directly. We do not store your card details. Paddle\'s privacy policy applies to payment data: paddle.com/legal/privacy.') }}</li>
-                        <li><strong>{{ __('Infrastructure Providers:') }}</strong> {{ __('We use cloud infrastructure providers (servers, databases) that process data on our behalf under data processing agreements.') }}</li>
-                        <li><strong>{{ __('Legal Requirements:') }}</strong> {{ __('We may disclose information if required by law, court order, or to protect the rights and safety of our users.') }}</li>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('4. How we use data') }}</h2>
+                    <ul class="mt-3 list-disc space-y-2 pl-5 text-sm">
+                        <li>{{ __('Provide, maintain, and secure OT1-Pro and connected messaging features.') }}</li>
+                        <li>{{ __('Display, organize, and send messages at the direction of our business customer.') }}</li>
+                        <li>{{ __('Generate optional AI replies, transcripts, summaries, and lead scores when enabled.') }}</li>
+                        <li>{{ __('Provide service analytics, billing, support, fraud prevention, and legal compliance.') }}</li>
                     </ul>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('5. Data Retention') }}</h2>
-                    <p class="mt-3">{{ __('We retain your account data for as long as your account is active. Conversation data (messages, contacts) is retained indefinitely to provide your inbox history, but you may delete individual conversations or your entire account at any time.') }}</p>
-                    <p class="mt-3">{{ __('When you disconnect a social platform or delete your account, associated access tokens are deleted immediately. Message history may be retained for up to 30 days before permanent deletion.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('5. Service providers and disclosures') }}</h2>
+                    <p class="mt-3">{{ __('We do not sell or rent personal data. We disclose data only to provide the service, comply with law, protect rights and safety, or complete a business transaction permitted by law. Our service providers may include: Meta for connected Facebook, Instagram, and WhatsApp services; NaraRouter and the model provider selected through it for enabled AI replies and analysis; Google Gemini if configured for an enabled AI feature; Groq for enabled voice-note transcription; payment providers for billing; and hosting, database, email, and security providers that operate our service. Providers process data under their applicable terms and instructions. Processing may occur in Egypt and in other countries where these providers operate.') }}</p>
+                    <p class="mt-3">{{ __('We do not state that every provider retains no data or never uses data for model training, because those terms can differ by provider, plan, and configuration. We review providers and limit the data sent to what is needed for the enabled feature.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('6. Data Security') }}</h2>
-                    <p class="mt-3">{{ __('We implement industry-standard security measures including:') }}</p>
-                    <ul class="mt-2 list-disc pl-5 space-y-1 text-sm">
-                        <li>{{ __('TLS/SSL encryption for all data in transit') }}</li>
-                        <li>{{ __('Encrypted storage for OAuth tokens and credentials') }}</li>
-                        <li>{{ __('Access controls limiting data access to authorized personnel') }}</li>
-                        <li>{{ __('Regular security reviews and dependency updates') }}</li>
-                    </ul>
-                    <p class="mt-3">{{ __('No method of transmission over the internet is 100% secure. We strive to protect your data but cannot guarantee absolute security.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('6. Retention and deletion') }}</h2>
+                    <p class="mt-3">{{ __('We retain account and platform data only for as long as needed to provide the service, meet the purposes in this policy, resolve disputes, and meet legal obligations. Access tokens are removed when a customer disconnects the relevant platform. A customer can request deletion of its OT1-Pro account or relevant platform data; verified requests are completed within 30 days. A business customer may also ask us to delete data for a sender it serves.') }}</p>
+                    <p class="mt-3">{{ __('For Meta Platform Data, we delete data when Meta sends a valid data-deletion request, when the relevant user or customer requests deletion through the appropriate channel, or when the data is no longer necessary for the service. We may keep a minimal record of the request and limited data where necessary for security, fraud prevention, legal obligations, or to prove that the deletion was completed. Backup copies are removed on their normal replacement cycle.') }}</p>
+                    <p class="mt-3"><a href="{{ route('data-deletion') }}" class="text-emerald-600 hover:underline">{{ __('Read our Data Deletion Instructions') }}</a></p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7. Your Rights') }}</h2>
-                    <p class="mt-3">{{ __('Depending on your location, you may have the following rights regarding your personal data:') }}</p>
-                    <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li><strong>{{ __('Access:') }}</strong> {{ __('Request a copy of the personal data we hold about you.') }}</li>
-                        <li><strong>{{ __('Rectification:') }}</strong> {{ __('Request correction of inaccurate data.') }}</li>
-                        <li><strong>{{ __('Erasure:') }}</strong> {{ __('Request deletion of your personal data ("right to be forgotten").') }}</li>
-                        <li><strong>{{ __('Portability:') }}</strong> {{ __('Request an export of your data in a machine-readable format.') }}</li>
-                        <li><strong>{{ __('Objection:') }}</strong> {{ __('Object to processing of your data for certain purposes.') }}</li>
-                        <li><strong>{{ __('Withdrawal of Consent:') }}</strong> {{ __('Disconnect any social platform at any time via your Connections settings.') }}</li>
-                    </ul>
-                    <p class="mt-3">{{ __('To exercise any of these rights, email us at omareltak7@gmail.com. We will respond within 30 days.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7. Meta data-deletion callback') }}</h2>
+                    <p class="mt-3">{{ __('OT Pro provides a Meta Data Deletion Callback for valid Meta requests. When Meta sends a signed deletion request, our system validates it, creates a deletion request, and returns a confirmation code and a unique status URL. The request is processed through our deletion workflow. The status URL lets the requester check whether the request is pending, completed, or needs support.') }}</p>
+                    <p class="mt-3">{{ __('Facebook and Instagram users can make a request through the platform’s connected-app settings by removing OT Pro or OT1-Pro and selecting any offered data-deletion option. WhatsApp senders should first contact the business they messaged; OT1-Pro customers can request deletion for their WhatsApp Business data. Full instructions are available on our Data Deletion Instructions page.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('7a. Data Deletion (Meta Apps)') }}</h2>
-                    <p class="mt-3">{{ __('If you connected OT1-Pro via Facebook or Instagram and want all data we hold about you removed, you have two options:') }}</p>
-                    <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
-                        <li>{{ __('Visit') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-emerald-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook → Settings → Apps & Websites') }}</a> {{ __('and remove OT1-Pro Business — Meta will then automatically notify our system to delete your data.') }}</li>
-                        <li>{{ __('Or email us directly at') }} <a href="mailto:omareltak7@gmail.com" class="text-emerald-600 hover:underline">omareltak7@gmail.com</a> {{ __('with the subject "Data Deletion Request".') }}</li>
-                    </ul>
-                    <p class="mt-3 text-sm">{{ __('Either method removes the connected account, contact profile, conversations, messages, and lead score events linked to your Facebook or Instagram identifier within 30 days. We send a confirmation page where you can verify the deletion completed.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('8. Security') }}</h2>
+                    <p class="mt-3">{{ __('We use measures intended to protect data, including encryption in transit, encrypted storage for credentials where supported, access controls, and security monitoring. No internet service can guarantee absolute security.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('8. Cookies') }}</h2>
-                    <p class="mt-3">{{ __('We use only essential cookies required to maintain your authenticated session. We do not use advertising cookies, cross-site tracking cookies, or analytics cookies from third-party services.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('9. Your rights and international transfers') }}</h2>
+                    <p class="mt-3">{{ __('Depending on applicable law, you may have rights to access, correct, delete, restrict, object to processing of, or receive a portable copy of your personal data, and to complain to your local data-protection authority. You may withdraw consent for optional features by disabling them or disconnecting the relevant platform, where consent is the basis for processing. We use appropriate safeguards for international transfers as required by applicable law.') }}</p>
+                    <p class="mt-3">{{ __('To exercise a right, contact support@ot1-pro.com. We may request information necessary to verify identity and will respond within the time required by applicable law. If you are communicating with one of our business customers, contact that business first for message and contact data it controls.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __("9. Children's Privacy") }}</h2>
-                    <p class="mt-3">{{ __('OT1-Pro is a business tool intended for users aged 18 and older. We do not knowingly collect personal information from individuals under 18. If we become aware that a minor has provided us data, we will delete it promptly.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('10. Children and policy changes') }}</h2>
+                    <p class="mt-3">{{ __('OT1-Pro is a business service and is not directed to children. We may update this policy when our service or legal requirements change. We will post the new effective date and, where appropriate, provide additional notice.') }}</p>
                 </div>
 
                 <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('10. International Data Transfers') }}</h2>
-                    <p class="mt-3">{{ __('Your data may be processed in countries outside your own. By using OT1-Pro, you consent to your data being transferred to and processed in these countries. We ensure appropriate safeguards are in place for such transfers.') }}</p>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('11. Contact us') }}</h2>
+                    <p class="mt-3">OT Pro<br>Cairo, Cairo 171811, Egypt<br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:support@ot1-pro.com">support@ot1-pro.com</a></p>
                 </div>
-
-                <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('11. Changes to This Policy') }}</h2>
-                    <p class="mt-3">{{ __('We may update this Privacy Policy from time to time. We will notify you of significant changes by email or by displaying a prominent notice in the app. Continued use of OT1-Pro after changes constitutes acceptance of the updated policy.') }}</p>
-                </div>
-
-                <div>
-                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('12. Contact Us') }}</h2>
-                    <p class="mt-3">{{ __('For privacy-related questions, data requests, or concerns, contact us at:') }}</p>
-                    <div class="mt-3 text-sm">
-                        <p><strong>{{ __('Email:') }}</strong> omareltak7@gmail.com</p>
-                        <p class="mt-1"><strong>{{ __('Website:') }}</strong> https://ot1-pro.com/privacy</p>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
-
 </x-layouts.marketing>

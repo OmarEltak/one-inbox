@@ -20,6 +20,7 @@ Route::view('/', 'pages.ai-campaign-manager')->name('home');
 Route::view('about', 'pages.about')->name('about');
 Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
+Route::view('data-deletion', 'pages.data-deletion')->name('data-deletion');
 Route::view('terms', 'pages.terms')->name('terms');
 Route::view('refund', 'pages.refund')->name('refund');
 Route::view('data-collection', 'pages.data-collection')->name('data-collection');
@@ -146,7 +147,8 @@ Route::get('sitemap.xml', function () {
     $pages = array_merge($pages, [
         ['loc' => url('/about'),                     'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/contact'),                   'priority' => '0.7', 'changefreq' => 'monthly', 'lastmod' => $today],
-        ['loc' => url('/privacy'),                   'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2025-01-01'],
+        ['loc' => url('/privacy'),                   'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2026-10-02'],
+        ['loc' => url('/data-deletion'),             'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2026-10-02'],
         ['loc' => url('/terms'),                     'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2025-01-01'],
         ['loc' => url('/refund'),                    'priority' => '0.3', 'changefreq' => 'yearly',  'lastmod' => '2026-07-04'],
     ]);

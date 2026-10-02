@@ -312,6 +312,7 @@
                     <h4 class="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Legal') }}</h4>
                     <ul class="space-y-2 text-sm text-zinc-500">
                         <li><a href="{{ route('privacy') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Privacy Policy') }}</a></li>
+                        <li><a href="{{ route('data-deletion') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Data Deletion') }}</a></li>
                         <li><a href="{{ route('terms') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Terms of Service') }}</a></li>
                         <li><a href="{{ route('refund') }}" class="hover:text-zinc-900 dark:hover:text-white">{{ __('Refund Policy') }}</a></li>
                     </ul>

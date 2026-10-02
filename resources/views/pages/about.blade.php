@@ -85,14 +85,35 @@
                     </div>
                 </div>
 
+                <div class="rounded-3xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900 lg:p-10">
+                    <h2 class="text-2xl font-bold">{{ __('Business information') }}</h2>
+                    <p class="mt-3 leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        {{ __('OT1-Pro is the product name of OT Pro, a business based in Cairo, Egypt. These details match the OT Pro business portfolio used to operate our Meta integrations.') }}
+                    </p>
+                    <dl class="mt-6 grid gap-6 text-sm sm:grid-cols-3">
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Legal business name') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400">OT Pro</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Business address') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400">Cairo, Cairo 171811, Egypt</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Business phone') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400"><a href="tel:+201026361218" class="hover:text-emerald-600">+20 102 636 1218</a></dd>
+                        </div>
+                    </dl>
+                </div>
+
                 <div class="text-center">
                     <h2 class="text-2xl font-bold">{{ __('Reach us') }}</h2>
                     <p class="mt-4 text-zinc-600 dark:text-zinc-600">
                         {{ __('Questions, partnerships, or just want to say hello — we reply fast.') }}
                     </p>
                     <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <a href="mailto:omareltak7@gmail.com" class="inline-flex items-center justify-center rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 hover:border-emerald-500 hover:text-emerald-700 transition-all">
-                            omareltak7@gmail.com
+                        <a href="mailto:support@ot1-pro.com" class="inline-flex items-center justify-center rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 hover:border-emerald-500 hover:text-emerald-700 transition-all">
+                            support@ot1-pro.com
                         </a>
                         <a href="https://wa.me/201026361218" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-all">
                             {{ __('WhatsApp the founder') }}

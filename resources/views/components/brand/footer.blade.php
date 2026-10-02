@@ -58,6 +58,7 @@
             <ul class="space-y-2 text-ink/80">
                 <li><a href="{{ route('terms') }}"          class="u-link">{{ __('Terms and Conditions') }}</a></li>
                 <li><a href="{{ route('privacy') }}"        class="u-link">{{ __('Privacy Policy') }}</a></li>
+                <li><a href="{{ route('data-deletion') }}"  class="u-link">{{ __('Data Deletion') }}</a></li>
                 <li><a href="{{ route('data-collection') }}" class="u-link">{{ __('Data Collection') }}</a></li>
                 <li><a href="{{ route('refund') }}"         class="u-link">{{ __('Refund Policy') }}</a></li>
             </ul>
