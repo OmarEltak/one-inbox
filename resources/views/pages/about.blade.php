@@ -92,6 +92,10 @@
                     </p>
                     <dl class="mt-6 grid gap-6 text-sm sm:grid-cols-2 lg:grid-cols-3">
                         <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Business name') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400">OT Pro</dd>
+                        </div>
+                        <div>
                             <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Legal business name') }}</dt>
                             <dd class="mt-1 text-zinc-600 dark:text-zinc-400">OT Pro</dd>
                         </div>
@@ -114,6 +118,10 @@
                         <div>
                             <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Website') }}</dt>
                             <dd class="mt-1 text-zinc-600 dark:text-zinc-400"><a href="https://ot1-pro.com/" class="hover:text-emerald-600">ot1-pro.com</a></dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Meta business verification') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400">{{ __('Verified — February 18, 2026') }}</dd>
                         </div>
                     </dl>
                 </div>
