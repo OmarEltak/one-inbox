@@ -8,7 +8,7 @@
             <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-400">
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Who we are') }}</h2>
-                    <p class="mt-3">{{ __('OT Pro (“OT Pro”, “we”, “us”, or “our”) operates OT1-Pro, a unified inbox and optional AI-assisted messaging service. Our legal business name is OT Pro. Our business address is Cairo, Cairo 171811, Egypt. You can reach us at support@ot1-pro.com or +20 102 636 1218.') }}</p>
+                    <p class="mt-3">{{ __('OT Pro (“OT Pro”, “we”, “us”, or “our”) operates OT1-Pro, a unified inbox and optional AI-assisted messaging service. Our legal business name is OT Pro. Our business address is Cairo, Cairo 171811, Egypt. Our Meta Business Portfolio ID is 2169075923895403 and no Primary Page is currently assigned. Our website is https://ot1-pro.com/. You can reach us at support@ot1-pro.com or +20 102 636 1218.') }}</p>
                     <p class="mt-3">{{ __('This policy describes personal data processed when you use ot1-pro.com and OT1-Pro, including data received from Meta products. It does not replace the privacy policy of a business that uses OT1-Pro to communicate with you.') }}</p>
                 </div>
 
@@ -75,7 +75,7 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('11. Contact us') }}</h2>
-                    <p class="mt-3">OT Pro<br>Cairo, Cairo 171811, Egypt<br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:support@ot1-pro.com">support@ot1-pro.com</a></p>
+                    <p class="mt-3">OT Pro<br>Cairo, Cairo 171811, Egypt<br>{{ __('Meta Business Portfolio ID') }}: 2169075923895403<br>{{ __('Primary Page') }}: {{ __('None') }}<br><a class="text-emerald-600 hover:underline" href="https://ot1-pro.com/">ot1-pro.com</a><br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:support@ot1-pro.com">support@ot1-pro.com</a></p>
                 </div>
             </div>
         </div>

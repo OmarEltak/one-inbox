@@ -90,7 +90,7 @@
                     <p class="mt-3 leading-relaxed text-zinc-600 dark:text-zinc-400">
                         {{ __('OT1-Pro is the product name of OT Pro, a business based in Cairo, Egypt. These details match the OT Pro business portfolio used to operate our Meta integrations.') }}
                     </p>
-                    <dl class="mt-6 grid gap-6 text-sm sm:grid-cols-3">
+                    <dl class="mt-6 grid gap-6 text-sm sm:grid-cols-2 lg:grid-cols-3">
                         <div>
                             <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Legal business name') }}</dt>
                             <dd class="mt-1 text-zinc-600 dark:text-zinc-400">OT Pro</dd>
@@ -102,6 +102,18 @@
                         <div>
                             <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Business phone') }}</dt>
                             <dd class="mt-1 text-zinc-600 dark:text-zinc-400"><a href="tel:+201026361218" class="hover:text-emerald-600">+20 102 636 1218</a></dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Business portfolio ID') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400">2169075923895403</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Primary Page') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400">{{ __('None') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Website') }}</dt>
+                            <dd class="mt-1 text-zinc-600 dark:text-zinc-400"><a href="https://ot1-pro.com/" class="hover:text-emerald-600">ot1-pro.com</a></dd>
                         </div>
                     </dl>
                 </div>
