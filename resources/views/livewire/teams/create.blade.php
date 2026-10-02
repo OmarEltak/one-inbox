@@ -14,6 +14,13 @@
             placeholder="e.g. My Company"
         />
 
+        <div class="text-center text-xs text-zinc-500">
+            {{ __('By creating a team, you agree to our') }}
+            <a href="{{ route('terms') }}" class="text-indigo-600 hover:underline">{{ __('Terms of Service') }}</a>
+            {{ __('and') }}
+            <a href="{{ route('privacy') }}" class="text-indigo-600 hover:underline">{{ __('Privacy Policy') }}</a>.
+        </div>
+
         <flux:button variant="primary" type="submit" class="w-full">
             {{ __('Create Team') }}
         </flux:button>

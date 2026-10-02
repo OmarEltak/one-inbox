@@ -22,6 +22,7 @@ Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('terms', 'pages.terms')->name('terms');
 Route::view('refund', 'pages.refund')->name('refund');
+Route::view('cookies', 'pages.cookies')->name('cookies');
 
 // Wire transfer payment page (public)
 Route::get('/pay-wire', \App\Livewire\PayWire::class)->name('pay-wire');
@@ -259,6 +260,13 @@ TXT;
         'Cache-Control' => 'public, max-age=86400, s-maxage=86400',
     ]);
 })->name('llms');
+
+// Phase A onboarding playground — intentionally auth-only: fresh signups land
+// here via Fortify redirects BEFORE email verification and before a team
+// picker exists. The component redirects completed teams back to the dashboard.
+Route::get('onboarding/meet-your-ai', \App\Livewire\Onboarding\MeetYourAi::class)
+    ->middleware(['auth', 'throttle:60,1'])
+    ->name('onboarding.meet-your-ai');
 
 Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function () {
     Route::get('dashboard', \App\Livewire\Dashboard::class)->middleware('permission:dashboard')->name('dashboard');

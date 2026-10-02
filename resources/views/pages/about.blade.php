@@ -12,40 +12,77 @@
             </div>
 
             <div class="mt-16 space-y-12">
-                <div>
-                    <h2 class="text-2xl font-bold">{{ __('Our Mission') }}</h2>
-                    <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                        {{ __('OT1-Pro was built to solve a simple problem: businesses lose sales because they can\'t respond fast enough across multiple social platforms. We unify Facebook, Instagram, WhatsApp, and Telegram into a single inbox, powered by AI that responds instantly, qualifies leads, and drives conversations toward a close.') }}
-                    </p>
-                </div>
-
-                <div>
-                    <h2 class="text-2xl font-bold">{{ __('Why OT1-Pro?') }}</h2>
-                    <div class="mt-6 grid gap-6 sm:grid-cols-2">
-                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200">
-                            <h3 class="font-semibold">{{ __('Instant Response') }}</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('AI responds to every message in seconds, not hours. No customer waits, no sale lost.') }}</p>
-                        </div>
-                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200">
-                            <h3 class="font-semibold">{{ __('Multi-Platform') }}</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Connect all your social channels and manage conversations from one unified interface.') }}</p>
-                        </div>
-                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200">
-                            <h3 class="font-semibold">{{ __('Lead Intelligence') }}</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('AI scores and qualifies leads automatically so you know who\'s ready to buy.') }}</p>
-                        </div>
-                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200">
-                            <h3 class="font-semibold">{{ __('Seamless Handoff') }}</h3>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('AI handles routine conversations. Your team steps in when it matters most.') }}</p>
+                <div class="grid gap-12 lg:grid-cols-2 items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold">{{ __('Our Mission') }}</h2>
+                        <p class="mt-4 text-zinc-600 dark:text-zinc-600 leading-relaxed">
+                            {{ __('OT1-Pro was built to solve a simple problem: businesses lose sales because they can\'t respond fast enough across multiple social platforms. We unify Facebook, Instagram, WhatsApp, and Telegram into a single inbox, powered by AI that responds instantly, qualifies leads, and drives conversations toward a close.') }}
+                        </p>
+                        <p class="mt-4 text-zinc-600 dark:text-zinc-600 leading-relaxed">
+                            {{ __('Our goal is to empower small-to-mid sized brands to compete with the giants by automating the repetitive parts of sales while keeping the human touch where it matters most.') }}
+                        </p>
+                    </div>
+                    <div class="bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-8 border border-zinc-200 dark:border-zinc-700">
+                        <div class="space-y-4">
+                            <div class="flex gap-4">
+                                <div class="flex-shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                                <div>
+                                    <h4 class="font-semibold">Unified Access</h4>
+                                    <p class="text-sm text-zinc-500">Stop switching tabs. One inbox for everything.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex-shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                                <div>
+                                    <h4 class="font-semibold">AI Qualification</h4>
+                                    <p class="text-sm text-zinc-500">Our AI identifies high-intent buyers automatically.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex-shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                                <div>
+                                    <h4 class="font-semibold">24/7 Availability</h4>
+                                    <p class="text-sm text-zinc-500">Capture leads at 3 AM without waking up.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <h2 class="text-2xl font-bold">{{ __('Our Story') }}</h2>
-                    <p class="mt-4 text-zinc-600 dark:text-zinc-600">
-                        {{ __('OT1-Pro was born from the frustration of managing customer conversations across multiple platforms. We saw businesses losing deals simply because messages fell through the cracks. Our solution: bring everything together and let AI handle the heavy lifting.') }}
-                    </p>
+                    <h2 class="text-2xl font-bold text-center">{{ __('Why OT1-Pro?') }}</h2>
+                    <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200 hover:border-indigo-500 transition-colors">
+                            <h3 class="font-semibold text-indigo-600">{{ __('Instant Response') }}</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('AI responds to every message in seconds. No customer waits, no sale lost.') }}</p>
+                        </div>
+                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200 hover:border-indigo-500 transition-colors">
+                            <h3 class="font-semibold text-indigo-600">{{ __('Multi-Platform') }}</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('Connect all your social channels and manage conversations from one unified interface.') }}</p>
+                        </div>
+                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200 hover:border-indigo-500 transition-colors">
+                            <h3 class="font-semibold text-indigo-600">{{ __('Lead Intelligence') }}</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('AI scores and qualifies leads automatically so you know who\'s ready to buy.') }}</p>
+                        </div>
+                        <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-200 hover:border-indigo-500 transition-colors">
+                            <h3 class="font-semibold text-indigo-600">{{ __('Seamless Handoff') }}</h3>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-600">{{ __('AI handles routine conversations. Your team steps in when it matters most.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-50 dark:bg-zinc-900 rounded-3xl p-8 lg:p-12 border border-zinc-200 dark:border-zinc-800">
+                    <div class="max-w-2xl mx-auto text-center">
+                        <h2 class="text-2xl font-bold">{{ __('Our Story') }}</h2>
+                        <p class="mt-6 text-lg text-zinc-600 dark:text-zinc-600 leading-relaxed">
+                            {{ __('OT1-Pro was born from the frustration of managing customer conversations across multiple platforms. We saw businesses losing deals simply because messages fell through the cracks. We decided to build the tool we wished we had: a single source of truth for all customer interactions, supercharged by AI to handle the heavy lifting.') }}
+                        </p>
+                        <div class="mt-8">
+                            <a href="{{ route('home') }}" class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all">
+                                {{ __('Start Scaling Your Sales') }}
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
