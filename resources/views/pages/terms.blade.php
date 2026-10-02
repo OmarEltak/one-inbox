@@ -132,7 +132,7 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('16. Contact Us') }}</h2>
                     <p class="mt-3">{{ __('For questions about these Terms, contact us at:') }}</p>
                     <div class="mt-3 text-sm">
-                        <p><strong>{{ __('Email:') }}</strong> legal@ot1-pro.com</p>
+                        <p><strong>{{ __('Email:') }}</strong> omareltak7@gmail.com</p>
                         <p class="mt-1"><strong>{{ __('Website:') }}</strong> https://ot1-pro.com/terms</p>
                     </div>
                 </div>

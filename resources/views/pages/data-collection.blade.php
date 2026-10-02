@@ -10,7 +10,7 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('1. Overview') }}</h2>
-                    <p class="mt-3">{{ __('This document explains in detail what data OT1-Pro collects, why we collect it, and how we use it. It supplements our') }} <a href="{{ route('privacy') }}" class="text-emerald-600 hover:underline">{{ __('Privacy Policy') }}</a> {{ __('and') }} <a href="{{ route('terms') }}" class="text-emerald-600 hover:underline">{{ __('Terms of Service') }}</a>.{{ __(' For any questions, contact privacy@ot1-pro.com.') }}</p>
+                    <p class="mt-3">{{ __('This document explains in detail what data OT1-Pro collects, why we collect it, and how we use it. It supplements our') }} <a href="{{ route('privacy') }}" class="text-emerald-600 hover:underline">{{ __('Privacy Policy') }}</a> {{ __('and') }} <a href="{{ route('terms') }}" class="text-emerald-600 hover:underline">{{ __('Terms of Service') }}</a>.{{ __(' For any questions, contact omareltak7@gmail.com.') }}</p>
                 </div>
 
                 <div>
@@ -109,7 +109,7 @@
                         <li>{{ __('Object to processing for certain purposes') }}</li>
                         <li>{{ __('Withdraw consent by disconnecting platforms at any time') }}</li>
                     </ul>
-                    <p class="mt-3">{{ __('To exercise these rights, email privacy@ot1-pro.com. We respond within 30 days.') }}</p>
+                    <p class="mt-3">{{ __('To exercise these rights, email omareltak7@gmail.com. We respond within 30 days.') }}</p>
                 </div>
 
                 <div>
@@ -117,7 +117,7 @@
                     <p class="mt-3">{{ __('If you connected via Facebook/Instagram and want all data removed, you can:') }}</p>
                     <ul class="mt-3 list-disc pl-5 space-y-2 text-sm">
                         <li>{{ __('Use Facebook\'s Data Deletion Request at') }} <a href="https://www.facebook.com/help/contact/365599491808767" class="text-emerald-600 hover:underline" target="_blank" rel="noopener">{{ __('Facebook \u2192 Settings \u2192 Apps & Websites') }}</a></li>
-                        <li>{{ __('Email us at') }} <a href="mailto:privacy@ot1-pro.com" class="text-emerald-600 hover:underline">privacy@ot1-pro.com</a> {{ __('with subject "Data Deletion Request"') }}</li>
+                        <li>{{ __('Email us at') }} <a href="mailto:omareltak7@gmail.com" class="text-emerald-600 hover:underline">omareltak7@gmail.com</a> {{ __('with subject "Data Deletion Request"') }}</li>
                     </ul>
                     <p class="mt-3 text-sm">{{ __('This triggers our Meta Data Deletion Callback endpoint, which removes the connected account, contact profile, conversations, messages, and lead score events linked to your Facebook/Instagram identifier within 30 days.') }}</p>
                 </div>
@@ -131,7 +131,7 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('9. Contact') }}</h2>
                     <p class="mt-3">{{ __('For questions about data collection:') }}</p>
                     <div class="mt-3 text-sm">
-                        <p><strong>{{ __('Email:') }}</strong> privacy@ot1-pro.com</p>
+                        <p><strong>{{ __('Email:') }}</strong> omareltak7@gmail.com</p>
                         <p class="mt-1"><strong>{{ __('Website:') }}</strong> https://ot1-pro.com/data-collection</p>
                     </div>
                 </div>

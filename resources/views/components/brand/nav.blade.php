@@ -152,6 +152,19 @@
             // Sticky nav morph + logo swap. Toggles .solid on #topnav past 40px scroll,
             // swaps the two <img> logos so the visible one matches the surface.
             (function () {
+                // Scroll-triggered fade-up (paired with .fade-up rule in brand.css).
+                // MUST run before any early-return below: solid-pinned pages
+                // (about, contact, vs/*, …) return early for the nav morph but
+                // their .fade-up cards still need observing, otherwise they
+                // stay at opacity:0 forever (invisible content gap).
+                if ('IntersectionObserver' in window) {
+                    var io = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (e) {
+                            if (e.isIntersecting) e.target.classList.add('on');
+                        });
+                    }, { threshold: 0.1 });
+                    document.querySelectorAll('.fade-up').forEach(function (el) { io.observe(el); });
+                }
                 var nav = document.getElementById('topnav');
                 if (!nav) return;
                 // Pages without a dark hero pin the nav in solid state via
@@ -169,16 +182,6 @@
                 }
                 window.addEventListener('scroll', onScroll, { passive: true });
                 onScroll();
-
-                // Scroll-triggered fade-up (paired with .fade-up rule in brand.css)
-                if ('IntersectionObserver' in window) {
-                    var io = new IntersectionObserver(function (entries) {
-                        entries.forEach(function (e) {
-                            if (e.isIntersecting) e.target.classList.add('on');
-                        });
-                    }, { threshold: 0.1 });
-                    document.querySelectorAll('.fade-up').forEach(function (el) { io.observe(el); });
-                }
             })();
         </script>
     @endpush
