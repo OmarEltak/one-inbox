@@ -2559,5 +2559,11 @@
     "Video": "فيديو",
     "Location": "موقع",
     "Media": "وسائط",
-    "The AI took too long or returned nothing. Please try again, or ask a more specific question.": "استغرق الذكاء الاصطناعي وقتًا طويلًا أو لم يُرجع ردًا. حاول مرة أخرى، أو اسأل سؤالًا أكثر تحديدًا."
+    "The AI took too long or returned nothing. Please try again, or ask a more specific question.": "استغرق الذكاء الاصطناعي وقتًا طويلًا أو لم يُرجع ردًا. حاول مرة أخرى، أو اسأل سؤالًا أكثر تحديدًا.",
+    "By using our service you agree to our": "باستخدام خدمتنا فإنك توافق على",
+    "Terms and Conditions": "الشروط والأحكام",
+    "Data Collection": "جمع البيانات",
+    "Privacy Policy": "سياسة الخصوصية",
+    "Legal": "القانونية",
+    "Refund Policy": "سياسة الاسترداد"
 }

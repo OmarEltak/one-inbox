@@ -20,7 +20,7 @@
 @endonce
 
 <footer class="bg-cream border-t border-line py-12">
-    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-8 text-sm">
+    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-5 gap-8 text-sm">
         <div>
             <div class="mb-3">
                 <img src="/logo/logo-light.png" alt="OT1-Pro" class="h-10 w-auto" />
@@ -50,6 +50,16 @@
                 <li><a href="{{ route('blog.index') }}" class="u-link">{{ __('Blog') }}</a></li>
                 <li><a href="{{ route('about') }}"      class="u-link">{{ __('About') }}</a></li>
                 <li><a href="{{ route('contact') }}"    class="u-link">{{ __('Contact') }}</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <div class="text-xs uppercase tracking-widest text-ink/50 mb-3">{{ __('Legal') }}</div>
+            <ul class="space-y-2 text-ink/80">
+                <li><a href="{{ route('terms') }}"          class="u-link">{{ __('Terms and Conditions') }}</a></li>
+                <li><a href="{{ route('privacy') }}"        class="u-link">{{ __('Privacy Policy') }}</a></li>
+                <li><a href="{{ route('data-collection') }}" class="u-link">{{ __('Data Collection') }}</a></li>
+                <li><a href="{{ route('refund') }}"         class="u-link">{{ __('Refund Policy') }}</a></li>
             </ul>
         </div>
 

@@ -22,6 +22,7 @@ Route::view('contact', 'pages.contact')->name('contact');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('terms', 'pages.terms')->name('terms');
 Route::view('refund', 'pages.refund')->name('refund');
+Route::view('data-collection', 'pages.data-collection')->name('data-collection');
 
 // Wire transfer payment page (public)
 Route::get('/pay-wire', \App\Livewire\PayWire::class)->name('pay-wire');

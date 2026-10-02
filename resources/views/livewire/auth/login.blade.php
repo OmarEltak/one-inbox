@@ -47,6 +47,15 @@
             <!-- Remember Me -->
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
+            <p class="text-xs text-center text-ink/60">
+                {{ __('By using our service you agree to our') }}
+                <a href="{{ route('terms') }}" class="underline hover:text-emer-700">{{ __('Terms and Conditions') }}</a>
+                {{ __(',') }}
+                <a href="{{ route('data-collection') }}" class="underline hover:text-emer-700">{{ __('Data Collection') }}</a>
+                {{ __('and') }}
+                <a href="{{ route('privacy') }}" class="underline hover:text-emer-700">{{ __('Privacy Policy') }}</a>
+            </p>
+
             <button type="submit" data-test="login-button"
                 class="inline-flex items-center justify-center gap-2 w-full bg-emer-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emer-700 transition cursor-pointer">
                 {{ __('Sign in') }}
