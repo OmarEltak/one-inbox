@@ -830,115 +830,120 @@
         </div>
     @endif
 
-    {{-- WhatsApp Cloud API (Meta) Modal — guided onboarding --}}
-    <flux:modal name="whatsapp-connect" class="w-full max-w-2xl">
+    {{-- WhatsApp Cloud API (Meta) Modal — guided onboarding.
+         Contrast-guardrails pass: this modal lives on the light (cream) app shell,
+         so every surface uses the safe light-theme palette (`-900` text on `-50/-100`
+         tinted containers; `text-zinc-900` body on white). Do NOT re-introduce the
+         old dark-theme classes (`text-white/*`, `bg-white/[0.02]`, `bg-black/30`,
+         `variant="ghost"`) — they render invisible here. See skill `contrast-guardrails`. --}}
+    <flux:modal name="whatsapp-connect" class="w-full max-w-2xl !bg-white dark:!bg-white">
         <div class="space-y-5" x-data="{ help: null }">
             <div>
-                <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-white/90">{{ __('Connect WhatsApp via Cloud API') }}</h3>
-                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-300 border border-green-400/20">Official Meta API</span>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-lg font-semibold text-zinc-900">{{ __('Connect WhatsApp via Cloud API') }}</h3>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200">Official Meta API</span>
                 </div>
-                <p class="text-sm text-white/50 mt-1">
+                <p class="text-sm text-zinc-700 mt-1">
                     Meta's official WhatsApp Business pipe. Stable, supports message templates, never drops because of WhatsApp protocol updates.
                 </p>
             </div>
 
             {{-- Prerequisites strip --}}
-            <div class="rounded-xl border border-blue-400/15 bg-blue-400/5 p-3 text-xs text-blue-100/85 leading-relaxed">
-                <strong class="text-blue-50">Before you start, make sure you have:</strong>
+            <div class="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900 leading-relaxed">
+                <strong class="text-blue-900">Before you start, make sure you have:</strong>
                 <ul class="mt-1.5 ml-4 list-disc space-y-0.5">
                     <li>A Facebook account that owns (or is admin of) a Meta Business account</li>
-                    <li>A phone number that is <strong class="text-yellow-200">not currently active</strong> on any WhatsApp / WhatsApp Business app — Cloud API takes the number over</li>
+                    <li>A phone number that is <strong class="bg-amber-100 text-amber-900 px-1 rounded">not currently active</strong> on any WhatsApp / WhatsApp Business app — Cloud API takes the number over</li>
                     <li>Permission to verify the business in Meta Business Manager (your Meta Verified status, if needed for Egyptian / KSA / UAE numbers)</li>
                 </ul>
             </div>
 
             {{-- Step-by-step setup --}}
-            <div class="rounded-xl border border-white/15 bg-white/[0.02] p-4 space-y-4">
-                <p class="text-xs font-semibold text-white/70 uppercase tracking-wide">Setup (≈ 20–40 min, one-time)</p>
+            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-4">
+                <p class="text-xs font-semibold text-zinc-700 uppercase tracking-wide">Setup (≈ 20–40 min, one-time)</p>
 
                 {{-- Step 1 --}}
-                <div class="text-xs text-white/60 leading-relaxed">
-                    <p class="font-semibold text-white/85">① Create a WhatsApp Business Account in Meta Business Manager</p>
-                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-white/30">
-                        <li>Open <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener" class="text-blue-400 hover:underline">business.facebook.com/settings/whatsapp-business-accounts</a> (direct link to the WhatsApp Accounts page)</li>
-                        <li>Top-right click <strong class="text-white/80">Add → Create a WhatsApp Account</strong> (skip if you already have one)</li>
+                <div class="text-xs text-zinc-700 leading-relaxed">
+                    <p class="font-semibold text-zinc-900">① Create a WhatsApp Business Account in Meta Business Manager</p>
+                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-zinc-400">
+                        <li>Open <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener" class="text-blue-700 hover:underline">business.facebook.com/settings/whatsapp-business-accounts</a> (direct link to the WhatsApp Accounts page)</li>
+                        <li>Top-right click <strong class="text-zinc-900">Add → Create a WhatsApp Account</strong> (skip if you already have one)</li>
                         <li>Pick the business that owns it; give it a display name (this is what your customers will see in WhatsApp)</li>
                     </ol>
                 </div>
 
                 {{-- Step 2 --}}
-                <div class="text-xs text-white/60 leading-relaxed">
-                    <p class="font-semibold text-white/85">② Add and verify your phone number</p>
-                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-white/30">
-                        <li>Click your WhatsApp account → <strong class="text-white/80">Phone numbers → Add phone number</strong></li>
+                <div class="text-xs text-zinc-700 leading-relaxed">
+                    <p class="font-semibold text-zinc-900">② Add and verify your phone number</p>
+                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-zinc-400">
+                        <li>Click your WhatsApp account → <strong class="text-zinc-900">Phone numbers → Add phone number</strong></li>
                         <li>Pick a verification method (SMS or call) — Meta will read out / text you a 6-digit code</li>
                         <li>Pick a display name (e.g. "Acme Support"). Meta reviews it for ~24h; you can keep going while it's pending</li>
                     </ol>
-                    <p class="mt-1 ml-4 text-yellow-200/70">
+                    <p class="mt-2 ml-4 rounded border border-amber-200 bg-amber-50 px-2 py-1.5 text-amber-900">
                         ⚠ The phone <em>cannot</em> be in use on the regular WhatsApp app simultaneously. Log it out everywhere first.
                     </p>
                 </div>
 
                 {{-- Step 3 — WABA ID --}}
-                <div class="text-xs text-white/60 leading-relaxed">
-                    <p class="font-semibold text-white/85">③ Copy the WhatsApp Business Account ID (WABA ID) — paste it below</p>
-                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-white/30">
-                        <li>Still on <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener" class="text-blue-400 hover:underline">the WhatsApp Accounts page</a>, click your WhatsApp Business Account</li>
-                        <li>Look at the top of the panel — under the account name there's a 15- or 16-digit number labelled <strong class="text-white/80">"WhatsApp Business Account ID"</strong>. Click the copy icon next to it.</li>
-                        <li>Alternative: open <a href="https://business.facebook.com/wa/manage" target="_blank" rel="noopener" class="text-blue-400 hover:underline">WhatsApp Manager</a> → top of any page shows the same ID</li>
+                <div class="text-xs text-zinc-700 leading-relaxed">
+                    <p class="font-semibold text-zinc-900">③ Copy the WhatsApp Business Account ID (WABA ID) — paste it below</p>
+                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-zinc-400">
+                        <li>Still on <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener" class="text-blue-700 hover:underline">the WhatsApp Accounts page</a>, click your WhatsApp Business Account</li>
+                        <li>Look at the top of the panel — under the account name there's a 15- or 16-digit number labelled <strong class="text-zinc-900">"WhatsApp Business Account ID"</strong>. Click the copy icon next to it.</li>
+                        <li>Alternative: open <a href="https://business.facebook.com/wa/manage" target="_blank" rel="noopener" class="text-blue-700 hover:underline">WhatsApp Manager</a> → top of any page shows the same ID</li>
                     </ol>
                     <p class="mt-1.5 ml-4">
-                        <button type="button" @click="help = (help === 'waba_id' ? null : 'waba_id')" class="text-blue-400 hover:underline">
+                        <button type="button" @click="help = (help === 'waba_id' ? null : 'waba_id')" class="text-blue-700 hover:underline">
                             <span x-text="help === 'waba_id' ? '▼ Hide' : '▶ Show'"></span> what the ID looks like
                         </button>
                     </p>
-                    <div x-show="help === 'waba_id'" x-cloak class="mt-2 ml-4 p-2 rounded bg-black/30 text-white/70">
-                        Looks like <code class="bg-black/40 px-1 rounded">110424298547381</code>. Always digits, no dashes, 15–17 chars.
+                    <div x-show="help === 'waba_id'" x-cloak class="mt-2 ml-4 p-2 rounded border border-zinc-200 bg-white text-zinc-800">
+                        Looks like <code class="bg-zinc-100 border border-zinc-200 text-zinc-900 px-1 rounded">110424298547381</code>. Always digits, no dashes, 15–17 chars.
                         Don't confuse it with the <em>Phone Number ID</em> (which is a different value also visible on the WABA page).
                     </div>
                 </div>
 
                 {{-- Step 4 — App + System User --}}
-                <div class="text-xs text-white/60 leading-relaxed">
-                    <p class="font-semibold text-white/85">④ Create / open a Meta App and link it to your WABA</p>
-                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-white/30">
-                        <li>Go to <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener" class="text-blue-400 hover:underline">developers.facebook.com/apps</a></li>
-                        <li>If you don't have one yet: <strong class="text-white/80">Create App → Business → Next</strong>, give it a name, link it to your business</li>
-                        <li>In the app's left sidebar: <strong class="text-white/80">Add Products → WhatsApp → Set Up</strong></li>
-                        <li>WhatsApp Setup screen → <strong class="text-white/80">"Select a WhatsApp Business Account"</strong> → pick the WABA from step ①</li>
+                <div class="text-xs text-zinc-700 leading-relaxed">
+                    <p class="font-semibold text-zinc-900">④ Create / open a Meta App and link it to your WABA</p>
+                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-zinc-400">
+                        <li>Go to <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener" class="text-blue-700 hover:underline">developers.facebook.com/apps</a></li>
+                        <li>If you don't have one yet: <strong class="text-zinc-900">Create App → Business → Next</strong>, give it a name, link it to your business</li>
+                        <li>In the app's left sidebar: <strong class="text-zinc-900">Add Products → WhatsApp → Set Up</strong></li>
+                        <li>WhatsApp Setup screen → <strong class="text-zinc-900">"Select a WhatsApp Business Account"</strong> → pick the WABA from step ①</li>
                     </ol>
                 </div>
 
                 {{-- Step 5 — System User Token --}}
-                <div class="text-xs text-white/60 leading-relaxed">
-                    <p class="font-semibold text-white/85">⑤ Generate a permanent System User access token — paste it below</p>
-                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-white/30">
-                        <li>Open <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener" class="text-blue-400 hover:underline">business.facebook.com/settings/system-users</a></li>
-                        <li>Click <strong class="text-white/80">Add → Create System User</strong>. Name it (e.g. "OT1-Pro API"), set role to <strong class="text-white/80">Admin</strong></li>
-                        <li>With the system user selected, click <strong class="text-white/80">Add Assets → Apps</strong> → choose your WhatsApp app from step ④, toggle <strong class="text-white/80">"Develop app"</strong> to on, save</li>
-                        <li>Click <strong class="text-white/80">Add Assets → WhatsApp Accounts</strong> → choose the WABA, toggle <strong class="text-white/80">"Manage WhatsApp account"</strong> to on, save</li>
-                        <li>Now click <strong class="text-white/80">Generate New Token</strong></li>
+                <div class="text-xs text-zinc-700 leading-relaxed">
+                    <p class="font-semibold text-zinc-900">⑤ Generate a permanent System User access token — paste it below</p>
+                    <ol class="mt-1 ml-4 space-y-1 list-decimal list-outside marker:text-zinc-400">
+                        <li>Open <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener" class="text-blue-700 hover:underline">business.facebook.com/settings/system-users</a></li>
+                        <li>Click <strong class="text-zinc-900">Add → Create System User</strong>. Name it (e.g. "OT1-Pro API"), set role to <strong class="text-zinc-900">Admin</strong></li>
+                        <li>With the system user selected, click <strong class="text-zinc-900">Add Assets → Apps</strong> → choose your WhatsApp app from step ④, toggle <strong class="text-zinc-900">"Develop app"</strong> to on, save</li>
+                        <li>Click <strong class="text-zinc-900">Add Assets → WhatsApp Accounts</strong> → choose the WABA, toggle <strong class="text-zinc-900">"Manage WhatsApp account"</strong> to on, save</li>
+                        <li>Now click <strong class="text-zinc-900">Generate New Token</strong></li>
                         <li>App: pick the WhatsApp app from step ④</li>
-                        <li>Token expiration: <strong class="text-yellow-200">"Never"</strong> (highly recommended — otherwise you'll have to re-paste a new token every 60 days)</li>
+                        <li>Token expiration: <strong class="bg-amber-100 text-amber-900 px-1 rounded">"Never"</strong> (highly recommended — otherwise you'll have to re-paste a new token every 60 days)</li>
                         <li>Permissions — check both:
-                            <ul class="mt-0.5 ml-4 list-disc list-outside marker:text-white/30">
-                                <li><code class="text-[11px] bg-black/30 px-1 rounded">whatsapp_business_messaging</code></li>
-                                <li><code class="text-[11px] bg-black/30 px-1 rounded">whatsapp_business_management</code></li>
+                            <ul class="mt-0.5 ml-4 list-disc list-outside marker:text-zinc-400">
+                                <li><code class="text-[11px] bg-zinc-100 border border-zinc-200 text-zinc-900 px-1 rounded">whatsapp_business_messaging</code></li>
+                                <li><code class="text-[11px] bg-zinc-100 border border-zinc-200 text-zinc-900 px-1 rounded">whatsapp_business_management</code></li>
                             </ul>
                         </li>
-                        <li>Click <strong class="text-white/80">Generate Token</strong>, then <strong class="text-yellow-200">copy it immediately</strong> — Meta will not show it again. The token starts with <code>EAA</code> and is roughly 200 characters long.</li>
+                        <li>Click <strong class="text-zinc-900">Generate Token</strong>, then <strong class="bg-amber-100 text-amber-900 px-1 rounded">copy it immediately</strong> — Meta will not show it again. The token starts with <code class="bg-zinc-100 border border-zinc-200 text-zinc-900 px-1 rounded">EAA</code> and is roughly 200 characters long.</li>
                     </ol>
                     <p class="mt-1.5 ml-4">
-                        <button type="button" @click="help = (help === 'token' ? null : 'token')" class="text-blue-400 hover:underline">
+                        <button type="button" @click="help = (help === 'token' ? null : 'token')" class="text-blue-700 hover:underline">
                             <span x-text="help === 'token' ? '▼ Hide' : '▶ Show'"></span> "Generate New Token isn't there" / I see an error
                         </button>
                     </p>
-                    <div x-show="help === 'token'" x-cloak class="mt-2 ml-4 p-2 rounded bg-black/30 text-white/70 space-y-1">
+                    <div x-show="help === 'token'" x-cloak class="mt-2 ml-4 p-2 rounded border border-zinc-200 bg-white text-zinc-800 space-y-1">
                         <p>The button only appears once the system user has the WhatsApp app <em>and</em> the WABA assigned to it (steps 3–4 above). If it's greyed out or missing:</p>
                         <ul class="ml-4 list-disc">
-                            <li>Confirm your business is the <strong>owner</strong> (not just admin) of both the app and the WABA</li>
-                            <li>Confirm the system user role is <strong>Admin</strong>, not Employee</li>
+                            <li>Confirm your business is the <strong class="text-zinc-900">owner</strong> (not just admin) of both the app and the WABA</li>
+                            <li>Confirm the system user role is <strong class="text-zinc-900">Admin</strong>, not Employee</li>
                             <li>If your business is in Egypt / KSA / UAE / similar, Meta Verified business status may be required — Settings → Security Center → Business Verification</li>
                         </ul>
                     </div>
@@ -946,41 +951,49 @@
             </div>
 
             {{-- Pricing teaser --}}
-            <div class="rounded-xl border border-yellow-400/20 bg-yellow-400/5 p-3">
-                <p class="text-xs text-yellow-200/85 leading-relaxed">
-                    <strong class="text-yellow-100">Pricing:</strong> Meta bills your WABA directly — not us.
-                    Replies sent within 24 hours of a customer's message are <strong class="text-yellow-100">free, unlimited</strong>.
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p class="text-xs text-amber-900 leading-relaxed">
+                    <strong class="text-amber-900 font-semibold">Pricing:</strong> Meta bills your WABA directly — not us.
+                    Replies sent within 24 hours of a customer's message are <strong class="text-amber-900 font-semibold">free, unlimited</strong>.
                     Marketing / utility templates outside that window cost cents per message and depend on the recipient's country.
                     Live estimates show up in the Campaigns page when you build a broadcast.
-                    <a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" rel="noopener" class="underline hover:text-yellow-100">Meta's pricing reference →</a>
+                    <a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" rel="noopener" class="underline hover:text-amber-950 font-medium">Meta's pricing reference →</a>
                 </p>
             </div>
 
             <form method="POST" action="{{ route('connections.whatsapp.connect') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-white/70 mb-1.5">
+                    <label class="block text-xs font-medium text-zinc-900 mb-1.5">
                         WhatsApp Business Account ID (WABA ID)
-                        <span class="text-white/40 font-normal">— from step ③</span>
+                        <span class="text-zinc-600 font-normal">— from step ③</span>
                     </label>
+                    {{-- Hand-rolled input per contrast-guardrails failure mode 2:
+                         flux:input renders typed content as muted zinc-500 which is
+                         unreadable for a long numeric ID. Zinc-900 text + zinc-400
+                         placeholder keeps typed vs. hint distinct. --}}
                     <input type="text" name="waba_id" placeholder="110424298547381" required pattern="[0-9]{12,18}"
-                           class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono" />
-                    <p class="mt-1 text-[11px] text-white/40">15- to 17-digit number. Digits only — no dashes or spaces.</p>
+                           class="block w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition font-mono" />
+                    <p class="mt-1 text-[11px] text-zinc-600">15- to 17-digit number. Digits only — no dashes or spaces.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-white/70 mb-1.5">
+                    <label class="block text-xs font-medium text-zinc-900 mb-1.5">
                         System User Access Token
-                        <span class="text-white/40 font-normal">— from step ⑤</span>
+                        <span class="text-zinc-600 font-normal">— from step ⑤</span>
                     </label>
                     <textarea name="access_token" rows="3" placeholder="EAA..." required
-                              class="w-full rounded-lg border border-white/15 bg-[#0d1117] px-3 py-2 text-sm text-white/80 placeholder-[#64748b] focus:border-[#3b82f6] focus:outline-none font-mono break-all"></textarea>
-                    <p class="mt-1 text-[11px] text-white/40">
-                        Starts with <code>EAA</code>, around 200 characters. We store this encrypted in our database; only your team can use it.
+                              class="block w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition font-mono break-all"></textarea>
+                    <p class="mt-1 text-[11px] text-zinc-600">
+                        Starts with <code class="bg-zinc-100 border border-zinc-200 text-zinc-900 px-1 rounded">EAA</code>, around 200 characters. We store this encrypted in our database; only your team can use it.
                     </p>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
+                    {{-- Cancel: plain outlined button per contrast-guardrails failure mode 3.
+                         variant="ghost" is invisible on a white modal. --}}
                     <flux:modal.close>
-                        <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
+                        <button type="button" class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition">
+                            {{ __('Cancel') }}
+                        </button>
                     </flux:modal.close>
                     <flux:button type="submit" variant="primary" icon="shield-check">{{ __('Connect WhatsApp') }}</flux:button>
                 </div>
