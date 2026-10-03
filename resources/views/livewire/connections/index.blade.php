@@ -325,9 +325,20 @@
                         </p>
                         <p class="text-emerald-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $igReq->created_at->diffForHumans()]) }}</p>
                     </div>
+                    {{-- Keep Meta API path visible even when a concierge request is open,
+                         so Meta App Review reviewers can always reach the OAuth flow. --}}
+                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="outline" size="sm" class="w-full">
+                        {{ __('Connect with Meta API') }}
+                    </flux:button>
                 @else
                     <flux:button wire:click="openRequestForm('instagram')" variant="primary" size="sm" class="w-full">
                         {{ $instagramPages->isNotEmpty() ? __('Add another page') : __('Request connection') }}
+                    </flux:button>
+                    {{-- Official Meta OAuth — secondary path for Meta App Review.
+                         Concierge stays primary (pin #1); this gives reviewers a
+                         self-serve OAuth entry point without removing onboarding. --}}
+                    <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="outline" size="sm" class="w-full">
+                        {{ __('Connect with Meta API') }}
                     </flux:button>
                 @endif
             </div>
@@ -394,11 +405,7 @@
 
             <div class="{{ $whatsappAccounts->isNotEmpty() ? 'mt-3' : '' }} space-y-2">
                 @if(config('services.wuzapi.qr_enabled'))
-                    {{-- QR pairing via Wuzapi gateway — the only user-facing WhatsApp path.
-                         The Cloud API 'Advanced' option was removed at Omar's request: for
-                         teams that need it we do a one-time setup as a support case, not a
-                         self-serve button (kept the code path in the backend for the modal
-                         'whatsapp-connect' trigger elsewhere). --}}
+                    {{-- QR pairing via Wuzapi gateway — primary user-facing WhatsApp path. --}}
                     <flux:button
                         x-on:click="$dispatch('open-whatsapp-qr')"
                         variant="primary"
@@ -410,14 +417,21 @@
                     <p class="text-[11px] text-zinc-600 text-center leading-snug">
                         {{ __('Scan with WhatsApp on your phone. No Meta setup required.') }}
                     </p>
-                @else
-                    {{-- QR is admin-disabled — fall back to the concierge request. --}}
-                    <flux:modal.trigger name="whatsapp-connect">
-                        <flux:button variant="primary" class="w-full">
-                            {{ __('Request WhatsApp setup') }}
-                        </flux:button>
-                    </flux:modal.trigger>
                 @endif
+
+                {{-- Official Meta Cloud API — always rendered so Meta App Review
+                     reviewers (who sign in as fresh users with no verified flag)
+                     can see and exercise the official WhatsApp Business Cloud API
+                     onboarding path. Opens the step-by-step System User token modal. --}}
+                <flux:modal.trigger name="whatsapp-connect">
+                    <flux:button
+                        variant="{{ config('services.wuzapi.qr_enabled') ? 'outline' : 'primary' }}"
+                        size="sm"
+                        class="w-full"
+                    >
+                        {{ __('Connect with Meta API') }}
+                    </flux:button>
+                </flux:modal.trigger>
             </div>
         </div>
 

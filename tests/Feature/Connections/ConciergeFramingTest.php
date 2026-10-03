@@ -50,9 +50,12 @@ it('hides the direct Facebook OAuth button when META_APP_VERIFIED is false', fun
 
     $component
         ->assertDontSeeHtml(route('connections.facebook.redirect'))
-        ->assertDontSeeHtml(route('connections.instagram-via-facebook.redirect'))
         ->assertDontSeeHtml(route('connections.instagram.redirect'))
-        ->assertSee('Request Facebook connection');
+        ->assertSee('Request Facebook connection')
+        // App Review secondary path: IG keeps a self-serve Meta OAuth entry
+        // point alongside concierge (primary stays concierge per pin #1).
+        ->assertSee('Connect with Meta API')
+        ->assertSeeHtml(route('connections.instagram-via-facebook.redirect'));
 });
 
 it('shows the direct Facebook OAuth button when META_APP_VERIFIED is true', function () {
