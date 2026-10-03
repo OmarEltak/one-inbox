@@ -13,9 +13,13 @@ use Livewire\Livewire;
  * Concierge framing tests — pins the behaviour described in
  * tasks/onboarding-activation-plan.md Phase B and CLAUDE.md pin #1.
  *
- * Non-negotiable: while META_APP_VERIFIED=false, no direct Facebook OAuth
- * button may appear on the Connections page for regular customers. It
- * silently dead-ends at Meta's callback.
+ * Non-negotiable: while META_APP_VERIFIED=false, concierge "Request
+ * connection" MUST be the primary CTA for Facebook and Instagram so
+ * real customers don't dead-end at Meta's "Feature unavailable"
+ * callback. The direct Meta OAuth entry point is still rendered as a
+ * secondary outlined button so Meta App Review reviewers can walk the
+ * real Facebook Login flow — they're app admins/testers and OAuth
+ * works for them even in Standard Access.
  */
 
 /**
@@ -38,7 +42,7 @@ beforeEach(function () {
     config(['services.meta.app_id' => 'test-app-id']);
 });
 
-it('hides the direct Facebook OAuth button when META_APP_VERIFIED is false', function () {
+it('keeps concierge primary with Meta OAuth as a secondary reviewer path when META_APP_VERIFIED is false', function () {
     config(['services.meta.app_verified' => false]);
 
     [$user] = makeConciergeUser();
@@ -49,12 +53,16 @@ it('hides the direct Facebook OAuth button when META_APP_VERIFIED is false', fun
     expect($component->instance()->usesConciergeFlow())->toBeTrue();
 
     $component
-        ->assertDontSeeHtml(route('connections.facebook.redirect'))
-        ->assertDontSeeHtml(route('connections.instagram.redirect'))
+        // Concierge "Request" copy MUST still be visible as the primary CTA.
         ->assertSee('Request Facebook connection')
-        // App Review secondary path: IG keeps a self-serve Meta OAuth entry
-        // point alongside concierge (primary stays concierge per pin #1).
+        // Direct IG Login (sub-app) stays hidden — only the "via Facebook"
+        // flow is exposed for review (it exercises the main app's permissions).
+        ->assertDontSeeHtml(route('connections.instagram.redirect'))
+        // App Review secondary paths: both Facebook and Instagram expose
+        // the real Meta OAuth entry point so reviewers can walk the
+        // Facebook Login + Business Portfolio + Pages picker flow.
         ->assertSee('Connect with Meta API')
+        ->assertSeeHtml(route('connections.facebook.redirect'))
         ->assertSeeHtml(route('connections.instagram-via-facebook.redirect'));
 });
 

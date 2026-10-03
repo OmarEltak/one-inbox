@@ -217,7 +217,7 @@
                 </div>
             @endif
 
-            <div class="{{ $facebookPages->isNotEmpty() || $fbRejected ? 'mt-3' : '' }}">
+            <div class="{{ $facebookPages->isNotEmpty() || $fbRejected ? 'mt-3' : '' }} space-y-2">
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
@@ -234,9 +234,24 @@
                         </p>
                         <p class="text-blue-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $fbReq->created_at->diffForHumans()]) }}</p>
                     </div>
+                    {{-- Meta OAuth kept reachable so Meta App Review can walk the
+                         real Facebook Login flow (Business Portfolio handshake,
+                         Pages picker) even while a concierge request is open. --}}
+                    <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="outline" size="sm" class="w-full">
+                        {{ __('Connect with Meta API') }}
+                    </flux:button>
                 @else
                     <flux:button wire:click="openRequestForm('facebook')" variant="primary" size="sm" class="w-full">
                         {{ $facebookPages->isNotEmpty() ? __('Add another page') : __('Request connection') }}
+                    </flux:button>
+                    {{-- Official Meta OAuth — secondary path for Meta App Review.
+                         Concierge stays primary (pin #1); this gives reviewers a
+                         self-serve Facebook Login entry point (the "connect your
+                         personal account linked to the Business Portfolio" flow
+                         the verification team asked us to expose) without
+                         removing the managed onboarding path. --}}
+                    <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="outline" size="sm" class="w-full">
+                        {{ __('Connect with Meta API') }}
                     </flux:button>
                 @endif
             </div>
