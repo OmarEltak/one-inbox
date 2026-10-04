@@ -224,6 +224,98 @@ class ConnectionController extends Controller
     }
 
     /**
+     * Handle WhatsApp Business connection via Meta Embedded Signup.
+     *
+     * Called by resources/views/livewire/connections/index.blade.php after
+     * FB.login({config_id, response_type: 'code'}) resolves. The browser
+     * also listens for the 'WA_EMBEDDED_SIGNUP' postMessage event to pick
+     * up waba_id + phone_number_id, which we receive here alongside the
+     * short-lived auth code.
+     *
+     * We exchange the code for a user access token (Meta recommends the
+     * client-side-exchange-free code flow precisely for Embedded Signup),
+     * then reuse WhatsAppPlatform::handleCallback to:
+     *   - fetch WABA details,
+     *   - persist ConnectedAccount + Page rows for each phone number,
+     *   - register phone numbers for Cloud API messaging,
+     *   - subscribe the WABA to our webhook.
+     *
+     * The response is JSON because the caller is a fetch() from the
+     * Embedded Signup popup resolution, not a form submit.
+     */
+    public function whatsappEmbeddedSignupCallback(Request $request, WhatsAppPlatform $whatsapp)
+    {
+        $team = auth()->user()->currentTeam;
+        if ($team && ! EnforcePlanLimits::canConnectPage($team)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'You have reached your page limit. Please upgrade your plan to connect more pages.',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'code'            => 'required|string',
+            'waba_id'         => 'required|string',
+            'phone_number_id' => 'nullable|string',
+        ]);
+
+        try {
+            $appId = (string) config('services.meta.app_id');
+            $appSecret = (string) config('services.meta.app_secret');
+            $version = config('services.meta.graph_api_version', 'v21.0');
+
+            if (empty($appId) || empty($appSecret)) {
+                throw new \RuntimeException('Meta app not configured (META_APP_ID / META_APP_SECRET).');
+            }
+
+            // Embedded Signup uses the "code" flow — exchange with no redirect_uri.
+            $tokenResp = \Illuminate\Support\Facades\Http::get(
+                "https://graph.facebook.com/{$version}/oauth/access_token",
+                [
+                    'client_id'     => $appId,
+                    'client_secret' => $appSecret,
+                    'code'          => $data['code'],
+                ]
+            )->throw()->json();
+
+            $accessToken = $tokenResp['access_token'] ?? null;
+            if (empty($accessToken)) {
+                throw new \RuntimeException('Meta did not return an access token for the Embedded Signup code.');
+            }
+
+            // Reuse the existing WhatsApp onboarding path.
+            $teamId = auth()->user()->current_team_id;
+            $callbackRequest = new Request([
+                'waba_id'      => $data['waba_id'],
+                'access_token' => $accessToken,
+            ]);
+            $account = $whatsapp->handleCallback($callbackRequest, $teamId);
+
+            $team = auth()->user()->currentTeam;
+            $team?->clearActivePagesCache();
+            if ($team) $this->maybePromptAiSetup($team);
+
+            $phoneCount = $account->pages()->where('platform', 'whatsapp')->count();
+
+            return response()->json([
+                'ok' => true,
+                'message' => "Connected WhatsApp Business with {$phoneCount} phone number(s).",
+                'phone_count' => $phoneCount,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('WhatsApp Embedded Signup failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Failed to connect WhatsApp: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Handle WhatsApp Business connection via WABA ID + System User Token.
      */
     public function whatsappConnect(Request $request, WhatsAppPlatform $whatsapp)

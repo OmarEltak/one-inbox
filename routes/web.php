@@ -299,6 +299,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('connections/instagram-via-facebook/redirect', [\App\Http\Controllers\ConnectionController::class, 'instagramViaFacebookRedirect'])->name('connections.instagram-via-facebook.redirect');
         Route::get('connections/instagram-via-facebook/callback', [\App\Http\Controllers\ConnectionController::class, 'instagramViaFacebookCallback'])->name('connections.instagram-via-facebook.callback');
         Route::post('connections/whatsapp/connect', [\App\Http\Controllers\ConnectionController::class, 'whatsappConnect'])->name('connections.whatsapp.connect');
+        Route::post('connections/whatsapp/embedded-signup', [\App\Http\Controllers\ConnectionController::class, 'whatsappEmbeddedSignupCallback'])->name('connections.whatsapp.embedded-signup');
         Route::post('connections/telegram/connect', [\App\Http\Controllers\ConnectionController::class, 'telegramConnect'])->name('connections.telegram.connect');
         Route::get('connections/tiktok/redirect', [\App\Http\Controllers\ConnectionController::class, 'tiktokRedirect'])->name('connections.tiktok.redirect');
         Route::get('connections/tiktok/callback', [\App\Http\Controllers\ConnectionController::class, 'tiktokCallback'])->name('connections.tiktok.callback');

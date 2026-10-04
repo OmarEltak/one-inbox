@@ -21,6 +21,16 @@ Schedule::command('campaigns:dispatch-recipients')
 Schedule::command('snapchat:fetch-messages')->everyTwoMinutes();
 Schedule::command('instagram:refresh-subscriptions')->monthly();
 
+// Hourly subscription-health check for Facebook/Instagram pages.
+// Writes metadata.subscription_error on pages whose token is invalid or
+// which are no longer subscribed to our app on Meta's side. The UI
+// surfaces this with a warning banner + reconnect CTA. Catches the
+// "silent OAuth re-run dropped a page" failure mode (Brandk, 2026-10-01).
+Schedule::command('pages:health-check')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Phase C — onboarding nudge sweep. Runs once a day; the job itself is
 // idempotent per (team, stage) so a duplicate run within 24h is a no-op.
 Schedule::job(new \App\Jobs\SendOnboardingNudge())

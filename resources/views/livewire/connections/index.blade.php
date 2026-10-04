@@ -179,10 +179,15 @@
 
             {{-- Connected pages (works for both direct-OAuth + admin-handoff pages) --}}
             @foreach($facebookPages as $fbPage)
+                @php $fbSubErr = $fbPage->metadata['subscription_error'] ?? null; @endphp
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $fbPage->name }}</span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
+                        @if($fbSubErr)
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-amber-100 text-amber-900 ring-1 ring-amber-300 font-medium">{{ __('Needs reconnect') }}</span>
+                        @else
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
+                        @endif
                     </div>
                     <flux:button
                         wire:click="disconnectPage({{ $fbPage->id }})"
@@ -195,6 +200,18 @@
                         {{ __('Disconnect') }}
                     </flux:button>
                 </div>
+                @if($fbSubErr)
+                    <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs mb-2">
+                        <p class="text-amber-900 font-medium">{{ __('Messages from this page have stopped arriving.') }}</p>
+                        <p class="text-amber-900/90 mt-1">{{ __('Meta removed this page from your authorized list, usually after you re-ran OAuth and unchecked it in the Pages picker. Reconnect to restore webhook delivery.') }}</p>
+                        <p class="text-amber-800/80 mt-1 text-[10px]">{{ __('First detected :when · Meta: :msg', ['when' => \Carbon\Carbon::parse($fbSubErr['first_seen_at'])->diffForHumans(), 'msg' => \Illuminate\Support\Str::limit($fbSubErr['message'], 140)]) }}</p>
+                        <div class="mt-2">
+                            <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" size="xs" variant="primary" class="!bg-amber-600 hover:!bg-amber-700">
+                                {{ __('Reconnect :name', ['name' => $fbPage->name]) }}
+                            </flux:button>
+                        </div>
+                    </div>
+                @endif
             @endforeach
 
             {{-- Persistent rejection banner (only dismissible by explicit click) --}}
@@ -274,12 +291,17 @@
             @endphp
 
             @foreach($instagramPages as $igPage)
+                @php $igSubErr = $igPage->metadata['subscription_error'] ?? null; @endphp
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">
                             {{ $igPage->name }}{{ isset($igPage->metadata['username']) ? ' (@' . $igPage->metadata['username'] . ')' : '' }}
                         </span>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
+                        @if($igSubErr)
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-amber-100 text-amber-900 ring-1 ring-amber-300 font-medium">{{ __('Needs reconnect') }}</span>
+                        @else
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-500/20 text-zinc-900 font-medium">{{ __('Active') }}</span>
+                        @endif
                     </div>
                     <flux:button
                         wire:click="disconnectPage({{ $igPage->id }})"
@@ -292,6 +314,21 @@
                         {{ __('Disconnect') }}
                     </flux:button>
                 </div>
+                @if($igSubErr)
+                    <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs mb-2">
+                        <p class="text-amber-900 font-medium">{{ __('DMs from this account have stopped arriving.') }}</p>
+                        <p class="text-amber-900/90 mt-1">{{ __('Meta removed this Instagram account from your authorized list. Reconnect to restore DM delivery.') }}</p>
+                        <p class="text-amber-800/80 mt-1 text-[10px]">{{ __('First detected :when · Meta: :msg', ['when' => \Carbon\Carbon::parse($igSubErr['first_seen_at'])->diffForHumans(), 'msg' => \Illuminate\Support\Str::limit($igSubErr['message'], 140)]) }}</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" size="xs" variant="primary" class="!bg-amber-600 hover:!bg-amber-700">
+                                {{ __('Reconnect (Direct IG Login)') }}
+                            </flux:button>
+                            <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" size="xs" variant="outline">
+                                {{ __('Reconnect via Meta') }}
+                            </flux:button>
+                        </div>
+                    </div>
+                @endif
             @endforeach
 
             @if($igRejected)
@@ -354,6 +391,14 @@
                          self-serve OAuth entry point without removing onboarding. --}}
                     <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="outline" size="sm" class="w-full">
                         {{ __('Connect with Meta API') }}
+                    </flux:button>
+                    {{-- Direct IG Login (Instagram sub-app, /api/webhooks/meta-ig).
+                         Also exposed to reviewers so they can walk the Direct IG
+                         Login flow — the only path that currently receives DMs
+                         from real customers while the main app is on Standard
+                         Access. See pin #1 and ARCHITECTURE §1. --}}
+                    <flux:button as="a" href="{{ route('connections.instagram.redirect') }}" variant="outline" size="sm" class="w-full">
+                        {{ $instagramAccounts->isNotEmpty() ? __('Add Direct (IG Login)') : __('Connect Direct (IG Login)') }}
                     </flux:button>
                 @endif
             </div>
@@ -434,19 +479,55 @@
                     </p>
                 @endif
 
-                {{-- Official Meta Cloud API — always rendered so Meta App Review
-                     reviewers (who sign in as fresh users with no verified flag)
-                     can see and exercise the official WhatsApp Business Cloud API
-                     onboarding path. Opens the step-by-step System User token modal. --}}
-                <flux:modal.trigger name="whatsapp-connect">
-                    <flux:button
-                        variant="{{ config('services.wuzapi.qr_enabled') ? 'outline' : 'primary' }}"
-                        size="sm"
-                        class="w-full"
-                    >
-                        {{ __('Connect with Meta API') }}
-                    </flux:button>
-                </flux:modal.trigger>
+                @php $waEsConfigId = (string) config('services.meta.whatsapp_embedded_signup_config_id'); @endphp
+                @if($waEsConfigId !== '' && ! empty(config('services.meta.app_id')))
+                    {{-- Meta Embedded Signup — Meta's own iframe where the user
+                         picks their business + phone number on Meta's side.
+                         Set META_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID in .env
+                         after creating a configuration in developers.facebook.com
+                         → App → WhatsApp → Embedded Signup → Configuration. --}}
+                    <div x-data="waEmbeddedSignup({
+                            appId: @js(config('services.meta.app_id')),
+                            configId: @js($waEsConfigId),
+                            graphVersion: @js(config('services.meta.graph_api_version', 'v21.0')),
+                            callbackUrl: @js(route('connections.whatsapp.embedded-signup')),
+                            csrf: @js(csrf_token()),
+                        })" x-init="init()" class="space-y-1">
+                        <button type="button"
+                                x-on:click="launch()"
+                                :disabled="loading"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition
+                                       {{ config('services.wuzapi.qr_enabled')
+                                            ? 'border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50'
+                                            : 'bg-emerald-600 text-white hover:bg-emerald-700' }}
+                                       disabled:opacity-60 disabled:cursor-wait">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true">
+                                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 2.1.55 4.14 1.6 5.95L2 22l4.26-1.69a9.9 9.9 0 0 0 5.78 1.86h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.84 9.84 0 0 0 12.04 2m0 1.82c2.17 0 4.21.84 5.74 2.38a8.1 8.1 0 0 1 2.38 5.74c0 4.47-3.64 8.1-8.11 8.1-1.6 0-3.16-.44-4.52-1.28l-.32-.19-2.69 1.07.86-2.63-.21-.34a8.07 8.07 0 0 1-1.24-4.3c0-4.47 3.64-8.1 8.1-8.1"/>
+                            </svg>
+                            <span x-text="loading ? @js(__('Connecting WhatsApp...')) : @js(__('Connect with Meta API'))"></span>
+                        </button>
+                        <template x-if="error">
+                            <p class="text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1" x-text="error"></p>
+                        </template>
+                        <p class="text-[11px] text-zinc-600 text-center leading-snug">
+                            {{ __('Meta opens a popup where you select your WhatsApp Business Account and phone number.') }}
+                        </p>
+                    </div>
+                @else
+                    {{-- Fallback: step-by-step System User token modal. Used
+                         when META_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID isn't set
+                         (local dev, or before the Embedded Signup config is
+                         created in developers.facebook.com). --}}
+                    <flux:modal.trigger name="whatsapp-connect">
+                        <flux:button
+                            variant="{{ config('services.wuzapi.qr_enabled') ? 'outline' : 'primary' }}"
+                            size="sm"
+                            class="w-full"
+                        >
+                            {{ __('Connect with Meta API') }}
+                        </flux:button>
+                    </flux:modal.trigger>
+                @endif
             </div>
         </div>
 
@@ -1396,4 +1477,134 @@
             </div>
         </form>
     </flux:modal>
+
+    {{-- WhatsApp Embedded Signup client logic. Renders only when the config
+         ID is set; without the SDK loaded the Alpine component is harmless
+         (just a disabled button). --}}
+    @if(! empty(config('services.meta.whatsapp_embedded_signup_config_id')) && ! empty(config('services.meta.app_id')))
+    <script>
+        window.waEmbeddedSignup = function (opts) {
+            return {
+                loading: false,
+                error: '',
+                sessionData: null,
+                _bound: false,
+
+                init() {
+                    this._ensureSdk();
+                    if (this._bound) return;
+                    this._bound = true;
+                    window.addEventListener('message', (ev) => {
+                        // Meta sends postMessage from facebook.com during signup.
+                        if (ev.origin !== 'https://www.facebook.com' && ev.origin !== 'https://web.facebook.com') return;
+                        let data;
+                        try { data = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data; } catch (e) { return; }
+                        if (!data || data.type !== 'WA_EMBEDDED_SIGNUP') return;
+                        // Expected: { type:'WA_EMBEDDED_SIGNUP', event:'FINISH'|'CANCEL'|..., data:{waba_id,phone_number_id,business_id} }
+                        if (data.event === 'FINISH' && data.data) {
+                            this.sessionData = data.data;
+                        } else if (data.event === 'CANCEL') {
+                            this.loading = false;
+                            this.error = @js(__('Signup cancelled.'));
+                        } else if (data.event === 'ERROR') {
+                            this.loading = false;
+                            this.error = (data.data && data.data.error_message) || @js(__('Meta returned an error during signup.'));
+                        }
+                    });
+                },
+
+                _ensureSdk() {
+                    if (window.FB) return;
+                    window.fbAsyncInit = () => {
+                        FB.init({ appId: opts.appId, cookie: true, xfbml: false, version: opts.graphVersion });
+                    };
+                    const id = 'facebook-jssdk';
+                    if (document.getElementById(id)) return;
+                    const js = document.createElement('script');
+                    js.id = id;
+                    js.src = 'https://connect.facebook.net/en_US/sdk.js';
+                    js.async = true; js.defer = true; js.crossOrigin = 'anonymous';
+                    document.head.appendChild(js);
+                },
+
+                launch() {
+                    this.error = '';
+                    this.sessionData = null;
+                    if (!window.FB) {
+                        this.error = @js(__('Facebook SDK is still loading. Try again in a moment.'));
+                        return;
+                    }
+                    this.loading = true;
+                    window.FB.login((response) => {
+                        try {
+                            if (!response || response.status !== 'connected' || !response.authResponse) {
+                                this.loading = false;
+                                if (!this.error) this.error = @js(__('Signup cancelled before completion.'));
+                                return;
+                            }
+                            const code = response.authResponse.code;
+                            if (!code) {
+                                this.loading = false;
+                                this.error = @js(__('Meta did not return a signup code.'));
+                                return;
+                            }
+                            // Give Meta's postMessage a moment to arrive if it hasn't yet.
+                            const start = Date.now();
+                            const poll = () => {
+                                if (this.sessionData || Date.now() - start > 4000) return this._submit(code);
+                                setTimeout(poll, 150);
+                            };
+                            poll();
+                        } catch (e) {
+                            this.loading = false;
+                            this.error = e.message || 'Unexpected error';
+                        }
+                    }, {
+                        config_id: opts.configId,
+                        response_type: 'code',
+                        override_default_response_type: true,
+                        extras: { setup: {}, featureType: '', sessionInfoVersion: 3 }
+                    });
+                },
+
+                async _submit(code) {
+                    try {
+                        const payload = {
+                            code: code,
+                            waba_id: (this.sessionData && this.sessionData.waba_id) || '',
+                            phone_number_id: (this.sessionData && this.sessionData.phone_number_id) || '',
+                        };
+                        if (!payload.waba_id) {
+                            this.loading = false;
+                            this.error = @js(__('Meta did not return a WhatsApp Business Account ID. Please try again.'));
+                            return;
+                        }
+                        const res = await fetch(opts.callbackUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': opts.csrf,
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify(payload),
+                            credentials: 'same-origin',
+                        });
+                        const body = await res.json().catch(() => ({}));
+                        if (!res.ok || !body.ok) {
+                            this.loading = false;
+                            this.error = (body && body.message) || @js(__('Could not complete connection.'));
+                            return;
+                        }
+                        // Hard-reload to let Livewire re-render with the new ConnectedAccount + Pages.
+                        window.location.reload();
+                    } catch (e) {
+                        this.loading = false;
+                        this.error = e.message || 'Unexpected error';
+                    }
+                },
+            };
+        };
+    </script>
+    @endif
 </div>

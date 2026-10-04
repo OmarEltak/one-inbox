@@ -69,6 +69,13 @@ return [
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN', ''),
         'graph_api_version' => env('META_GRAPH_API_VERSION', 'v21.0'),
         'login_config_id' => env('META_LOGIN_CONFIG_ID', ''),
+        // WhatsApp Embedded Signup configuration ID — created in
+        // developers.facebook.com → Your App → WhatsApp → Embedded Signup →
+        // Configuration. When set, the "Connect with Meta API" button on the
+        // WhatsApp card launches Meta's Embedded Signup popup (user picks
+        // their business + phone number on Meta's side) instead of the
+        // step-by-step System User token modal.
+        'whatsapp_embedded_signup_config_id' => env('META_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID', ''),
         // Full-auto managed onboarding: when true, new OnboardingRequests are
         // processed by App\Services\Meta\OnboardingAutomator — parses the page
         // URL, refreshes super-admin's /me/accounts list, asks the AI whether
