@@ -2418,3 +2418,52 @@ creative direction). Awaiting Omar's steer.
 - User reports 500 on "Mark as Lost/Converted". NOT reproducible locally (SQLite, with score-history open, repeated clicks → all 200). Needs the prod exception: `grep -h 'production.ERROR' storage/logs/laravel*.log | tail -5`.
 
 **Rollback:** `git revert c9581ad 8a52998 22f0779 && git push origin main`
+
+---
+
+## 2026-10-02 — Legal consent text + data-collection page (Meta App Review)
+
+**Why:** Meta App Review requires visible Terms + Privacy + Data Collection consent on login/register and a footer link to each policy.
+
+**Shipped (`792abae`, fast-forwarded to `main`, auto-deployed):**
+- `resources/views/livewire/auth/login.blade.php` — "By using our service you agree to our Terms and Conditions, Data Collection and Privacy Policy" above Sign in button (all `__()` + `lang/ar.json`).
+- `resources/views/livewire/auth/register.blade.php` — same block above Create account button.
+- `resources/views/pages/data-collection.blade.php` (new) + `Route::view('data-collection', ...)` in `routes/web.php` — Data Collection & Usage page (account/platform/usage/AI/billing data, why collected, sharing, retention, rights, Meta deletion callback).
+- `resources/views/components/brand/footer.blade.php` — new Legal column (Terms, Privacy, Data Collection, Refund); grid `md:grid-cols-4` → `md:grid-cols-5`.
+- `lang/ar.json` + `lang/en.json` — 6 new keys each (JSON validated).
+
+**Left untouched per user request:** unstaged `resources/views/pages/about.blade.php` (user's in-progress edit) was never staged/committed. Note: local `main` branch is stale (at `26570a3`, pre-#77) vs `origin/main`; first `git push origin main` was rejected for that reason — pushed the single commit ref directly (`git push origin 792abae:main`, parent == remote tip, pure fast-forward). No cherry-pick was needed.
+
+**Verify (prod `187.77.67.94`):** `git log --oneline -1` → `792abae`; `curl` status `login:200 register:200 data-collection:200`; consent string present 1× on /login and /register, "Data Collection" 8× on /data-collection. No migration, no `.env`, no queue restart (Blade + route + lang only).
+
+**Rollback:** `git revert 792abae && git push origin main`
+
+**Known, not fixed:** prod has 5 stale `.env.bak.*` files (`.env.backup.20260714-123715`, `.env.bak.1784293595`, `.env.bak.1786478683`, `.env.bak.1787484200`, `.env.bak.1787596379`) — cleanup deferred, more than the 5-file guideline only if another backup is added.
+
+---
+
+## 2026-10-02 (later) — fade-up fix + founder email on legal pages (`ee1b1fc`)
+
+**Shipped:** `resources/views/components/brand/nav.blade.php` (fade-up IO moved before `solidPinned` early-return — was leaving `.fade-up` cards at `opacity:0` on all 19 `solidNav` pages); `privacy@`/`legal@`/`support@ot1-pro.com` → `omareltak7@gmail.com` in `data-collection`/`privacy`/`terms`/`refund` + 3 new `ar`/`en` keys.
+**Verify:** prod `git log` → `ee1b1fc`; `login/register/data-collection` all 200 with consent text present. No migration/`.env`/queue impact.
+**Rollback:** `git revert ee1b1fc && git push origin main`
+
+---
+
+## 2026-10-02 (later) — redesigned /about + Reach us block (`479613a`)
+
+**Shipped:** user's `about.blade.php` redesign (mission/why/story, `x-layouts.marketing`) + Reach us section (`mailto:omareltak7@gmail.com`, `wa.me/201026361218`) + `Reach us`/`WhatsApp the founder`/tagline keys in `ar`/`en`. Pushed as `479613a:main` (local `main` still stale — direct ref push, same as before).
+
+**Incident — /about 500 after deploy:** CI hook missed (prod still on `ee1b1fc` after 70s), so I ran `sudo -u deploy git pull` manually. That skipped the CI's post-deploy `view:cache`, and FPM (`www-data`) hit stale compiled views it couldn't rewrite — `storage/framework/views/*.php` are `deploy:deploy 664` (mass-recompiled 14:40 by CI), so runtime recompile → `Permission denied` → 500 on /about only (only changed view).
+**Fix:** `sudo -u deploy XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan view:cache && systemctl reload php8.4-fpm` → /about 200, new Reach us content confirmed (`Reach us` 1×, `WhatsApp the founder` 1×, `wa.me` 2×; email Cloudflare-obfuscated in raw HTML, normal). Sweep: login/register/data-collection/terms/privacy/refund all 200.
+**Lesson:** after ANY manual `git pull` on prod, always run `view:cache` as `deploy` + FPM reload (CI does this; manual pulls bypass it).
+**Rollback:** `git revert 479613a && git push origin main` (+ `view:cache` as deploy + FPM reload if a view changed).
+
+---
+
+## 2026-10-02 (later) — deploy hardening: self-healing compiled views
+
+**Why:** the `479613a` push 500'd /about because CI's Deploy run failed with `dial tcp: i/o timeout` (GitHub runner → VPS:22 unreachable; 9 prior deploys green, no fail2ban on prod, uptime 86d — one-off network blip, workflow script itself is correct). My manual `git pull` bypassed CI's post-deploy `view:cache`, and FPM (`www-data`) couldn't rewrite `deploy:deploy 664` compiled views.
+**Fix (one-time, durable):** `chgrp -R www-data storage/framework/views && chmod g+s <dir>` — with `umask 0002` for both `deploy` and `www-data`, all fresh `view:cache` artifacts land `deploy:www-data 664`, so FPM can always recompile a stale view instead of 500ing. No new packages needed (`setfacl` absent; setgid+umask covers it). Verified: `sudo -u www-data touch` create + overwrite both OK; post-`view:cache` sample file is `deploy:www-data`.
+**Then:** `gh run rerun 37024477560` → Deploy green (46s, canonical composer/npm/migrate/caches/queue:restart). Prod `479613a`, views dir still `drwxrwsr-x deploy www-data`, /about + login/register/data-collection/terms/privacy/refund all 200.
+**Rollback:** `chgrp -R deploy storage/framework/views; chmod g-s storage/framework/views` (+ `view:cache` as deploy + FPM reload).
