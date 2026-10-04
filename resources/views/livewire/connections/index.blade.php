@@ -179,7 +179,25 @@
 
             {{-- Connected pages (works for both direct-OAuth + admin-handoff pages) --}}
             @foreach($facebookPages as $fbPage)
-                @php $fbSubErr = $fbPage->metadata['subscription_error'] ?? null; @endphp
+                @php
+                    // metadata.subscription_error ships in two shapes depending on who wrote it:
+                    //   - Legacy (FacebookPlatform / Livewire\Connections\Index): plain string code
+                    //     like 'twofa_required', 'subscribe_failed', 'refresh_failed'
+                    //   - New (PageHealthCheckCommand): array { code, message, source, first_seen_at, last_seen_at }
+                    // Normalize to the array shape so the banner can render either safely.
+                    $raw = $fbPage->metadata['subscription_error'] ?? null;
+                    $fbSubErr = null;
+                    if (is_array($raw)) {
+                        $fbSubErr = $raw + ['code' => 'unknown', 'message' => __('Reconnection needed.'), 'first_seen_at' => now()->toIso8601String()];
+                    } elseif (is_string($raw) && $raw !== '') {
+                        $legacy = [
+                            'twofa_required'  => __('Facebook requires two-factor authentication on this page to subscribe to webhooks.'),
+                            'subscribe_failed'=> __('Meta refused to subscribe this page to our webhooks. Reconnect to try again.'),
+                            'refresh_failed'  => __('Could not refresh this page\'s token on Meta. Reconnect to restore access.'),
+                        ];
+                        $fbSubErr = ['code' => $raw, 'message' => $legacy[$raw] ?? $raw, 'first_seen_at' => now()->toIso8601String()];
+                    }
+                @endphp
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">{{ $fbPage->name }}</span>
@@ -291,7 +309,21 @@
             @endphp
 
             @foreach($instagramPages as $igPage)
-                @php $igSubErr = $igPage->metadata['subscription_error'] ?? null; @endphp
+                @php
+                    // See the Facebook block above for the two shapes of this field.
+                    $raw = $igPage->metadata['subscription_error'] ?? null;
+                    $igSubErr = null;
+                    if (is_array($raw)) {
+                        $igSubErr = $raw + ['code' => 'unknown', 'message' => __('Reconnection needed.'), 'first_seen_at' => now()->toIso8601String()];
+                    } elseif (is_string($raw) && $raw !== '') {
+                        $legacy = [
+                            'twofa_required'  => __('Facebook requires two-factor authentication on this account to subscribe to webhooks.'),
+                            'subscribe_failed'=> __('Meta refused to subscribe this account to our webhooks. Reconnect to try again.'),
+                            'refresh_failed'  => __('Could not refresh this account\'s token on Meta. Reconnect to restore access.'),
+                        ];
+                        $igSubErr = ['code' => $raw, 'message' => $legacy[$raw] ?? $raw, 'first_seen_at' => now()->toIso8601String()];
+                    }
+                @endphp
                 <div class="flex items-center justify-between py-2 border-t border-white/15">
                     <div class="flex items-center gap-2 min-w-0">
                         <span class="text-xs text-white/80 truncate">
