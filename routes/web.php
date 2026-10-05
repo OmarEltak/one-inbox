@@ -366,7 +366,9 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         // Read-only: newest ERROR entries from laravel.log (message + first app frame) — for 500s without SSH.
         Route::get('errors', \App\Http\Controllers\SuperAdmin\RecentErrorsController::class)->name('errors');
         Route::get('billing', \App\Livewire\SuperAdmin\Billing::class)->name('billing');
-        Route::get('plan-lifecycle', \App\Livewire\SuperAdmin\PlanLifecycleBoard::class)->name('plan-lifecycle');
+        // TODO: PlanLifecycleBoard component file is not committed yet (still untracked locally).
+        // Re-enable once app/Livewire/SuperAdmin/PlanLifecycleBoard.php lands in main.
+        // Route::get('plan-lifecycle', \App\Livewire\SuperAdmin\PlanLifecycleBoard::class)->name('plan-lifecycle');
         Route::get('analytics', \App\Livewire\SuperAdmin\Analytics::class)->name('analytics');
 
         // Blog admin
