@@ -85,6 +85,7 @@ class ConnectionController extends Controller
                 accountName: $account->name,
                 activeCount: $activeCount,
                 blocked: $facebook->blockedPages,
+                account: $account,
             );
         } catch (\Throwable $e) {
             Log::error('Facebook OAuth callback failed', [
@@ -104,7 +105,7 @@ class ConnectionController extends Controller
      *   - cross-team takeover attempts silently stole pages (ARCHITECTURE §2)
      *   - partial success (some blocked, some created) had no clear message
      */
-    private function connectResultFlash(string $accountName, int $activeCount, array $blocked): \Illuminate\Http\RedirectResponse
+    private function connectResultFlash(string $accountName, int $activeCount, array $blocked, ?\App\Models\ConnectedAccount $account = null): \Illuminate\Http\RedirectResponse
     {
         $redirect = redirect()->route('connections.index');
 
@@ -126,7 +127,22 @@ class ConnectionController extends Controller
         }
 
         if ($activeCount === 0) {
-            return $redirect->with('error', "Connected {$accountName}, but no Pages were granted access. On Meta's permissions screen, make sure to tick at least one Page under 'Choose the Pages you want...' and try again.");
+            // Use diagnostic metadata (set by FacebookPlatform::fetchPages when
+            // Meta returns 0 pages) to show the real cause instead of blaming
+            // the user for not ticking pages on the Meta picker.
+            $diag = $account?->metadata['last_fetch_pages_zero'] ?? null;
+            $missing = $diag['missing_scopes'] ?? [];
+
+            if (! empty($missing)) {
+                $missingList = implode(', ', array_map(fn ($s) => "`{$s}`", $missing));
+                return $redirect->with('error',
+                    "Connected {$accountName}, but Meta did not grant the required Page permissions ({$missingList}). This means your Facebook account is not yet approved to use these permissions — either it needs to be added as a Tester on the OT1-Pro Meta app, or the Meta app's permissions are still pending Advanced Access review."
+                );
+            }
+
+            return $redirect->with('error',
+                "Connected {$accountName}, but no Pages were returned by Meta. Either this Facebook account doesn't manage any Pages, or you deselected them on the Meta permissions screen. Try again and tick at least one Page under 'Choose the Pages you want...'."
+            );
         }
 
         return $redirect
@@ -187,6 +203,7 @@ class ConnectionController extends Controller
                 accountName: $account->name . ' — Instagram',
                 activeCount: $igCount,
                 blocked: $facebook->blockedPages,
+                account: $account,
             );
         } catch (\Throwable $e) {
             Log::error('Instagram via Facebook OAuth callback failed', [
@@ -265,6 +282,7 @@ class ConnectionController extends Controller
                 accountName: 'Instagram ' . ($account->name ?: ''),
                 activeCount: $igCount,
                 blocked: $facebook->blockedPages,
+                account: $account,
             );
         } catch (\Throwable $e) {
             Log::error('Instagram OAuth callback failed', [

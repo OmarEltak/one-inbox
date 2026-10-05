@@ -463,6 +463,42 @@ class FacebookPlatform extends AbstractPlatform
                 'limit' => 100,
             ])->throw()->json();
 
+        // Diagnostic: when Meta returns 0 pages, surface it explicitly so we
+        // can distinguish "user has no pages" from "Meta stripped scopes due
+        // to Standard Access gating + non-tester OAuthing user" (the latter
+        // is the common cause and the error message to the user is different).
+        if (empty($response['data'] ?? [])) {
+            $perms = Http::timeout(10)->withToken($account->access_token)
+                ->get("{$this->graphUrl}/me/permissions")
+                ->json()['data'] ?? [];
+            $grantedScopes = array_values(array_filter(
+                array_map(fn ($p) => $p['status'] === 'granted' ? $p['permission'] : null, $perms)
+            ));
+            $missingScopes = array_values(array_diff(
+                ['pages_show_list', 'pages_messaging', 'pages_manage_metadata', 'pages_read_engagement'],
+                $grantedScopes
+            ));
+            Log::warning('Facebook /me/accounts returned 0 pages', [
+                'team_id' => $account->team_id,
+                'connected_account_id' => $account->id,
+                'fb_user_name' => $account->name,
+                'fb_user_id' => $account->platform_user_id,
+                'granted_scopes' => $grantedScopes,
+                'missing_scopes' => $missingScopes,
+                'likely_cause' => ! empty($missingScopes)
+                    ? 'Meta stripped scopes - FB user not an app tester, perms still Standard Access'
+                    : 'User admins no Facebook Pages',
+            ]);
+            // Store on account metadata so UI can show accurate guidance.
+            $accMeta = $account->metadata ?? [];
+            $accMeta['last_fetch_pages_zero'] = [
+                'at' => now()->toIso8601String(),
+                'granted_scopes' => $grantedScopes,
+                'missing_scopes' => $missingScopes,
+            ];
+            $account->update(['metadata' => $accMeta]);
+        }
+
         $pages = collect();
         $isSuperAdmin = (bool) (\Illuminate\Support\Facades\Auth::user()?->is_super_admin ?? false);
 
