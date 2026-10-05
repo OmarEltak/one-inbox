@@ -45,6 +45,17 @@ class FacebookPlatform extends AbstractPlatform
     protected string $instagramAppId;
     protected string $instagramAppSecret;
 
+    /**
+     * Pages that `fetchPages()` or `handleInstagramCallback()` refused to upsert
+     * because an active row for the same (platform, platform_page_id) already
+     * belongs to a different team. Non-super-admin users cannot silently take
+     * over another workspace's Page via OAuth — see ARCHITECTURE §2.
+     * Reset on each handleCallback / handleInstagramCallback entry.
+     *
+     * Shape: [['name' => string, 'id' => string, 'existing_team_id' => int], ...]
+     */
+    public array $blockedPages = [];
+
     public function __construct()
     {
         $version = config('services.meta.graph_api_version', 'v21.0');
@@ -183,6 +194,7 @@ class FacebookPlatform extends AbstractPlatform
      */
     public function handleInstagramCallback(Request $request, int $teamId): ConnectedAccount
     {
+        $this->blockedPages = [];
         $code = $request->input('code');
 
         // Step 1: Short-lived token from api.instagram.com.
@@ -284,6 +296,36 @@ class FacebookPlatform extends AbstractPlatform
             'oauth_user_id'   => $igUserId,
         ];
 
+        // Cross-team OAuth takeover guard (IG). Same rule as fetchPages():
+        // refuse to silently steal an active IG page from another team.
+        // Super-admins bypass.
+        if (! $existing) {
+            $isSuperAdmin = (bool) (\Illuminate\Support\Facades\Auth::user()?->is_super_admin ?? false);
+            $otherTeamActive = Page::where('platform', 'instagram')
+                ->where('is_active', true)
+                ->where('team_id', '!=', $account->team_id)
+                ->where(function ($q) use ($igbid, $legacyId, $igUserId) {
+                    $q->where('platform_page_id', $igbid)
+                        ->orWhere('platform_page_id', $legacyId)
+                        ->orWhere('platform_page_id', $igUserId);
+                })
+                ->first(['id', 'team_id', 'name']);
+
+            if ($otherTeamActive && ! $isSuperAdmin) {
+                $this->blockedPages[] = [
+                    'name' => $profile['name'] ?? $profile['username'] ?? $otherTeamActive->name,
+                    'id' => (string) $igbid,
+                    'existing_team_id' => $otherTeamActive->team_id,
+                ];
+                Log::warning('Instagram page connect blocked: already active on another team', [
+                    'platform_page_id' => $igbid,
+                    'requesting_team' => $account->team_id,
+                    'existing_team' => $otherTeamActive->team_id,
+                ]);
+                return $account; // ConnectedAccount persisted, but no page row created
+            }
+        }
+
         if ($existing) {
             $existing->update([
                 'connected_account_id' => $account->id,
@@ -360,6 +402,7 @@ class FacebookPlatform extends AbstractPlatform
      */
     public function handleCallback(Request $request, int $teamId, ?string $redirectUri = null): ConnectedAccount
     {
+        $this->blockedPages = [];
         $code = $request->input('code');
         $redirectUri ??= route('connections.facebook.callback');
 
@@ -421,8 +464,34 @@ class FacebookPlatform extends AbstractPlatform
             ])->throw()->json();
 
         $pages = collect();
+        $isSuperAdmin = (bool) (\Illuminate\Support\Facades\Auth::user()?->is_super_admin ?? false);
 
         foreach ($response['data'] ?? [] as $pageData) {
+            // Cross-team OAuth takeover guard: if an active Page row for this
+            // Meta entity already belongs to a different team, refuse the
+            // silent transfer and surface the block to the controller.
+            // Super-admins bypass (needed for support/transfer tooling).
+            $existingActive = Page::where('platform', 'facebook')
+                ->where('platform_page_id', $pageData['id'])
+                ->where('is_active', true)
+                ->where('team_id', '!=', $account->team_id)
+                ->first(['id', 'team_id', 'name']);
+
+            if ($existingActive && ! $isSuperAdmin) {
+                $this->blockedPages[] = [
+                    'name' => $pageData['name'] ?? $existingActive->name,
+                    'id' => $pageData['id'],
+                    'existing_team_id' => $existingActive->team_id,
+                ];
+                Log::warning('Page connect blocked: already active on another team', [
+                    'platform_page_id' => $pageData['id'],
+                    'requesting_team' => $account->team_id,
+                    'existing_team' => $existingActive->team_id,
+                    'page_name' => $pageData['name'] ?? null,
+                ]);
+                continue;
+            }
+
             $page = Page::updateOrCreate(
                 [
                     'team_id' => $account->team_id,
@@ -663,6 +732,7 @@ class FacebookPlatform extends AbstractPlatform
             'direction' => 'outbound',
             'sender_type' => 'user',
             'sender_id' => auth()->id(),
+            'handled_by_user_id' => auth()->id(),
             'content_type' => $contentType,
             'content' => $content,
             'media_url' => $media['url'] ?? null,

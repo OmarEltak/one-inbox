@@ -76,9 +76,16 @@ class ConnectionController extends Controller
             $team?->clearActivePagesCache();
             if ($team) $this->maybePromptAiSetup($team);
 
-            return redirect()->route('connections.index')
-                ->with('success', "Connected {$account->name} with {$account->pages->count()} page(s).")
-                ->with('syncing', true);
+            $activeCount = $account->pages()
+                ->where('platform', 'facebook')
+                ->where('is_active', true)
+                ->count();
+
+            return $this->connectResultFlash(
+                accountName: $account->name,
+                activeCount: $activeCount,
+                blocked: $facebook->blockedPages,
+            );
         } catch (\Throwable $e) {
             Log::error('Facebook OAuth callback failed', [
                 'error' => $e->getMessage(),
@@ -88,6 +95,43 @@ class ConnectionController extends Controller
             return redirect()->route('connections.index')
                 ->with('error', 'Failed to connect Facebook: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Build the right success/error/syncing flash from an OAuth callback result.
+     * Centralizes the three edge cases that used to mislead users:
+     *   - 0 active pages created silently returned success + syncing banner
+     *   - cross-team takeover attempts silently stole pages (ARCHITECTURE §2)
+     *   - partial success (some blocked, some created) had no clear message
+     */
+    private function connectResultFlash(string $accountName, int $activeCount, array $blocked): \Illuminate\Http\RedirectResponse
+    {
+        $redirect = redirect()->route('connections.index');
+
+        if (! empty($blocked)) {
+            $firstName = $blocked[0]['name'] ?? 'A Page';
+            $extraCount = count($blocked) - 1;
+            $blockedMsg = $extraCount > 0
+                ? "'{$firstName}' and {$extraCount} other Page(s) are already connected to another OT1-Pro workspace. Have the current workspace disconnect first, or contact support to transfer ownership."
+                : "'{$firstName}' is already connected to another OT1-Pro workspace. Have the current workspace disconnect first, or contact support to transfer ownership.";
+
+            if ($activeCount === 0) {
+                return $redirect->with('error', "Connected {$accountName}, but no new Pages were added. {$blockedMsg}");
+            }
+
+            return $redirect
+                ->with('success', "Connected {$accountName} with {$activeCount} page(s).")
+                ->with('error', "Note: {$blockedMsg}")
+                ->with('syncing', true);
+        }
+
+        if ($activeCount === 0) {
+            return $redirect->with('error', "Connected {$accountName}, but no Pages were granted access. On Meta's permissions screen, make sure to tick at least one Page under 'Choose the Pages you want...' and try again.");
+        }
+
+        return $redirect
+            ->with('success', "Connected {$accountName} with {$activeCount} page(s).")
+            ->with('syncing', true);
     }
 
     /**
@@ -134,11 +178,16 @@ class ConnectionController extends Controller
             $team?->clearActivePagesCache();
             if ($team) $this->maybePromptAiSetup($team);
 
-            $igCount = $account->pages()->where('platform', 'instagram')->count();
+            $igCount = $account->pages()
+                ->where('platform', 'instagram')
+                ->where('is_active', true)
+                ->count();
 
-            return redirect()->route('connections.index')
-                ->with('success', "Connected {$account->name} — found {$igCount} Instagram account(s).")
-                ->with('syncing', $igCount > 0);
+            return $this->connectResultFlash(
+                accountName: $account->name . ' — Instagram',
+                activeCount: $igCount,
+                blocked: $facebook->blockedPages,
+            );
         } catch (\Throwable $e) {
             Log::error('Instagram via Facebook OAuth callback failed', [
                 'error' => $e->getMessage(),
@@ -201,7 +250,10 @@ class ConnectionController extends Controller
             $team?->clearActivePagesCache();
             if ($team) $this->maybePromptAiSetup($team);
 
-            $igPages = $account->pages()->where('platform', 'instagram')->get();
+            $igPages = $account->pages()
+                ->where('platform', 'instagram')
+                ->where('is_active', true)
+                ->get();
             $igCount = $igPages->count();
 
             if ($igPages->contains(fn ($p) => isset($p->metadata['subscription_error']))) {
@@ -209,9 +261,11 @@ class ConnectionController extends Controller
                     ->with('error', 'Instagram connected, but Meta refused the message subscription — DMs will not arrive. Please try connecting again.');
             }
 
-            return redirect()->route('connections.index')
-                ->with('success', "Connected Instagram: found {$igCount} account(s).")
-                ->with('syncing', $igCount > 0);
+            return $this->connectResultFlash(
+                accountName: 'Instagram ' . ($account->name ?: ''),
+                activeCount: $igCount,
+                blocked: $facebook->blockedPages,
+            );
         } catch (\Throwable $e) {
             Log::error('Instagram OAuth callback failed', [
                 'error' => $e->getMessage(),
