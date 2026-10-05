@@ -24,6 +24,7 @@ Route::view('data-deletion', 'pages.data-deletion')->name('data-deletion');
 Route::view('terms', 'pages.terms')->name('terms');
 Route::view('refund', 'pages.refund')->name('refund');
 Route::view('data-collection', 'pages.data-collection')->name('data-collection');
+Route::view('pricing-faq', 'pages.pricing-faq')->name('pricing-faq');
 
 // Wire transfer payment page (public)
 Route::get('/pay-wire', \App\Livewire\PayWire::class)->name('pay-wire');
@@ -49,6 +50,14 @@ Route::view('whatsapp-inbox', 'pages.whatsapp-inbox')->name('whatsapp-inbox');
 Route::view('instagram-dm', 'pages.instagram-dm')->name('instagram-dm');
 Route::view('facebook-messenger', 'pages.facebook-messenger')->name('facebook-messenger');
 Route::view('telegram-inbox', 'pages.telegram-inbox')->name('telegram-inbox');
+
+// Sales follow-up cluster landing pages (Batch 33 SEO push — Oct 2026).
+// Target intents: "automated sales follow up", "sales follow up software",
+// "lead follow up software", "customer follow up software". Backed by two
+// blog posts in AiSeoBlogSeederBatch33SalesFollowUpCluster. See CLAUDE.md
+// pin #11 for content standards.
+Route::view('sales-follow-up-automation', 'pages.sales-follow-up-automation')->name('sales-follow-up-automation');
+Route::view('lead-follow-up-software', 'pages.lead-follow-up-software')->name('lead-follow-up-software');
 
 // Blog
 Route::get('blog', [BlogController::class, 'index'])->name('blog.index');
@@ -122,6 +131,8 @@ Route::get('sitemap.xml', function () {
         ['loc' => url('/instagram-dm'),              'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/facebook-messenger'),        'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/telegram-inbox'),            'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/sales-follow-up-automation'),'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
+        ['loc' => url('/lead-follow-up-software'),   'priority' => '0.9', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/vs/trengo'),                 'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/vs/manychat'),               'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
         ['loc' => url('/vs/tidio'),                  'priority' => '0.8', 'changefreq' => 'monthly', 'lastmod' => $today],
@@ -355,6 +366,7 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         // Read-only: newest ERROR entries from laravel.log (message + first app frame) — for 500s without SSH.
         Route::get('errors', \App\Http\Controllers\SuperAdmin\RecentErrorsController::class)->name('errors');
         Route::get('billing', \App\Livewire\SuperAdmin\Billing::class)->name('billing');
+        Route::get('plan-lifecycle', \App\Livewire\SuperAdmin\PlanLifecycleBoard::class)->name('plan-lifecycle');
         Route::get('analytics', \App\Livewire\SuperAdmin\Analytics::class)->name('analytics');
 
         // Blog admin
