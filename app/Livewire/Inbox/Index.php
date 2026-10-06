@@ -445,6 +445,7 @@ class Index extends Component
             'direction' => 'outbound',
             'sender_type' => 'user',
             'sender_id' => Auth::id(),
+            'handled_by_user_id' => Auth::id(),
             'content_type' => 'text',
             'content' => $this->composeBody,
         ]);
@@ -624,6 +625,7 @@ class Index extends Component
             'direction' => 'outbound',
             'sender_type' => 'user',
             'sender_id' => Auth::id(),
+            'handled_by_user_id' => Auth::id(),
             'content_type' => $contentType,
             'content' => $text ?: null,
             'media_asset_id' => $mediaAssetId,
@@ -676,15 +678,16 @@ class Index extends Component
         $storage = app(\App\Services\Media\MediaStorage::class);
 
         $message = Message::create([
-            'conversation_id' => $conversation->id,
-            'direction'       => 'outbound',
-            'sender_type'     => 'user',
-            'sender_id'       => Auth::id(),
-            'content_type'    => $asset->kind,
-            'content'         => null,
-            'media_asset_id'  => $asset->id,
-            'media_url'       => $storage->streamUrl($asset),
-            'media_type'      => $asset->mime_type,
+            'conversation_id'    => $conversation->id,
+            'direction'          => 'outbound',
+            'sender_type'        => 'user',
+            'sender_id'          => Auth::id(),
+            'handled_by_user_id' => Auth::id(),
+            'content_type'       => $asset->kind,
+            'content'            => null,
+            'media_asset_id'     => $asset->id,
+            'media_url'          => $storage->streamUrl($asset),
+            'media_type'         => $asset->mime_type,
         ]);
 
         $preview = match ($asset->kind) {

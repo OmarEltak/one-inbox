@@ -9,6 +9,7 @@ use App\Models\AiConfig;
 use App\Models\Comment;
 use App\Models\ContactPlatform;
 use App\Models\Message;
+use App\Services\Billing\AiCredits;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -164,6 +165,28 @@ class SendAiCommentReplyJob implements ShouldQueue
         }
 
         $comment->save();
+
+        // Phase A credit charge — post-success per spec §9. Only charge if at
+        // least one of (public reply, DM) actually went out. A failed attempt
+        // produced no AI tokens worth billing for. Idempotency key = comment
+        // id so a retried job never double-charges.
+        if ($publicOk || $dmOk) {
+            try {
+                app(AiCredits::class)->charge(
+                    team: $team,
+                    action: 'ai_comment_reply',
+                    meta: [
+                        'idempotency_key' => "ai_comment_reply:{$comment->id}",
+                        'cost_source_type' => Comment::class,
+                        'cost_source_id' => $comment->id,
+                    ],
+                );
+            } catch (\Throwable $e) {
+                Log::warning("AiCredits::charge failed for comment {$comment->id}", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**

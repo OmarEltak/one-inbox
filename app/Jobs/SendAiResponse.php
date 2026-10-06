@@ -9,6 +9,7 @@ use App\Exceptions\AiAllProvidersUnavailable;
 use App\Exceptions\AiQuotaExhausted;
 use App\Http\Middleware\EnforcePlanLimits;
 use App\Services\Ai\CaptureExtractor;
+use App\Services\Billing\AiCredits;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Page;
@@ -302,9 +303,37 @@ class SendAiResponse implements ShouldQueue
             // we're under the cap; this is the record-keeping side.
             $contact?->recordAiReply();
 
-            // Increment AI credits used. If this push crossed the plan limit, fire
-            // AiLimitReached exactly once — subsequent dispatches are gated by
-            // canDispatchAi() so this event won't repeat per-message.
+            // Phase A credit charge — post-success per spec §9. The charge
+            // reflects an actual customer-visible reply we sent, so an outage
+            // after this point would need a refund (not relevant here since
+            // the send already succeeded above).
+            //
+            // Idempotency key = conversation + trigger message so if this job
+            // is retried after the send completed, the charge isn't duplicated.
+            //
+            // The legacy ai_credits_used column is still bumped during the
+            // Phase A → B transition so the old banner-reader keeps working;
+            // once config('plans.use_legacy_message_counter') is confirmed
+            // false everywhere this increment is removed in Phase B.
+            try {
+                app(AiCredits::class)->charge(
+                    team: $team,
+                    action: 'ai_reply_outbound',
+                    meta: [
+                        'idempotency_key' => "ai_reply:{$conversation->id}:{$this->triggerMessageId}",
+                        'cost_source_type' => Message::class,
+                        'cost_source_id' => $aiMessage->id,
+                    ],
+                );
+            } catch (\Throwable $e) {
+                // Never let a credit-ledger failure undo a message we already
+                // delivered to the customer. Log and move on; the balance
+                // cache will reconcile on next read.
+                Log::warning("AiCredits::charge failed after send for team {$team->id}", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             $team->increment('ai_credits_used');
             if (! EnforcePlanLimits::hasAiCredits($team)) {
                 Log::info("Team {$team->id} just reached AI credit limit");

@@ -38,7 +38,7 @@ class StripeWebhookController extends WebhookController
         ]);
 
         // Reset limits to free plan
-        $freePlan = config('stripe.plans.free');
+        $freePlan = config('plans.plans.free');
         $team->update([
             'ai_credits_limit' => $freePlan['ai_credits'] ?? 50,
         ]);
@@ -82,14 +82,14 @@ class StripeWebhookController extends WebhookController
 
         // Find matching plan by price_id
         $planKey = 'free';
-        foreach (config('stripe.plans', []) as $key => $plan) {
+        foreach (config('plans.plans', []) as $key => $plan) {
             if ($plan['price_id'] && $plan['price_id'] === $stripePriceId) {
                 $planKey = $key;
                 break;
             }
         }
 
-        $plan = config("stripe.plans.{$planKey}");
+        $plan = config("plans.plans.{$planKey}");
 
         $team->update([
             'subscription_plan' => $planKey,

@@ -40,6 +40,8 @@ trait BuildsConversationPrompts
                 . "\n=== END MEMORY ===\n\n";
         }
 
+        $deepAnalysisBlock = $this->recentDeepAnalysisBlock($teamId);
+
         return "══ IDENTITY (NON-NEGOTIABLE) ══\n"
             . "You are the Marketing & Analytics Assistant for this platform. Your entire purpose is to help the operator manage campaigns, outreach, and analytics across their connected messaging channels. This is your identity — you do not have another one.\n\n"
             . "1. NEVER BREAK CHARACTER. You are the Marketing & Analytics Assistant, period.\n"
@@ -129,8 +131,84 @@ trait BuildsConversationPrompts
             . "- Always state how many contacts will be targeted before the pending_action block\n"
             . "- Be concise and conversational\n\n"
             . $analyticsContext
+            . $deepAnalysisBlock
             . "\n\n══ FINAL REMINDER ══\n"
             . "You are the Marketing & Analytics Assistant. Never break character, never refuse pointlessly, always route toward a useful action or answer.";
+    }
+
+    /**
+     * Phase D — Deep Analysis result injection (spec §5.1). The most recent
+     * completed run within the last 24h is appended to the admin chat
+     * context so follow-up questions can answer from the stored result
+     * without re-dispatching the paid job.
+     */
+    protected function recentDeepAnalysisBlock(int $teamId): string
+    {
+        if (! class_exists(\App\Models\DeepAnalysis::class)) {
+            return '';
+        }
+
+        $recent = \App\Models\DeepAnalysis::query()
+            ->where('team_id', $teamId)
+            ->where('status', \App\Models\DeepAnalysis::STATUS_COMPLETED)
+            ->where('completed_at', '>=', now()->subDay())
+            ->orderByDesc('completed_at')
+            ->first();
+
+        if (! $recent) {
+            return '';
+        }
+
+        $filterSummary = [];
+        foreach ((array) ($recent->cohort_filter ?? []) as $k => $v) {
+            if (is_scalar($v)) {
+                $filterSummary[] = "{$k}={$v}";
+            }
+        }
+
+        $renderedFindings = $this->renderDeepAnalysisFindings((array) ($recent->result_json ?? []));
+
+        return "\n\n=== DEEP ANALYSIS RESULTS (recent) ===\n"
+            . "Mode: {$recent->mode}\n"
+            . "Cohort: {$recent->cohort_size} contacts"
+            . ($filterSummary ? ', filter={' . implode(', ', $filterSummary) . '}' : '')
+            . ', run at ' . ($recent->started_at?->toIso8601String() ?? $recent->created_at->toIso8601String()) . "\n"
+            . "Credits charged: {$recent->credits_charged}\n"
+            . "Findings:\n{$renderedFindings}\n"
+            . "=== END DEEP ANALYSIS RESULTS ===";
+    }
+
+    /**
+     * @param  array<string, mixed>  $result
+     */
+    protected function renderDeepAnalysisFindings(array $result): string
+    {
+        if ($result === []) {
+            return '(no findings)';
+        }
+
+        $lines = [];
+
+        if (! empty($result['summary'])) {
+            $lines[] = 'Summary: ' . (string) $result['summary'];
+        }
+
+        foreach (['themes', 'hot_leads', 'objections', 'issues', 'recommendations', 'agents'] as $section) {
+            if (empty($result[$section]) || ! is_array($result[$section])) {
+                continue;
+            }
+            $lines[] = '';
+            $lines[] = strtoupper($section) . ':';
+            foreach ($result[$section] as $item) {
+                $lines[] = '- ' . (is_array($item) ? json_encode($item, JSON_UNESCAPED_UNICODE) : (string) $item);
+            }
+        }
+
+        if ($lines === []) {
+            return (string) json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }
+
+        return implode("\n", $lines);
     }
 
     protected function buildSystemPrompt(Conversation $conversation, AiConfig $config): string

@@ -35,6 +35,7 @@
             <ul class="space-y-2 text-ink/80">
                 <li><a href="{{ route('features') }}"   class="u-link">{{ __('Platforms') }}</a></li>
                 <li><a href="{{ route('pricing') }}"    class="u-link">{{ __('Pricing') }}</a></li>
+                <li><a href="{{ route('pricing-faq') }}" class="u-link">{{ __('Pricing FAQ') }}</a></li>
                 @if(Route::has('vs.respond-io'))
                     <li><a href="{{ route('vs.respond-io') }}" class="u-link">{{ __('Compare vs Respond.io') }}</a></li>
                 @endif

@@ -102,7 +102,7 @@ class Customers extends Component
     /** Plan AI-credit allowance; null = unlimited. */
     public function aiCreditLimit(Team $team): ?int
     {
-        $plan = config('stripe.plans.' . ($team->subscription_plan ?? 'free'), config('stripe.plans.free'));
+        $plan = config('plans.plans.' . ($team->subscription_plan ?? 'free'), config('plans.plans.free'));
         $limit = (int) ($plan['ai_credits'] ?? 0);
 
         return $limit === -1 ? null : $limit;

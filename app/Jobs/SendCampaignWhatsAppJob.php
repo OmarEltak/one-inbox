@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Models\Campaign;
 use App\Models\CampaignRecipient;
+use App\Services\Billing\AiCredits;
 use App\Services\Wuzapi\WhatsAppSender;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Per-recipient WhatsApp send.
@@ -65,6 +69,22 @@ class SendCampaignWhatsAppJob implements ShouldQueue
             return;
         }
 
+        // Phase RP (2026-10-06): verify this recipient can be charged BEFORE
+        // sending. Half-sending a campaign is a worse UX than failing fast —
+        // the operator wants either "all delivered" or "clear reason stopped".
+        $team = $campaign->team;
+        $credits = app(AiCredits::class);
+        if ($team !== null) {
+            $cost = $credits->costFor('bulk_campaign_recipient');
+            if ($cost > 0 && $credits->balance($team)->total() < $cost) {
+                $r->update([
+                    'status'     => 'failed',
+                    'last_error' => 'insufficient_credits',
+                ]);
+                return;
+            }
+        }
+
         $body = $this->renderBody((string) $campaign->message_template, $r);
 
         try {
@@ -76,6 +96,31 @@ class SendCampaignWhatsAppJob implements ShouldQueue
         if ($result->sent) {
             $r->update(['status' => 'sent', 'sent_at' => now()]);
             $campaign->increment('sent_count');
+
+            // Phase RP: charge AFTER successful send. A ledger failure must
+            // NEVER undo a message the customer already received — mirrors
+            // SendAiResponse's swallow pattern (CLAUDE.md pin #5).
+            if ($team !== null) {
+                try {
+                    $credits->charge(
+                        $team,
+                        'bulk_campaign_recipient',
+                        [
+                            'idempotency_key'  => "campaign:{$campaign->id}:recipient:{$r->id}",
+                            'cost_source_type' => Campaign::class,
+                            'cost_source_id'   => $campaign->id,
+                            'campaign_name'    => $campaign->name,
+                            'platform'         => $campaign->platform,
+                        ],
+                    );
+                } catch (Throwable $e) {
+                    Log::warning('AiCredits::charge failed for campaign recipient — message was already sent', [
+                        'campaign_id'  => $campaign->id,
+                        'recipient_id' => $r->id,
+                        'error'        => $e->getMessage(),
+                    ]);
+                }
+            }
             return;
         }
 

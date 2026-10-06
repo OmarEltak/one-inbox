@@ -7,18 +7,13 @@ return [
 
     /*
     |---------------------------------------------------------------------------
-    | Monthly campaign limits per plan (Phase 2 of 5-phase load-management plan
-    | in docs/OT1_LIMITS.md §11).
+    | DEPRECATED — Phase RP (2026-10-06).
     |---------------------------------------------------------------------------
     |
-    | Rolling 30-day window (NOT calendar month) — fairer for new signups.
-    | Enforced by Team::canCreateCampaign() at every campaign-create site.
-    |
-    | Free tier low on purpose:
-    |   - Kills the load problem (1 campaigns worker, no per-team throttle)
-    |   - Creates a revenue lever (upgrade to run more)
-    |
-    | Legacy/null plans grandfathered as `free`.
+    | Team::monthlyCampaignLimit() now reads from
+    | `config('plans.plans.{plan}.limits.bulk_campaigns_monthly')`. This key is
+    | retained for any external code / scripts that may still read it, but it
+    | is no longer the source of truth. Do not add new readers.
     */
     'monthly_limits' => [
         'free'       => (int) env('CAMPAIGNS_LIMIT_FREE', 1),

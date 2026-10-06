@@ -211,6 +211,8 @@
         </div>
     @endif
 
+    @include('livewire.ai-chat.partials.confirmation-modal')
+
     {{-- Input Bar --}}
     <div class="border-t border-zinc-200 px-4 sm:px-6 py-4">
         <div class="mx-auto max-w-3xl">

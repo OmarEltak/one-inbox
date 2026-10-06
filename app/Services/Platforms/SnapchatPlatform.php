@@ -219,6 +219,7 @@ class SnapchatPlatform extends AbstractPlatform
             'direction'           => 'outbound',
             'sender_type'         => 'user',
             'sender_id'           => auth()->id(),
+            'handled_by_user_id'  => auth()->id(),
             'content_type'        => 'text',
             'content'             => $content,
             'platform_sent_at'    => now(),

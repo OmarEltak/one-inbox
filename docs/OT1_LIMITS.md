@@ -392,6 +392,46 @@ When a team hits 80% of their monthly campaign quota, show a top-bar warning tha
 - [x] Phase 4 — Per-team send throttle (2026-09-29, PR #64)
 - [ ] Phase 4b — Queue-position UI ("you are #N") — deferred (needs Reverb push infra)
 - [x] Phase 5 — Row-count guidance — addressed by Phase 3's copy + progress bar; JS preview deferred as low-ROI
+
+---
+
+## 13 · AI credit economy (approved 2026-10-05)
+
+**Full spec**: `docs/superpowers/specs/2026-10-04-ai-credit-economy-design.md`
+
+The AI chat was silently capping customer-conversation context at ~14 of thousands (`AdminChatContext.php:89`, 6 KB char budget) and treating every AI action as "1 unit" regardless of real cost. Users couldn't see their usage, couldn't pay for more, couldn't trigger expensive-but-valuable actions like "analyze last 1 000 contacts." This spec fixes all of that without wiring a payment provider (OT1 Pro isn't a registered entity yet — manual top-up only).
+
+### Core architecture
+- **Append-only `ai_credit_ledger`** — every charge/grant/refund is a signed row with team, delta, balance_type, reason, cost source. Balance = `SUM(delta)` cached in Redis (60 s TTL).
+- **Two balances per team**: `monthly` (resets on billing-cycle anniversary, use-it-or-lose-it) + `wallet` (prepaid, never expires, drained after monthly).
+- **Cost table** in `config/ai_costs.php` — tunable per action without code changes. `AiCredits::charge($team, $action, $meta)` is called from every dispatch site after a successful AI call.
+- **Confirmation gate**: any action > 5 credits throws `ExpensiveActionRequiresConfirmationException` unless the team has opted into auto-deduct. UI shows a modal "This will use 50 credits · you'll have 290 left · [Confirm] [Always auto-deduct]".
+- **Header meter chip** — green ≤ 60 %, amber 60-85 %, red > 85 %. Replaces the banner-only pattern (banner still shows at 100 % / upstream pause).
+- **Manual payment flow**: `/settings/billing/top-up` shows pricing + PayPal + bank + WhatsApp; `/super-admin/billing` lets Omar grant credits with a payment-reference note that goes into the ledger.
+- **Deep Analysis** — the first premium action. Async job on new `heavy-analysis` queue chunks the cohort into 10 batches, hits NaraRouter once per batch + one aggregation call, stores structured result in `deep_analyses` so re-asks don't re-charge.
+
+### Phase order (6 days total)
+- **A** — ledger + `AiCredits` service + rename `config/stripe.php` → `plans.php` + wire dispatch sites (1 day)
+- **B** — header meter chip + `/settings/billing` ledger view (0.5 day)
+- **C** — live-chat context fix (targeted page = ~100 convos, both directions) + retry/idempotency on AiChat (0.5 day)
+- **D** — cost table + confirmation modal + Deep Analysis job + 1 000-contact premium analysis live (1.5 days)
+- **E** — super-admin `/super-admin/billing` grant screen (0.5 day)
+- **F** — `/settings/billing/top-up` user page with PayPal/bank/WhatsApp (0.5 day)
+- **G** — privacy/terms updates + `/pricing-faq` page + Arabic translations (0.5 day)
+- **H** — agent-audit sub-feature on Deep Analysis path (needs `messages.handled_by_user_id`, 1 day)
+
+### Capacity impact on this box
+Minimal. The new `heavy-analysis` queue needs **one dedicated worker** so Deep Analysis jobs don't starve `urgent`. Each Deep Analysis job hits NaraRouter 11 times (10 chunks + 1 aggregation) over ~60-120 s. At the napkin-math ceiling of 10 NaraRouter calls/sec (§5.1), each concurrent Deep Analysis consumes ~1 sec/sec of our AI budget — so **max 2 concurrent Deep Analyses team-wide** before AI-reply latency starts to climb. Cost table caps per-user frequency (expensive queries need credits) which naturally throttles this.
+
+### Progress tracker
+- [ ] Phase A — ledger + AiCredits service
+- [ ] Phase B — header meter chip + billing page
+- [ ] Phase C — live-chat context fix + retry/idempotency
+- [ ] Phase D — cost table + confirmation modal + Deep Analysis
+- [ ] Phase E — super-admin grant screen
+- [ ] Phase F — user top-up page
+- [ ] Phase G — privacy/terms/pricing-faq updates + Arabic
+- [ ] Phase H — agent-audit on Deep Analysis
 | 2026-09-29 → 2026-09-30 | Campaigns index mobile-responsive fix (PR #66) — header stacks, campaign card layout stacks, button labels shorten so both CTAs visible on ~490px viewports. |
 | 2026-09-29 → 2026-09-30 | Email-wizard `/campaigns/email/new` 500 rabbit hole — 4 fragile Blade escapes (`{{ '{{...}}' }}`) at lines 117, 198, 208, 210 all rewritten to canonical `@{{...}}` verbatim escape or `@php $var = '{{'.$c.'}}'; @endphp` pattern. PRs #67, #68, #70. Full contrast rewrite of email wizard from dark-shell (invisible white text on light shell) to light zinc palette in PR #69. |
 | 2026-09-30 | **Deploy workflow hardened** (`.github/workflows/deploy.yml` in PR #69) — added `export HOME=/tmp XDG_CONFIG_HOME=/tmp` (deploy user's real `$HOME` not writable by psysh subprocess) + explicit `config:clear`/`route:clear`/`view:clear` BEFORE the `:cache` commands so stale compiled artifacts from a prior deploy or wrong-user manual run can't linger and re-explode. Root cause of a `MissingAppKeyException` storm on 2026-09-29 that stacked on top of the email-wizard 500. |
@@ -439,3 +479,4 @@ Expect a number > 30. Zero = APP_KEY missing from `.env`. See `ot1-pro-prod-ops`
 | 2026-09-30 | Task B shipped (PR #73) — `capacity:health-check` artisan command per §7 alert plan. Scheduled every 5 min via routes/console.php. Monitors CPU load, free RAM, disk free, queue depths (urgent/transcription/campaigns/default), NaraRouter global cooldown. Per-signal 60-min cool-down. Env-overridable thresholds. 4 Pest tests. Verified live on prod: "All capacity signals within thresholds." |
 | 2026-09-30 | Task C shipped (PR #74) — Phase 3b async Excel import for Email wizard. Mirrors Phase 3 WA wizard: new `App\Jobs\ImportEmailRecipients` on `default` queue with per-team throttle (`email:import:inflight:{team}`), wizard has new 'importing' step (STEPS: upload→map→**importing**→compose→review→launched) with `wire:poll.2s="checkImportProgress"`, retry on failure, 10 MB cap. 4 Pest tests. Verified live: 6-step indicator renders, notice shows "Upload up to 10 MB". |
 | 2026-09-30 | Task D shipped (PR #75) — k6 load-testing scaffold. `scripts/load/homepage.js` (ramp 50→500 VUs, fails on p95>5s or err>5%), `scripts/load/webhook-ingest.js` (fake signed payloads 1→100 req/s), plus README with install + priority table + prod-safety warning. Next step (needs staging box): point at `staging.ot1-pro.com` mirror, capture measurements, replace `(theory)` marks in §5.7 with `(measured)`. |
+| 2026-10-05 | AI credit economy spec drafted and approved — `docs/superpowers/specs/2026-10-04-ai-credit-economy-design.md`. Introduces append-only `ai_credit_ledger`, two-balance model (monthly plan allowance + prepaid wallet), header meter chip, cost table per action, confirmation modal for actions > 5 credits, Deep Analysis premium feature (5 credits per 100 contacts analysed). **No payment provider wired** — OT1 isn't a registered entity yet; manual top-up via PayPal/bank/WhatsApp handled by a super-admin grant screen. Live-chat context fix bundled: targeted-page expansion lifts the per-page sample from ~14 convos to ~100 and includes outbound messages so moderator-audit queries work. See §13 below for scope and phase list. |

@@ -12,6 +12,11 @@ beforeEach(fn () => $this->actingAs(User::factory()->create(['is_super_admin' =>
 
 test('resetting the campaign quota restarts the rolling window', function () {
     [, $team] = makeUserWithTeam();
+    // Phase RP (2026-10-06): Free plan now has a 0-campaign cap. Flip the
+    // team to Starter so canCreateCampaign() can legitimately be true after
+    // a reset — the free-plan branch would short-circuit before the reset
+    // can be observed.
+    $team->update(['subscription_plan' => 'starter']);
     Campaign::factory()->create(['team_id' => $team->id]);
     expect($team->fresh()->campaignsCreatedThisMonth())->toBe(1);
 

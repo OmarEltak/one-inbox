@@ -46,6 +46,14 @@ Schedule::job(new \App\Jobs\TrialExpiryCheck())
     ->name('trial-expiry-check')
     ->withoutOverlapping();
 
+// Phase A — monthly AI credit allowance reset. Runs daily at 02:00 UTC.
+// For each team whose billing_cycle_anchor day matches today, zeros the
+// unused monthly remainder and grants a fresh plan quota. Idempotent per
+// team per UTC day (see ResetMonthlyAiCredits::alreadyGrantedToday).
+Schedule::command('credits:reset-monthly')
+    ->dailyAt('02:00')
+    ->withoutOverlapping();
+
 // Proactive capacity monitor (docs/OT1_LIMITS.md §7). Runs every 5 min,
 // emails Omar when any signal trips a threshold. Per-signal 60-min
 // cool-down inside the command itself so we don't spam during a

@@ -8,7 +8,7 @@
 --}}
 <x-layouts.brand-marketing
     :title="__('OT1-Pro Pricing — Free social CRM, plans from $0/mo')"
-    :description="__('Start free with OT1-Pro. Affordable social CRM pricing for businesses of all sizes — Free, Starter $29/mo, Pro $79/mo, and Enterprise custom plans.')">
+    :description="__('Start free with OT1-Pro. Affordable social CRM pricing for businesses of all sizes — Free, Starter $8/mo, Pro $29/mo, and Business $99/mo plans.')">
 
 @push('schema')
 <script type="application/ld+json">
@@ -19,9 +19,10 @@
     "description": "Unified social inbox with AI sales responder. Manage WhatsApp, Instagram, Facebook, and Telegram from one place.",
     "brand": {"@@type": "Brand", "name": "OT1-Pro"},
     "offers": [
-        {"@@type": "Offer", "name": "Free",    "price": "0",  "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
-        {"@@type": "Offer", "name": "Starter", "price": "29", "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
-        {"@@type": "Offer", "name": "Pro",     "price": "79", "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"}
+        {"@@type": "Offer", "name": "Free",     "price": "0",  "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
+        {"@@type": "Offer", "name": "Starter",  "price": "8",  "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
+        {"@@type": "Offer", "name": "Pro",      "price": "29", "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"},
+        {"@@type": "Offer", "name": "Business", "price": "99", "priceCurrency": "USD", "url": "{{ route('register') }}", "availability": "https://schema.org/InStock"}
     ]
 }
 </script>
@@ -31,7 +32,7 @@
     "@@type": "FAQPage",
     "mainEntity": [
         {"@@type": "Question", "name": "Is there really a free plan?",
-         "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The Free plan includes 1 connected page and 100 AI responses per month with no credit card required."}},
+         "acceptedAnswer": {"@@type": "Answer", "text": "Yes. The Free plan includes 1 connected page and 100 AI credits per month with no credit card required."}},
         {"@@type": "Question", "name": "Can I connect Facebook, Instagram, WhatsApp and Telegram at the same time?",
          "acceptedAnswer": {"@@type": "Answer", "text": "Yes. Each connected page or account counts toward your page limit, regardless of platform."}},
         {"@@type": "Question", "name": "Can I upgrade or downgrade anytime?",
@@ -63,66 +64,82 @@
 
         <div class="mb-10 bg-ink2 rounded-2xl p-6 border border-cream/10 fade-up">
             <div class="flex items-center justify-between mb-3">
-                <label for="volume-slider" class="text-sm text-cream/80">{{ __('How many messages does your business get per month?') }}</label>
-                <span class="text-2xl font-semibold text-emer-400"><span id="slider-val">1,200</span> {{ __('msgs') }}</span>
+                <label for="volume-slider" class="text-sm text-cream/80">{{ __('How many AI credits does your business need per month?') }}</label>
+                <span class="text-2xl font-semibold text-emer-400"><span id="slider-val">1,500</span> {{ __('credits') }}</span>
             </div>
             <input id="volume-slider" type="range" min="0" max="10" value="3" class="w-full accent-emer-500">
             <div class="flex justify-between text-[10px] text-cream/60 mt-1">
-                <span>~100</span><span>500</span><span>1k</span><span>2.5k</span><span>5k</span><span>10k+</span>
+                <span>~100</span><span>500</span><span>3k</span><span>6k</span><span>12k</span><span>20k+</span>
             </div>
-            <div class="mt-4 text-sm text-cream/80">{{ __('Recommended:') }} <span id="rec-plan" class="text-emer-400 font-semibold">Starter</span> — <span id="rec-reason">{{ __('plenty of headroom for a growing shop') }}</span></div>
+            <div class="mt-4 text-sm text-cream/80">{{ __('Recommended:') }} <span id="rec-plan" class="text-emer-400 font-semibold">Pro</span> — <span id="rec-reason">{{ __('plenty of headroom for a growing shop') }}</span></div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-6">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="free">
                 <div class="serif text-3xl mb-1">{{ __('Free') }}</div>
                 <div class="text-cream/60 text-sm mb-6">{{ __('Try the flow, no strings') }}</div>
                 <div class="serif text-5xl mb-6">$0</div>
                 <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 platform, 100 AI replies / month') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 team seat') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Meet-Your-AI wizard') }}</li>
-                    <li class="flex items-center gap-2 text-cream/50"><span>—</span> {{ __('Advanced routing') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('100 AI credits / month') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 connected page') }}</li>
+                    <li class="flex items-center gap-2 text-cream/50"><span>—</span> {{ __('No WhatsApp numbers') }}</li>
+                    <li class="flex items-center gap-2 text-cream/50"><span>—</span> {{ __('No bulk campaigns') }}</li>
                 </ul>
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start free') }}</a>
                 @endif
             </div>
 
-            <div class="plan bg-cream text-ink rounded-2xl p-8 relative shadow-xl transform scale-105" data-plan="starter">
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emer-500 text-ink text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">{{ __('Most shops start here') }}</div>
+            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="starter">
                 <div class="serif text-3xl mb-1">Starter</div>
+                <div class="text-cream/60 text-sm mb-6">{{ __('For side-projects') }}</div>
+                <div class="serif text-5xl mb-1">$8<span class="text-lg text-cream/50">/mo</span></div>
+                <div class="text-cream/60 text-xs mb-6">{{ __('or $80/yr — 2 months free') }}</div>
+                <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('500 AI credits / month') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('3 connected pages') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 WhatsApp number') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('3 bulk campaigns / mo') }}</li>
+                </ul>
+                @if(Route::has('register'))
+                    <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start 14-day trial') }}</a>
+                @endif
+            </div>
+
+            <div class="plan bg-cream text-ink rounded-2xl p-8 relative shadow-xl" data-plan="pro">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emer-500 text-ink text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">{{ __('Most shops start here') }}</div>
+                <div class="serif text-3xl mb-1">Pro</div>
                 <div class="text-ink/70 text-sm mb-6">{{ __('For growing DMs') }}</div>
                 <div class="serif text-5xl mb-1">$29<span class="text-lg text-ink/50">/mo</span></div>
                 <div class="text-ink/60 text-xs mb-6">{{ __('or $290/yr — 2 months free') }}</div>
                 <ul class="space-y-2.5 text-sm text-ink/80 mb-8">
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 platforms, 2,500 AI replies / mo') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 team seats') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('Custom AI voice tuning') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('Founder email support') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3,000 AI credits / month') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('8 connected pages') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 WhatsApp numbers') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('15 bulk campaigns / mo') }}</li>
                 </ul>
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="block w-full text-center bg-ink text-cream hover:bg-ink2 rounded-full py-3 text-sm font-semibold transition">{{ __('Start 14-day trial') }}</a>
                 @endif
             </div>
 
-            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="pro">
-                <div class="serif text-3xl mb-1">Pro</div>
+            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="business">
+                <div class="serif text-3xl mb-1">Business</div>
                 <div class="text-cream/60 text-sm mb-6">{{ __('Scale without hiring') }}</div>
-                <div class="serif text-5xl mb-1">$79<span class="text-lg text-cream/50">/mo</span></div>
-                <div class="text-cream/60 text-xs mb-6">{{ __('or $790/yr — 2 months free') }}</div>
+                <div class="serif text-5xl mb-1">$99<span class="text-lg text-cream/50">/mo</span></div>
+                <div class="text-cream/60 text-xs mb-6">{{ __('or $990/yr — 2 months free') }}</div>
                 <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('All platforms, 10,000 AI replies / mo') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Unlimited team seats') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Custom AI + workflows') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Priority support < 4hr') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('12,000 AI credits / month') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('20 connected pages') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('10 WhatsApp numbers') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('100 bulk campaigns / mo') }}</li>
                 </ul>
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start 14-day trial') }}</a>
                 @endif
             </div>
         </div>
-        <p class="mt-8 text-xs text-cream/60 text-center">{{ __('Custom volume, on-prem, or a franchise?') }} <a href="{{ route('contact') }}" class="underline hover:text-emer-400">{{ __('Email Omar') }}</a> — {{ __('he handles enterprise personally.') }}</p>
+        <p class="mt-8 text-xs text-cream/60 text-center">{{ __('Need more than 12,000 credits, on-prem, or a franchise?') }} <a href="{{ route('contact') }}" class="underline hover:text-emer-400">{{ __('Email Omar') }}</a> — {{ __('he handles enterprise personally.') }}</p>
     </div>
 </section>
 
@@ -135,10 +152,10 @@
         </div>
         <div class="divide-y divide-line border-y border-line">
             @foreach([
-                [__('Is there really a free plan?'),                     __("Yes. Free means 1 platform + 100 AI replies / month, no card required. If you outgrow it you can upgrade in one click.")],
+                [__('Is there really a free plan?'),                     __("Yes. Free means 1 connected page + 100 AI credits / month, no card required. If you outgrow it you can upgrade in one click.")],
                 [__('Do I have to add a credit card?'),                  __("No. Try any plan free for 14 days. If you decide to keep it we send bank transfer details. You pay by wire. No auto-renew, no surprise charge.")],
                 [__('Can I upgrade or downgrade anytime?'),              __("Yes. WhatsApp the founder and we switch your plan instantly with prorated billing.")],
-                [__('What if I need more than 10,000 replies / month?'), __("Custom volume, franchise, or on-prem? Email omareltak7@gmail.com — Omar handles enterprise personally.")],
+                [__('What if I need more than 12,000 credits / month?'), __("Custom volume, franchise, or on-prem? Email omareltak7@gmail.com — Omar handles enterprise personally.")],
             ] as [$q, $a])
                 <details class="py-5">
                     <summary class="flex justify-between items-center">
@@ -169,17 +186,17 @@
     var slider = document.getElementById('volume-slider');
     if (!slider) return;
     var buckets = [
-        { msgs: 100,   plan: 'Free',    reason: 'small volume, casual DMs — the free tier fits' },
-        { msgs: 300,   plan: 'Free',    reason: 'still within the free 100/mo cap x 3 platforms' },
-        { msgs: 500,   plan: 'Starter', reason: 'extra headroom + custom voice tuning' },
-        { msgs: 1200,  plan: 'Starter', reason: 'plenty of headroom for a growing shop' },
-        { msgs: 1800,  plan: 'Starter', reason: 'still inside the 2.5k Starter cap' },
-        { msgs: 2500,  plan: 'Starter', reason: 'right at the Starter ceiling — check Pro too' },
-        { msgs: 3500,  plan: 'Pro',     reason: "over Starter's cap — Pro unlocks 10k/mo + all platforms" },
-        { msgs: 5000,  plan: 'Pro',     reason: 'Pro is the sweet spot for your volume' },
-        { msgs: 7000,  plan: 'Pro',     reason: "still inside Pro's 10k cap" },
-        { msgs: 9000,  plan: 'Pro',     reason: "approaching Pro's ceiling — plan ahead" },
-        { msgs: 12000, plan: 'Custom',  reason: 'email Omar for a custom volume plan' },
+        { msgs: 100,   plan: 'Free',     reason: 'small volume, casual DMs — the free tier fits' },
+        { msgs: 300,   plan: 'Starter',  reason: 'over the free 100 cap — Starter unlocks 500 credits + WhatsApp' },
+        { msgs: 500,   plan: 'Starter',  reason: 'right at the Starter ceiling — check Pro too' },
+        { msgs: 1500,  plan: 'Pro',      reason: 'plenty of headroom for a growing shop' },
+        { msgs: 3000,  plan: 'Pro',      reason: 'right at the Pro ceiling — check Business too' },
+        { msgs: 5000,  plan: 'Business', reason: 'over Pro — Business unlocks 12k credits + 10 WhatsApp numbers' },
+        { msgs: 7000,  plan: 'Business', reason: 'Business is the sweet spot for your volume' },
+        { msgs: 9000,  plan: 'Business', reason: "still inside Business's 12k cap" },
+        { msgs: 12000, plan: 'Business', reason: "right at Business's ceiling — plan ahead" },
+        { msgs: 16000, plan: 'Custom',   reason: 'over 12k credits — email Omar for a custom plan' },
+        { msgs: 20000, plan: 'Custom',   reason: 'email Omar for a custom volume plan' },
     ];
     function updateSlider() {
         var i = parseInt(slider.value, 10);

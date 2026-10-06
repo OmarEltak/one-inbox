@@ -140,7 +140,7 @@ class TrialExpiryCheck implements ShouldQueue
                     "Owner: " . ($team->owner?->email ?? 'unknown') . "\n" .
                     "Plan: " . ($team->subscription_plan ?? 'unknown') . "\n" .
                     "Trial started: " . optional($team->plan_trial_started_at)->toDateString() . "\n\n" .
-                    "Review: " . route('super-admin.billing'),
+                    "Review: " . route('super-admin.plan-lifecycle'),
                     fn ($m) => $m
                         ->to(config('mail.admin_address', 'omareltak7@gmail.com'))
                         ->subject("[OT1-Pro] Manual review needed — {$team->name}")

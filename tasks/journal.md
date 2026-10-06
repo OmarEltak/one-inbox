@@ -2467,3 +2467,33 @@ creative direction). Awaiting Omar's steer.
 **Fix (one-time, durable):** `chgrp -R www-data storage/framework/views && chmod g+s <dir>` — with `umask 0002` for both `deploy` and `www-data`, all fresh `view:cache` artifacts land `deploy:www-data 664`, so FPM can always recompile a stale view instead of 500ing. No new packages needed (`setfacl` absent; setgid+umask covers it). Verified: `sudo -u www-data touch` create + overwrite both OK; post-`view:cache` sample file is `deploy:www-data`.
 **Then:** `gh run rerun 37024477560` → Deploy green (46s, canonical composer/npm/migrate/caches/queue:restart). Prod `479613a`, views dir still `drwxrwsr-x deploy www-data`, /about + login/register/data-collection/terms/privacy/refund all 200.
 **Rollback:** `chgrp -R deploy storage/framework/views; chmod g-s storage/framework/views` (+ `view:cache` as deploy + FPM reload).
+
+---
+
+## 2026-10-05 · AI credit economy — Phases A/B/C/D/E shipped (local, uncommitted)
+
+**What:** Append-only `ai_credit_ledger` + `AiCredits` service (charge/refund/grant/balance with Redis cache + idempotency + two-balance drain). Monthly reset artisan command, backfill seeder. Header meter chip (green/amber/red) + `/settings/billing` ledger view + `/settings/billing/top-up` placeholder route. `config/stripe.php` → `config/plans.php` rename complete; old file deleted. `AdminChatContext::customerDigest($expanded=true)` lifts the per-page sample from ~14 → ~100 convos with inbound+outbound (fixes the moderator-audit blind spot). AiChat NaraRouter calls now wrapped in sha256 idempotency + 3-attempt retry (0/500ms/2s backoff) + 60s cache. Cost table `config/ai_costs.php` with per-action pricing + Deep Analysis minimum floor. Flux 2.x confirmation modal gates any action > 5 credits. `DeepAnalysisService` + `DispatchDeepAnalysisJob` chunk a cohort (100 contacts/batch), hit NaraRouter per batch, aggregate, store to `deep_analyses` table, broadcast `DeepAnalysisCompleted` via Reverb → AiChat loads the stored result on the next turn without re-charging. Terminal failure path auto-refunds. `/super-admin/billing` grant screen (renamed pre-existing plan-lifecycle board → `/super-admin/plan-lifecycle` to resolve namespace collision).
+
+**Caught 2 real production bugs during review:**
+1. Pre-existing `makeCampaign()` global function collision in `tests/Feature/Campaigns/PlanMonthlyLimitTest.php` + `tests/Feature/SendCampaignEmailJobTest.php` was blocking full-suite runs — renamed to `makeEmailCampaign` in the email file.
+2. `DeepAnalysisCompleted::dispatch(teamId: ...)` used named parameters, but Laravel's `Dispatchable` trait collapses to positional via `func_get_args()`. Changed to positional — otherwise every Deep Analysis would complete but the "✅ complete" broadcast would silently fail in prod.
+
+**Test state:** 433 pass + 1 skipped + 7 fails on full `vendor/bin/pest` (vs baseline 6 fails on `main` — PasswordReset×3, TestSendThrottle, ConciergeFraming, Dashboard). Delta = 1 extra; all 240 tests across Phase-touched suites (AiChat, Billing, Jobs, Settings, SuperAdmin, Unit/Services) pass 240/240. Investigating the +1 before Phase F.
+
+**Not shipped:** Phase F (`/settings/billing/top-up` user page with PayPal/bank/WhatsApp CTA — currently placeholder), G (privacy/terms/pricing-faq + Arabic for new strings), H (agent-audit on Deep Analysis + `messages.handled_by_user_id`). Nothing deployed to prod — all changes local uncommitted.
+
+**Rollback:** `php artisan migrate:rollback --step=4` reverts the 4 new migrations (ai_credit_ledger, auto_deduct, billing_cycle_anchor, deep_analyses). Set `LEGACY_MESSAGE_COUNTER=true` in prod .env for a safety net during the ledger cutover.
+
+
+### Phase G + H addendum (same day)
+
+**Phase G**: Privacy addendum ("Payment data" — zero card storage, manual grants only, audit log deletion on request). Terms addendum ("Credits, allowances, and refunds" — monthly use-it-or-lose-it, wallet never expires, outage auto-refund). New public `/pricing-faq` page with cost table rendered live from `config('ai_costs')` so it never goes stale. Footer link under Product column. 51 new Arabic translations (incl. the 25 strings Phase B left untranslated and the "Effective date" latent gap). Arabic coverage: 16/16.
+
+**Phase H**: `messages.handled_by_user_id` FK (nullable, nullOnDelete) + idempotent backfill from the existing polymorphic `sender_id` column (18 historical rows attributed on dev). `AgentAuditService::perAgentStats()` groups outbound non-AI messages by user and computes: messages sent, conversations touched, avg response time (24h pairing cutoff), conversion rate, 2 example snippets. `DeepAnalysisService::analyzeAgentAudit()` + `summarizeAgentAudit()` — single aggregation + one NaraRouter prose call (skips chunk loop; cheaper). Cost = `max(agent_audit, scaled_per_100)` so small cohorts floor at 3 credits, large cohorts scale same as theme analysis. AiChat parser extended with 3 agent-audit regexes. All 8 outbound-send sites updated (3 inbox methods + 7 platform services) to also set `handled_by_user_id = auth()->id()`.
+
+**Caught 1 real production-adjacent gotcha during Phase H**: `messages.sender_id` was already polymorphic (contact IDs for inbound, user IDs for outbound). A naive `JOIN users ON sender_id` would return garbage for inbound rows. Adding a dedicated FK rather than reusing the existing column is the correct call — the subagent flagged this explicitly instead of reusing silently.
+
+**Test state at end-of-day**: 457 pass + 1 skipped + 6 fails on full suite. The 6 are the known baseline (PasswordReset×3, TestSendThrottle, ConciergeFraming, Dashboard — pre-dating this project). **Zero new regressions across 8 phases.** All phase-touched suites (AiChat, Billing, Jobs, Settings, SuperAdmin, Services/Billing, Services/Ai, Pages) at 100%.
+
+**Everything local uncommitted.** Rollout checklist in session chat log. Nothing deployed.
+

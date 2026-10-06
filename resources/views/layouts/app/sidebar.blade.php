@@ -146,7 +146,8 @@
                         $navItems[] = ['route' => 'super-admin.subscriptions', 'label' => 'Subscriptions', 'icon' => 'key', 'match' => 'super-admin.subscriptions', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.page-assignments', 'label' => 'Page Assignments', 'icon' => 'rectangle-stack', 'match' => 'super-admin.page-assignments', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.onboarding-requests', 'label' => 'Onboarding Requests', 'icon' => 'inbox-arrow-down', 'match' => 'super-admin.onboarding-requests', 'locked' => false];
-                        $navItems[] = ['route' => 'super-admin.billing', 'label' => 'Billing', 'icon' => 'banknotes', 'match' => 'super-admin.billing', 'locked' => false];
+                        $navItems[] = ['route' => 'super-admin.billing', 'label' => 'Billing (Credits)', 'icon' => 'banknotes', 'match' => 'super-admin.billing', 'locked' => false];
+                        $navItems[] = ['route' => 'super-admin.plan-lifecycle', 'label' => 'Plan Lifecycle', 'icon' => 'clock', 'match' => 'super-admin.plan-lifecycle', 'locked' => false];
                         $navItems[] = ['route' => 'super-admin.blog.index', 'label' => 'Blog', 'icon' => 'pencil-square', 'match' => 'super-admin.blog.*', 'locked' => false];
                     }
 
@@ -356,6 +357,7 @@
                             </flux:menu.radio.group>
                             <flux:menu.separator />
                             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate.hover>{{ __('Settings') }}</flux:menu.item>
+                            <flux:menu.item :href="route('settings.billing')" icon="credit-card" wire:navigate.hover>{{ __('Billing & AI credits') }}</flux:menu.item>
                             <flux:menu.separator />
                             <form method="POST" action="{{ route('logout') }}" class="w-full">
                                 @csrf
@@ -433,6 +435,10 @@
                     @endforeach
                 </flux:menu>
             </flux:dropdown>
+
+            {{-- AI credit meter (Phase B). Hidden below md: — mobile users
+                 reach the same info through the user-menu Billing entry. --}}
+            <x-ai-credit-meter />
 
             {{-- Notification bell --}}
             <div class="relative">

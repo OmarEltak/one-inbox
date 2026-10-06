@@ -3,8 +3,8 @@
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-3xl px-6">
             <h1 class="text-4xl font-bold tracking-tight">{{ __('Terms of Service') }}</h1>
-            <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: March 22, 2025</p>
-            <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: March 22, 2025</p>
+            <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: October 5, 2026</p>
+            <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: October 5, 2026</p>
 
             <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-600">
 
@@ -83,6 +83,11 @@
                     </ul>
                     <p class="mt-3">{{ __('You can cancel your subscription at any time from your account settings. Access continues until the end of the current billing period.') }}</p>
                     <p class="mt-3">{{ __('Refund eligibility is governed by our') }} <a href="{{ route('refund') }}" class="text-emerald-600 hover:underline">{{ __('Refund Policy') }}</a>{{ __(', which includes a 14-day money-back guarantee on new subscriptions.') }}</p>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Credits, allowances, and refunds') }}</h2>
+                    <p class="mt-3">{{ __('Each subscription plan grants a monthly AI-credit allowance that resets on your billing-cycle anniversary and does not roll over. Credit packs purchased separately do not expire. Credits consumed by AI actions are non-refundable except where the action failed due to a verified system outage, in which case the credits are automatically returned. Refunds of money (as opposed to credits) are handled case-by-case — contact support@ot1-pro.com.') }}</p>
                 </div>
 
                 <div>

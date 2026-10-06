@@ -13,6 +13,7 @@ class Message extends Model
         'direction',
         'sender_type',
         'sender_id',
+        'handled_by_user_id',
         'content_type',
         'content',
         'media_url',
@@ -50,6 +51,17 @@ class Message extends Model
     public function sentByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    /**
+     * Phase H — the human team member credited with sending this outbound
+     * message. Null for AI/contact-origin rows and for legacy outbound rows
+     * sent before the column existed (the backfill seeder populates known
+     * cases from conversations.assigned_to as a best-effort proxy).
+     */
+    public function handledByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'handled_by_user_id');
     }
 
     public function mediaAsset(): BelongsTo

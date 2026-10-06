@@ -26,7 +26,7 @@ beforeEach(function () {
     });
 });
 
-function makeCampaign(array $overrides = []): Campaign
+function makeEmailCampaign(array $overrides = []): Campaign
 {
     $defaults = [
         'team_id'            => test()->team->id,
@@ -46,7 +46,7 @@ function makeCampaign(array $overrides = []): Campaign
 }
 
 test('sends the email and marks recipient sent', function () {
-    $campaign = makeCampaign();
+    $campaign = makeEmailCampaign();
     $recipient = CampaignRecipient::create([
         'campaign_id'  => $campaign->id,
         'email'        => 'alice@x.com',
@@ -67,7 +67,7 @@ test('sends the email and marks recipient sent', function () {
 });
 
 test('skips suppressed recipients and marks them unsubscribed', function () {
-    $campaign = makeCampaign();
+    $campaign = makeEmailCampaign();
     EmailSuppression::create([
         'team_id' => $this->team->id,
         'email'   => 'blocked@x.com',
@@ -91,7 +91,7 @@ test('skips suppressed recipients and marks them unsubscribed', function () {
 });
 
 test('does not send when campaign is paused', function () {
-    $campaign = makeCampaign(['status' => Campaign::STATUS_PAUSED]);
+    $campaign = makeEmailCampaign(['status' => Campaign::STATUS_PAUSED]);
     $recipient = CampaignRecipient::create([
         'campaign_id'  => $campaign->id,
         'email'        => 'x@x.com',
@@ -118,7 +118,7 @@ test('marks recipient failed after max attempts on send error', function () {
         };
     });
 
-    $campaign = makeCampaign();
+    $campaign = makeEmailCampaign();
     $recipient = CampaignRecipient::create([
         'campaign_id'  => $campaign->id,
         'email'        => 'x@x.com',

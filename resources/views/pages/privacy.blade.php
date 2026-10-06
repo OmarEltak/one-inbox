@@ -2,8 +2,8 @@
     <section class="py-20 lg:py-28">
         <div class="mx-auto max-w-3xl px-6">
             <h1 class="text-4xl font-bold tracking-tight">{{ __('Privacy Policy') }}</h1>
-            <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: October 2, 2026</p>
-            <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: October 2, 2026</p>
+            <p class="mt-4 text-sm text-zinc-500">{{ __('Last updated') }}: October 5, 2026</p>
+            <p class="mt-2 text-sm text-zinc-500">{{ __('Effective date') }}: October 5, 2026</p>
 
             <div class="mt-12 space-y-10 text-zinc-600 dark:text-zinc-400">
                 <div>
@@ -76,6 +76,11 @@
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('9. Your rights and international transfers') }}</h2>
                     <p class="mt-3">{{ __('Depending on applicable law, you may have rights to access, correct, delete, restrict, object to processing of, or receive a portable copy of your personal data, and to complain to your local data-protection authority. You may withdraw consent for optional features by disabling them or disconnecting the relevant platform, where consent is the basis for processing. We use appropriate safeguards for international transfers as required by applicable law.') }}</p>
                     <p class="mt-3">{{ __('To exercise a right, contact support@ot1-pro.com. We may request information necessary to verify identity and will respond within the time required by applicable law. If you are communicating with one of our business customers, contact that business first for message and contact data it controls.') }}</p>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Payment data') }}</h2>
+                    <p class="mt-3">{{ __('We do not accept card payments through our website and we do not store any payment card details. Payments are made manually via PayPal or bank transfer to the business owner, who credits your account after confirming the payment. The only payment-related data we hold is the amount granted, the method you told us you used (e.g. "PayPal"), and any reference you gave us (e.g. order number) — stored in an audit log on your team record. You may request deletion of this log at any time by emailing support@ot1-pro.com.') }}</p>
                 </div>
 
                 <div>

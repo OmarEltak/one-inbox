@@ -31,7 +31,7 @@ test('customers list shows AI replies used, pages and connection type', function
     Livewire::test(Customers::class)
         ->assertSee('Brandk WA')
         ->assertSee('WhatsApp QR')
-        ->assertSee('12 / 50')
+        ->assertSee('12 / 100')
         ->assertSee('3 sent in the last 30 days')
         ->assertSee('AI replies (30 days)');
 });

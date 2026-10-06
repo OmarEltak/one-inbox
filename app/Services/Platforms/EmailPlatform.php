@@ -113,6 +113,7 @@ class EmailPlatform extends AbstractPlatform
                 'direction'          => 'outbound',
                 'sender_type'        => 'user',
                 'sender_id'          => auth()->id(),
+                'handled_by_user_id' => auth()->id(),
                 'content_type'       => 'text',
                 'content'            => $content,
                 'platform_sent_at'   => now(),
@@ -149,14 +150,15 @@ class EmailPlatform extends AbstractPlatform
             });
 
         $message = Message::create([
-            'conversation_id'  => $conversation->id,
-            'direction'        => 'outbound',
-            'sender_type'      => 'user',
-            'sender_id'        => auth()->id(),
-            'content_type'     => 'text',
-            'content'          => $content,
-            'platform_sent_at' => now(),
-            'metadata'         => ['subject' => $subject, 'to' => $toEmail],
+            'conversation_id'    => $conversation->id,
+            'direction'          => 'outbound',
+            'sender_type'        => 'user',
+            'sender_id'          => auth()->id(),
+            'handled_by_user_id' => auth()->id(),
+            'content_type'       => 'text',
+            'content'            => $content,
+            'platform_sent_at'   => now(),
+            'metadata'           => ['subject' => $subject, 'to' => $toEmail],
         ]);
 
         $conversation->update([

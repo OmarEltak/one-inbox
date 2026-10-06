@@ -57,6 +57,8 @@ class Team extends Model
         'plan_status',
         'plan_trial_started_at',
         'plan_payment_due_at',
+        'auto_deduct_expensive_actions',
+        'billing_cycle_anchor',
     ];
 
     protected function casts(): array
@@ -78,7 +80,76 @@ class Team extends Model
             'nudge_4_sent_at' => 'datetime',
             'plan_trial_started_at' => 'datetime',
             'plan_payment_due_at' => 'datetime',
+            'auto_deduct_expensive_actions' => 'boolean',
+            'billing_cycle_anchor' => 'date',
         ];
+    }
+
+    /**
+     * Phase A — AI credit economy ledger entries. Append-only; see
+     * App\Models\AiCreditLedgerEntry.
+     */
+    public function aiCreditLedgerEntries(): HasMany
+    {
+        return $this->hasMany(\App\Models\AiCreditLedgerEntry::class);
+    }
+
+    /**
+     * Phase A — grant the plan's monthly allowance to brand new teams on
+     * create. This is the net-new counterpart to BackfillAiCreditLedgerSeeder
+     * (which handles the existing-teams migration). Without it, a freshly
+     * created team would have zero ledger balance and EnforcePlanLimits::
+     * hasAiCredits() would reject every AI dispatch until the next monthly
+     * reset. Default-plan ('free') grants 50 credits per config/plans.php.
+     *
+     * Legacy mode (`plans.use_legacy_message_counter = true`) skips this hook —
+     * old quota math via ai_credits_used is already permissive by default.
+     *
+     * Guarded against re-entry via REASON_BACKFILL dedup inside the service,
+     * so even if a test re-creates the same team ID (shouldn't happen under
+     * RefreshDatabase, but belt-and-braces) we never double-grant.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Team $team): void {
+            if (config('plans.use_legacy_message_counter') === true) {
+                return;
+            }
+
+            $planKey = self::resolvePlanSlug($team->subscription_plan);
+            $plan = config("plans.plans.{$planKey}", config('plans.plans.free'));
+            $amount = (int) ($plan['ai_credits'] ?? 0);
+
+            // -1 = unlimited plans still get a stub grant for audit continuity;
+            // EnforcePlanLimits short-circuits on -1 before the balance check.
+            if ($amount === -1) {
+                $amount = 10_000;
+            }
+            if ($amount <= 0) {
+                return;
+            }
+
+            // Idempotency guard: skip if any backfill/initial grant already landed.
+            $alreadyGranted = \App\Models\AiCreditLedgerEntry::query()
+                ->where('team_id', $team->id)
+                ->where('reason', \App\Models\AiCreditLedgerEntry::REASON_BACKFILL)
+                ->exists();
+            if ($alreadyGranted) {
+                return;
+            }
+
+            app(\App\Services\Billing\AiCredits::class)->grant(
+                team: $team,
+                amount: $amount,
+                balanceType: \App\Models\AiCreditLedgerEntry::BALANCE_MONTHLY,
+                reason: \App\Models\AiCreditLedgerEntry::REASON_BACKFILL,
+                actorUserId: null,
+                meta: [
+                    'plan' => $planKey,
+                    'note' => 'initial grant on team create',
+                ],
+            );
+        });
     }
 
     public function owner(): BelongsTo
@@ -182,10 +253,40 @@ class Team extends Model
 
     public function monthlyCampaignLimit(): int
     {
-        $plan   = $this->subscription_plan ?: 'free';
-        $limits = (array) config('campaigns.monthly_limits', []);
+        // Phase RP (2026-10-06): source-of-truth moved from
+        // config('campaigns.monthly_limits') to the nested limits map on
+        // config('plans.plans.{plan}.limits.bulk_campaigns_monthly').
+        // Unknown plans fall back to the Free-tier cap (0) — safer than
+        // silently granting a legacy limit for an unseen plan slug.
+        $plan = self::resolvePlanSlug($this->subscription_plan);
+        $plans = (array) config('plans.plans', []);
+        $freeFallback = (int) ($plans['free']['limits']['bulk_campaigns_monthly'] ?? 0);
 
-        return (int) ($limits[$plan] ?? $limits['free'] ?? 1);
+        if (! isset($plans[$plan]['limits']['bulk_campaigns_monthly'])) {
+            return $freeFallback;
+        }
+
+        return (int) $plans[$plan]['limits']['bulk_campaigns_monthly'];
+    }
+
+    /**
+     * Phase RP — collapsed 6 tiers → 4. Old `agency` / `enterprise` /
+     * legacy `business@$199` plan slugs are mapped to current tiers via
+     * `config('plans.legacy_aliases')` so prod teams aren't silently
+     * downgraded to Free. Unknown slug → 'free' is the honest fallback.
+     */
+    public static function resolvePlanSlug(?string $raw): string
+    {
+        $slug = $raw ?: 'free';
+        $aliases = (array) config('plans.legacy_aliases', []);
+        if (isset($aliases[$slug])) {
+            $slug = (string) $aliases[$slug];
+        }
+        $plans = (array) config('plans.plans', []);
+        if (! isset($plans[$slug])) {
+            return 'free';
+        }
+        return $slug;
     }
 
     public function campaignsRemainingThisMonth(): int

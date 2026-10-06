@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
 use App\Models\EmailSuppression;
+use App\Services\Billing\AiCredits;
 use App\Services\Email\SmtpMailerFactory;
 use App\Services\Email\TemplateRenderer;
 use Illuminate\Bus\Queueable;
@@ -73,6 +74,18 @@ class SendCampaignEmailJob implements ShouldQueue
             return;
         }
 
+        // Phase RP (2026-10-06): verify this recipient can be charged BEFORE
+        // sending. Half-sending a campaign is a worse UX than failing fast.
+        $team = $campaign->team;
+        $credits = app(AiCredits::class);
+        if ($team !== null) {
+            $cost = $credits->costFor('bulk_campaign_recipient');
+            if ($cost > 0 && $credits->balance($team)->total() < $cost) {
+                $this->markFailed($recipient, 'insufficient_credits', terminal: true);
+                return;
+            }
+        }
+
         $rendered = $renderer->render(
             (string) ($campaign->subject ?? ''),
             (string) ($campaign->message_template ?? ''),
@@ -100,6 +113,31 @@ class SendCampaignEmailJob implements ShouldQueue
                 'last_error' => null,
             ]);
             DB::table('campaigns')->where('id', $campaign->id)->increment('sent_count');
+
+            // Phase RP: charge AFTER successful send. A ledger failure must
+            // NEVER undo a message the customer already received — mirrors
+            // SendAiResponse's swallow pattern (CLAUDE.md pin #5).
+            if ($team !== null) {
+                try {
+                    $credits->charge(
+                        $team,
+                        'bulk_campaign_recipient',
+                        [
+                            'idempotency_key'  => "campaign:{$campaign->id}:recipient:{$recipient->id}",
+                            'cost_source_type' => Campaign::class,
+                            'cost_source_id'   => $campaign->id,
+                            'campaign_name'    => $campaign->name,
+                            'platform'         => $campaign->platform,
+                        ],
+                    );
+                } catch (Throwable $chargeError) {
+                    Log::warning('AiCredits::charge failed for campaign recipient — message was already sent', [
+                        'campaign_id'  => $campaign->id,
+                        'recipient_id' => $recipient->id,
+                        'error'        => $chargeError->getMessage(),
+                    ]);
+                }
+            }
         } catch (Throwable $e) {
             Log::warning('Bulk email send failed', [
                 'recipient_id' => $recipient->id,

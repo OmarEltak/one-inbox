@@ -2,17 +2,23 @@
 
 namespace App\Livewire;
 
+use App\Exceptions\Billing\ExpensiveActionRequiresConfirmationException;
 use App\Jobs\SendPlatformMessage;
 use App\Models\AiCommand;
 use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\Conversation;
+use App\Models\DeepAnalysis;
 use App\Models\Message;
 use App\Models\Page;
 use App\Models\Team;
 use App\Contracts\AiProviderInterface;
 use App\Services\Ai\AdminChatContext;
+use App\Services\Ai\DeepAnalysisService;
+use App\Services\Billing\AiCredits;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
@@ -33,6 +39,16 @@ class AiChat extends Component
     public ?array $pendingAction = null;
 
     public string $pendingActionSummary = '';
+
+    /**
+     * Phase D — pending expensive action awaiting modal confirmation. Shape:
+     * ['cost' => int, 'balance_after' => int, 'action_token' => string,
+     *  'description' => string, 'cohort_filter' => array, 'mode' => string].
+     */
+    public ?array $pendingExpensiveAction = null;
+
+    /** Modal checkbox — persists to teams.auto_deduct_expensive_actions on confirm. */
+    public bool $autoDeductOptIn = false;
 
     #[Validate('nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx')]
     public $attachment = null;
@@ -57,6 +73,45 @@ class AiChat extends Component
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Phase D — Reverb channel wiring. On DeepAnalysisCompleted, append a
+     * chat message so the operator knows the stored result is available
+     * for follow-up questions on their next turn.
+     *
+     * @return array<string, string>
+     */
+    public function getListeners(): array
+    {
+        $teamId = Auth::user()?->currentTeam?->id;
+        if (! $teamId) {
+            return [];
+        }
+
+        return [
+            "echo-private:team.{$teamId},DeepAnalysisCompleted" => 'handleDeepAnalysisCompleted',
+        ];
+    }
+
+    /**
+     * Reverb listener — appends the "ready" message. The stored result is
+     * injected into the next prompt by BuildsConversationPrompts automatically.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function handleDeepAnalysisCompleted(array $payload): void
+    {
+        $cohortSize = (int) ($payload['cohort_size'] ?? 0);
+
+        $this->messages[] = [
+            'role'    => 'assistant',
+            'content' => __('✅ Deep analysis of :count contacts complete. Ask me what you want to know about them.', [
+                'count' => $cohortSize,
+            ]),
+        ];
+
+        $this->dispatch('message-sent');
     }
 
     /**
@@ -164,6 +219,17 @@ class AiChat extends Component
             return;
         }
 
+        // Phase D — Deep Analysis detection (spec §5.1). "analyze last 1000
+        // contacts", "deep dive on brandk contacts", etc. route into the
+        // paid async path INSTEAD of calling NaraRouter inline. Catches the
+        // confirmation exception from AiCredits::charge and surfaces the
+        // modal; auto-dispatches if cost is under the 5-credit threshold or
+        // the team has opted into auto-deduct.
+        if ($this->tryDispatchDeepAnalysis($team, $text)) {
+            $this->dispatch('message-sent');
+            return;
+        }
+
         // Chat content: contacts named in this turn or the last few (so "send
         // him…" resolves), plus a digest of recent customer messages so insight
         // questions are answered from real quotes.
@@ -173,13 +239,23 @@ class AiChat extends Component
         $recentUserTalk = $recent->where('role', 'user')->pluck('content')->implode("\n");
 
         // A named page ("last 30 customers on Mishkah") gets that page's own
-        // chats; otherwise the digest spans every page.
+        // chats; otherwise the digest spans every page. When the operator names
+        // exactly one page in their current turn we switch to the expanded
+        // digest (both sides of the thread, ~150 convos / 30 KB) so moderator-
+        // audit questions and per-page deep-dives have enough context — Phase C
+        // of the AI credit economy spec (§6).
         $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
-        $digest = $pageIds
-            ? collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
+        if ($pageIds === []) {
+            $digest = $chatContext->customerDigest($team->id);
+        } elseif (count($pageIds) === 1) {
+            $digest = $chatContext->customerDigest(
+                $team->id, pageId: $pageIds[0], expanded: true,
+            );
+        } else {
+            $digest = collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
                 $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id,
-            ))->implode("\n\n")
-            : $chatContext->customerDigest($team->id);
+            ))->implode("\n\n");
+        }
 
         $analyticsContext = $this->buildAnalyticsContext($team->id)
             . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
@@ -201,9 +277,10 @@ class AiChat extends Component
             ->values()
             ->all();
 
+        $aiCallSucceeded = false;
         try {
-            $provider = app(AiProviderInterface::class);
-            $response = $provider->chatWithAdmin($text, $team->id, $analyticsContext, $history);
+            $response = $this->callAiWithRetry($team->id, (int) Auth::id(), $text, $analyticsContext, $history);
+            $aiCallSucceeded = true;
         } catch (\Throwable $e) {
             // Logged so it shows in /super-admin/errors — it used to vanish.
             Log::error('AI chat request failed: ' . $e->getMessage(), [
@@ -228,7 +305,7 @@ class AiChat extends Component
                 : __('I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.');
         }
 
-        AiCommand::create([
+        $command = AiCommand::create([
             'team_id' => $team->id,
             'user_id' => Auth::id(),
             'command' => $text,
@@ -236,9 +313,82 @@ class AiChat extends Component
             'status' => 'completed',
         ]);
 
+        // Phase A credit charge — post-success per spec §9. Only billed on a
+        // real NaraRouter success; the fallback "Sorry, I encountered an
+        // error" path produced no tokens and must not be charged. Idempotency
+        // key = team+user+operator text so a double-submit is deduped.
+        if ($aiCallSucceeded) {
+            try {
+                app(AiCredits::class)->charge(
+                    team: $team,
+                    action: 'ai_chat_turn',
+                    meta: [
+                        'idempotency_key' => 'aichat:' . hash('sha256', $team->id . '|' . Auth::id() . '|' . trim($text)),
+                        'cost_source_type' => AiCommand::class,
+                        'cost_source_id' => $command->id,
+                    ],
+                );
+            } catch (\Throwable $e) {
+                Log::warning("AiCredits::charge failed for AiChat team {$team->id}", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $this->messages[] = ['role' => 'assistant', 'content' => $response];
 
         $this->dispatch('message-sent');
+    }
+
+    /**
+     * Call NaraRouter with idempotency + retry. Phase C of the AI credit
+     * economy spec (§6): a double-click, re-dispatch, or page re-render used to
+     * trigger two chat turns and two credit charges; the Redis idempotency key
+     * dedupes within a 60s window. Retries smooth over transient 5xx/empty
+     * responses before falling back to the "took too long" error path.
+     *
+     * @param  array<int, array{role: string, content: string}>  $history
+     *
+     * @throws \Throwable  final attempt failure propagates to the caller
+     */
+    protected function callAiWithRetry(int $teamId, int $userId, string $operatorMessage, string $analyticsContext, array $history): string
+    {
+        $idempotencyKey = 'aichat:idem:' . hash('sha256', $teamId . '|' . $userId . '|' . trim($operatorMessage));
+
+        $cached = Cache::get($idempotencyKey);
+        if (is_string($cached) && $cached !== '') {
+            return $cached;
+        }
+
+        $provider = app(AiProviderInterface::class);
+        $backoffMs = [0, 500, 2000];
+        $lastThrowable = null;
+
+        foreach ($backoffMs as $delay) {
+            if ($delay > 0) {
+                usleep($delay * 1000);
+            }
+
+            try {
+                $response = $provider->chatWithAdmin($operatorMessage, $teamId, $analyticsContext, $history);
+
+                if (is_string($response) && trim($response) !== '') {
+                    Cache::put($idempotencyKey, $response, 60);
+
+                    return $response;
+                }
+            } catch (\Throwable $e) {
+                $lastThrowable = $e;
+            }
+        }
+
+        if ($lastThrowable !== null) {
+            throw $lastThrowable;
+        }
+
+        // All attempts returned empty. Surface as a throwable so the caller's
+        // catch block takes over (which logs and shows the user-friendly msg).
+        throw new \RuntimeException('AI provider returned an empty response after 3 attempts.');
     }
 
     public function confirmAction(): void
@@ -282,6 +432,199 @@ class AiChat extends Component
 
         $this->messages[] = ['role' => 'assistant', 'content' => __('Action cancelled.')];
         $this->dispatch('message-sent');
+    }
+
+    /**
+     * Phase D — detect "analyze last N contacts [for page X]" / "deep
+     * analysis of ..." / "audit the last N conversations" patterns in the
+     * operator's current message. When matched, quote cost → either open
+     * the confirmation modal or dispatch the DeepAnalysis job immediately
+     * (cost ≤ threshold OR team.auto_deduct_expensive_actions = true).
+     *
+     * Returns true when the detection fired (so sendMessage() short-circuits
+     * the normal NaraRouter call for this turn).
+     */
+    protected function tryDispatchDeepAnalysis(Team $team, string $text): bool
+    {
+        $parsed = $this->parseDeepAnalysisRequest($team, $text);
+        if ($parsed === null) {
+            return false;
+        }
+
+        /** @var DeepAnalysisService $service */
+        $service = app(DeepAnalysisService::class);
+        $quote = $service->quote($team, $parsed['cohort_filter'], $parsed['mode']);
+
+        if ((int) $quote['cohort_size'] <= 0) {
+            $this->messages[] = ['role' => 'assistant', 'content' => __('No contacts matched that filter — nothing to analyze.')];
+            return true;
+        }
+
+        // Fast path — under the threshold OR team opted in. Dispatch now.
+        try {
+            $analysis = $service->dispatch(
+                team: $team,
+                userId: (int) Auth::id(),
+                cohortFilter: $parsed['cohort_filter'],
+                mode: $parsed['mode'],
+            );
+
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => __('Analysis dispatched. I\'ll let you know when it\'s ready — usually 60-120 seconds. You can keep chatting about other things.'),
+            ];
+
+            $this->persistTurn($team, $text, (string) end($this->messages)['content']);
+
+            return true;
+        } catch (ExpensiveActionRequiresConfirmationException $e) {
+            // Modal path — stash the pending action, re-dispatch on confirm.
+            $this->pendingExpensiveAction = [
+                'cost'          => $e->cost,
+                'balance_after' => $e->balanceAfter,
+                'action_token'  => $e->actionToken,
+                'description'   => (string) $quote['description'],
+                'cohort_filter' => $parsed['cohort_filter'],
+                'mode'          => $parsed['mode'],
+                'operator_text' => $text,
+            ];
+
+            $this->autoDeductOptIn = (bool) $team->auto_deduct_expensive_actions;
+
+            Flux::modal('deep-analysis-confirm')->show();
+
+            return true;
+        }
+    }
+
+    /**
+     * Confirmation handler — re-dispatches the pending action with the
+     * confirmation_token so AiCredits::charge bypasses the gate. Persists
+     * the "always auto-deduct" opt-in if the operator ticked the checkbox.
+     */
+    public function confirmExpensiveAction(): void
+    {
+        if (! $this->pendingExpensiveAction) {
+            return;
+        }
+
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        if ($this->autoDeductOptIn && ! $team->auto_deduct_expensive_actions) {
+            $team->update(['auto_deduct_expensive_actions' => true]);
+        }
+
+        $pending = $this->pendingExpensiveAction;
+        $this->pendingExpensiveAction = null;
+
+        try {
+            /** @var DeepAnalysisService $service */
+            $service = app(DeepAnalysisService::class);
+            $service->dispatch(
+                team: $team->fresh() ?? $team,
+                userId: (int) Auth::id(),
+                cohortFilter: (array) $pending['cohort_filter'],
+                mode: (string) $pending['mode'],
+                chargeMeta: ['confirmation_token' => (string) $pending['action_token']],
+            );
+
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => __('Analysis dispatched. I\'ll let you know when it\'s ready — usually 60-120 seconds. You can keep chatting about other things.'),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('AiChat::confirmExpensiveAction failed', ['error' => $e->getMessage()]);
+            $this->messages[] = ['role' => 'assistant', 'content' => __('Could not start the analysis: :msg', ['msg' => $e->getMessage()])];
+        } finally {
+            Flux::modal('deep-analysis-confirm')->close();
+            $this->dispatch('message-sent');
+        }
+    }
+
+    public function cancelExpensiveAction(): void
+    {
+        $this->pendingExpensiveAction = null;
+        $this->autoDeductOptIn = false;
+
+        Flux::modal('deep-analysis-confirm')->close();
+
+        $this->messages[] = ['role' => 'assistant', 'content' => __('Analysis cancelled.')];
+        $this->dispatch('message-sent');
+    }
+
+    /**
+     * Pattern-match the operator's text for Deep Analysis intent. Keeps
+     * detection in one place so the quote/dispatch call sites can't drift
+     * from each other.
+     *
+     * @return array{cohort_filter: array<string, mixed>, mode: string}|null
+     */
+    protected function parseDeepAnalysisRequest(Team $team, string $text): ?array
+    {
+        $lower = mb_strtolower($text);
+
+        $isDeep = (bool) preg_match(
+            '/\b(deep\s+(analysis|dive)|analyz(e|ing)?\s+(the\s+)?(last\s+)?(all\s+)?\d*\s*(contacts|conversations|chats|customers)|analyz(e|ing)?\s+(all\s+)?contacts?\s+for)\b/iu',
+            $lower
+        );
+
+        // Phase H — three distinct phrasings route into the agent_audit mode.
+        // Kept as separate expressions so a reader can grep for the exact
+        // operator phrase that triggered the routing.
+        $isAudit = (bool) preg_match(
+            '/\baudit\s+(how\s+)?(our\s+)?(agents?|moderators?|team|staff|humans)\b/iu',
+            $lower
+        ) || (bool) preg_match(
+            '/\bhow\s+(did|does|is|have|has)\s+(our\s+)?(agents?|team|moderators?|staff)\s+(handle|handled|handling|respond|responded|responding|do)\b/iu',
+            $lower
+        ) || (bool) preg_match(
+            '/\bevaluate\s+(our\s+)?(agents?|team|moderators?|staff)\b/iu',
+            $lower
+        );
+
+        if (! $isDeep && ! $isAudit) {
+            return null;
+        }
+
+        $cohortFilter = [];
+
+        // Explicit N contacts: "analyze last 500 contacts" → limit=500.
+        if (preg_match('/\b(?:last\s+)?(\d{2,5})\s*(?:contacts?|conversations?|chats?|customers?)\b/iu', $lower, $m)) {
+            $cohortFilter['limit'] = (int) $m[1];
+        }
+
+        // Page name — reuse AdminChatContext's resolver so brand typos and
+        // Arabic names work the same way as inline mentions.
+        /** @var AdminChatContext $ctx */
+        $ctx = app(AdminChatContext::class);
+        $pageIds = $ctx->mentionedPageIds($team->id, $text, '');
+        if (count($pageIds) === 1) {
+            $cohortFilter['page_id'] = $pageIds[0];
+        }
+
+        return [
+            'cohort_filter' => $cohortFilter,
+            'mode'          => $isAudit ? DeepAnalysis::MODE_AGENT_AUDIT : DeepAnalysis::MODE_CUSTOMER_THEMES,
+        ];
+    }
+
+    /**
+     * Persist an AiCommand row for a short-circuit turn (where we don't
+     * actually call NaraRouter). Keeps the chat history in sync with
+     * AiCommand so a page reload shows the dispatched/queued state.
+     */
+    protected function persistTurn(Team $team, string $operatorText, string $responseText): void
+    {
+        AiCommand::create([
+            'team_id'  => $team->id,
+            'user_id'  => Auth::id(),
+            'command'  => $operatorText,
+            'response' => $responseText,
+            'status'   => 'completed',
+        ]);
     }
 
     /**

@@ -136,6 +136,7 @@ class SlackPlatform extends AbstractPlatform
             'direction'           => 'outbound',
             'sender_type'         => 'agent',
             'sender_id'           => auth()->id(),
+            'handled_by_user_id'  => auth()->id(),
             'content_type'        => $contentType,
             'content'             => $content,
             'media_url'           => $media['url'] ?? null,

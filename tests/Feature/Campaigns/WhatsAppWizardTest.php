@@ -21,7 +21,13 @@ class WhatsAppWizardTest extends TestCase
     public function test_full_flow_from_upload_to_launch(): void
     {
         Storage::fake('local');
-        $team = Team::factory()->create(['features' => ['bulk_whatsapp_campaigns' => true]]);
+        // Phase RP (2026-10-06): Free plan now has a 0-campaign cap, so the
+        // launch step would be blocked. Flip to Starter to exercise the
+        // full flow.
+        $team = Team::factory()->create([
+            'features' => ['bulk_whatsapp_campaigns' => true],
+            'subscription_plan' => 'starter',
+        ]);
         $user = User::factory()->create(['current_team_id' => $team->id]);
         Page::factory()->create([
             'team_id' => $team->id, 'platform' => 'whatsapp', 'is_active' => true,

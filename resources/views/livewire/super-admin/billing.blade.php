@@ -1,119 +1,283 @@
 <div class="p-6">
     <div class="mb-6">
-        <flux:heading size="xl" class="text-zinc-900">{{ __('Billing') }}</flux:heading>
-        <flux:text class="mt-1 text-zinc-600">{{ __('Every team by plan lifecycle. Trials, invoices sent, overdue accounts, and receipts pending verification.') }}</flux:text>
+        <flux:heading size="xl" class="text-zinc-900">Billing — AI Credits</flux:heading>
+        <flux:text class="mt-1 text-zinc-600">
+            Grant AI credits after confirming a PayPal / bank transfer / WhatsApp payment. Every submit writes to the append-only ledger with you as the actor.
+        </flux:text>
     </div>
 
     @if(session('success'))
         <div class="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
-            <flux:text class="text-green-700">{{ session('success') }}</flux:text>
+            <flux:text class="text-green-800">{{ session('success') }}</flux:text>
         </div>
     @endif
 
-    <div class="mb-4 flex flex-wrap items-end gap-3">
-        <div class="w-64">
-            <flux:input wire:model.live.debounce.400ms="search" placeholder="Search team, owner, email…" />
+    @if(session('error'))
+        <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+            <flux:text class="text-red-800">{{ session('error') }}</flux:text>
         </div>
-        <div class="w-56">
-            <flux:select wire:model.live="statusFilter">
-                <option value="attention">{{ __('Needs attention') }}</option>
-                <option value="trial">{{ __('Trial') }}</option>
-                <option value="pending_payment">{{ __('Pending payment') }}</option>
-                <option value="overdue">{{ __('Overdue') }}</option>
-                <option value="paid">{{ __('Paid') }}</option>
-                <option value="cancelled">{{ __('Cancelled') }}</option>
-                <option value="all">{{ __('All') }}</option>
-            </flux:select>
-        </div>
-        <div class="ml-auto text-sm text-zinc-500">{{ count($this->teams) }} {{ __('teams') }}</div>
-    </div>
+    @endif
 
-    <div class="overflow-x-auto rounded-lg border border-zinc-200">
-        <table class="min-w-full divide-y divide-zinc-200">
-            <thead class="bg-zinc-50 text-left text-xs font-semibold uppercase text-zinc-500">
-                <tr>
-                    <th class="px-3 py-2">{{ __('Team') }}</th>
-                    <th class="px-3 py-2">{{ __('Owner') }}</th>
-                    <th class="px-3 py-2">{{ __('Plan') }}</th>
-                    <th class="px-3 py-2">{{ __('Status') }}</th>
-                    <th class="px-3 py-2">{{ __('Trial day') }}</th>
-                    <th class="px-3 py-2">{{ __('Payment due') }}</th>
-                    <th class="px-3 py-2">{{ __('Receipt?') }}</th>
-                    <th class="px-3 py-2">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 bg-white text-sm text-zinc-800">
-                @forelse($this->teams as $team)
-                    <tr>
-                        <td class="px-3 py-2 font-medium">{{ $team->name }}</td>
-                        <td class="px-3 py-2 text-zinc-600">
-                            {{ $team->owner?->name }}<br>
-                            <span class="text-xs text-zinc-400">{{ $team->owner?->email }}</span>
-                        </td>
-                        <td class="px-3 py-2">{{ $team->subscription_plan ?? '—' }}</td>
-                        <td class="px-3 py-2">
-                            <span @class([
-                                'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
-                                'bg-blue-100 text-blue-700'     => $team->plan_status === 'trial',
-                                'bg-amber-100 text-amber-700'   => $team->plan_status === 'pending_payment',
-                                'bg-green-100 text-green-700'   => $team->plan_status === 'paid',
-                                'bg-red-100 text-red-700'       => $team->plan_status === 'overdue',
-                                'bg-zinc-200 text-zinc-700'     => $team->plan_status === 'cancelled',
-                            ])>
-                                {{ str_replace('_', ' ', $team->plan_status ?? '—') }}
-                            </span>
-                        </td>
-                        <td class="px-3 py-2">
-                            @php $day = $this->daysInTrialFor($team); @endphp
-                            {{ $day !== null ? $day . '/' . \App\Services\Billing\PlanLifecycle::TRIAL_DAYS : '—' }}
-                        </td>
-                        <td class="px-3 py-2">
-                            {{ $team->plan_payment_due_at?->diffForHumans() ?? '—' }}
-                        </td>
-                        <td class="px-3 py-2">
-                            @if(isset($this->pendingReceiptByTeam[$team->id]))
-                                <a href="{{ route('super-admin.subscriptions') }}" class="text-emerald-600 underline">
-                                    {{ __('Review') }}
-                                </a>
-                            @else
-                                <span class="text-zinc-400">—</span>
-                            @endif
-                        </td>
-                        <td class="px-3 py-2">
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    wire:click="markPaid({{ $team->id }})"
-                                    class="rounded bg-green-600 px-2 py-1 text-xs font-semibold text-white hover:bg-green-700">
-                                    {{ __('Mark paid') }}
-                                </button>
-                                <button
-                                    wire:click="resetToTrial({{ $team->id }})"
-                                    class="rounded border border-zinc-300 px-2 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-50">
-                                    {{ __('Reset trial') }}
-                                </button>
-                                <button
-                                    wire:click="cancel({{ $team->id }})"
-                                    wire:confirm="{{ __('Cancel this team? They will lose AI access.') }}"
-                                    class="rounded border border-red-300 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50">
-                                    {{ __('Cancel') }}
-                                </button>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {{-- Grant form --}}
+        <div class="lg:col-span-2 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <flux:heading size="lg" class="text-zinc-900 mb-4">Grant AI credits</flux:heading>
+
+            <form wire:submit="submit" class="space-y-4">
+                {{-- Team selector --}}
+                <div>
+                    <label for="teamId" class="block text-sm font-medium text-zinc-800 mb-1">Team</label>
+                    <select
+                        id="teamId"
+                        wire:model.live="teamId"
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                    >
+                        <option value="">— Pick a team —</option>
+                        @foreach($this->teams as $team)
+                            <option value="{{ $team->id }}">
+                                {{ $team->name }} ({{ $team->subscription_plan ?? 'free' }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('teamId') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Selected team balance panel --}}
+                @if($this->selectedBalance)
+                    <div class="rounded-lg bg-zinc-50 border border-zinc-200 p-3 text-sm">
+                        <div class="font-medium text-zinc-900 mb-1">
+                            Current balance for {{ $this->selectedTeam->name }}
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 text-xs">
+                            <div>
+                                <div class="text-zinc-500">Monthly</div>
+                                <div class="text-base font-semibold text-zinc-900">{{ $this->selectedBalance['monthly'] }}</div>
                             </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="px-3 py-6 text-center text-zinc-500">
-                            {{ __('No teams match this filter.') }}
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                            <div>
+                                <div class="text-zinc-500">Wallet</div>
+                                <div class="text-base font-semibold text-zinc-900">{{ $this->selectedBalance['wallet'] }}</div>
+                            </div>
+                            <div>
+                                <div class="text-zinc-500">Total</div>
+                                <div class="text-base font-semibold text-emerald-700">{{ $this->selectedBalance['total'] }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-zinc-500">
+                            Plan: <span class="font-medium text-zinc-800">{{ $this->selectedTeam->subscription_plan ?? 'free' }}</span>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Action radios --}}
+                <fieldset>
+                    <legend class="block text-sm font-medium text-zinc-800 mb-2">Action</legend>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="flex items-start gap-2 rounded-lg border border-zinc-200 bg-white p-3 cursor-pointer hover:bg-zinc-50">
+                            <input type="radio" wire:model.live="action" value="grant_wallet" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
+                            <span>
+                                <span class="block font-medium text-zinc-900">Grant wallet credits</span>
+                                <span class="block text-xs text-zinc-500">Never expire. Drained after monthly.</span>
+                            </span>
+                        </label>
+                        <label class="flex items-start gap-2 rounded-lg border border-zinc-200 bg-white p-3 cursor-pointer hover:bg-zinc-50">
+                            <input type="radio" wire:model.live="action" value="grant_monthly_bonus" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
+                            <span>
+                                <span class="block font-medium text-zinc-900">Grant monthly bonus</span>
+                                <span class="block text-xs text-zinc-500">Resets with billing cycle. Drained first.</span>
+                            </span>
+                        </label>
+                        <label class="flex items-start gap-2 rounded-lg border border-zinc-200 bg-white p-3 cursor-pointer hover:bg-zinc-50">
+                            <input type="radio" wire:model.live="action" value="change_plan" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
+                            <span>
+                                <span class="block font-medium text-zinc-900">Change plan</span>
+                                <span class="block text-xs text-zinc-500">Audit row only (delta 0).</span>
+                            </span>
+                        </label>
+                        <label class="flex items-start gap-2 rounded-lg border border-zinc-200 bg-white p-3 cursor-pointer hover:bg-zinc-50">
+                            <input type="radio" wire:model.live="action" value="refund" class="mt-0.5 text-emerald-600 focus:ring-emerald-500" />
+                            <span>
+                                <span class="block font-medium text-zinc-900">Refund credits</span>
+                                <span class="block text-xs text-zinc-500">Positive wallet row with reason.</span>
+                            </span>
+                        </label>
+                    </div>
+                    @error('action') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                </fieldset>
+
+                {{-- Grant-specific fields --}}
+                @if(in_array($action, ['grant_wallet', 'grant_monthly_bonus']))
+                    <div>
+                        <label for="amount" class="block text-sm font-medium text-zinc-800 mb-1">Amount (credits)</label>
+                        <input
+                            type="number"
+                            id="amount"
+                            wire:model="amount"
+                            min="1"
+                            class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                        />
+                        @error('amount') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="paymentReference" class="block text-sm font-medium text-zinc-800 mb-1">Payment reference (optional)</label>
+                        <input
+                            type="text"
+                            id="paymentReference"
+                            wire:model="paymentReference"
+                            placeholder="e.g. PayPal order 1AB-23456789 / Bank ref XYZ"
+                            class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                        />
+                        @error('paymentReference') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                    </div>
+                @endif
+
+                {{-- Change-plan field --}}
+                @if($action === 'change_plan')
+                    <div>
+                        <label for="plan" class="block text-sm font-medium text-zinc-800 mb-1">New plan</label>
+                        <select
+                            id="plan"
+                            wire:model="plan"
+                            class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                        >
+                            @foreach($this->planOptions as $planKey)
+                                <option value="{{ $planKey }}">{{ $planKey }}</option>
+                            @endforeach
+                        </select>
+                        @error('plan') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                    </div>
+                @endif
+
+                {{-- Refund fields --}}
+                @if($action === 'refund')
+                    <div>
+                        <label for="amount" class="block text-sm font-medium text-zinc-800 mb-1">Amount (credits to refund)</label>
+                        <input
+                            type="number"
+                            id="amount"
+                            wire:model="amount"
+                            min="1"
+                            class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                        />
+                        @error('amount') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="refundReason" class="block text-sm font-medium text-zinc-800 mb-1">Refund reason</label>
+                        <select
+                            id="refundReason"
+                            wire:model="refundReason"
+                            class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                        >
+                            <option value="outage">outage</option>
+                            <option value="support">support</option>
+                            <option value="chargeback">chargeback</option>
+                        </select>
+                        @error('refundReason') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                    </div>
+                @endif
+
+                {{-- Note (always available) --}}
+                <div>
+                    <label for="note" class="block text-sm font-medium text-zinc-800 mb-1">Note (optional)</label>
+                    <textarea
+                        id="note"
+                        wire:model="note"
+                        rows="3"
+                        placeholder="e.g. PayPal $35 received 2026-10-05, order #..."
+                        class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                    ></textarea>
+                    @error('note') <p class="mt-1 text-xs text-red-700">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="pt-2">
+                    <button
+                        type="submit"
+                        class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {{-- Right column: quick help --}}
+        <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-700">
+            <div class="font-semibold text-zinc-900 mb-2">What writes to the ledger</div>
+            <ul class="list-disc ps-5 space-y-1 text-xs">
+                <li><strong>Grant wallet</strong> → reason <code>manual_grant</code>, balance <code>wallet</code>.</li>
+                <li><strong>Grant monthly bonus</strong> → reason <code>manual_bonus</code>, balance <code>monthly</code>.</li>
+                <li><strong>Change plan</strong> → <code>plan_changed</code>, delta 0 (audit only).</li>
+                <li><strong>Refund</strong> → <code>refund_outage</code> / <code>refund_support</code> / <code>refund_chargeback</code>, positive wallet credit.</li>
+            </ul>
+            <div class="mt-4 text-xs text-zinc-500">
+                All entries are append-only. There is no edit / delete — write a compensating entry instead.
+            </div>
+        </div>
     </div>
 
-    <p class="mt-4 text-xs text-zinc-500">
-        {{ __('Overdue accounts are soft-throttled to') }}
-        {{ \App\Services\Billing\PlanLifecycle::OVERDUE_DAILY_MESSAGE_CAP }}
-        {{ __('AI messages per UTC day — never fully blocked, per plan.') }}
-    </p>
+    {{-- Ledger table --}}
+    <div class="rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <div class="p-4 flex flex-wrap items-end gap-3 border-b border-zinc-200">
+            <div class="flex-1 min-w-64">
+                <label for="search" class="block text-xs font-medium text-zinc-600 mb-1">Search ledger</label>
+                <input
+                    type="text"
+                    id="search"
+                    wire:model.live.debounce.400ms="search"
+                    placeholder="Team name or payment reference…"
+                    class="block w-full rounded-lg border border-zinc-300 bg-white text-zinc-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                />
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-zinc-200">
+                <thead class="bg-zinc-50 text-left text-xs font-semibold uppercase text-zinc-600">
+                    <tr>
+                        <th class="px-3 py-2">When</th>
+                        <th class="px-3 py-2">Team</th>
+                        <th class="px-3 py-2">Actor</th>
+                        <th class="px-3 py-2">Reason</th>
+                        <th class="px-3 py-2 text-right">Delta</th>
+                        <th class="px-3 py-2">Balance</th>
+                        <th class="px-3 py-2">Payment ref</th>
+                        <th class="px-3 py-2">Note</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 bg-white text-sm text-zinc-800">
+                    @forelse($this->ledger as $entry)
+                        <tr>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-zinc-600">
+                                {{ $entry->created_at?->format('Y-m-d H:i') }}
+                            </td>
+                            <td class="px-3 py-2 font-medium">{{ $entry->team?->name ?? '—' }}</td>
+                            <td class="px-3 py-2 text-zinc-700">{{ $entry->actor?->name ?? 'system' }}</td>
+                            <td class="px-3 py-2 font-mono text-xs">{{ $entry->reason }}</td>
+                            <td class="px-3 py-2 text-right font-semibold {{ $entry->delta >= 0 ? 'text-emerald-700' : 'text-red-700' }}">
+                                {{ $entry->delta >= 0 ? '+' : '' }}{{ $entry->delta }}
+                            </td>
+                            <td class="px-3 py-2 text-xs text-zinc-600">{{ $entry->balance_type }}</td>
+                            <td class="px-3 py-2 text-xs text-zinc-700">
+                                {{ $entry->metadata['payment_reference'] ?? '—' }}
+                            </td>
+                            <td class="px-3 py-2 text-xs text-zinc-700 max-w-xs truncate" title="{{ $entry->metadata['note'] ?? '' }}">
+                                {{ $entry->metadata['note'] ?? '—' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-3 py-6 text-center text-zinc-500">
+                                No ledger entries match this filter.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-3 border-t border-zinc-200">
+            {{ $this->ledger->links() }}
+        </div>
+    </div>
 </div>

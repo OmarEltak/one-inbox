@@ -86,8 +86,18 @@ class AdminChatContext
      * included from the preview instead of being skipped — otherwise a page
      * connected today looks like it has no customers at all.
      */
-    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 6000, ?int $pageId = null): string
+    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 6000, ?int $pageId = null, bool $expanded = false): string
     {
+        // Targeted-page expansion mode: the operator named a specific page, so
+        // the chat context deserves a much larger window AND both sides of each
+        // thread (agent + customer) so moderator-audit style questions work.
+        // Phase C of the AI credit economy spec (§6).
+        if ($expanded) {
+            $maxConversations = 150;
+            $perConversation = 10;
+            $charBudget = 30_000;
+        }
+
         $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;
         $scope = $pageName ? " ON PAGE \"{$pageName}\"" : '';
 
@@ -108,25 +118,40 @@ class AdminChatContext
             ->limit($maxConversations)
             ->get();
 
-        $byConversation = Message::whereIn('conversation_id', $conversations->pluck('id'))
-            ->where('direction', 'inbound')
+        $messageQuery = Message::whereIn('conversation_id', $conversations->pluck('id'))
+            ->unless($expanded, fn ($q) => $q->where('direction', 'inbound'))
             ->whereNotNull('content')
             ->orderByRaw('COALESCE(platform_sent_at, created_at) DESC')
-            ->limit($maxConversations * 20)
-            ->get(['conversation_id', 'content'])
-            ->groupBy('conversation_id');
+            ->limit($maxConversations * 20);
+
+        // Expanded mode needs direction + sender_type so we can tag each line
+        // (Customer / Agent / AI) when both sides are present.
+        $byConversation = $expanded
+            ? $messageQuery->get(['conversation_id', 'content', 'direction', 'sender_type'])->groupBy('conversation_id')
+            : $messageQuery->get(['conversation_id', 'content'])->groupBy('conversation_id');
 
         $blocks = [];
         $used = 0;
         $previewOnly = 0;
         foreach ($conversations as $conversation) {
-            $raw = ($byConversation[$conversation->id] ?? collect())
-                ->pluck('content')
-                ->reject(fn ($c) => MediaPlaceholders::isPlaceholder($c))
+            $rows = ($byConversation[$conversation->id] ?? collect())
+                ->reject(fn ($m) => MediaPlaceholders::isPlaceholder($m->content))
                 ->take($perConversation)
                 ->reverse()
                 ->values();
-            $lines = $raw->map(fn ($c) => '  • ' . $this->clip($c, 180));
+            $raw = $rows->pluck('content');
+
+            if ($expanded) {
+                $lines = $rows->map(function ($m) {
+                    $who = $m->direction === 'inbound'
+                        ? 'Customer'
+                        : ($m->sender_type === 'ai' ? 'AI' : 'Agent');
+
+                    return '  • ' . $who . ': ' . $this->clip($m->content, 180);
+                });
+            } else {
+                $lines = $raw->map(fn ($c) => '  • ' . $this->clip($c, 180));
+            }
 
             if ($raw->isEmpty()) {
                 $preview = (string) $conversation->last_message_preview;
@@ -156,10 +181,15 @@ class AdminChatContext
             ? "Note: {$previewOnly} of these chats were imported when the page was connected, so only their last-message preview is stored, not the full history. Answer from what is here, say the sample is limited to previews, and do NOT suggest exporting chats, Meta Business Suite or a CRM.\n"
             : '';
 
-        return "=== CUSTOMER CONVERSATIONS{$scope} ({$sampled} most recent of {$total} conversations; customer messages, oldest→newest per chat) ===\n"
-            . 'Use this to answer what customers want, ask about, complain about, and object to. Quote it as evidence.' . "\n"
-            . $note
-            . implode("\n", $blocks);
+        $header = $expanded
+            ? "=== EXPANDED CUSTOMER CONVERSATIONS{$scope} (BOTH SIDES OF EACH THREAD) ({$sampled} most recent of {$total} conversations; inbound+outbound, oldest→newest per chat) ==="
+            : "=== CUSTOMER CONVERSATIONS{$scope} ({$sampled} most recent of {$total} conversations; customer messages, oldest→newest per chat) ===";
+
+        $guidance = $expanded
+            ? 'Use this to audit both customer messages AND how our agents/AI replied. Quote it as evidence.'
+            : 'Use this to answer what customers want, ask about, complain about, and object to. Quote it as evidence.';
+
+        return $header . "\n" . $guidance . "\n" . $note . implode("\n", $blocks);
     }
 
     /**

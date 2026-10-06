@@ -10,8 +10,9 @@ use Illuminate\Support\Str;
 /**
  * Phase 2 of the 5-phase load-management plan (docs/OT1_LIMITS.md §11).
  *
- * Guarantees the monthly-campaign gate works per plan and the 30-day rolling
- * window resets old campaigns out.
+ * Phase RP (2026-10-06): numeric caps changed to the 4-tier ladder —
+ * Free=0, Starter=3, Pro=15, Business=100. Config source moved from
+ * config/campaigns.php to config('plans.plans.{plan}.limits.bulk_campaigns_monthly').
  */
 
 function makeLimitTeam(string $plan = 'free'): array
@@ -46,28 +47,23 @@ function makeCampaign(Team $team, int $daysAgo = 0): Campaign
     return $c->fresh();
 }
 
-it('defaults to free-plan cap of 1 campaign per rolling 30 days', function () {
+it('defaults to free-plan cap of 0 campaigns per rolling 30 days', function () {
     [, $team] = makeLimitTeam(plan: 'free');
 
-    expect($team->monthlyCampaignLimit())->toBe(1);
-    expect($team->canCreateCampaign())->toBeTrue();
-    expect($team->campaignsRemainingThisMonth())->toBe(1);
-
-    makeCampaign($team);
-
-    expect($team->fresh()->canCreateCampaign())->toBeFalse();
-    expect($team->fresh()->campaignsRemainingThisMonth())->toBe(0);
+    expect($team->monthlyCampaignLimit())->toBe(0);
+    expect($team->canCreateCampaign())->toBeFalse();
+    expect($team->campaignsRemainingThisMonth())->toBe(0);
 });
 
-it('applies starter, pro, and enterprise caps from config', function () {
-    foreach (['starter' => 5, 'pro' => 25, 'enterprise' => PHP_INT_MAX] as $plan => $expected) {
+it('applies starter, pro, and business caps from the plans config', function () {
+    foreach (['starter' => 3, 'pro' => 15, 'business' => 100] as $plan => $expected) {
         [, $team] = makeLimitTeam(plan: $plan);
         expect($team->monthlyCampaignLimit())->toBe($expected);
     }
 });
 
 it('does NOT count campaigns older than 30 days (rolling window)', function () {
-    [, $team] = makeLimitTeam(plan: 'free');
+    [, $team] = makeLimitTeam(plan: 'starter');
     makeCampaign($team, daysAgo: 31);
 
     // Only campaign is 31 days old — falls outside rolling 30-day window.
@@ -75,18 +71,29 @@ it('does NOT count campaigns older than 30 days (rolling window)', function () {
     expect($team->fresh()->canCreateCampaign())->toBeTrue();
 });
 
-it('treats an unknown plan slug as free-tier fallback', function () {
+it('treats an unknown plan slug as free-tier fallback (0 campaigns)', function () {
     // Belt-and-suspenders: if a future plan slug ships to prod before its
     // config entry lands, we fall back to the free cap instead of throwing.
     [, $team] = makeLimitTeam(plan: 'brand-new-plan-not-in-config');
 
-    expect($team->fresh()->monthlyCampaignLimit())->toBe(1);
+    expect($team->fresh()->monthlyCampaignLimit())->toBe(0);
 });
 
-it('pro plan holds 25 campaigns then blocks the 26th', function () {
+it('pro plan holds 15 campaigns then blocks the 16th', function () {
     [, $team] = makeLimitTeam(plan: 'pro');
 
-    for ($i = 0; $i < 25; $i++) {
+    for ($i = 0; $i < 15; $i++) {
+        makeCampaign($team);
+    }
+
+    expect($team->fresh()->canCreateCampaign())->toBeFalse();
+    expect($team->fresh()->campaignsRemainingThisMonth())->toBe(0);
+});
+
+it('business plan holds 100 campaigns then blocks the 101st', function () {
+    [, $team] = makeLimitTeam(plan: 'business');
+
+    for ($i = 0; $i < 100; $i++) {
         makeCampaign($team);
     }
 
