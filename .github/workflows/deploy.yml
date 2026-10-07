@@ -17,7 +17,46 @@ jobs:
           username: deploy
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
+            set -e
             cd /var/www/ot1-pro.com
+
+            # ── HOME shims — deploy user's $HOME (/var/www) isn't writable by
+            # artisan subprocesses; psysh will explode without these. ──
+            export XDG_CONFIG_HOME=/tmp HOME=/tmp
+
+            # ── 2026-10-08 Path A: minimize the 500-window during deploy. ──
+            # Previously the sequence was git pull → composer → npm → migrate →
+            # artisan *:clear → artisan *:cache → fpm reload. The *:clear step
+            # physically deleted bootstrap/cache/config.php, routes.php and
+            # compiled views, and ANY request landing in the next ~2-5 seconds
+            # before *:cache rewrote them returned MissingAppKeyException or
+            # view-not-found 500s. The npm build + migrate + opcache-stale
+            # windows piled on top of that.
+            #
+            # Now: enter maintenance mode BEFORE any disk mutation, keep it
+            # on through the whole dance, come back online only after the
+            # fpm reload has picked up the new code. Users during the window
+            # see the branded 503 "I'm giving the site a quick tune-up"
+            # page (resources/views/errors/503.blade.php) with a Retry-After
+            # header, instead of a scary 500.
+            #
+            # Safety: trap ensures `php artisan up` runs even if a later step
+            # fails — otherwise a bad deploy would leave prod stuck in
+            # maintenance mode until a human manually runs `up`.
+            trap 'php artisan up || true' EXIT
+
+            # Optional: set DEPLOY_MAINT_SECRET in the repo's GitHub Actions
+            # secrets to get a bypass URL (visit https://ot1-pro.com/<secret>
+            # during the window to verify the deploy before letting users back
+            # in). Without the secret, the window is still safe — users just
+            # see the 503 for its full duration.
+            MAINT_SECRET='${{ secrets.DEPLOY_MAINT_SECRET }}'
+            if [ -n "$MAINT_SECRET" ]; then
+              php artisan down --render="errors::503" --retry=30 --secret="$MAINT_SECRET"
+            else
+              php artisan down --render="errors::503" --retry=30
+            fi
+
             git pull origin main
 
             # ── Prod .env guards (idempotent — only writes if not already set) ──
@@ -30,22 +69,21 @@ jobs:
             npm ci && npm run build
             php artisan migrate --force
 
-            # HOME/XDG_CONFIG_HOME shims — deploy user's $HOME (/var/www) isn't
-            # writable by artisan subprocesses; psysh will explode without these
-            # ("Writing to directory /var/www/.config/psysh is not allowed").
-            # Also clear caches FIRST so a stale compiled view/config from a
-            # prior deploy (or a manual run as the wrong user) can't linger
-            # and re-explode. See ot1-pro-prod-ops skill rule #1 +
-            # 2026-09-29 email-wizard/config-cache combo incident.
-            export XDG_CONFIG_HOME=/tmp HOME=/tmp
-            php artisan config:clear
-            php artisan route:clear
-            php artisan view:clear
+            # ── Cache rebuild — DO NOT run *:clear first. ──
+            # The *:cache commands atomically overwrite the compiled files
+            # (write-to-tempfile + rename), so running *:clear immediately
+            # before created a guaranteed 500 window and had no benefit.
+            # Removed 2026-10-08 as part of the maintenance-mode wrap.
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan queue:restart
             sudo systemctl reload php8.4-fpm
+
+            # ── Leave maintenance mode last — opcache is now warm with the
+            # new code, caches are rebuilt, queue has restarted. ──
+            php artisan up
+
             # Note: the previous incarnation of this workflow ran `sudo chown/chmod/touch`
             # on storage and bootstrap/cache. Deploy user's sudoers only permits
             # `sudo systemctl reload php8.4-fpm` (see /etc/sudoers.d/deploy), so those
