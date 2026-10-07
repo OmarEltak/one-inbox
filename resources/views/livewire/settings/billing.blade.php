@@ -95,14 +95,19 @@
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800 overflow-hidden">
+                <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
                     @if($this->ledger->isEmpty())
                         <div class="px-4 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
                             {{ __('No credit activity in this period.') }}
                         </div>
                     @else
                         @php $running = $this->balance->total(); @endphp
-                        <table class="w-full text-sm" data-test="ledger-table">
+                        {{-- Horizontal scroll on narrow screens. Previous markup had
+                             overflow-hidden on the card, which actively blocked scroll
+                             and crushed the Action column (long strings like
+                             deep_analysis_run_4242_58635214) into unreadable wraps. --}}
+                        <div class="overflow-x-auto rounded-xl">
+                        <table class="w-full min-w-[560px] text-sm" data-test="ledger-table">
                             <thead class="bg-zinc-50 dark:bg-zinc-900/40">
                                 <tr class="border-b border-zinc-100 dark:border-zinc-700 text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                                     <th class="px-4 py-2.5 text-start font-semibold">{{ __('Date') }}</th>
@@ -146,6 +151,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        </div>
 
                         @if($this->ledger->hasPages())
                             <div class="px-4 py-3 border-t border-zinc-100 dark:border-zinc-700">

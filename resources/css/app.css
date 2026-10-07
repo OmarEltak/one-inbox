@@ -497,9 +497,18 @@ details[open] > :not(summary) { display: revert; }
 .ai-md ul { list-style: disc; padding-inline-start: 1.25em; }
 .ai-md ol { list-style: decimal; padding-inline-start: 1.25em; }
 .ai-md li + li { margin-top: 0.25em; }
-.ai-md table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 0.8125rem; }
-.ai-md :is(th, td) { border: 1px solid #d4d4d8; padding: 0.35em 0.6em; }
-.ai-md th { background: #f4f4f5; font-weight: 600; color: #18181b; }
+/* 2026-10-08: previous rule was `.ai-md table { display: block; overflow-x: auto }`.
+   The `display: block` stripped table semantics so column widths no longer sized
+   to content — the browser wrapped the # column one digit per line ("20" → "2\n0").
+   The overflow-x only triggers when children exceed container, but cells auto-wrapped
+   infinitely so nothing ever overflowed → no scroll either. New approach: a server-side
+   wrapper (.ai-md-table-wrap, injected in ai-chat.blade.php) handles scroll, the table
+   itself goes back to `display: table`, and first-column/numeric cells stay single-line. */
+.ai-md-table-wrap { max-width: 100%; overflow-x: auto; margin-top: 0.6em; -webkit-overflow-scrolling: touch; }
+.ai-md table { display: table; width: auto; min-width: 420px; border-collapse: collapse; font-size: 0.8125rem; }
+.ai-md :is(th, td) { border: 1px solid #d4d4d8; padding: 0.35em 0.6em; vertical-align: top; }
+.ai-md :is(th, td):first-child { white-space: nowrap; }
+.ai-md th { background: #f4f4f5; font-weight: 600; color: #18181b; white-space: nowrap; }
 .ai-md code { background: #f4f4f5; border-radius: 4px; padding: 0 0.3em; font-size: 0.85em; }
 .ai-md blockquote { border-inline-start: 3px solid #6ee7b7; padding-inline-start: 0.75em; color: #3f3f46; }
 .ai-md a { color: #047857; text-decoration: underline; }

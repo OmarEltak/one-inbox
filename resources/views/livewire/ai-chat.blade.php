@@ -167,8 +167,15 @@
                                         <div class="size-2 animate-bounce rounded-full bg-[#64748b]"></div>
                                     </div>
                                 @else
-                                    {{-- Markdown, raw HTML stripped: the AI's **bold**, lists and tables used to show as literal symbols. --}}
-                                    <div class="ai-md">{!! \Illuminate\Support\Str::markdown($msg['content'] ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</div>
+                                    {{-- Markdown, raw HTML stripped: the AI's **bold**, lists and tables used to show as literal symbols.
+                                         Tables get wrapped in .ai-md-table-wrap for horizontal scroll on mobile —
+                                         the raw markdown-output table has no wrapper of its own and overflowed its parent. --}}
+                                    @php
+                                        $html = \Illuminate\Support\Str::markdown($msg['content'] ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]);
+                                        $html = preg_replace('/<table(\s|>)/', '<div class="ai-md-table-wrap"><table$1', $html);
+                                        $html = str_replace('</table>', '</table></div>', $html);
+                                    @endphp
+                                    <div class="ai-md">{!! $html !!}</div>
                                 @endif
                             </div>
                         </div>
