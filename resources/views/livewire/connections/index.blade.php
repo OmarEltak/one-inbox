@@ -27,13 +27,34 @@
             <p class="text-sm font-medium text-green-700">{{ session('success') }}</p>
         </div>
     @endif
+    {{-- Syncing toast: fixed bottom-right, dismissible with X.
+         No localStorage — session('syncing') is a one-shot flash so it only
+         appears for the one render after an OAuth success. Dismissing in-page
+         just hides it for the current pageview. --}}
     @if(session('syncing'))
-        <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-center gap-3">
-            <svg class="w-4 h-4 text-blue-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+        <div
+            x-data="{ show: true }"
+            x-show="show"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-2"
+            class="fixed bottom-5 end-5 z-50 max-w-sm rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-lg flex items-start gap-3"
+        >
+            <svg class="w-4 h-4 text-blue-600 animate-spin flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
-            <p class="text-sm text-blue-700">{{ __('Syncing conversations in the background — this may take a minute. Check your inbox shortly.') }}</p>
+            <p class="text-sm text-blue-700 flex-1">{{ __('Syncing conversations in the background — this may take a minute. Check your inbox shortly.') }}</p>
+            <button type="button" @click="show = false" aria-label="{{ __('Dismiss') }}"
+                class="text-blue-400 hover:text-blue-700 transition-colors flex-shrink-0 -mt-0.5 -me-0.5 p-1 rounded cursor-pointer">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
     @endif
     @if(session('error'))

@@ -109,28 +109,65 @@ class User extends Authenticatable
         return $team && $this->isOwnerOf($team);
     }
 
-    public function hasPermission(string $permission): bool
-    {
-        $team = $this->currentTeam;
+    /**
+     * Request-scoped cache of the user's permission SET on the current team.
+     * The sidebar calls hasPermission() 8+ times per render; without this,
+     * every non-owner team member paid 8 DB queries just to decide which nav
+     * items to show. Reset implicitly on each new request (new model instance).
+     *
+     * @var array<string, mixed>|null  Null = not yet loaded for this request.
+     */
+    private ?array $permissionCache = null;
 
+    /**
+     * Returns:
+     *   - ['*']            if the user is the team owner (short-circuits every check)
+     *   - string[]         the member's explicit permissions list (possibly empty)
+     *   - null             if there's no current team or the user isn't a member
+     *
+     * @return list<string>|null
+     */
+    private function loadCurrentTeamPermissions(): ?array
+    {
+        if ($this->permissionCache !== null) {
+            return $this->permissionCache['perms'];
+        }
+
+        $team = $this->currentTeam;
         if (! $team) {
-            return false;
+            $this->permissionCache = ['perms' => null];
+            return null;
         }
 
         if ($this->isOwnerOf($team)) {
-            return true;
+            $this->permissionCache = ['perms' => ['*']];
+            return ['*'];
         }
 
         $member = $this->teams()->where('team_id', $team->id)->first();
-
         if (! $member) {
-            return false;
+            $this->permissionCache = ['perms' => null];
+            return null;
         }
 
         $raw = $member->pivot->permissions;
-        $permissions = is_string($raw) ? (json_decode($raw, true) ?? []) : ($raw ?? []);
+        $perms = is_string($raw) ? (json_decode($raw, true) ?? []) : ($raw ?? []);
+        $perms = array_values(array_filter($perms, 'is_string'));
 
-        return in_array($permission, $permissions);
+        $this->permissionCache = ['perms' => $perms];
+        return $perms;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        $perms = $this->loadCurrentTeamPermissions();
+        if ($perms === null) {
+            return false;
+        }
+        if ($perms === ['*']) {
+            return true;
+        }
+        return in_array($permission, $perms, true);
     }
 
     public function canManageAdmins(): bool
