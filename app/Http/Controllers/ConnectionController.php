@@ -127,22 +127,36 @@ class ConnectionController extends Controller
         }
 
         if ($activeCount === 0) {
-            // Use diagnostic metadata (set by FacebookPlatform::fetchPages when
-            // Meta returns 0 pages) to show the real cause instead of blaming
-            // the user for not ticking pages on the Meta picker.
+            // Branch on the diagnostic metadata set by FacebookPlatform::fetchPages
+            // so the user sees the ACTUAL cause and a concrete fix, not a generic
+            // "we don't know why" message. Three distinct causes, three messages.
             $diag = $account?->metadata['last_fetch_pages_zero'] ?? null;
+            $cause = $diag['likely_cause'] ?? null;
             $missing = $diag['missing_scopes'] ?? [];
 
-            if (! empty($missing)) {
+            if ($cause === 'twofa_or_scope_strip' || ! empty($missing)) {
                 $missingList = implode(', ', array_map(fn ($s) => "`{$s}`", $missing));
-                return $redirect->with('error',
-                    "Connected {$accountName}, but Meta did not grant the required Page permissions ({$missingList}). This means your Facebook account is not yet approved to use these permissions — either it needs to be added as a Tester on the OT1-Pro Meta app, or the Meta app's permissions are still pending Advanced Access review."
-                );
+                return $redirect->with('error', __(
+                    "Connected :account, but Meta stripped the required Page permissions (:missing). The most common cause is Two-Factor Authentication: if the Facebook Page you want to connect belongs to a Business Portfolio that requires 2FA for all admins (and most do by default), your personal Facebook account must have 2FA enabled first. Fix it here: https://www.facebook.com/security/2fac/settings — enable 2FA, then come back and reconnect. If 2FA is already enabled, the Meta app's permissions may still be pending Advanced Access review.",
+                    ['account' => $accountName, 'missing' => $missingList]
+                ));
             }
 
-            return $redirect->with('error',
-                "Connected {$accountName}, but no Pages were returned by Meta. Either this Facebook account doesn't manage any Pages, or you deselected them on the Meta permissions screen. Try again and tick at least one Page under 'Choose the Pages you want...'."
-            );
+            if ($cause === 'needs_business_management_reconsent') {
+                return $redirect->with('error', __(
+                    "Connected :account, but no Pages were returned. We just added support for Business-Portfolio-managed Pages — please click 'Connect Facebook' again to re-grant permissions, and tick the Pages you want on the Meta picker screen.",
+                    ['account' => $accountName]
+                ));
+            }
+
+            // cause === 'no_direct_or_business_page_role'  (or unknown).
+            // Scopes granted fine, we checked BOTH /me/accounts and /me/businesses
+            // → Business owned_pages, and both are empty. Translation: this Facebook
+            // user is not actually a Page admin on any Page they can access.
+            return $redirect->with('error', __(
+                "Connected :account, but Meta returned zero Pages even after checking both direct admin roles and Business Portfolio memberships. Likely causes: (1) you have not accepted the Page admin invite yet — check your Facebook notifications; (2) your role was assigned to a different Facebook account than the one you logged in with; (3) you have not been added as a Page admin yet. Open https://www.facebook.com/pages/?category=your_pages to see every Page your current Facebook account administers. If the Page you want is missing there, have the Page owner add you via Business Suite → the Page → Page Access → 'Add new → with Facebook access → Full control'.",
+                ['account' => $accountName]
+            ));
         }
 
         return $redirect

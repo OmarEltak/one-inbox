@@ -85,7 +85,11 @@ class FacebookPlatform extends AbstractPlatform
                 // pages_read_user_content scope, and Meta rejected the whole request with
                 // "Invalid Scopes: pages_read_user_content". Re-add ONLY after the FLfB
                 // config on the Meta Dev Console is cleaned of pages_read_user_content.
-                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement',
+                // business_management added 2026-10-07: Business-Portfolio-owned Pages
+                // (New Pages Experience, 2024+) do NOT appear in /me/accounts when the
+                // user's Page role was assigned via the Business layer rather than as
+                // a direct Page admin. Required to traverse /me/businesses/{id}/owned_pages.
+                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,business_management',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -108,7 +112,8 @@ class FacebookPlatform extends AbstractPlatform
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
                 // pages_manage_engagement removed on 2026-09-07 — see getConnectUrl() note.
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                // business_management added 2026-10-07 — see getConnectUrl() note.
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
@@ -439,7 +444,7 @@ class FacebookPlatform extends AbstractPlatform
                 'email' => $profile['email'] ?? null,
                 'access_token' => $longLivedToken,
                 'token_expires_at' => now()->addSeconds($expiresIn),
-                'scopes' => ['pages_messaging', 'pages_manage_metadata', 'pages_show_list', 'pages_read_engagement'],
+                'scopes' => ['pages_messaging', 'pages_manage_metadata', 'pages_show_list', 'pages_read_engagement', 'business_management'],
                 'is_active' => true,
                 'connected_at' => now(),
             ]
@@ -454,20 +459,45 @@ class FacebookPlatform extends AbstractPlatform
     /**
      * Fetch all pages the user manages and store them.
      * Page access tokens derived from long-lived user tokens are permanent.
+     *
+     * Two sources, merged and deduped:
+     *   1. /me/accounts — Pages where user has a DIRECT Page admin role
+     *      (traditional path, works for the Page creator and anyone added
+     *      via facebook.com/pages/manage/people_and_other_pages).
+     *   2. /me/businesses → /{biz}/owned_pages + /{biz}/client_pages —
+     *      Pages where user's role was assigned via a Business Portfolio
+     *      (New Pages Experience, agency employees, team members added
+     *      inside Business Suite). These NEVER appear in /me/accounts
+     *      even though Business Suite UI shows them as "People with
+     *      Facebook access, Full access". Requires business_management scope.
      */
     public function fetchPages(ConnectedAccount $account): Collection
     {
+        // Source 1: direct Page admin roles
         $response = Http::timeout(20)->withToken($account->access_token)
             ->get("{$this->graphUrl}/me/accounts", [
                 'fields' => 'id,name,access_token,category,picture',
                 'limit' => 100,
             ])->throw()->json();
 
-        // Diagnostic: when Meta returns 0 pages, surface it explicitly so we
-        // can distinguish "user has no pages" from "Meta stripped scopes due
-        // to Standard Access gating + non-tester OAuthing user" (the latter
-        // is the common cause and the error message to the user is different).
-        if (empty($response['data'] ?? [])) {
+        $pageDataById = [];
+        foreach ($response['data'] ?? [] as $pd) {
+            $pageDataById[$pd['id']] = $pd + ['_source' => 'me_accounts'];
+        }
+
+        // Source 2: Business-mediated Page roles (requires business_management).
+        // Attempt even when /me/accounts returned data — some users have a mix
+        // of direct and Business-mediated roles.
+        $businessPages = $this->fetchBusinessMediatedPages($account);
+        foreach ($businessPages as $pd) {
+            // Dedupe: /me/accounts always has a page_access_token; prefer it when both sources return the same Page.
+            if (! isset($pageDataById[$pd['id']])) {
+                $pageDataById[$pd['id']] = $pd + ['_source' => 'business_owned'];
+            }
+        }
+
+        // Diagnostic: when BOTH sources returned 0 pages, surface the actual cause.
+        if (empty($pageDataById)) {
             $perms = Http::timeout(10)->withToken($account->access_token)
                 ->get("{$this->graphUrl}/me/permissions")
                 ->json()['data'] ?? [];
@@ -478,23 +508,33 @@ class FacebookPlatform extends AbstractPlatform
                 ['pages_show_list', 'pages_messaging', 'pages_manage_metadata', 'pages_read_engagement'],
                 $grantedScopes
             ));
-            Log::warning('Facebook /me/accounts returned 0 pages', [
+            $hasBizMgmt = in_array('business_management', $grantedScopes, true);
+
+            // Narrow the likely cause based on what Meta actually told us.
+            $likelyCause = match (true) {
+                ! empty($missingScopes) => 'twofa_or_scope_strip',
+                ! $hasBizMgmt => 'needs_business_management_reconsent',
+                default => 'no_direct_or_business_page_role',
+            };
+
+            Log::warning('Facebook page fetch returned 0 pages (both sources)', [
                 'team_id' => $account->team_id,
                 'connected_account_id' => $account->id,
                 'fb_user_name' => $account->name,
                 'fb_user_id' => $account->platform_user_id,
                 'granted_scopes' => $grantedScopes,
                 'missing_scopes' => $missingScopes,
-                'likely_cause' => ! empty($missingScopes)
-                    ? 'Meta stripped scopes - FB user not an app tester, perms still Standard Access'
-                    : 'User admins no Facebook Pages',
+                'has_business_management' => $hasBizMgmt,
+                'likely_cause' => $likelyCause,
             ]);
-            // Store on account metadata so UI can show accurate guidance.
+
             $accMeta = $account->metadata ?? [];
             $accMeta['last_fetch_pages_zero'] = [
                 'at' => now()->toIso8601String(),
                 'granted_scopes' => $grantedScopes,
                 'missing_scopes' => $missingScopes,
+                'has_business_management' => $hasBizMgmt,
+                'likely_cause' => $likelyCause,
             ];
             $account->update(['metadata' => $accMeta]);
         }
@@ -502,7 +542,7 @@ class FacebookPlatform extends AbstractPlatform
         $pages = collect();
         $isSuperAdmin = (bool) (\Illuminate\Support\Facades\Auth::user()?->is_super_admin ?? false);
 
-        foreach ($response['data'] ?? [] as $pageData) {
+        foreach ($pageDataById as $pageData) {
             // Cross-team OAuth takeover guard: if an active Page row for this
             // Meta entity already belongs to a different team, refuse the
             // silent transfer and surface the block to the controller.
@@ -528,6 +568,22 @@ class FacebookPlatform extends AbstractPlatform
                 continue;
             }
 
+            // Business-owned Pages don't ship a page token in /{biz}/owned_pages;
+            // we must fetch it individually with the user token (which has
+            // business_management, so Meta allows it).
+            $pageAccessToken = $pageData['access_token'] ?? $this->resolvePageAccessToken(
+                $account->access_token,
+                $pageData['id']
+            );
+
+            if (empty($pageAccessToken)) {
+                Log::warning('Facebook page skipped: could not resolve page_access_token', [
+                    'platform_page_id' => $pageData['id'],
+                    'source' => $pageData['_source'] ?? 'unknown',
+                ]);
+                continue;
+            }
+
             $page = Page::updateOrCreate(
                 [
                     'team_id' => $account->team_id,
@@ -538,7 +594,7 @@ class FacebookPlatform extends AbstractPlatform
                     'connected_account_id' => $account->id,
                     'name' => $pageData['name'],
                     'avatar' => $pageData['picture']['data']['url'] ?? null,
-                    'page_access_token' => $pageData['access_token'],
+                    'page_access_token' => $pageAccessToken,
                     'category' => $pageData['category'] ?? null,
                     'is_active' => true,
                 ]
@@ -566,6 +622,82 @@ class FacebookPlatform extends AbstractPlatform
         }
 
         return $pages;
+    }
+
+    /**
+     * Enumerate Pages the user can access via Business Portfolio membership
+     * (owned_pages + client_pages across every Business they belong to).
+     * Required for the "New Pages Experience" / Business-mediated role case —
+     * see fetchPages() class comment.
+     *
+     * Returns an array of page-data arrays matching the /me/accounts shape
+     * (id, name, picture, category) but WITHOUT access_token — callers resolve
+     * that per-page via resolvePageAccessToken().
+     *
+     * Returns [] (not an error) when business_management isn't granted.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function fetchBusinessMediatedPages(ConnectedAccount $account): array
+    {
+        $bizResp = Http::timeout(15)->withToken($account->access_token)
+            ->get("{$this->graphUrl}/me/businesses", ['fields' => 'id,name', 'limit' => 50]);
+
+        if ($bizResp->failed()) {
+            // (#100) Missing Permission when business_management isn't granted —
+            // this is expected for users who OAuthed before the scope was added.
+            // Returning [] falls back to /me/accounts-only behaviour.
+            return [];
+        }
+
+        $businesses = $bizResp->json()['data'] ?? [];
+        $collected = [];
+
+        foreach ($businesses as $biz) {
+            foreach (['owned_pages', 'client_pages'] as $edge) {
+                $r = Http::timeout(15)->withToken($account->access_token)
+                    ->get("{$this->graphUrl}/{$biz['id']}/{$edge}", [
+                        'fields' => 'id,name,category,picture',
+                        'limit' => 100,
+                    ]);
+
+                if ($r->failed()) {
+                    Log::warning("Facebook /{biz}/{$edge} failed", [
+                        'business_id' => $biz['id'],
+                        'body' => substr($r->body(), 0, 300),
+                    ]);
+                    continue;
+                }
+
+                foreach ($r->json()['data'] ?? [] as $pd) {
+                    $collected[] = $pd;
+                }
+            }
+        }
+
+        return $collected;
+    }
+
+    /**
+     * Fetch a Page access token using a user token that has business_management.
+     * Needed for Business-sourced Pages where the /{biz}/owned_pages payload
+     * does not include a token (unlike /me/accounts).
+     */
+    private function resolvePageAccessToken(string $userToken, string $pageId): ?string
+    {
+        $r = Http::timeout(10)->withToken($userToken)
+            ->get("{$this->graphUrl}/{$pageId}", ['fields' => 'access_token']);
+
+        if ($r->failed()) {
+            Log::warning('resolvePageAccessToken failed', [
+                'page_id' => $pageId,
+                'status' => $r->status(),
+                'body' => substr($r->body(), 0, 300),
+            ]);
+            return null;
+        }
+
+        return $r->json()['access_token'] ?? null;
     }
 
     /**
