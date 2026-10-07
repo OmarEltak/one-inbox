@@ -63,7 +63,8 @@ class BackfillAiCreditLedgerSeeder extends Seeder
             reason: AiCreditLedgerEntry::REASON_BACKFILL,
             actorUserId: null,
             meta: [
-                'plan' => $team->subscription_plan ?? 'free',
+                'plan' => Team::resolvePlanSlug($team->subscription_plan ?? null),
+                'raw_plan' => $team->subscription_plan ?? null,
                 'note' => 'Phase A go-live backfill',
             ],
         );
@@ -71,7 +72,9 @@ class BackfillAiCreditLedgerSeeder extends Seeder
 
     private function planQuotaFor(Team $team): int
     {
-        $planKey = $team->subscription_plan ?? 'free';
+        // Resolve legacy aliases ('enterprise' → 'business' etc) before lookup;
+        // otherwise a backfill run grants the Free amount to teams on legacy tiers.
+        $planKey = Team::resolvePlanSlug($team->subscription_plan ?? null);
         $plan = config("plans.plans.{$planKey}", config('plans.plans.free'));
         $credits = (int) ($plan['ai_credits'] ?? 0);
 

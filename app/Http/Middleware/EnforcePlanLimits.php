@@ -18,7 +18,11 @@ class EnforcePlanLimits
         }
 
         $team = $user->currentTeam;
-        $planKey = $team->subscription_plan ?? 'free';
+        // Phase RP collapsed 6 tiers → 4. Legacy slugs like 'enterprise' and
+        // 'agency' no longer exist in config('plans.plans') and MUST be resolved
+        // through \App\Models\Team::resolvePlanSlug() or they silently fall back
+        // to Free limits — see config/plans.php `legacy_aliases`.
+        $planKey = \App\Models\Team::resolvePlanSlug($team->subscription_plan ?? null);
         $plan = config("plans.plans.{$planKey}", config('plans.plans.free'));
 
         // Check if subscription is past_due — allow read access but flash warning
@@ -42,7 +46,11 @@ class EnforcePlanLimits
      */
     public static function canConnectPage($team): bool
     {
-        $planKey = $team->subscription_plan ?? 'free';
+        // Phase RP collapsed 6 tiers → 4. Legacy slugs like 'enterprise' and
+        // 'agency' no longer exist in config('plans.plans') and MUST be resolved
+        // through \App\Models\Team::resolvePlanSlug() or they silently fall back
+        // to Free limits — see config/plans.php `legacy_aliases`.
+        $planKey = \App\Models\Team::resolvePlanSlug($team->subscription_plan ?? null);
         $plan = config("plans.plans.{$planKey}", config('plans.plans.free'));
 
         if ($plan['pages'] === -1) {
@@ -81,7 +89,11 @@ class EnforcePlanLimits
         }
 
         // Enterprise plans still get unlimited AI dispatch regardless of ledger.
-        $planKey = $team->subscription_plan ?? 'free';
+        // Phase RP collapsed 6 tiers → 4. Legacy slugs like 'enterprise' and
+        // 'agency' no longer exist in config('plans.plans') and MUST be resolved
+        // through \App\Models\Team::resolvePlanSlug() or they silently fall back
+        // to Free limits — see config/plans.php `legacy_aliases`.
+        $planKey = \App\Models\Team::resolvePlanSlug($team->subscription_plan ?? null);
         $plan = config("plans.plans.{$planKey}", config('plans.plans.free'));
         if (($plan['ai_credits'] ?? 0) === -1) {
             return true;

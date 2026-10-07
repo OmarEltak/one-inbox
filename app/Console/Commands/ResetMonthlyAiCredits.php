@@ -112,7 +112,8 @@ class ResetMonthlyAiCredits extends Command
             reason: AiCreditLedgerEntry::REASON_MONTHLY_GRANT,
             actorUserId: null,
             meta: [
-                'plan' => $team->subscription_plan ?? 'free',
+                'plan' => Team::resolvePlanSlug($team->subscription_plan ?? null),
+                'raw_plan' => $team->subscription_plan ?? null,
                 'reset_date' => $today->toDateString(),
             ],
         );
@@ -120,7 +121,13 @@ class ResetMonthlyAiCredits extends Command
 
     private function planQuotaFor(Team $team): int
     {
-        $planKey = $team->subscription_plan ?? 'free';
+        // MUST route through Team::resolvePlanSlug() — reading the raw column
+        // means legacy 'enterprise' / 'agency' teams silently get granted the
+        // Free amount (100) each month instead of their actual tier. This was
+        // the root cause of a 2026-10-08 incident where Omar's Enterprise team
+        // showed 100 credits max on /settings/billing (and all months after
+        // Phase RP had under-granted).
+        $planKey = Team::resolvePlanSlug($team->subscription_plan ?? null);
         $plan = config("plans.plans.{$planKey}", config('plans.plans.free'));
         $amount = (int) ($plan['ai_credits'] ?? 0);
 

@@ -102,7 +102,9 @@ class Customers extends Component
     /** Plan AI-credit allowance; null = unlimited. */
     public function aiCreditLimit(Team $team): ?int
     {
-        $plan = config('plans.plans.' . ($team->subscription_plan ?? 'free'), config('plans.plans.free'));
+        // Resolve legacy slugs so super-admin display matches reality
+        // (teams on 'enterprise' / 'agency' slugs would otherwise show 100).
+        $plan = config('plans.plans.' . Team::resolvePlanSlug($team->subscription_plan ?? null), config('plans.plans.free'));
         $limit = (int) ($plan['ai_credits'] ?? 0);
 
         return $limit === -1 ? null : $limit;

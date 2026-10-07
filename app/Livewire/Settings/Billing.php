@@ -54,7 +54,13 @@ class Billing extends Component
     #[Computed]
     public function currentPlan(): string
     {
-        return $this->team?->subscription_plan ?? 'free';
+        // MUST route through resolvePlanSlug() — legacy slugs like 'enterprise'
+        // and 'agency' were removed in Phase RP (2026-10-06) and alias into
+        // 'business'. Reading the raw column misses them and silently falls
+        // back to Free (100 credits) on the display. The ledger grant at
+        // team-create already uses resolvePlanSlug(), so this is a display-only
+        // bug — the actual balance is correct. See config/plans.php.
+        return Team::resolvePlanSlug($this->team?->subscription_plan);
     }
 
     #[Computed]
@@ -66,6 +72,10 @@ class Billing extends Component
     #[Computed]
     public function monthlyQuota(): int
     {
+        // currentPlan() is already resolved via Team::resolvePlanSlug(), so
+        // $this->plans[$this->currentPlan] will always find a current-tier entry
+        // for any team row (including legacy 'enterprise' → 'business'). The
+        // Free fallback is kept only for the truly-no-team path.
         $plan = $this->plans[$this->currentPlan] ?? $this->plans['free'] ?? ['ai_credits' => 50];
 
         return (int) ($plan['ai_credits'] ?? 50);
