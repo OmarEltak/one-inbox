@@ -21,6 +21,11 @@
     x-show="show"
     x-on:ai-limit-reached.window="show = true"
     x-cloak
+    {{-- Flux's <body> is a CSS grid with areas "sidebar header header / sidebar main aside / sidebar footer aside".
+         A direct <body> child with no grid-area auto-places into the aside column — which reserves ~986px
+         there and crushes the `main` column to a few hundred px, visually squishing every page. Spanning
+         columns 2 → -1 forces the banner to occupy main AND aside, so aside no longer needs its own width. --}}
+    style="grid-column: 2 / -1;"
     class="{{ $isOutage ? 'bg-red-50 border-b border-red-200 dark:bg-red-950/40 dark:border-red-900/60' : 'bg-amber-50 border-b border-amber-200 dark:bg-amber-950/40 dark:border-amber-900/60' }}"
 >
     <div class="px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
