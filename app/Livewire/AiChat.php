@@ -61,16 +61,22 @@ class AiChat extends Component
             return;
         }
 
+        // Load the last 30 turns. Pending rows (user clicked Send then
+        // navigated away before the job finished) render as a typing-dots
+        // bubble so the user knows their question is still being processed —
+        // the Reverb listener swaps it in-place when the job broadcasts.
         $this->messages = AiCommand::where('team_id', $team->id)
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->limit(30)
             ->get()
             ->reverse()
-            ->flatMap(fn (AiCommand $cmd) => [
-                ['role' => 'user', 'content' => $cmd->command],
-                ['role' => 'assistant', 'content' => $cmd->response],
-            ])
+            ->flatMap(function (AiCommand $cmd) {
+                $assistant = $cmd->status === 'pending'
+                    ? ['role' => 'assistant', 'content' => '…', 'pending' => true, 'command_id' => $cmd->id]
+                    : ['role' => 'assistant', 'content' => (string) $cmd->response];
+                return [['role' => 'user', 'content' => $cmd->command], $assistant];
+            })
             ->values()
             ->all();
     }
@@ -91,7 +97,45 @@ class AiChat extends Component
 
         return [
             "echo-private:team.{$teamId},DeepAnalysisCompleted" => 'handleDeepAnalysisCompleted',
+            "echo-private:team.{$teamId},AiChatTurnCompleted"   => 'handleAiChatTurnCompleted',
         ];
+    }
+
+    /**
+     * Reverb listener — the ProcessAiChatTurn job finished. Find the pending
+     * placeholder bubble by command_id and swap it in-place for the real
+     * response. If no placeholder exists (user had navigated away and is now
+     * on another page or the Livewire instance was already remounted) the
+     * no-op is correct: mount() will load the completed row on next visit.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function handleAiChatTurnCompleted(array $payload): void
+    {
+        $commandId = (int) ($payload['command_id'] ?? 0);
+        $userId    = (int) ($payload['user_id'] ?? 0);
+        $response  = (string) ($payload['response'] ?? '');
+
+        if ($userId !== (int) Auth::id()) {
+            return; // belongs to a different user on the same team
+        }
+
+        $swapped = false;
+        foreach ($this->messages as $i => $m) {
+            if (! empty($m['pending']) && ($m['command_id'] ?? null) === $commandId) {
+                $this->messages[$i] = ['role' => 'assistant', 'content' => $response];
+                $swapped = true;
+                break;
+            }
+        }
+
+        if (! $swapped) {
+            // User came back to the chat AFTER the job finished but BEFORE the
+            // Reverb event arrived (race). Append rather than lose the response.
+            $this->messages[] = ['role' => 'assistant', 'content' => $response];
+        }
+
+        $this->dispatch('message-sent');
     }
 
     /**
@@ -161,6 +205,16 @@ class AiChat extends Component
         $text = preg_replace('/\b(?:page|contact|campaign)[\s_]*id\s*[:#=]?\s*\d+/iu', '', $text) ?? $text;
 
         return trim(preg_replace('/[ \t]{2,}/', ' ', $text) ?? $text);
+    }
+
+    /**
+     * Public passthrough for the async job (ProcessAiChatTurn) which runs
+     * outside this component but needs the same ID-strip rules so the stored
+     * response matches what sendMessage() used to persist inline.
+     */
+    public static function stripInternalIdsPublic(string $text): string
+    {
+        return self::stripInternalIds($text);
     }
 
     protected static function isConfirmation(string $text): bool
@@ -272,112 +326,44 @@ class AiChat extends Component
             return;
         }
 
-        // Chat content: contacts named in this turn or the last few (so "send
-        // him…" resolves), plus a digest of recent customer messages so insight
-        // questions are answered from real quotes.
-        $chatContext = app(AdminChatContext::class);
-        $recent = collect($this->messages)->slice(-6, 5);
-        $recentTalk = $recent->pluck('content')->implode("\n");
-        $recentUserTalk = $recent->where('role', 'user')->pluck('content')->implode("\n");
+        // 2026-10-08 UX fix: persist the AiCommand IMMEDIATELY (status=pending)
+        // and dispatch ProcessAiChatTurn to do the slow NaraRouter call in the
+        // queue. Before this, sendMessage() blocked 5-15s on the AI call — a
+        // user who clicked Send and navigated away lost the whole request
+        // because wire:submit was cancelled mid-flight. Now:
+        //   - Send press → AiCommand row exists in ~50ms, user text is safe.
+        //   - Job runs chatWithAdmin, writes response, broadcasts.
+        //   - If user is on page: handleAiChatTurnCompleted swaps the placeholder.
+        //   - If user navigated away: mount() loads the completed row next visit.
+        $command = AiCommand::create([
+            'team_id'  => $team->id,
+            'user_id'  => Auth::id(),
+            'command'  => $text,
+            'response' => '',
+            'status'   => 'pending',
+        ]);
 
-        // A named page ("last 30 customers on Mishkah") gets that page's own
-        // chats; otherwise the digest spans every page. When the operator names
-        // exactly one page in their current turn we switch to the expanded
-        // digest (both sides of the thread, ~150 convos / 30 KB) so moderator-
-        // audit questions and per-page deep-dives have enough context — Phase C
-        // of the AI credit economy spec (§6).
-        $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
-        if ($pageIds === []) {
-            $digest = $chatContext->customerDigest($team->id);
-        } elseif (count($pageIds) === 1) {
-            $digest = $chatContext->customerDigest(
-                $team->id, pageId: $pageIds[0], expanded: true,
-            );
-        } else {
-            $digest = collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
-                $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id,
-            ))->implode("\n\n");
-        }
-
-        $analyticsContext = $this->buildAnalyticsContext($team->id)
-            . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
-            . "\n\n" . $digest;
-
-        // Last 12 turns, each clipped: the page loads 60 past messages and the
-        // whole thread used to be re-sent every time, growing until the model
-        // rejected the request ("AI service is temporarily unavailable").
-        $history = collect($this->messages)
+        // Snapshot the exact history the user saw, so the model gets the same
+        // context whether this runs now or 30 seconds from now in the queue.
+        $historySnapshot = collect($this->messages)
             ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
             ->slice(-12)
-            // 30 stored pairs + the new message is odd, so a 12-turn window can
-            // open on an assistant turn — some models reject that ("API error").
             ->skipUntil(fn ($m) => $m['role'] === 'user')
-            ->map(fn ($m) => [
-                'role' => $m['role'] === 'user' ? 'user' : 'model',
-                'content' => Str::limit((string) $m['content'], 2000),
-            ])
+            ->map(fn ($m) => ['role' => $m['role'], 'content' => Str::limit((string) $m['content'], 2000)])
             ->values()
             ->all();
 
-        $aiCallSucceeded = false;
-        try {
-            $response = $this->callAiWithRetry($team->id, (int) Auth::id(), $text, $analyticsContext, $history);
-            $aiCallSucceeded = true;
-        } catch (\Throwable $e) {
-            // Logged so it shows in /super-admin/errors — it used to vanish.
-            Log::error('AI chat request failed: ' . $e->getMessage(), [
-                'exception' => $e::class,
-                'at'        => $e->getFile() . ':' . $e->getLine(),
-            ]);
-            $response = 'Sorry, I encountered an error processing your request. Please try again.';
-        }
+        \App\Jobs\ProcessAiChatTurn::dispatch($command->id, $historySnapshot);
 
-        // Check for and execute any actions in the response
-        $actionResult = $this->executeActions($response, $team->id);
-        if ($actionResult) {
-            $response .= "\n\n" . $actionResult;
-        }
-
-        $response = self::stripInternalIds($response);
-
-        // A reply that was only an action block used to render as an empty bubble.
-        if (trim($response) === '') {
-            $response = $this->pendingAction
-                ? __('Ready — review the action below and confirm.')
-                : __('I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.');
-        }
-
-        $command = AiCommand::create([
-            'team_id' => $team->id,
-            'user_id' => Auth::id(),
-            'command' => $text,
-            'response' => $response,
-            'status' => 'completed',
-        ]);
-
-        // Phase A credit charge — post-success per spec §9. Only billed on a
-        // real NaraRouter success; the fallback "Sorry, I encountered an
-        // error" path produced no tokens and must not be charged. Idempotency
-        // key = team+user+operator text so a double-submit is deduped.
-        if ($aiCallSucceeded) {
-            try {
-                app(AiCredits::class)->charge(
-                    team: $team,
-                    action: 'ai_chat_turn',
-                    meta: [
-                        'idempotency_key' => 'aichat:' . hash('sha256', $team->id . '|' . Auth::id() . '|' . trim($text)),
-                        'cost_source_type' => AiCommand::class,
-                        'cost_source_id' => $command->id,
-                    ],
-                );
-            } catch (\Throwable $e) {
-                Log::warning("AiCredits::charge failed for AiChat team {$team->id}", [
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        $this->messages[] = ['role' => 'assistant', 'content' => $response];
+        // Optimistic placeholder — swapped by handleAiChatTurnCompleted when
+        // the job finishes. The 'pending' marker lets the Blade render a
+        // typing dots animation instead of an empty bubble.
+        $this->messages[] = [
+            'role'       => 'assistant',
+            'content'    => '…',
+            'pending'    => true,
+            'command_id' => $command->id,
+        ];
 
         $this->dispatch('message-sent');
     }

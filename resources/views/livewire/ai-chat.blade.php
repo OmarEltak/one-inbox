@@ -157,8 +157,19 @@
                                 </div>
                             </div>
                             <div class="min-w-0 max-w-[85%] rounded-2xl rounded-bl-md bg-blue-50 border border-blue-100 px-4 py-2.5 text-sm text-zinc-900">
-                                {{-- Markdown, raw HTML stripped: the AI's **bold**, lists and tables used to show as literal symbols. --}}
-                                <div class="ai-md">{!! \Illuminate\Support\Str::markdown($msg['content'] ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</div>
+                                @if(! empty($msg['pending']))
+                                    {{-- Server-side typing dots for pending Jobs so a user returning
+                                         to the page mid-processing sees their turn is still working,
+                                         not a dead empty bubble. --}}
+                                    <div class="flex items-center gap-1">
+                                        <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.3s]"></div>
+                                        <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.15s]"></div>
+                                        <div class="size-2 animate-bounce rounded-full bg-[#64748b]"></div>
+                                    </div>
+                                @else
+                                    {{-- Markdown, raw HTML stripped: the AI's **bold**, lists and tables used to show as literal symbols. --}}
+                                    <div class="ai-md">{!! \Illuminate\Support\Str::markdown($msg['content'] ?? '', ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</div>
+                                @endif
                             </div>
                         </div>
                     @endif
