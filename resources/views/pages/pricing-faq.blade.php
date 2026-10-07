@@ -146,7 +146,7 @@
                 </div>
 
                 <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm dark:border-emerald-900/60 dark:bg-emerald-950/40">
-                    <p class="text-zinc-700 dark:text-zinc-200">{{ __('Still have questions? Read the') }} <a href="{{ route('privacy') }}" class="text-emerald-700 hover:underline dark:text-emerald-300">{{ __('Privacy Policy') }}</a> {{ __('and') }} <a href="{{ route('terms') }}" class="text-emerald-700 hover:underline dark:text-emerald-300">{{ __('Terms of Service') }}</a>{{ __(', or email support@ot1-pro.com.') }}</p>
+                    <p class="text-zinc-700 dark:text-zinc-200">{{ __('Still have questions? Read the') }} <a href="{{ route('privacy') }}" class="text-emerald-700 hover:underline dark:text-emerald-300">{{ __('Privacy Policy') }}</a> {{ __('and') }} <a href="{{ route('terms') }}" class="text-emerald-700 hover:underline dark:text-emerald-300">{{ __('Terms of Service') }}</a>{{ __(', or email omareltak7@gmail.com.') }}</p>
                 </div>
 
             </div>

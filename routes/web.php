@@ -265,7 +265,7 @@ Built for Arabic and English-speaking small-to-mid ecommerce brands, agencies, r
 
 - Website: https://ot1-pro.com
 - WhatsApp sales: +20 102 636 1218
-- Email: support@ot1-pro.com
+- Email: omareltak7@gmail.com
 TXT;
 
     return response($body, 200, [

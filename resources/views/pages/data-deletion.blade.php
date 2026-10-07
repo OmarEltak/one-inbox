@@ -33,7 +33,7 @@
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('3. OT1-Pro account or other platform data') }}</h2>
                     <p class="mt-3 text-sm">{{ __('Email us with the subject “Data Deletion Request”, your registered email address, the relevant connected platform, and enough information to verify your request. Do not send passwords or access tokens.') }}</p>
-                    <a href="mailto:support@ot1-pro.com?subject=Data%20Deletion%20Request" class="mt-4 inline-flex rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">support@ot1-pro.com</a>
+                    <a href="mailto:omareltak7@gmail.com?subject=Data%20Deletion%20Request" class="mt-4 inline-flex rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">omareltak7@gmail.com</a>
                 </div>
 
                 <div>
@@ -43,7 +43,7 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Contact') }}</h2>
-                    <p class="mt-3 text-sm">OT Pro, Cairo, Cairo 171811, Egypt<br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:support@ot1-pro.com">support@ot1-pro.com</a></p>
+                    <p class="mt-3 text-sm">OT Pro, Cairo, Cairo 171811, Egypt<br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:omareltak7@gmail.com">omareltak7@gmail.com</a></p>
                 </div>
             </div>
         </div>

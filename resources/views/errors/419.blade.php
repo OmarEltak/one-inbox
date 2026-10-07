@@ -129,7 +129,7 @@
         <img src="/logo.png" alt="{{ config('app.name', 'OT1-Pro') }}" class="logo">
         <span class="badge">{{ __('Session expired') }}</span>
         <h1>{{ __('Your session timed out') }}</h1>
-        <p>{{ __("You've been away for a while, so we protected your account by expiring the page. Reload to get a fresh session and try again.") }}</p>
+        <p>{{ __("You've been away for a while, so I protected your account by expiring the page. Reload to get a fresh session and try again.") }}</p>
 
         <div class="actions">
             <a href="{{ $retryUrl }}" class="btn btn-primary" rel="noopener">

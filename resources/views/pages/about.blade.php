@@ -132,8 +132,8 @@
                         {{ __('Questions, partnerships, or just want to say hello — we reply fast.') }}
                     </p>
                     <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <a href="mailto:support@ot1-pro.com" class="inline-flex items-center justify-center rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 hover:border-emerald-500 hover:text-emerald-700 transition-all">
-                            support@ot1-pro.com
+                        <a href="mailto:omareltak7@gmail.com" class="inline-flex items-center justify-center rounded-full border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 hover:border-emerald-500 hover:text-emerald-700 transition-all">
+                            omareltak7@gmail.com
                         </a>
                         <a href="https://wa.me/201026361218" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-all">
                             {{ __('WhatsApp the founder') }}

@@ -13,7 +13,9 @@
     $primaryLabel ??= __('Back to home');
     $secondaryHref ??= null;
     $secondaryLabel ??= null;
-    $supportEmail = 'support@ot1-pro.com';
+    // OT1-Pro is a solo-founder shop — no support@/legal@ aliases. Errors reach
+    // Omar directly on his personal email so he can respond without routing.
+    $supportEmail = 'omareltak7@gmail.com';
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" class="dark">
@@ -122,7 +124,7 @@
         </div>
 
         <p class="support">
-            {{ __('Still stuck? Email us at') }}
+            {{ __('Still stuck? Email me at') }}
             <a href="mailto:{{ $supportEmail }}">{{ $supportEmail }}</a>
         </p>
 

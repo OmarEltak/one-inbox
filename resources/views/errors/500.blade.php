@@ -1,7 +1,7 @@
 @include('errors.layout', [
     'badge' => __('Something broke'),
-    'heading' => __('Something went wrong on our side'),
-    'body' => __("We've already been notified and we're looking at it. Your work is safe — try reloading in a moment, or head home and come back shortly."),
+    'heading' => __('Something went wrong on my side'),
+    'body' => __("I've already been notified and I'm looking at it. Your work is safe — try reloading in a moment, or head home and come back shortly."),
     'primaryHref' => url()->previous() ?: url('/'),
     'primaryLabel' => __('Try again'),
     'secondaryHref' => url('/'),

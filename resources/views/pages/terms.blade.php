@@ -87,7 +87,7 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Credits, allowances, and refunds') }}</h2>
-                    <p class="mt-3">{{ __('Each subscription plan grants a monthly AI-credit allowance that resets on your billing-cycle anniversary and does not roll over. Credit packs purchased separately do not expire. Credits consumed by AI actions are non-refundable except where the action failed due to a verified system outage, in which case the credits are automatically returned. Refunds of money (as opposed to credits) are handled case-by-case — contact support@ot1-pro.com.') }}</p>
+                    <p class="mt-3">{{ __('Each subscription plan grants a monthly AI-credit allowance that resets on your billing-cycle anniversary and does not roll over. Credit packs purchased separately do not expire. Credits consumed by AI actions are non-refundable except where the action failed due to a verified system outage, in which case the credits are automatically returned. Refunds of money (as opposed to credits) are handled case-by-case — contact omareltak7@gmail.com.') }}</p>
                 </div>
 
                 <div>

@@ -75,12 +75,12 @@
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('9. Your rights and international transfers') }}</h2>
                     <p class="mt-3">{{ __('Depending on applicable law, you may have rights to access, correct, delete, restrict, object to processing of, or receive a portable copy of your personal data, and to complain to your local data-protection authority. You may withdraw consent for optional features by disabling them or disconnecting the relevant platform, where consent is the basis for processing. We use appropriate safeguards for international transfers as required by applicable law.') }}</p>
-                    <p class="mt-3">{{ __('To exercise a right, contact support@ot1-pro.com. We may request information necessary to verify identity and will respond within the time required by applicable law. If you are communicating with one of our business customers, contact that business first for message and contact data it controls.') }}</p>
+                    <p class="mt-3">{{ __('To exercise a right, contact omareltak7@gmail.com. We may request information necessary to verify identity and will respond within the time required by applicable law. If you are communicating with one of our business customers, contact that business first for message and contact data it controls.') }}</p>
                 </div>
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Payment data') }}</h2>
-                    <p class="mt-3">{{ __('We do not accept card payments through our website and we do not store any payment card details. Payments are made manually via PayPal or bank transfer to the business owner, who credits your account after confirming the payment. The only payment-related data we hold is the amount granted, the method you told us you used (e.g. "PayPal"), and any reference you gave us (e.g. order number) — stored in an audit log on your team record. You may request deletion of this log at any time by emailing support@ot1-pro.com.') }}</p>
+                    <p class="mt-3">{{ __('We do not accept card payments through our website and we do not store any payment card details. Payments are made manually via PayPal or bank transfer to the business owner, who credits your account after confirming the payment. The only payment-related data we hold is the amount granted, the method you told us you used (e.g. "PayPal"), and any reference you gave us (e.g. order number) — stored in an audit log on your team record. You may request deletion of this log at any time by emailing omareltak7@gmail.com.') }}</p>
                 </div>
 
                 <div>
@@ -90,7 +90,7 @@
 
                 <div>
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ __('11. Contact us') }}</h2>
-                    <p class="mt-3">OT Pro<br>Cairo, Cairo 171811, Egypt<br>{{ __('Meta Business Portfolio ID') }}: 2169075923895403<br>{{ __('Primary Page') }}: {{ __('None') }}<br>{{ __('Meta business verification') }}: {{ __('Verified — February 18, 2026') }}<br><a class="text-emerald-600 hover:underline" href="https://ot1-pro.com/">ot1-pro.com</a><br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:support@ot1-pro.com">support@ot1-pro.com</a></p>
+                    <p class="mt-3">OT Pro<br>Cairo, Cairo 171811, Egypt<br>{{ __('Meta Business Portfolio ID') }}: 2169075923895403<br>{{ __('Primary Page') }}: {{ __('None') }}<br>{{ __('Meta business verification') }}: {{ __('Verified — February 18, 2026') }}<br><a class="text-emerald-600 hover:underline" href="https://ot1-pro.com/">ot1-pro.com</a><br><a class="text-emerald-600 hover:underline" href="tel:+201026361218">+20 102 636 1218</a><br><a class="text-emerald-600 hover:underline" href="mailto:omareltak7@gmail.com">omareltak7@gmail.com</a></p>
                 </div>
             </div>
         </div>
