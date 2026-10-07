@@ -245,9 +245,12 @@ class AiChat extends Component
             return false;
         }
 
+        // Column name is `triggered_by_user_id`, NOT `user_id` — the latter
+        // threw PDOException 42S22 ('Unknown column user_id') and 500'd every
+        // /ai-chat request after the first deploy of this feature on 2026-10-08.
         return DeepAnalysis::query()
             ->where('team_id', $team->id)
-            ->where('user_id', $user->id)
+            ->where('triggered_by_user_id', $user->id)
             ->whereIn('status', [DeepAnalysis::STATUS_QUEUED, DeepAnalysis::STATUS_RUNNING])
             ->exists();
     }
