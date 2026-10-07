@@ -23,6 +23,7 @@
     AA against zinc-900/zinc-950 surfaces.
 --}}
 @php
+    use App\Models\Team;
     use App\Services\Billing\AiCredits;
     use Illuminate\Support\Facades\Cache;
 
@@ -32,8 +33,13 @@
 
 @if($meterTeam)
     @php
-        $planKey = $meterTeam->subscription_plan ?? 'free';
-        $monthlyQuota = (int) (config("plans.plans.{$planKey}.ai_credits", 50));
+        // MUST route through Team::resolvePlanSlug — legacy 'enterprise' / 'agency'
+        // slugs no longer exist in config('plans.plans') (collapsed in Phase RP,
+        // 2026-10-06) and silently fell back to the hard-coded 50 default, which
+        // then showed "0 of 50 monthly" on the chip for Enterprise teams. See
+        // CLAUDE.md pin on plan slug resolution.
+        $planKey = Team::resolvePlanSlug($meterTeam->subscription_plan ?? null);
+        $monthlyQuota = (int) (config("plans.plans.{$planKey}.ai_credits", (int) config('plans.plans.free.ai_credits', 100)));
         $isUnlimited = $monthlyQuota === -1;
 
         // 10s cache tuned per the header-chip-renders-on-every-page concern.
@@ -102,7 +108,7 @@
 
         $tooltipLine = $isUnlimited
             ? __('Unlimited AI credits on this plan')
-            : __(':remaining of :total monthly · :wallet wallet · resets in :days days', [
+            : trans_choice(':remaining of :total monthly · :wallet wallet · resets in :days day|:remaining of :total monthly · :wallet wallet · resets in :days days', $daysToReset, [
                 'remaining' => number_format($monthlyRemaining),
                 'total'     => number_format($monthlyQuota),
                 'wallet'    => number_format($walletRemaining),
