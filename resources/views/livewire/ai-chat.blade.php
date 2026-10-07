@@ -28,6 +28,18 @@
         }).observe(content);
     }
 }" x-init="scrollToBottom(); stickToBottom()" @message-sent.window="scrollToBottom()"
+   @deep-analysis-ready-notify.window="
+       (() => {
+           if (!('Notification' in window)) return;
+           const show = () => new Notification('{{ __('Analysis ready') }}', {
+               body: '{{ __('Your Deep Analysis is complete. Open OT1-Pro to see the result.') }}',
+               icon: '/favicon-32.png',
+               tag: 'ot1-deep-analysis',
+           });
+           if (Notification.permission === 'granted') { show(); }
+           else if (Notification.permission !== 'denied') { Notification.requestPermission().then(p => { if (p === 'granted') show(); }); }
+       })()
+   "
    x-on:livewire:morph.window="onNewContent()">
 
     {{-- Header --}}
@@ -226,6 +238,23 @@
                     @endforeach
                 </div>
             @endif
+            {{-- Deep Analysis in-progress banner. Hides the composer and shows
+                 "your previous analysis is being processed" so a user who
+                 refreshes or returns in a new tab is not tempted to start a
+                 duplicate paid run. Dismissed server-side when the Reverb
+                 DeepAnalysisCompleted event re-renders the chat. --}}
+            @if($this->hasRunningDeepAnalysis())
+                <div class="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+                    <svg class="w-4 h-4 text-amber-600 animate-spin flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <div class="flex-1 text-sm">
+                        <p class="font-medium text-amber-900">{{ __('Analysis in progress') }}</p>
+                        <p class="text-amber-800/80 mt-0.5">{{ __("You can close this page — I'll notify you here when it's ready. Starting another chat is blocked until it completes.") }}</p>
+                    </div>
+                </div>
+            @endif
             @if($attachment)
                 <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
                     @if(str_starts_with($attachment->getMimeType(), 'image/'))
@@ -248,20 +277,22 @@
                 <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-700 cursor-pointer p-1 mb-1.5 transition-colors">
                     <flux:icon name="face-smile" class="h-5 w-5" />
                 </button>
+                @php $deepLocked = $this->hasRunningDeepAnalysis(); @endphp
                 <div class="flex-1" x-ref="textInput">
                     <flux:textarea
                         wire:model="message"
-                        placeholder="{{ __('Ask about your analytics...') }}"
+                        placeholder="{{ $deepLocked ? __('Analysis in progress — please wait…') : __('Ask about your analytics...') }}"
                         dir="auto"
                         autocomplete="off"
                         wire:loading.attr="disabled"
+                        :disabled="$deepLocked"
                         rows="1"
                         class="resize-none max-h-32 !text-zinc-900 dark:!text-zinc-900"
                         x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                         x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                     />
                 </div>
-                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" class="mb-0.5">
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" :disabled="$deepLocked" class="mb-0.5">
                     <flux:icon name="paper-airplane" variant="micro" class="size-4" />
                 </flux:button>
             </form>

@@ -111,6 +111,11 @@ class AiChat extends Component
             ]),
         ];
 
+        // Browser notification so the user knows even if the tab is in the
+        // background or they came back after closing the page. The browser
+        // listener in ai-chat.blade.php picks this up and calls Notification
+        // if permission was granted (falls through silently otherwise).
+        $this->dispatch('deep-analysis-ready-notify', cohortSize: $cohortSize);
         $this->dispatch('message-sent');
     }
 
@@ -171,6 +176,28 @@ class AiChat extends Component
         $this->attachment = null;
     }
 
+    /**
+     * True when the current user has a queued/running Deep Analysis on their
+     * current team. Used to idempotency-lock the chat input + surface a status
+     * banner so a user who refreshes or returns in a new tab doesn't fire a
+     * duplicate paid analysis. Cheap: covered by the (team_id, user_id, status)
+     * index on deep_analyses.
+     */
+    public function hasRunningDeepAnalysis(): bool
+    {
+        $user = Auth::user();
+        $team = $user?->currentTeam;
+        if (! $team) {
+            return false;
+        }
+
+        return DeepAnalysis::query()
+            ->where('team_id', $team->id)
+            ->where('user_id', $user->id)
+            ->whereIn('status', [DeepAnalysis::STATUS_QUEUED, DeepAnalysis::STATUS_RUNNING])
+            ->exists();
+    }
+
     public function sendMessage(): void
     {
         $text = trim($this->message);
@@ -187,6 +214,21 @@ class AiChat extends Component
             $this->messages[] = ['role' => 'user', 'content' => $text];
             $this->confirmAction();
 
+            return;
+        }
+
+        // Deep Analysis idempotency lock. A paid async analysis is in flight for
+        // this (team, user); block new turns so a reload / second tab / impatient
+        // retry doesn't dispatch a duplicate paid job. Posting any text while
+        // locked shows the "still processing" message and consumes nothing.
+        if ($this->hasRunningDeepAnalysis()) {
+            $this->message = '';
+            $this->messages[] = ['role' => 'user', 'content' => $text];
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => __('Your previous analysis is still being processed in the background. You can close this page — I\'ll notify you when it\'s ready, and the result will be waiting here. Please wait before starting another analysis.'),
+            ];
+            $this->dispatch('message-sent');
             return;
         }
 
@@ -566,10 +608,46 @@ class AiChat extends Component
     {
         $lower = mb_strtolower($text);
 
+        // Original strict regex — kept for "analyze last 500 contacts" style
+        // phrasings where the verb directly precedes the cohort.
         $isDeep = (bool) preg_match(
             '/\b(deep\s+(analysis|dive)|analyz(e|ing)?\s+(the\s+)?(last\s+)?(all\s+)?\d*\s*(contacts|conversations|chats|customers)|analyz(e|ing)?\s+(all\s+)?contacts?\s+for)\b/iu',
             $lower
         );
+
+        // Broader detection — fires when ANY analysis-verb AND a cohort-noun
+        // both appear in the message, regardless of order. Catches the natural
+        // phrasings that burned a real operator complaint on 2026-10-08:
+        //   "read the 3000 contacts and analyze them"
+        //   "go through all my contacts and tell me who's hot"
+        //   "review my conversations and find patterns"
+        // Without this, the inline NaraRouter path runs with only 25 convos in
+        // context and the AI (correctly) says "I cannot read 3,000 contacts".
+        if (! $isDeep) {
+            $hasAnalysisVerb = (bool) preg_match(
+                '/\b(analyz(e|ing|ed|es)|analysis|read|review|go\s+through|look\s+(at|through)|dive\s+(in|into)|study|check|investigate|examine|insight|summar(y|ize|ise|ies)|understand|segment|categor(y|ize|ise)|cluster|find\s+(patterns|insights|trends))\b/iu',
+                $lower
+            );
+            $hasCohortNoun = (bool) preg_match(
+                '/\b(contacts?|conversations?|chats?|customers?|leads?|threads?|messages?|convos?|all\s+(my\s+)?(data|people))\b/iu',
+                $lower
+            );
+            $hasBigNumber = (bool) preg_match(
+                '/\b([2-9]\d|\d{3,})\b/u',
+                $lower
+            );
+            $hasAllOrEveryone = (bool) preg_match(
+                '/\b(all|every|everyone|whole|entire|every single)\b/iu',
+                $lower
+            );
+
+            // Trigger if (verb + noun + N≥20) OR (verb + noun + "all/every").
+            // 20 is the floor — below that, the inline NaraRouter can handle it
+            // from the 25-convo digest and we don't want to charge Deep Analysis.
+            if ($hasAnalysisVerb && $hasCohortNoun && ($hasBigNumber || $hasAllOrEveryone)) {
+                $isDeep = true;
+            }
+        }
 
         // Phase H — three distinct phrasings route into the agent_audit mode.
         // Kept as separate expressions so a reader can grep for the exact
