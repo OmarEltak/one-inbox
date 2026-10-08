@@ -300,3 +300,34 @@ operator. Placeholders were fed to weak models verbatim and parroted.
   telling the model not to use it.
 - **Never show a bare attachment token to a model** — narrate it
   (`MediaPlaceholders::narrate`) and strip tokens from every outgoing reply.
+
+## 2026-10-08 — DeepAnalysis stuck 20h because queue worker wasn't listening on `heavy-analysis`
+
+**Symptom:** User saw "Analysis in progress — You can close this page" banner for
+over an hour on `/ai-chat`. Deep Analysis id=1 was in `status=queued` since
+2026-10-07 22:49 with `started_at = NULL` — 20+ hours untouched.
+
+**Root cause:** `DispatchDeepAnalysisJob` and `DeepAnalysisService` both call
+`->onQueue('heavy-analysis')`. The systemd unit on prod
+(`/etc/systemd/system/one-inbox-queue.service`) had:
+
+    ExecStart=/usr/bin/php artisan queue:work ... --queue=urgent,default,comments-ingest,comments-send
+
+`heavy-analysis` was missing. Jobs sat on a queue nobody listened to, forever.
+
+**Fix:** Added `heavy-analysis` to the queue list on prod and reloaded systemd.
+
+### Rules
+- When you add `->onQueue('X')` to a new or existing job, you MUST also update
+  the prod systemd unit's `--queue=X,Y,Z` list. The service file is NOT in the
+  repo — it lives on 187.77.67.94 at `/etc/systemd/system/one-inbox-queue.service`.
+  Grep `--queue=` there before adding any queue name.
+- When debugging "a job never ran", ALWAYS first check (in this order, 30s total):
+    1. Does the job's queue name appear in the worker's `--queue=` list?
+       (`cat /etc/systemd/system/one-inbox-queue.service | grep ExecStart`)
+    2. Is the worker running? (`systemctl status one-inbox-queue`)
+    3. Is `jobs` table empty for that queue, or stuffed with it?
+       (`SELECT queue, COUNT(*) FROM jobs GROUP BY queue;`)
+- **Future task**: version-control the systemd unit under `deploy/` so this
+  invariant lives in git, not on prod only. Captured in
+  `tasks/future-self-healing-system.md` as a related follow-up.
