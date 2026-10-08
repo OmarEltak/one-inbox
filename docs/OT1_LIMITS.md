@@ -1,6 +1,6 @@
 # OT1-Pro Production Limits & Capacity Playbook
 
-**Last measured**: 2026-09-28
+**Last measured**: 2026-09-28 (hardware / FPM / queue baselines) · last reviewed 2026-10-08
 **Prod host**: `187.77.67.94` (`https://ot1-pro.com`)
 **Purpose**: Single source of truth for what this box can handle, where the breaking points are, and when to alert / scale.
 
@@ -31,7 +31,7 @@ Anytime you change the hardware, add a service, tune PHP-FPM/MySQL/nginx, or run
 | `mysql` (8.0) | Primary DB | `one_inbox` schema |
 | `redis-server` | Queues + cache + session | Backing store for horizon-style queue processing |
 | `docker` + `containerd` | Wuzapi WhatsApp gateway container | Bound to `127.0.0.1:8082` (see prod-ops runbook) |
-| `one-inbox-queue.service` | Main queue worker | Consumes `urgent, default, comments-ingest, comments-send` in that priority order (verified 2026-09-29) |
+| `one-inbox-queue.service` | Main queue worker | Consumes `urgent, default, heavy-analysis, comments-ingest, comments-send` in that priority order (verified 2026-10-08). `heavy-analysis` was added 2026-10-08 after a user-reported 20-hour stuck Deep Analysis — the queue was created with the AI credit economy spec but the worker config was never updated. **The systemd unit file is NOT in git** — see §9 open verification. |
 | `one-inbox-queue@1..4` | 4× worker instances | Consume `urgent, default` ONLY — do NOT process comment queues (verified 2026-09-29) |
 | `one-inbox-queue-campaigns.service` | Dedicated campaigns worker | Consumes `campaigns` only. `--max-jobs=1000 --timeout=60` (verified 2026-09-29) |
 | `one-inbox-whisper.service` | Transcription queue worker | Consumes `transcription` only. `--tries=1 --timeout=90`. This is a Laravel queue worker (misnamed "whisper" — the actual whisper.cpp HTTP daemon is separate). Verified 2026-09-29 |
@@ -65,7 +65,7 @@ pm.max_spare_servers = 3
 
 ## 4 · Queue topology
 
-The app uses **6 named queues** on Redis. Workers are dedicated per role so a bulk-send storm can't starve an inbound message.
+The app uses **7 named queues** on Redis. Workers are dedicated per role so a bulk-send storm can't starve an inbound message.
 
 | Queue | Purpose | Workers | Failure impact if backed up |
 |---|---|---|---|
@@ -74,7 +74,8 @@ The app uses **6 named queues** on Redis. Workers are dedicated per role so a bu
 | `campaigns` | Bulk WhatsApp/email per-recipient sends | **1 worker** (`one-inbox-queue-campaigns.service`) | Campaigns run slowly; inbound unaffected |
 | `comments-ingest` | Meta comment webhooks classification | **1 worker** (main service only — `@1..4` do NOT process) | AI comment replies delayed |
 | `comments-send` | Publishing AI comment replies | **1 worker** (same) | Same |
-| `default` | `ConvertAudioToOgg`, `DescribeImage`, `ScoreLeadJob`, misc | **5 workers** (`one-inbox-queue` + `@1..4`) | Lead scoring + voice/image previews delayed |
+| `heavy-analysis` | Deep Analysis jobs (`DispatchDeepAnalysisJob`) + any async paid-cohort work | **1 worker** (main service only — added 2026-10-08) | Operator Deep Analyses stall; `/ai-chat` idempotency lock keeps the user on the "Analysis in progress" banner until the job runs or fails. |
+| `default` | `ConvertAudioToOgg`, `DescribeImage`, `ScoreLeadJob`, `ProcessAiChatTurn` (admin chat async turn — added 2026-10-08), misc | **5 workers** (`one-inbox-queue` + `@1..4`) | Lead scoring + voice/image previews delayed; admin chat replies stuck in "typing dots" placeholder. |
 
 **Per-team throttles**:
 
@@ -306,6 +307,8 @@ Each script emits a JSON report → `docs/load-tests/YYYY-MM-DD-<scenario>.json`
 - [ ] `client_max_body_size` — what's the actual nginx-side limit for Excel uploads?
 - [ ] Reverb concurrent connection ceiling under real message load
 - [x] ~~Transcription driver order~~ **Groq primary, whisper.cpp fallback — verified in `AppServiceProvider@register`** (2026-09-28)
+- [x] ~~`heavy-analysis` queue listed in `one-inbox-queue.service` ExecStart?~~ **Fixed 2026-10-08 — added to the `--queue=` list after a 20h stuck Deep Analysis.** The systemd unit file lives only on prod — captured below as a durable follow-up.
+- [ ] **Systemd unit files are not version-controlled.** Both `one-inbox-queue.service` and the related `@1..4` + `one-inbox-queue-campaigns` + `one-inbox-whisper` + `one-inbox-reverb` units live only at `/etc/systemd/system/` on prod. Any `--queue=X,Y,Z` change (like the 2026-10-08 `heavy-analysis` fix) is invisible to future greps + will be lost on a server rebuild. **Follow-up**: move canonical versions under `deploy/systemd/` in the repo, add a deploy step to `scp` them to prod when they change.
 
 I'll close these as we run the load tests.
 
@@ -341,10 +344,12 @@ The 5 phases, ranked by ROI:
 - Contrast-safe: `bg-emerald-50` + `text-emerald-900` + `border-emerald-200` (contrast-guardrails skill safe pair)
 
 ### Phase 2 — Plan-tier campaign limits ✅ SHIPPED 2026-09-29 (PR #62)
-- Free tier: **1 campaign/month**
-- Starter ($29): **5 campaigns/month**
-- Pro ($79): **25 campaigns/month**
-- Enterprise: `PHP_INT_MAX` (effectively unlimited)
+> **2026-10-06 Phase RP update**: the tier structure was collapsed from 6 → 4 and prices were cut. Below are the values ORIGINALLY shipped in PR #62. The current authoritative source is `config/plans.php` (`plans.plans.{slug}.limits.bulk_campaigns_monthly`): **Free = 0, Starter ($8) = 3, Pro ($29) = 15, Business ($99) = 100**. Legacy `enterprise` / `agency` slugs resolve to `business` via `Team::resolvePlanSlug()`.
+
+- Free tier: **1 campaign/month** _(now 0 per Phase RP)_
+- Starter ($29): **5 campaigns/month** _(now $8, 3 campaigns)_
+- Pro ($79): **25 campaigns/month** _(now $29, 15 campaigns)_
+- Enterprise: `PHP_INT_MAX` (effectively unlimited) _(removed; use `business` for the top tier at $99 with 100 campaigns)_
 - Rolling 30-day window (not calendar month) — fairer for new signups
 - Config: `config/campaigns.php` → `monthly_limits` array, env-overridable
 - Enforcement: `Team::canCreateCampaign()` + `campaignsCreatedThisMonth()` + `monthlyCampaignLimit()` + `campaignsRemainingThisMonth()`
@@ -421,17 +426,24 @@ The AI chat was silently capping customer-conversation context at ~14 of thousan
 - **H** — agent-audit sub-feature on Deep Analysis path (needs `messages.handled_by_user_id`, 1 day)
 
 ### Capacity impact on this box
-Minimal. The new `heavy-analysis` queue needs **one dedicated worker** so Deep Analysis jobs don't starve `urgent`. Each Deep Analysis job hits NaraRouter 11 times (10 chunks + 1 aggregation) over ~60-120 s. At the napkin-math ceiling of 10 NaraRouter calls/sec (§5.1), each concurrent Deep Analysis consumes ~1 sec/sec of our AI budget — so **max 2 concurrent Deep Analyses team-wide** before AI-reply latency starts to climb. Cost table caps per-user frequency (expensive queries need credits) which naturally throttles this.
+Minimal. The `heavy-analysis` queue was originally spec'd to need **one dedicated worker**; in practice it's folded into `one-inbox-queue.service`'s queue list alongside `urgent, default, comments-*` (2026-10-08 fix after a 20h stuck Deep Analysis — the queue was created with the spec but the worker config was never updated to listen on it). Each Deep Analysis job hits NaraRouter 11 times (10 chunks + 1 aggregation) over ~60-120 s. At the napkin-math ceiling of 10 NaraRouter calls/sec (§5.1), each concurrent Deep Analysis consumes ~1 sec/sec of our AI budget — so **max 2 concurrent Deep Analyses team-wide** before AI-reply latency starts to climb. Cost table caps per-user frequency (expensive queries need credits) which naturally throttles this.
 
-### Progress tracker
-- [ ] Phase A — ledger + AiCredits service
-- [ ] Phase B — header meter chip + billing page
-- [ ] Phase C — live-chat context fix + retry/idempotency
-- [ ] Phase D — cost table + confirmation modal + Deep Analysis
-- [ ] Phase E — super-admin grant screen
-- [ ] Phase F — user top-up page
-- [ ] Phase G — privacy/terms/pricing-faq updates + Arabic
-- [ ] Phase H — agent-audit on Deep Analysis
+If Deep Analysis volume grows (3+ running at once observed), split it off into its own dedicated service so `urgent` isn't fighting for the same worker during an analysis burst.
+
+### Progress tracker (shipped 2026-10-05 → 2026-10-08)
+- [x] Phase A — ledger + AiCredits service + `config/plans.php` rename (2026-10-05)
+- [x] Phase B — header meter chip + `/settings/billing` ledger view (2026-10-05 → 2026-10-08 chip bug fixes for legacy enterprise slug)
+- [x] Phase C — live-chat context fix + retry/idempotency (shipped; §5.1 digest expansion)
+- [x] Phase D — cost table + confirmation modal + Deep Analysis (2026-10-05); detection regex expanded 2026-10-08 to catch natural phrasings like "read 3000 contacts and analyze them"
+- [x] Phase E — super-admin grant screen at `/super-admin/billing`
+- [x] Phase F — user top-up page at `/settings/billing/top-up` with 3 pack sizes ($10/$25/$100)
+- [x] Phase G — privacy/terms/pricing-faq updates + Arabic; founder-voice copy sweep 2026-10-08 replaced `support@ot1-pro.com` with `omareltak7@gmail.com` across 12 files
+- [x] Phase H — agent-audit sub-feature on Deep Analysis path
+
+### Phase RP (plan ladder collapse — 2026-10-06, bolt-on to the spec)
+- Collapsed 6 tiers → 4: Free ($0, 100 credits/mo), Starter ($8, 500), Pro ($29, 3,000), Business ($99, 12,000)
+- Legacy `enterprise` / `agency` subscription_plan values are aliased to `business` in `config/plans.php:legacy_aliases` and resolved via `Team::resolvePlanSlug()`
+- Catch-up 2026-10-08: five code sites (EnforcePlanLimits, ResetMonthlyAiCredits, BackfillAiCreditLedgerSeeder, SuperAdmin/Customers display, Settings/Billing display, Settings components/ai-credit-meter) were reading `$team->subscription_plan` raw and silently falling back to Free for legacy-slug teams. All now go through `Team::resolvePlanSlug()`. See commit `ec9019b`.
 | 2026-09-29 → 2026-09-30 | Campaigns index mobile-responsive fix (PR #66) — header stacks, campaign card layout stacks, button labels shorten so both CTAs visible on ~490px viewports. |
 | 2026-09-29 → 2026-09-30 | Email-wizard `/campaigns/email/new` 500 rabbit hole — 4 fragile Blade escapes (`{{ '{{...}}' }}`) at lines 117, 198, 208, 210 all rewritten to canonical `@{{...}}` verbatim escape or `@php $var = '{{'.$c.'}}'; @endphp` pattern. PRs #67, #68, #70. Full contrast rewrite of email wizard from dark-shell (invisible white text on light shell) to light zinc palette in PR #69. |
 | 2026-09-30 | **Deploy workflow hardened** (`.github/workflows/deploy.yml` in PR #69) — added `export HOME=/tmp XDG_CONFIG_HOME=/tmp` (deploy user's real `$HOME` not writable by psysh subprocess) + explicit `config:clear`/`route:clear`/`view:clear` BEFORE the `:cache` commands so stale compiled artifacts from a prior deploy or wrong-user manual run can't linger and re-explode. Root cause of a `MissingAppKeyException` storm on 2026-09-29 that stacked on top of the email-wizard 500. |
@@ -442,26 +454,31 @@ Minimal. The new `heavy-analysis` queue needs **one dedicated worker** so Deep A
 
 `.github/workflows/deploy.yml` runs on push to `main`. Auto-deploys in ~24s via SSH as the `deploy` user.
 
-**Sequence** (post-2026-09-30 hardening):
+**Sequence** (post-2026-10-08 Path A hardening — maintenance-mode wrap):
 
-1. `cd /var/www/ot1-pro.com && git pull origin main`
-2. `.env` guards — idempotent writes for `APP_DEBUG=false`, `FLARE_KEY`, `LOG_STACK`
-3. `composer install --no-dev --optimize-autoloader`
-4. `npm ci && npm run build`
-5. `php artisan migrate --force`
-6. **`export XDG_CONFIG_HOME=/tmp HOME=/tmp`** — required for psysh subprocess; deploy user's real `$HOME` (`/var/www`) is not writable
-7. **`config:clear`, `route:clear`, `view:clear`** — kill stale compiled artifacts (added 2026-09-30 after the MissingAppKey storm)
-8. `config:cache`, `route:cache`, `view:cache` — rebuild fresh, all as `deploy` user (never root — see `ot1-pro-prod-ops` skill rule #1)
-9. `queue:restart` — pick up new job classes
-10. `sudo systemctl reload php8.4-fpm` — clear opcache so FPM workers see the new bootstrap
+1. `set -e` + `trap 'php artisan up || true' EXIT` — safety net: a half-failed deploy still exits maintenance mode instead of leaving prod stuck at 503.
+2. **`export XDG_CONFIG_HOME=/tmp HOME=/tmp`** — required for psysh subprocess; deploy user's real `$HOME` (`/var/www`) is not writable
+3. **`php artisan down --render="errors::503" --retry=30 [--secret=…]`** — enter maintenance mode BEFORE any disk mutation. Users during the window see the branded 503 "I'm giving the site a quick tune-up" page with `Retry-After: 30`. Optional `DEPLOY_MAINT_SECRET` GitHub Actions secret provides a bypass URL (`https://ot1-pro.com/<secret>`) to verify the deploy before letting users back in.
+4. `git pull origin main`
+5. `.env` guards — idempotent writes for `APP_DEBUG=false`, `FLARE_KEY`, `LOG_STACK`
+6. `composer install --no-dev --optimize-autoloader`
+7. `npm ci && npm run build`
+8. `php artisan migrate --force`
+9. `config:cache`, `route:cache`, `view:cache` — rebuild fresh, all as `deploy` user. **`*:clear` steps removed** 2026-10-08 — they physically delete the compiled files for ~2-5s each until `*:cache` rewrites them, which was the single biggest cause of mid-deploy 500s (`MissingAppKeyException`). `*:cache` already writes atomically (tempfile + rename), so pre-clearing bought nothing.
+10. `queue:restart` — pick up new job classes
+11. `sudo systemctl reload php8.4-fpm` — clear opcache so FPM workers see the new bootstrap
+12. `php artisan up` — exit maintenance mode. The `trap` from step 1 also runs this on error exit so prod never gets stuck down.
 
-**What broke before the hardening** (2026-09-29 incident):
+**What broke before the Path A hardening** (2026-09-29 and intermittently thereafter):
 - A blade parse error was fixed on `main` and deployed
-- Old `config:cache` step ran WITHOUT prior `config:clear` — sometimes leaves the previous file in a partial state depending on when the write completes
-- Simultaneously, some historical run had produced a `bootstrap/cache/config.php` unreadable by www-data
-- Result: `MissingAppKeyException` on random requests for ~10 minutes until manual recovery
+- Old `config:clear` step physically deleted `bootstrap/cache/config.php`; any request hitting FPM in the next 2-5s before `config:cache` rewrote it returned `MissingAppKeyException` as a 500
+- The `npm run build` step rewrites `public/build/manifest.json` mid-request; any `@vite(...)` call reading a half-written file 500'd
+- Combined 5-20s window of random 500s every deploy — users saw it, Omar watched it in Flare
+- Result: `MissingAppKeyException` on random requests for ~10 minutes until manual recovery on the worst occurrence
 
-**Prevention**: the new sequence guarantees fresh compiled artifacts on every deploy. Cost is ~2 seconds of extra deploy time. Worth it.
+**Prevention** (2026-10-08 Path A): maintenance-mode wrap + removed `*:clear` steps. Users during the window see a branded 503 instead of 500s; the window itself is also shorter because the clear/cache dance is gone.
+
+**Still open as Path B**: atomic releases via symlink swap. Required if we ship a destructive migration (dropped/renamed column) where the old release serving traffic during the swap window could crash on the new schema. Not blocking for normal feature deploys. Captured as a follow-up — would move to Capistrano-style `releases/` + `current` symlink, likely using deployerphp/deployer or Laravel Envoy.
 
 **Runbook** (if MissingAppKey ever fires again despite the guards):
 ```bash
@@ -480,3 +497,10 @@ Expect a number > 30. Zero = APP_KEY missing from `.env`. See `ot1-pro-prod-ops`
 | 2026-09-30 | Task C shipped (PR #74) — Phase 3b async Excel import for Email wizard. Mirrors Phase 3 WA wizard: new `App\Jobs\ImportEmailRecipients` on `default` queue with per-team throttle (`email:import:inflight:{team}`), wizard has new 'importing' step (STEPS: upload→map→**importing**→compose→review→launched) with `wire:poll.2s="checkImportProgress"`, retry on failure, 10 MB cap. 4 Pest tests. Verified live: 6-step indicator renders, notice shows "Upload up to 10 MB". |
 | 2026-09-30 | Task D shipped (PR #75) — k6 load-testing scaffold. `scripts/load/homepage.js` (ramp 50→500 VUs, fails on p95>5s or err>5%), `scripts/load/webhook-ingest.js` (fake signed payloads 1→100 req/s), plus README with install + priority table + prod-safety warning. Next step (needs staging box): point at `staging.ot1-pro.com` mirror, capture measurements, replace `(theory)` marks in §5.7 with `(measured)`. |
 | 2026-10-05 | AI credit economy spec drafted and approved — `docs/superpowers/specs/2026-10-04-ai-credit-economy-design.md`. Introduces append-only `ai_credit_ledger`, two-balance model (monthly plan allowance + prepaid wallet), header meter chip, cost table per action, confirmation modal for actions > 5 credits, Deep Analysis premium feature (5 credits per 100 contacts analysed). **No payment provider wired** — OT1 isn't a registered entity yet; manual top-up via PayPal/bank/WhatsApp handled by a super-admin grant screen. Live-chat context fix bundled: targeted-page expansion lifts the per-page sample from ~14 convos to ~100 and includes outbound messages so moderator-audit queries work. See §13 below for scope and phase list. |
+| 2026-10-06 | **Phase RP shipped (plan ladder collapse)** — 6 tiers → 4. Current: Free ($0, 100 credits/mo), Starter ($8, 500), Pro ($29, 3,000), Business ($99, 12,000). Legacy `enterprise` / `agency` subscription_plan values aliased to `business` via `Team::resolvePlanSlug()`. §11 Phase 2 numbers above are the pre-RP shipped values; actual authoritative config lives in `config/plans.php`. |
+| 2026-10-07 | **AI chat async turn processing** (commit `0cd84ce`) — `app/Livewire/AiChat.php:sendMessage()` previously blocked 5-15 s on the inline NaraRouter call. A user who clicked Send and navigated away lost the request because `wire:submit` was cancelled mid-flight before AiCommand was ever persisted. Fixed by persisting the AiCommand with `status=pending` synchronously (~50 ms) and dispatching `App\Jobs\ProcessAiChatTurn` (on `default` queue) which does the slow part. New Reverb event `AiChatTurnCompleted` swaps the "typing dots" placeholder for the real response. If the user navigated away, `mount()` loads the pending row on next visit and shows the dots until the Reverb event fires (or until the completed row is already there, race-safe). Idempotency lock added for Deep Analysis — `AiChat::hasRunningDeepAnalysis()` disables the composer while a queued/running analysis exists for this (team, user); a browser Notification fires on completion. |
+| 2026-10-08 | **Fixed `/ai-chat` 500 on page load** (commit `809ff07`) — `hasRunningDeepAnalysis()` queried `where('user_id', ...)` but the `deep_analyses` schema uses `triggered_by_user_id`. Every page load of `/ai-chat` 500'd with `PDOException 42S22` until a navigation away. Lesson captured in `tasks/lessons.md` under "verify schema with DESCRIBE before writing a query against an unfamiliar table". |
+| 2026-10-08 | **Fixed stuck Deep Analysis / `heavy-analysis` queue not listened** — User reported "Analysis in progress" banner stuck for over 1 hour on `/ai-chat`. DeepAnalysis id=1 was `status=queued` since 2026-10-07 22:49 with `started_at=NULL`, 20+ hours untouched. Root cause: `DispatchDeepAnalysisJob` and `DeepAnalysisService` call `->onQueue('heavy-analysis')`, but the systemd unit for `one-inbox-queue.service` had `--queue=urgent,default,comments-ingest,comments-send` — no `heavy-analysis`. Jobs sat on a queue nobody listened to. **Fix on prod**: added `heavy-analysis` to the queue list, `systemctl daemon-reload && restart`. Marked the stuck analysis as `failed` so the AI chat lock released. §4 queue topology updated. Lesson in `tasks/lessons.md` with the 30-second diagnostic for future similar cases. New open verification: version-control the systemd unit files under `deploy/systemd/`. |
+| 2026-10-08 | **Deploy pipeline Path A** (commit `02a05b9`) — every `git push origin main` was producing ~5-20s of 500s for live users during the ~24s auto-deploy. §12 fully rewritten. Core changes: wrap the whole dance in `php artisan down --render="errors::503" --retry=30` / `php artisan up`, remove the `*:clear` steps (they physically deleted the compiled files and bought nothing — `*:cache` already writes atomically), add `set -e` + `trap … EXIT` safety so a half-failed deploy never leaves prod stuck in maintenance mode. Optional `DEPLOY_MAINT_SECRET` GitHub Actions secret unlocks a bypass URL for verifying the new release before letting users back in. Path B (atomic releases with symlink swap) kept as a follow-up for destructive migrations. |
+| 2026-10-08 | **Legacy-plan-slug sweep** (commit `ec9019b`) — 5 code sites were reading `$team->subscription_plan` raw and silently falling back to Free's 100 AI credits / 1 page / 0 campaigns for teams on legacy `enterprise`/`agency` slugs: EnforcePlanLimits middleware (all 4 checks), ResetMonthlyAiCredits scheduled job (so Omar's enterprise team had received 100/month instead of 12,000), BackfillAiCreditLedgerSeeder, SuperAdmin/Customers display, Settings/Billing display, components/ai-credit-meter chip. All now route through `Team::resolvePlanSlug()`. Catch-up grant of 12,000 monthly credits dispatched to team 2 on prod via `AiCredits::grant`. |
+| 2026-10-08 | **UX fixes bundle** — (a) sidebar perf: `User::hasPermission()` was 8 DB queries per sidebar render for non-owner team members, now memoized to 1 (commit `c3cedf3`); (b) /settings/billing ledger + AI chat markdown tables both wrap in `overflow-x-auto` for mobile scroll; AI chat ruleset rewritten to fix "20 → 2\n0" column-crush bug (commit `6181f04`); (c) connections syncing banner converted from persistent inline bar to dismissible toast; (d) error page copy sweep to founder voice ("I'm giving the site a quick tune-up" instead of "We're..."), replaced `support@ot1-pro.com` with `omareltak7@gmail.com` across 12 files (commit `06678eb`); (e) ai-quota banner `grid-column: 2/-1` to stop crushing every page's main column to ~222px (commit `b5aeebd`). |
