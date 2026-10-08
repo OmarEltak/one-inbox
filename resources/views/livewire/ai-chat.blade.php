@@ -256,11 +256,14 @@
                     @endforeach
                 </div>
             @endif
-            {{-- Deep Analysis in-progress banner. Hides the composer and shows
-                 "your previous analysis is being processed" so a user who
-                 refreshes or returns in a new tab is not tempted to start a
-                 duplicate paid run. Dismissed server-side when the Reverb
-                 DeepAnalysisCompleted event re-renders the chat. --}}
+            {{-- Deep Analysis info banner. Shows while an analysis is pending,
+                 but does NOT lock the composer (users can keep chatting about
+                 other things in parallel — up to CHAT_CONCURRENT_LIMIT = 3).
+                 Auto-clears via wire:poll.5s so a failed analysis doesn't leave
+                 a stale banner forever (2026-10-08: a NaraRouter outage failed
+                 an analysis silently, no Reverb event fires on failure, banner
+                 stayed up until manual refresh). --}}
+            <div wire:poll.5s>
             @if($this->hasRunningDeepAnalysis())
                 <div class="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
                     <svg class="w-4 h-4 text-amber-600 animate-spin flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
@@ -268,11 +271,12 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
                     <div class="flex-1 text-sm">
-                        <p class="font-medium text-amber-900">{{ __('Analysis in progress') }}</p>
-                        <p class="text-amber-800/80 mt-0.5">{{ __("You can close this page — I'll notify you here when it's ready. Starting another chat is blocked until it completes.") }}</p>
+                        <p class="font-medium text-amber-900">{{ __('Deep Analysis running in the background') }}</p>
+                        <p class="text-amber-800/80 mt-0.5">{{ __("I'll notify you here when it's ready. You can keep chatting about other things in the meantime.") }}</p>
                     </div>
                 </div>
             @endif
+            </div>
             @if($attachment)
                 <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
                     @if(str_starts_with($attachment->getMimeType(), 'image/'))
@@ -295,22 +299,32 @@
                 <button type="button" x-ref="emojiBtn" @click="togglePicker()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-700 cursor-pointer p-1 mb-1.5 transition-colors">
                     <flux:icon name="face-smile" class="h-5 w-5" />
                 </button>
-                @php $deepLocked = $this->hasRunningDeepAnalysis(); @endphp
+                @php
+                    $chatLocked = $this->isChatLocked();
+                    $pendingCount = $this->pendingChatTurnsCount();
+                @endphp
                 <div class="flex-1" x-ref="textInput">
                     <flux:textarea
                         wire:model="message"
-                        placeholder="{{ $deepLocked ? __('Analysis in progress — please wait…') : __('Ask about your analytics...') }}"
+                        placeholder="{{ $chatLocked ? __('Wait for an answer to arrive before sending more…') : __('Ask about your analytics...') }}"
                         dir="auto"
                         autocomplete="off"
                         wire:loading.attr="disabled"
-                        :disabled="$deepLocked"
+                        :disabled="$chatLocked"
                         rows="1"
                         class="resize-none max-h-32 !text-zinc-900 dark:!text-zinc-900"
                         x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                         x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                     />
+                    @if($pendingCount > 0)
+                        {{-- Live count of in-flight answers so the user knows exactly how many are
+                             still coming (3 = max; they'll see the lock message if they try a 4th). --}}
+                        <p class="mt-1 text-[11px] text-zinc-400">
+                            {{ trans_choice('{1} 1 answer still arriving…|[2,*] :count answers still arriving…', $pendingCount, ['count' => $pendingCount]) }}
+                        </p>
+                    @endif
                 </div>
-                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" :disabled="$deepLocked" class="mb-0.5">
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" :disabled="$chatLocked" class="mb-0.5">
                     <flux:icon name="paper-airplane" variant="micro" class="size-4" />
                 </flux:button>
             </form>

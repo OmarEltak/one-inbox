@@ -231,11 +231,25 @@ class AiChat extends Component
     }
 
     /**
+     * Hard ceiling on simultaneous async AI chat turns per (team, user). The user
+     * can fire this many pending ProcessAiChatTurn jobs before new sends are
+     * rate-limited. 3 was picked by Omar on 2026-10-08 — enough for the common
+     * "ask three follow-ups while the first is thinking" flow without letting a
+     * runaway user queue up dozens of jobs.
+     */
+    public const CHAT_CONCURRENT_LIMIT = 3;
+
+    /**
      * True when the current user has a queued/running Deep Analysis on their
      * current team. Used to idempotency-lock the chat input + surface a status
      * banner so a user who refreshes or returns in a new tab doesn't fire a
      * duplicate paid analysis. Cheap: covered by the (team_id, user_id, status)
      * index on deep_analyses.
+     *
+     * Note: this does NOT block inline chat turns anymore (as of 2026-10-08).
+     * Inline turns are capped by CHAT_CONCURRENT_LIMIT instead. The Deep
+     * Analysis lock only prevents dispatching a NEW Deep Analysis while one is
+     * pending — which is handled in tryDispatchDeepAnalysis, not here.
      */
     public function hasRunningDeepAnalysis(): bool
     {
@@ -253,6 +267,36 @@ class AiChat extends Component
             ->where('triggered_by_user_id', $user->id)
             ->whereIn('status', [DeepAnalysis::STATUS_QUEUED, DeepAnalysis::STATUS_RUNNING])
             ->exists();
+    }
+
+    /**
+     * Count of in-flight async AiChat turns for the current (team, user). Each
+     * pending AiCommand = one ProcessAiChatTurn job waiting on the queue. Used
+     * to cap simultaneous sends at CHAT_CONCURRENT_LIMIT.
+     */
+    public function pendingChatTurnsCount(): int
+    {
+        $user = Auth::user();
+        $team = $user?->currentTeam;
+        if (! $team) {
+            return 0;
+        }
+
+        return AiCommand::where('team_id', $team->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->count();
+    }
+
+    /**
+     * Composer-disabled test used by the Blade. Composer is disabled only when
+     * the user has already queued CHAT_CONCURRENT_LIMIT inline turns — the
+     * Deep Analysis lock no longer blocks inline chat (that was too strict and
+     * left users stuck on a stale banner when a Deep Analysis failed).
+     */
+    public function isChatLocked(): bool
+    {
+        return $this->pendingChatTurnsCount() >= self::CHAT_CONCURRENT_LIMIT;
     }
 
     public function sendMessage(): void
@@ -274,16 +318,21 @@ class AiChat extends Component
             return;
         }
 
-        // Deep Analysis idempotency lock. A paid async analysis is in flight for
-        // this (team, user); block new turns so a reload / second tab / impatient
-        // retry doesn't dispatch a duplicate paid job. Posting any text while
-        // locked shows the "still processing" message and consumes nothing.
-        if ($this->hasRunningDeepAnalysis()) {
+        // Concurrency cap: block only when CHAT_CONCURRENT_LIMIT (3) async
+        // ProcessAiChatTurn jobs are already in-flight for this (team, user).
+        // Users CAN fire multiple questions in a row and watch them all answer
+        // in parallel — the lock is purely to prevent runaway queueing. Deep
+        // Analysis has its own idempotency gate inside tryDispatchDeepAnalysis
+        // (dispatching a NEW analysis while one is pending is still blocked),
+        // but a pending Deep Analysis NO LONGER prevents inline chat turns
+        // (that was too strict and left users stuck when an analysis failed
+        // silently without broadcasting an event, see 2026-10-08 incident).
+        if ($this->isChatLocked()) {
             $this->message = '';
             $this->messages[] = ['role' => 'user', 'content' => $text];
             $this->messages[] = [
                 'role'    => 'assistant',
-                'content' => __('Your previous analysis is still being processed in the background. You can close this page — I\'ll notify you when it\'s ready, and the result will be waiting here. Please wait before starting another analysis.'),
+                'content' => __("You already have :n questions being answered. Wait a moment for one to finish before sending another.", ['n' => self::CHAT_CONCURRENT_LIMIT]),
             ];
             $this->dispatch('message-sent');
             return;
