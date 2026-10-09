@@ -30,6 +30,8 @@ class DeepAnalysisCompleted implements ShouldBroadcast
         public string $mode,
         public int $cohortSize,
         public string $completedAt,
+        public bool $success = true,
+        public ?string $errorMessage = null,
     ) {
     }
 
@@ -41,6 +43,8 @@ class DeepAnalysisCompleted implements ShouldBroadcast
             mode: (string) $analysis->mode,
             cohortSize: (int) $analysis->cohort_size,
             completedAt: ($analysis->completed_at ?? now())->toIso8601String(),
+            success: $analysis->status === DeepAnalysis::STATUS_COMPLETED,
+            errorMessage: $analysis->error_message,
         );
     }
 
@@ -66,6 +70,8 @@ class DeepAnalysisCompleted implements ShouldBroadcast
             'mode'             => $this->mode,
             'cohort_size'      => $this->cohortSize,
             'at'               => $this->completedAt,
+            'success'          => $this->success,
+            'error_message'    => $this->errorMessage,
         ];
     }
 }

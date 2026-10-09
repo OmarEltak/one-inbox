@@ -256,14 +256,17 @@
                     @endforeach
                 </div>
             @endif
-            {{-- Deep Analysis info banner. Shows while an analysis is pending,
-                 but does NOT lock the composer (users can keep chatting about
-                 other things in parallel — up to CHAT_CONCURRENT_LIMIT = 3).
-                 Auto-clears via wire:poll.5s so a failed analysis doesn't leave
-                 a stale banner forever (2026-10-08: a NaraRouter outage failed
-                 an analysis silently, no Reverb event fires on failure, banner
-                 stayed up until manual refresh). --}}
-            <div wire:poll.5s>
+            {{-- Deep Analysis info banner. Shows while an analysis is pending.
+                 Does NOT lock the composer (composer locks only on 3+ pending
+                 inline turns — see CHAT_CONCURRENT_LIMIT).
+                 2026-10-09: removed the wire:poll that used to refresh this —
+                 even at 5s or 15s intervals it was stealing textarea focus
+                 mid-typing. The banner is purely visual now; if it goes stale
+                 after a NaraRouter failure, it clears on the next real
+                 interaction (sending a message, nav away/back). Follow-up:
+                 wire a DeepAnalysisFailed broadcast event so the banner
+                 self-dismisses on failure the same way DeepAnalysisCompleted
+                 handles success. --}}
             @if($this->hasRunningDeepAnalysis())
                 <div class="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
                     <svg class="w-4 h-4 text-amber-600 animate-spin flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
@@ -276,7 +279,6 @@
                     </div>
                 </div>
             @endif
-            </div>
             @if($attachment)
                 <div class="mb-2 flex items-center gap-2 rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
                     @if(str_starts_with($attachment->getMimeType(), 'image/'))
@@ -317,8 +319,8 @@
                         x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                     />
                     @if($pendingCount > 0)
-                        {{-- Live count of in-flight answers so the user knows exactly how many are
-                             still coming (3 = max; they'll see the lock message if they try a 4th). --}}
+                        {{-- Live count driven by AiChatTurnCompleted broadcasts (via
+                             handleAiChatTurnCompleted), not by polling. --}}
                         <p class="mt-1 text-[11px] text-zinc-400">
                             {{ trans_choice('{1} 1 answer still arriving…|[2,*] :count answers still arriving…', $pendingCount, ['count' => $pendingCount]) }}
                         </p>

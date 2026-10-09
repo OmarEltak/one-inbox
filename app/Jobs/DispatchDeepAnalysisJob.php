@@ -146,6 +146,23 @@ class DispatchDeepAnalysisJob implements ShouldQueue
             ]);
 
             $this->refundCharge($team, $analysis, $credits);
+
+            // Broadcast on failure too, with success=false. Before 2026-10-09
+            // only the success path broadcast, which left the AiChat 'Deep
+            // Analysis running in the background' banner stuck on screen after
+            // a NaraRouter outage failure (no event → no re-render → stale).
+            // The AiChat listener (handleDeepAnalysisCompleted) checks the
+            // success flag and either shows '✅ complete' or a friendly
+            // 'the analysis failed, your credits were refunded' message.
+            DeepAnalysisCompleted::dispatch(
+                (int) $team->id,
+                (int) $analysis->id,
+                (string) $analysis->mode,
+                (int) $analysis->cohort_size,
+                $analysis->completed_at->toIso8601String(),
+                false,
+                \Illuminate\Support\Str::limit($e->getMessage(), 500),
+            );
         }
     }
 

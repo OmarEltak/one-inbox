@@ -135,6 +135,10 @@ class AiChat extends Component
             $this->messages[] = ['role' => 'assistant', 'content' => $response];
         }
 
+        // The completed row is no longer 'pending' — refresh the cap check so
+        // the composer re-enables immediately on the next render.
+        $this->clearPendingChatTurnsCache();
+
         $this->dispatch('message-sent');
     }
 
@@ -147,19 +151,29 @@ class AiChat extends Component
     public function handleDeepAnalysisCompleted(array $payload): void
     {
         $cohortSize = (int) ($payload['cohort_size'] ?? 0);
+        $success    = (bool) ($payload['success'] ?? true);
 
-        $this->messages[] = [
-            'role'    => 'assistant',
-            'content' => __('✅ Deep analysis of :count contacts complete. Ask me what you want to know about them.', [
-                'count' => $cohortSize,
-            ]),
-        ];
+        if ($success) {
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => __('✅ Deep analysis of :count contacts complete. Ask me what you want to know about them.', [
+                    'count' => $cohortSize,
+                ]),
+            ];
+            // Browser notification only on success — Reverb hits even when the
+            // tab is backgrounded, so a Notification is how the user hears it.
+            $this->dispatch('deep-analysis-ready-notify', cohortSize: $cohortSize);
+        } else {
+            // Fail path. Credits were already refunded by DispatchDeepAnalysisJob;
+            // just surface a friendly message so the user doesn't stare at a
+            // stuck 'running' banner. The banner clears automatically because
+            // hasRunningDeepAnalysis() now returns false (the row is 'failed').
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => __('The Deep Analysis could not finish — likely a transient AI outage. Your credits were refunded. Try again in a few minutes.'),
+            ];
+        }
 
-        // Browser notification so the user knows even if the tab is in the
-        // background or they came back after closing the page. The browser
-        // listener in ai-chat.blade.php picks this up and calls Notification
-        // if permission was granted (falls through silently otherwise).
-        $this->dispatch('deep-analysis-ready-notify', cohortSize: $cohortSize);
         $this->dispatch('message-sent');
     }
 
@@ -270,19 +284,35 @@ class AiChat extends Component
     }
 
     /**
+     * Per-render memoization of pending-turn count. The Blade reads this twice
+     * per render (once for the lock test, once for the 'N answers still
+     * arriving' count), so without memoization each render does 2 DB queries.
+     * Reset implicitly on each new component mount.
+     */
+    private ?int $pendingChatTurnsCache = null;
+
+    /**
      * Count of in-flight async AiChat turns for the current (team, user). Each
      * pending AiCommand = one ProcessAiChatTurn job waiting on the queue. Used
      * to cap simultaneous sends at CHAT_CONCURRENT_LIMIT.
+     *
+     * Cheap: 1 indexed EXISTS-like count. The real cost-control is that we no
+     * longer wire:poll — this is only queried on actual Livewire events (user
+     * types/clicks, Reverb broadcasts).
      */
     public function pendingChatTurnsCount(): int
     {
+        if ($this->pendingChatTurnsCache !== null) {
+            return $this->pendingChatTurnsCache;
+        }
+
         $user = Auth::user();
         $team = $user?->currentTeam;
         if (! $team) {
-            return 0;
+            return $this->pendingChatTurnsCache = 0;
         }
 
-        return AiCommand::where('team_id', $team->id)
+        return $this->pendingChatTurnsCache = AiCommand::where('team_id', $team->id)
             ->where('user_id', $user->id)
             ->where('status', 'pending')
             ->count();
@@ -297,6 +327,16 @@ class AiChat extends Component
     public function isChatLocked(): bool
     {
         return $this->pendingChatTurnsCount() >= self::CHAT_CONCURRENT_LIMIT;
+    }
+
+    /**
+     * Invalidate the per-render memoization. Called when sendMessage() creates
+     * a new pending AiCommand so a subsequent $this->isChatLocked() check in
+     * the same render reflects the new state.
+     */
+    private function clearPendingChatTurnsCache(): void
+    {
+        $this->pendingChatTurnsCache = null;
     }
 
     public function sendMessage(): void
@@ -406,6 +446,7 @@ class AiChat extends Component
             ->all();
 
         \App\Jobs\ProcessAiChatTurn::dispatch($command->id, $historySnapshot);
+        $this->clearPendingChatTurnsCache();
 
         // Optimistic placeholder — swapped by handleAiChatTurnCompleted when
         // the job finishes. The 'pending' marker lets the Blade render a
