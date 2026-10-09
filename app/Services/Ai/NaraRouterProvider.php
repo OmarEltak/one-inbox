@@ -126,26 +126,51 @@ class NaraRouterProvider implements AiProviderInterface
             $secondary,
         ])));
 
-        // Text chain: prefer NARAROUTER_TEXT_MODELS, fall back to the legacy
-        // NARAROUTER_FALLBACK_MODELS for BC, then to a sensible built-in default.
-        $textConfigured = config('services.nararouter.text_models');
-        $legacyFallback = config('services.nararouter.fallback_models');
-        $textString     = is_string($textConfigured) && $textConfigured !== ''
-            ? $textConfigured
-            : (is_string($legacyFallback) && $legacyFallback !== ''
-                ? $legacyFallback
-                : 'nemotron-3-ultra-free,nemotron-3-super-free,nemotron-3.5-lightning-free,agnes-2.5-flash');
+        // 2026-10-09: self-healing chain. The chain comes from one of two sources
+        // ONLY — no model name is ever hardcoded in PHP:
+        //   1. NaraRouterPool, populated nightly by `nararouter:refresh-chain`
+        //      which hits /v1/models and filters free + categorizes by capability.
+        //   2. Explicit NARAROUTER_TEXT_MODELS / NARAROUTER_VISION_MODELS env
+        //      strings as a defence-in-depth override when the API is down.
+        //
+        // Why: on 2026-10-08 the hardcoded chain contained nemotron-3-super-free,
+        // which NaraRouter had removed from their free tier days earlier. Every
+        // request through that dead model wasted a call, cascaded to the next,
+        // and amplified normal transient hiccups into 30-min global cooldowns.
+        // Discovery from /v1/models makes dead models invisible to our chain
+        // within 24h automatically.
+        //
+        // If the pool is empty AND the env has no explicit list, the chain is
+        // empty and callChat() will throw AiAllProvidersUnavailable. That is the
+        // CORRECT behavior — silently falling back to a hardcoded model would
+        // hide the real problem (API unreachable + operator never set an
+        // override) behind a bill we didn't expect.
+        $pool = new NaraRouterPool(
+            baseUrl: $this->baseUrl,
+            apiKey: $this->apiKey,
+            alertEmail: $this->alertEmail,
+        );
 
-        $this->textChain = $this->parseChain($textString);
+        $this->textChain   = $pool->chainFor('text');
+        $this->visionChain = $pool->chainFor('vision');
 
-        // Vision chain: explicit only. If not configured, default to agnes-2.5-flash
-        // as the sole vision option (it's Nara's most reliable vision-capable model).
-        $visionConfigured = config('services.nararouter.vision_models');
-        $visionString     = is_string($visionConfigured) && $visionConfigured !== ''
-            ? $visionConfigured
-            : 'agnes-2.5-flash';
+        // Pool-empty env override. These stay as explicit operator-set strings
+        // only — no default values here.
+        if (empty($this->textChain)) {
+            $textConfigured = (string) (config('services.nararouter.text_models') ?: '');
+            $legacyFallback = (string) (config('services.nararouter.fallback_models') ?: '');
+            $textString     = $textConfigured !== '' ? $textConfigured : $legacyFallback;
+            if ($textString !== '') {
+                $this->textChain = $this->parseChain($textString);
+            }
+        }
 
-        $this->visionChain = $this->parseChain($visionString);
+        if (empty($this->visionChain)) {
+            $visionConfigured = (string) (config('services.nararouter.vision_models') ?: '');
+            if ($visionConfigured !== '') {
+                $this->visionChain = $this->parseChain($visionConfigured);
+            }
+        }
     }
 
     /**

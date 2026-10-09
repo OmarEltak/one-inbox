@@ -62,3 +62,14 @@ Schedule::command('capacity:health-check')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Self-healing NaraRouter chain (2026-10-09). Hits /v1/models nightly,
+// filters to free (zero per-token price), categorizes by capability
+// (text/vision/reasoning), writes the pool to Redis for NaraRouterProvider
+// to read. Prevents the 'dead model in chain' cascade failure that burned
+// a 30-min global cooldown on 2026-10-08. See App\Services\Ai\NaraRouterPool.
+// No model name is hardcoded in app code — chain members come from this API
+// response, or an explicit operator-set NARAROUTER_TEXT_MODELS / _VISION_MODELS.
+Schedule::command('nararouter:refresh-chain')
+    ->dailyAt('03:00')
+    ->withoutOverlapping();
