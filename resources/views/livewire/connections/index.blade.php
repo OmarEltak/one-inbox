@@ -277,11 +277,26 @@
                 @if(empty(config('services.meta.app_id')))
                     <p class="text-xs text-white/40">{{ __('Requires META_APP_ID and META_APP_SECRET in .env') }}</p>
                 @elseif($metaVerified)
-                    {{-- Single-CTA per Omar's ask (match Slack/Discord/Telegram simplicity).
-                         Concierge escape hatch removed — customers who need it can email support. --}}
+                    {{-- Primary: direct OAuth. --}}
                     <flux:button as="a" href="{{ route('connections.facebook.redirect') }}" variant="primary" size="sm" class="w-full">
                         {{ $facebookAccounts->isNotEmpty() ? __('Add Another Account') : __('Connect with Facebook') }}
                     </flux:button>
+                    {{-- Secondary: concierge escape hatch. Even verified apps have corners where
+                         real customers can't OAuth (2FA-required Business Portfolios, missing
+                         Page roles, dead pending invites). Keep this visible 2026-10-09 after a
+                         user ask — "add the ability to our customers to request a connection back
+                         just under add a connection for fb or ig". --}}
+                    @if(isset($this->openOnboardingByPlatform['facebook']))
+                        @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
+                        <div class="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-xs">
+                            <p class="text-blue-700 font-semibold capitalize">{{ str_replace('_', ' ', $fbReq->status) }}</p>
+                            <p class="text-blue-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $fbReq->created_at->diffForHumans()]) }}</p>
+                        </div>
+                    @else
+                        <button type="button" wire:click="openRequestForm('facebook')" class="w-full text-xs text-zinc-700 hover:text-emerald-700 underline underline-offset-2 cursor-pointer py-1 transition-colors">
+                            {{ __('Having trouble? Ask us to connect it for you') }}
+                        </button>
+                    @endif
                 @elseif(isset($this->openOnboardingByPlatform['facebook']))
                     @php $fbReq = $this->openOnboardingByPlatform['facebook']; @endphp
                     <div class="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs">
@@ -419,6 +434,22 @@
                     <flux:button as="a" href="{{ route('connections.instagram-via-facebook.redirect') }}" variant="outline" size="sm" class="w-full">
                         {{ $instagramAccounts->isNotEmpty() ? __('Add via Meta') : __('Connect via Meta') }}
                     </flux:button>
+                    {{-- Concierge escape hatch for the "Via Meta" (FB Login) path only.
+                         Direct IG Login above handles itself without ever needing concierge.
+                         Shown 2026-10-09 after a user ask — some customers hit 2FA-required
+                         Business Portfolios or missing-Page-role dead ends on the Via Meta
+                         OAuth; this link lets them ask us to connect it for them. --}}
+                    @if(isset($this->openOnboardingByPlatform['instagram']))
+                        @php $igReq = $this->openOnboardingByPlatform['instagram']; @endphp
+                        <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-xs">
+                            <p class="text-emerald-700 font-semibold capitalize">{{ str_replace('_', ' ', $igReq->status) }}</p>
+                            <p class="text-emerald-600 mt-0.5">{{ __('Requested :time · we\'ll email you when ready.', ['time' => $igReq->created_at->diffForHumans()]) }}</p>
+                        </div>
+                    @else
+                        <button type="button" wire:click="openRequestForm('instagram')" class="w-full text-xs text-zinc-700 hover:text-emerald-700 underline underline-offset-2 cursor-pointer py-1 transition-colors">
+                            {{ __('Having trouble with "Via Meta"? Ask us to connect it for you') }}
+                        </button>
+                    @endif
                     @unless(config('services.meta.app_verified'))
                         <p class="text-xs text-zinc-700">{{ __('Use Direct (IG Login) to receive DMs. "Via Meta" only receives DMs from app testers until Meta approves the app.') }}</p>
                     @endunless
