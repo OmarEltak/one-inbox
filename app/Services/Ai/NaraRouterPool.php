@@ -132,9 +132,12 @@ final class NaraRouterPool
     public function refresh(): bool
     {
         try {
-            $r = Http::withToken($this->apiKey)
-                ->timeout(10)
-                ->get(rtrim($this->baseUrl, '/') . '/v1/models');
+            // base_url can be configured as either "…/v1" or "…" — normalize so we
+            // always hit "/models" on the correct version prefix. The provider's
+            // chat endpoint uses the same convention via rtrim.
+            $base = rtrim($this->baseUrl, '/');
+            $url  = str_ends_with($base, '/v1') ? "{$base}/models" : "{$base}/v1/models";
+            $r = Http::withToken($this->apiKey)->timeout(10)->get($url);
 
             if ($r->failed()) {
                 $err = "HTTP {$r->status()}: " . substr($r->body(), 0, 200);
