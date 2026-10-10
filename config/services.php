@@ -138,15 +138,19 @@ return [
         'base_url'                => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
         'model'                   => env('NARAROUTER_MODEL', 'nemotron-3-ultra-free'),             // text-chain primary (used as the "hint" model)
         'scoring_model'           => env('NARAROUTER_SCORING_MODEL', 'nemotron-3-ultra-free'),     // background scoring — cheapest reliable free model
-        'text_models'             => env(
-            'NARAROUTER_TEXT_MODELS',
-            'nemotron-3-ultra-free,nemotron-3-super-free,nemotron-3.5-lightning-free,agnes-2.5-flash'
-        ),
-        'vision_models'           => env(
-            'NARAROUTER_VISION_MODELS',
-            'agnes-2.5-flash,nex-n2.5-pro,ling-3.0-flash-vl-free'
-        ),
+        // Chain is now API-driven via NaraRouterPool (see app/Services/Ai/NaraRouterPool.php).
+        // These env vars are read ONLY as a defence-in-depth override when the pool is empty
+        // AND the operator has explicitly set them. No default model names — the old hardcoded
+        // defaults contained a dead model (nemotron-3-super-free) that caused the 2026-10-08
+        // cascade outage.
+        'text_models'             => env('NARAROUTER_TEXT_MODELS'),
+        'vision_models'           => env('NARAROUTER_VISION_MODELS'),
         'fallback_models'         => env('NARAROUTER_FALLBACK_MODELS'),                            // DEPRECATED — kept as read-only BC fallback for text_models
+        // Blocklist of model IDs that /v1/models reports as free + usable but actually
+        // reject every request with HTTP 400. Added 2026-10-10 after `jev` + `exo-stealh`
+        // were discovered dead-but-listed (same disease as nemotron-3-super-free had).
+        // Comma-separated, operator-set.
+        'blocked_models'          => env('NARAROUTER_BLOCKED_MODELS', ''),
         'reset_hours'             => (int) env('NARAROUTER_RESET_HOURS', 5),                       // return to head-of-chain every N hours from FIRST fallback
         'alert_email'             => env('NARAROUTER_ALERT_EMAIL', 'omareltak7@gmail.com'),        // notified when every (chain × key) attempt failed
         'exhaustion_cooldown_min' => (int) env('NARAROUTER_EXHAUSTION_COOLDOWN_MIN', 30),          // global cooldown after both chains × both keys exhausted

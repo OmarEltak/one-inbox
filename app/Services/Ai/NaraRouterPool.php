@@ -46,11 +46,17 @@ final class NaraRouterPool
     /** Alert cadence when vision chain is empty: at most 1 email per 6h. */
     private const NO_VISION_ALERT_RATE_LIMIT_HOURS = 6;
 
+    /** @var array<int, string> model IDs to drop even when the API lists them */
+    private array $blocked;
+
     public function __construct(
         private string $baseUrl,
         private string $apiKey,
         private ?string $alertEmail = null,
+        ?string $blockedCsv = null,
     ) {
+        $csv = $blockedCsv ?? (string) (config('services.nararouter.blocked_models') ?: '');
+        $this->blocked = array_values(array_filter(array_map('trim', explode(',', $csv))));
     }
 
     /**
@@ -151,6 +157,17 @@ final class NaraRouterPool
             $data = $r->json()['data'] ?? [];
 
             $free = array_values(array_filter($data, fn ($m) => $this->isFree($m)));
+
+            // Drop blocklisted IDs — NaraRouter sometimes lists free-tier models
+            // that reject every request with HTTP 400 (e.g. jev, exo-stealh on
+            // 2026-10-10). Operator sets NARAROUTER_BLOCKED_MODELS to prevent
+            // them polluting the chain until Nara fixes them.
+            if (! empty($this->blocked)) {
+                $free = array_values(array_filter(
+                    $free,
+                    fn ($m) => ! in_array((string) ($m['id'] ?? ''), $this->blocked, true),
+                ));
+            }
 
             $pool = array_map(function ($m) {
                 return [
