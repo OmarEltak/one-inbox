@@ -94,11 +94,14 @@ final class DeepAnalysisService
      */
     /**
      * How recent a prior analysis has to be to serve as a cache hit (hours).
-     * Chosen to balance "insights still fresh" (data changes gradually) against
-     * "operators re-asking in a day shouldn't re-pay". 24h matches a typical
-     * work day — anything from this morning counts; yesterday's doesn't.
+     * 2026-10-10: trimmed from 24h → 2h. 24h was wrong — a workday brings in
+     * new customer messages that an operator asking the same question later
+     * likely wants reflected in the result. 2h still catches 'asked twice
+     * within a session' which is the primary save-credits case, without
+     * serving stale analysis from the morning when the operator asks again
+     * after lunch.
      */
-    public const CACHE_WINDOW_HOURS = 24;
+    public const CACHE_WINDOW_HOURS = 2;
 
     public function dispatch(
         Team $team,
@@ -107,16 +110,22 @@ final class DeepAnalysisService
         string $mode = DeepAnalysis::MODE_CUSTOMER_THEMES,
         array $chargeMeta = [],
     ): DeepAnalysis {
-        // 2026-10-10 — cache disabled by default. The user complaint that killed
-        // it: the cache returned a stale 'customer_themes' summary of 3086
-        // contacts when the operator asked for a per-contact review of the last
-        // 100 messages. Different intents, same (team, mode, filter) hash,
-        // wrong result. Until the cache can detect intent (per-contact vs
-        // theme summary vs agent audit) and age differently per mode, we run
-        // fresh every time. Caller can opt-in explicitly with
-        // chargeMeta['allow_cache'] = true if they're sure the shape is right.
+        // Cache check — if the same (team, mode, cohort filter shape) was run
+        // in the last CACHE_WINDOW_HOURS and completed successfully, return
+        // the stored row free. UI shows a 'cached · 0 credits' badge + a
+        // 'Re-run with fresh data' button so operators can override when they
+        // need the latest state. Caller can bypass with
+        // chargeMeta['force_fresh'] = true (the Re-run button does this).
+        //
+        // 2026-10-10 window shortened 24h → 2h after an operator got a stale
+        // 'customer_themes of 3086 contacts' from yesterday when they wanted
+        // a per-contact review of today's 100 messages. The ACTUAL fix for
+        // 'wrong shape' problems is intent-aware mode detection (per-contact
+        // review vs theme summary should pick different modes which hash
+        // differently — not yet shipped). The 2h window + opt-out are the
+        // belt-and-suspenders until that lands.
         $this->wasCacheHit = false;
-        if (! empty($chargeMeta['allow_cache']) && empty($chargeMeta['force_fresh'])) {
+        if (empty($chargeMeta['force_fresh'])) {
             $cached = $this->findCachedAnalysis($team, $cohortFilter, $mode);
             if ($cached !== null) {
                 $this->wasCacheHit = true;
