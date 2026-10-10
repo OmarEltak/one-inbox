@@ -541,26 +541,13 @@ class AiChat extends Component
             return;
         }
 
-        // Phase D — Deep Analysis detection (spec §5.1). "analyze last 1000
-        // contacts", "deep dive on brandk contacts", etc. route into the
-        // paid async path INSTEAD of calling NaraRouter inline. Catches the
-        // confirmation exception from AiCredits::charge and surfaces the
-        // modal; auto-dispatches if cost is under the 5-credit threshold or
-        // the team has opted into auto-deduct.
-        if ($this->tryDispatchDeepAnalysis($team, $text)) {
-            $this->dispatch('message-sent');
-            return;
-        }
-
-        // 2026-10-08 UX fix: persist the AiCommand IMMEDIATELY (status=pending)
-        // and dispatch ProcessAiChatTurn to do the slow NaraRouter call in the
-        // queue. Before this, sendMessage() blocked 5-15s on the AI call — a
-        // user who clicked Send and navigated away lost the whole request
-        // because wire:submit was cancelled mid-flight. Now:
-        //   - Send press → AiCommand row exists in ~50ms, user text is safe.
-        //   - Job runs chatWithAdmin, writes response, broadcasts.
-        //   - If user is on page: handleAiChatTurnCompleted swaps the placeholder.
-        //   - If user navigated away: mount() loads the completed row next visit.
+        // 2026-10-10 — PERSIST FIRST, dispatch second. The AiCommand row is
+        // created BEFORE any slow work (cohort quote, cache check, Deep Analysis
+        // dispatch, NaraRouter call). If the user refreshes mid-request their
+        // question survives — mount() loads this row and renders it with the
+        // typing-dots placeholder. Previously the create() happened after
+        // tryDispatchDeepAnalysis which could take 2-5 seconds; a refresh in
+        // that window dropped the user's question completely.
         $command = AiCommand::create([
             'team_id'  => $team->id,
             'user_id'  => Auth::id(),
@@ -568,6 +555,16 @@ class AiChat extends Component
             'response' => '',
             'status'   => 'pending',
         ]);
+
+        // Phase D — Deep Analysis detection (spec §5.1). Route happens AFTER
+        // persistence so even if the dispatch itself takes seconds, the user's
+        // question is already safe in the DB. tryDispatchDeepAnalysis receives
+        // the pre-created command and updates its response in place (no
+        // duplicate AiCommand created).
+        if ($this->tryDispatchDeepAnalysis($team, $text, $command)) {
+            $this->dispatch('message-sent');
+            return;
+        }
 
         // Snapshot the exact history the user saw, so the model gets the same
         // context whether this runs now or 30 seconds from now in the queue.
@@ -699,10 +696,12 @@ class AiChat extends Component
      * Returns true when the detection fired (so sendMessage() short-circuits
      * the normal NaraRouter call for this turn).
      */
-    protected function tryDispatchDeepAnalysis(Team $team, string $text): bool
+    protected function tryDispatchDeepAnalysis(Team $team, string $text, ?AiCommand $preCreatedCommand = null): bool
     {
         $parsed = $this->parseDeepAnalysisRequest($team, $text);
         if ($parsed === null) {
+            // Not a Deep Analysis prompt. If a pre-created command was passed,
+            // leave it as-is for the inline chat path to use.
             return false;
         }
 
@@ -712,6 +711,14 @@ class AiChat extends Component
 
         if ((int) $quote['cohort_size'] <= 0) {
             $this->messages[] = ['role' => 'assistant', 'content' => __('No contacts matched that filter — nothing to analyze.')];
+            // Mark the pre-created command as completed with this response so
+            // mount() shows the correct state on refresh.
+            if ($preCreatedCommand) {
+                $preCreatedCommand->update([
+                    'status'   => 'completed',
+                    'response' => __('No contacts matched that filter — nothing to analyze.'),
+                ]);
+            }
             return true;
         }
 
@@ -724,31 +731,36 @@ class AiChat extends Component
                 mode: $parsed['mode'],
             );
 
-            // Cache hit: service returned a prior completed analysis in <24h.
-            // Show the 'reused to save credits' message with the re-run button
-            // instead of 'dispatched'. Also skip persisting an AiCommand turn —
-            // the Reverb broadcast already added the cached message via
-            // handleDeepAnalysisCompleted so persisting here duplicates.
+            // Cache hit: service returned a prior completed analysis in <2h.
+            // Mark the pre-created command as completed with the 'reused' msg.
             if ($service->wasCacheHit) {
+                $cachedMsg = __('✅ Here is the analysis of :count contacts from your earlier run. I reused it to save your credits — nothing was charged. Ask me what you want to know, or tap "Re-run with fresh data" if you need the latest state.', [
+                    'count' => (int) $analysis->cohort_size,
+                ]);
                 $this->messages[] = [
                     'role'       => 'assistant',
-                    'content'    => __('✅ Here is the analysis of :count contacts from your earlier run. I reused it to save your credits — nothing was charged. Ask me what you want to know, or tap "Re-run with fresh data" if you need the latest state.', [
-                        'count' => (int) $analysis->cohort_size,
-                    ]),
+                    'content'    => $cachedMsg,
                     'cached'     => true,
                     'command_id' => (int) $analysis->id,
                 ];
-                $this->persistTurn($team, $text, (string) end($this->messages)['content']);
+                if ($preCreatedCommand) {
+                    $preCreatedCommand->update(['status' => 'completed', 'response' => $cachedMsg]);
+                } else {
+                    $this->persistTurn($team, $text, $cachedMsg);
+                }
                 return true;
             }
 
-            $this->messages[] = [
-                'role'    => 'assistant',
-                'content' => __('Analysis dispatched. I\'ll let you know when it\'s ready — usually 60-120 seconds. You can keep chatting about other things.'),
-            ];
-
-            $this->persistTurn($team, $text, (string) end($this->messages)['content']);
-
+            // Fresh dispatch: persist the 'dispatched' message. ProcessAiChatTurn
+            // isn't involved here — DispatchDeepAnalysisJob runs the actual
+            // analysis and broadcasts DeepAnalysisCompleted when done.
+            $dispatchedMsg = __('Analysis dispatched. I\'ll let you know when it\'s ready — usually 60-120 seconds. You can keep chatting about other things.');
+            $this->messages[] = ['role' => 'assistant', 'content' => $dispatchedMsg];
+            if ($preCreatedCommand) {
+                $preCreatedCommand->update(['status' => 'completed', 'response' => $dispatchedMsg]);
+            } else {
+                $this->persistTurn($team, $text, $dispatchedMsg);
+            }
             return true;
         } catch (ExpensiveActionRequiresConfirmationException $e) {
             // Modal path — stash the pending action, re-dispatch on confirm.
@@ -763,6 +775,16 @@ class AiChat extends Component
             ];
 
             $this->autoDeductOptIn = (bool) $team->auto_deduct_expensive_actions;
+
+            // Reflect the pending-confirmation state on the stored command so
+            // mount() shows the user they're waiting on a decision, not that
+            // their question was dropped.
+            if ($preCreatedCommand) {
+                $preCreatedCommand->update([
+                    'status'   => 'completed',
+                    'response' => __('⏳ Waiting for your confirmation — this analysis costs :cost credits.', ['cost' => $e->cost]),
+                ]);
+            }
 
             Flux::modal('deep-analysis-confirm')->show();
 

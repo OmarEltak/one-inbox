@@ -2847,5 +2847,6 @@
     "Re-run with fresh data": "إعادة التشغيل ببيانات جديدة",
     "Re-running the analysis with fresh data — I'll notify you when it's ready.": "جارٍ إعادة تشغيل التحليل ببيانات جديدة — سأُعلمك عند جاهزيته.",
     "Re-run previous analysis of :count contacts with fresh data": "إعادة تشغيل التحليل السابق لـ :count جهة اتصال ببيانات جديدة",
-    "Could not re-run the analysis: :msg": "تعذّر إعادة تشغيل التحليل: :msg"
+    "Could not re-run the analysis: :msg": "تعذّر إعادة تشغيل التحليل: :msg",
+    "⏳ Waiting for your confirmation — this analysis costs :cost credits.": "⏳ في انتظار تأكيدك — هذا التحليل يكلّف :cost رصيد."
 }
