@@ -35,6 +35,13 @@ final class DeepAnalysisService
     /** Hard cap on cohort size to prevent runaway costs even with confirmation. */
     public const MAX_COHORT_SIZE = 5000;
 
+    /**
+     * Set by dispatch(): true when the last call returned a cached result, false
+     * when it dispatched a fresh job. Lets callers (AiChat) show the right chat
+     * message ('here is the earlier run' vs 'analysis dispatched, be patient').
+     */
+    public bool $wasCacheHit = false;
+
     public function __construct(
         private readonly AiCredits $credits,
     ) {
@@ -100,20 +107,11 @@ final class DeepAnalysisService
         string $mode = DeepAnalysis::MODE_CUSTOMER_THEMES,
         array $chargeMeta = [],
     ): DeepAnalysis {
-        // Cache check — if the same team asked for the same shape of analysis
-        // in the last CACHE_WINDOW_HOURS and it completed successfully, hand
-        // back the stored row instead of charging + re-running. Saves credits
-        // AND NaraRouter quota (the biggest contributor to the global cooldown
-        // cascade seen on 2026-10-08). The UI shows a 'cached' badge + a
-        // 're-run with fresh data' button so operators can override when they
-        // genuinely need updated results. Explicit opt-out via meta: pass
-        // chargeMeta['force_fresh'] = true to bypass the cache check.
+        // Cache check — see dispatchCacheHit() for what gets returned to callers.
         if (empty($chargeMeta['force_fresh'])) {
             $cached = $this->findCachedAnalysis($team, $cohortFilter, $mode);
             if ($cached !== null) {
-                // Fire the SAME broadcast event we fire on success so the
-                // AiChat UI handles both paths identically. The 'cached' flag
-                // tells the listener to show the 'saved N credits' chip.
+                $this->wasCacheHit = true;
                 \App\Events\DeepAnalysisCompleted::dispatch(
                     (int) $team->id,
                     (int) $cached->id,
@@ -127,6 +125,7 @@ final class DeepAnalysisService
                 return $cached;
             }
         }
+        $this->wasCacheHit = false;
 
         $quote = $this->quote($team, $cohortFilter, $mode);
         $cohortSize = (int) $quote['cohort_size'];

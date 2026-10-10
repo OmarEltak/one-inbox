@@ -411,8 +411,70 @@ class AiChat extends Component
         $this->pendingChatTurnsCache = null;
     }
 
+    /**
+     * Public safety-net sync — called by a conditional Blade wire:poll that only
+     * fires when there's at least one pending turn. The moment all pending
+     * turns resolve, pendingChatTurnsCount() returns 0 and the Blade stops the
+     * poll (@if($pendingCount > 0) around the poll div). So this method has
+     * cost = 1 small indexed query per 8s per user with pending work, and
+     * ZERO cost when idle. Reverb is still the primary delivery path; this
+     * is the backup for when WebSocket delivery drops.
+     */
+    public function pollPendingTurns(): void
+    {
+        $this->syncPendingTurnsFromDb();
+    }
+
+    /**
+     * On every user interaction (sendMessage, useSuggestion, re-run), reconcile
+     * the in-memory messages array against the DB. Any pending AiCommand that
+     * actually completed (ProcessAiChatTurn ran, result written) but whose
+     * AiChatTurnCompleted Reverb event didn't reach the browser (dropped
+     * WebSocket, slow network, closed tab coming back) gets its typing-dots
+     * placeholder swapped for the real response.
+     *
+     * Added 2026-10-10 after a user complained typing dots were stuck forever
+     * on `/ai-chat` even though the DB had the completed response — Reverb
+     * delivery is best-effort and we can't rely on it as the only sync path.
+     */
+    private function syncPendingTurnsFromDb(): void
+    {
+        $pending = array_filter($this->messages, fn ($m) => ! empty($m['pending']) && ! empty($m['command_id']));
+        if (empty($pending)) {
+            return;
+        }
+
+        $ids = array_values(array_map(fn ($m) => (int) $m['command_id'], $pending));
+        $completed = AiCommand::whereIn('id', $ids)
+            ->where('status', 'completed')
+            ->get(['id', 'response'])
+            ->keyBy('id');
+
+        if ($completed->isEmpty()) {
+            return;
+        }
+
+        foreach ($this->messages as $i => $m) {
+            if (empty($m['pending']) || empty($m['command_id'])) {
+                continue;
+            }
+            if ($row = $completed->get((int) $m['command_id'])) {
+                $this->messages[$i] = [
+                    'role'    => 'assistant',
+                    'content' => (string) $row->response,
+                ];
+            }
+        }
+        $this->clearPendingChatTurnsCache();
+    }
+
     public function sendMessage(): void
     {
+        // Reconcile first so a stuck placeholder gets replaced BEFORE the new
+        // turn is appended — otherwise the user sees the old dots AND the new
+        // dots stacked.
+        $this->syncPendingTurnsFromDb();
+
         $text = trim($this->message);
         $hasAttachment = $this->attachment !== null;
 
@@ -661,6 +723,24 @@ class AiChat extends Component
                 cohortFilter: $parsed['cohort_filter'],
                 mode: $parsed['mode'],
             );
+
+            // Cache hit: service returned a prior completed analysis in <24h.
+            // Show the 'reused to save credits' message with the re-run button
+            // instead of 'dispatched'. Also skip persisting an AiCommand turn —
+            // the Reverb broadcast already added the cached message via
+            // handleDeepAnalysisCompleted so persisting here duplicates.
+            if ($service->wasCacheHit) {
+                $this->messages[] = [
+                    'role'       => 'assistant',
+                    'content'    => __('✅ Here is the analysis of :count contacts from your earlier run. I reused it to save your credits — nothing was charged. Ask me what you want to know, or tap "Re-run with fresh data" if you need the latest state.', [
+                        'count' => (int) $analysis->cohort_size,
+                    ]),
+                    'cached'     => true,
+                    'command_id' => (int) $analysis->id,
+                ];
+                $this->persistTurn($team, $text, (string) end($this->messages)['content']);
+                return true;
+            }
 
             $this->messages[] = [
                 'role'    => 'assistant',

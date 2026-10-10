@@ -1,6 +1,7 @@
 <div class="flex h-full flex-col" dir="ltr" x-data="{
     isNearBottom: true,
     showNewMessageBadge: false,
+    pendingPollTimer: null,
     scrollToBottom() {
         $nextTick(() => {
             const el = $refs.chatContainer;
@@ -26,8 +27,29 @@
             const el = $refs.chatContainer;
             if (el && this.isNearBottom) el.scrollTop = el.scrollHeight;
         }).observe(content);
+    },
+    // Reverb delivery backstop. Fires setInterval right after a user action
+    // AND when the page loads with existing pending turns. Each tick calls
+    // $wire.pollPendingTurns() which does one indexed DB query and swaps any
+    // completed-but-not-broadcast placeholders. Interval auto-clears once
+    // every pending turn resolves (DOM no longer has .pending class).
+    // 2026-10-10: added after user reported typing dots stuck until page refresh.
+    syncPendingWatcher() {
+        if (this.pendingPollTimer) return; // already running
+        const tick = () => {
+            // Any .pending bubble still in the DOM? If yes, poll server; if no, stop.
+            const stillPending = document.querySelector('[data-pending-bubble]');
+            if (!stillPending) {
+                clearInterval(this.pendingPollTimer);
+                this.pendingPollTimer = null;
+                return;
+            }
+            $wire.pollPendingTurns();
+        };
+        this.pendingPollTimer = setInterval(tick, 8000);
     }
-}" x-init="scrollToBottom(); stickToBottom()" @message-sent.window="scrollToBottom()"
+}" x-init="scrollToBottom(); stickToBottom(); syncPendingWatcher()"
+   @message-sent.window="scrollToBottom(); syncPendingWatcher()"
    @deep-analysis-ready-notify.window="
        (() => {
            if (!('Notification' in window)) return;
@@ -160,8 +182,11 @@
                                 @if(! empty($msg['pending']))
                                     {{-- Server-side typing dots for pending Jobs so a user returning
                                          to the page mid-processing sees their turn is still working,
-                                         not a dead empty bubble. --}}
-                                    <div class="flex items-center gap-1">
+                                         not a dead empty bubble. data-pending-bubble is read by the
+                                         Alpine syncPendingWatcher() on the root — when ≥1 bubble is
+                                         present, Alpine polls $wire.pollPendingTurns() every 8s as a
+                                         safety net for dropped Reverb AiChatTurnCompleted events. --}}
+                                    <div class="flex items-center gap-1" data-pending-bubble>
                                         <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.3s]"></div>
                                         <div class="size-2 animate-bounce rounded-full bg-[#64748b] [animation-delay:-0.15s]"></div>
                                         <div class="size-2 animate-bounce rounded-full bg-[#64748b]"></div>
@@ -338,8 +363,7 @@
                         x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                     />
                     @if($pendingCount > 0)
-                        {{-- Live count driven by AiChatTurnCompleted broadcasts (via
-                             handleAiChatTurnCompleted), not by polling. --}}
+                        {{-- Live count driven by AiChatTurnCompleted broadcasts. --}}
                         <p class="mt-1 text-[11px] text-zinc-400">
                             {{ trans_choice('{1} 1 answer still arriving…|[2,*] :count answers still arriving…', $pendingCount, ['count' => $pendingCount]) }}
                         </p>
