@@ -85,6 +85,14 @@ final class DeepAnalysisService
      * @param  array<string, mixed>  $chargeMeta  passthrough: idempotency_key, confirmation_token
      * @throws ExpensiveActionRequiresConfirmationException
      */
+    /**
+     * How recent a prior analysis has to be to serve as a cache hit (hours).
+     * Chosen to balance "insights still fresh" (data changes gradually) against
+     * "operators re-asking in a day shouldn't re-pay". 24h matches a typical
+     * work day — anything from this morning counts; yesterday's doesn't.
+     */
+    public const CACHE_WINDOW_HOURS = 24;
+
     public function dispatch(
         Team $team,
         ?int $userId,
@@ -92,6 +100,34 @@ final class DeepAnalysisService
         string $mode = DeepAnalysis::MODE_CUSTOMER_THEMES,
         array $chargeMeta = [],
     ): DeepAnalysis {
+        // Cache check — if the same team asked for the same shape of analysis
+        // in the last CACHE_WINDOW_HOURS and it completed successfully, hand
+        // back the stored row instead of charging + re-running. Saves credits
+        // AND NaraRouter quota (the biggest contributor to the global cooldown
+        // cascade seen on 2026-10-08). The UI shows a 'cached' badge + a
+        // 're-run with fresh data' button so operators can override when they
+        // genuinely need updated results. Explicit opt-out via meta: pass
+        // chargeMeta['force_fresh'] = true to bypass the cache check.
+        if (empty($chargeMeta['force_fresh'])) {
+            $cached = $this->findCachedAnalysis($team, $cohortFilter, $mode);
+            if ($cached !== null) {
+                // Fire the SAME broadcast event we fire on success so the
+                // AiChat UI handles both paths identically. The 'cached' flag
+                // tells the listener to show the 'saved N credits' chip.
+                \App\Events\DeepAnalysisCompleted::dispatch(
+                    (int) $team->id,
+                    (int) $cached->id,
+                    (string) $cached->mode,
+                    (int) $cached->cohort_size,
+                    ($cached->completed_at ?? now())->toIso8601String(),
+                    true,  // success
+                    null,  // error
+                    true,  // cached
+                );
+                return $cached;
+            }
+        }
+
         $quote = $this->quote($team, $cohortFilter, $mode);
         $cohortSize = (int) $quote['cohort_size'];
         $totalCost  = (int) $quote['cost'];
@@ -137,6 +173,65 @@ final class DeepAnalysisService
 
             return $analysis;
         });
+    }
+
+    /**
+     * Look up a recent successful analysis matching (team, mode, cohort shape).
+     * The cohort hash is a canonical signature of cohort_filter — identical
+     * filter shape produces identical hash regardless of key order. This is
+     * what makes "top objections for last 100 contacts" asked at 10:00 reuse
+     * the result of the same query asked at 09:00.
+     *
+     * Returns null if no cacheable result exists in the window.
+     *
+     * @param  array<string, mixed>  $cohortFilter
+     */
+    public function findCachedAnalysis(Team $team, array $cohortFilter, string $mode): ?DeepAnalysis
+    {
+        $hash  = self::canonicalCohortHash($cohortFilter);
+        $since = now()->subHours(self::CACHE_WINDOW_HOURS);
+
+        return DeepAnalysis::query()
+            ->where('team_id', $team->id)
+            ->where('mode', $mode)
+            ->where('status', DeepAnalysis::STATUS_COMPLETED)
+            ->where('completed_at', '>=', $since)
+            // JSON column: ksort before persisting isn't guaranteed, so we
+            // read-side the stored row and hash it the same way we hash the
+            // incoming filter. Cheap: completed analyses in the 24h window
+            // are a very small set (dozens, not thousands) per team.
+            ->orderByDesc('completed_at')
+            ->get()
+            ->first(function (DeepAnalysis $a) use ($hash) {
+                return self::canonicalCohortHash((array) ($a->cohort_filter ?? [])) === $hash;
+            });
+    }
+
+    /**
+     * Canonical signature of a cohort filter array — recursively sorted keys
+     * so {"page":1,"limit":100} and {"limit":100,"page":1} hash identically.
+     * Pure function, safe to call from static contexts in tests.
+     *
+     * @param  array<string, mixed>  $filter
+     */
+    public static function canonicalCohortHash(array $filter): string
+    {
+        $sort = function (&$v) use (&$sort) {
+            if (is_array($v)) {
+                if (array_is_list($v)) {
+                    foreach ($v as &$e) {
+                        $sort($e);
+                    }
+                } else {
+                    ksort($v);
+                    foreach ($v as &$e) {
+                        $sort($e);
+                    }
+                }
+            }
+        };
+        $sort($filter);
+        return hash('sha256', json_encode($filter, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     /**

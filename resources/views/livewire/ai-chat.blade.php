@@ -176,6 +176,25 @@
                                         $html = str_replace('</table>', '</table></div>', $html);
                                     @endphp
                                     <div class="ai-md">{!! $html !!}</div>
+                                    @if(! empty($msg['cached']) && ! empty($msg['command_id']))
+                                        {{-- Cached-result affordance: user can see this was reused
+                                             and can force a fresh re-run (full credits) if they need
+                                             truly up-to-date insights. --}}
+                                        <div class="mt-2 flex items-center gap-2 pt-2 border-t border-blue-100">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2v2a8 8 0 018 8h2A10 10 0 0012 2zM4 12a8 8 0 018-8V2A10 10 0 002 12h2zm16 0a8 8 0 01-8 8v2a10 10 0 0010-10h-2zm-8 8a8 8 0 01-8-8H2a10 10 0 0010 10v-2z"/>
+                                                </svg>
+                                                {{ __('cached · 0 credits') }}
+                                            </span>
+                                            <button type="button"
+                                                wire:click="reRunCachedAnalysis({{ $msg['command_id'] }})"
+                                                wire:loading.attr="disabled"
+                                                class="text-[11px] text-zinc-600 hover:text-emerald-700 underline underline-offset-2 cursor-pointer">
+                                                {{ __('Re-run with fresh data') }}
+                                            </button>
+                                        </div>
+                                    @endif
                                 @endif
                             </div>
                         </div>

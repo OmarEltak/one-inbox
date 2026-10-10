@@ -32,6 +32,7 @@ class DeepAnalysisCompleted implements ShouldBroadcast
         public string $completedAt,
         public bool $success = true,
         public ?string $errorMessage = null,
+        public bool $cached = false,
     ) {
     }
 
@@ -72,6 +73,7 @@ class DeepAnalysisCompleted implements ShouldBroadcast
             'at'               => $this->completedAt,
             'success'          => $this->success,
             'error_message'    => $this->errorMessage,
+            'cached'           => $this->cached,
         ];
     }
 }

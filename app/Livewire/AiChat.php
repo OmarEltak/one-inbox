@@ -148,12 +148,84 @@ class AiChat extends Component
      *
      * @param  array<string, mixed>  $payload
      */
+    /**
+     * Re-run a cached Deep Analysis with fresh data. Called by the "Re-run"
+     * button rendered next to a cached result. Rebuilds the original cohort
+     * filter from the stored row, re-dispatches with force_fresh=true to
+     * bypass the 24h cache check. Full credits are charged on this path.
+     */
+    public function reRunCachedAnalysis(int $deepAnalysisId): void
+    {
+        $user = Auth::user();
+        $team = $user?->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $cached = DeepAnalysis::where('id', $deepAnalysisId)
+            ->where('team_id', $team->id)
+            ->first();
+        if (! $cached) {
+            return;
+        }
+
+        try {
+            app(\App\Services\Ai\DeepAnalysisService::class)->dispatch(
+                team: $team,
+                userId: (int) $user->id,
+                cohortFilter: (array) $cached->cohort_filter,
+                mode: (string) $cached->mode,
+                chargeMeta: ['force_fresh' => true],
+            );
+
+            $this->messages[] = [
+                'role'    => 'assistant',
+                'content' => __('Re-running the analysis with fresh data — I\'ll notify you when it\'s ready.'),
+            ];
+        } catch (\App\Exceptions\Billing\ExpensiveActionRequiresConfirmationException $e) {
+            // Falls back to the normal confirmation modal path.
+            $this->pendingExpensiveAction = [
+                'cost'          => $e->cost,
+                'balance_after' => $e->balanceAfter,
+                'action_token'  => $e->actionToken,
+                'description'   => __('Re-run previous analysis of :count contacts with fresh data', ['count' => (int) $cached->cohort_size]),
+                'cohort_filter' => (array) $cached->cohort_filter,
+                'mode'          => (string) $cached->mode,
+                'operator_text' => '',
+            ];
+            Flux::modal('deep-analysis-confirm')->show();
+        } catch (\Throwable $e) {
+            Log::error('AiChat::reRunCachedAnalysis failed', ['error' => $e->getMessage()]);
+            $this->messages[] = ['role' => 'assistant', 'content' => __('Could not re-run the analysis: :msg', ['msg' => $e->getMessage()])];
+        }
+
+        $this->dispatch('message-sent');
+    }
+
     public function handleDeepAnalysisCompleted(array $payload): void
     {
         $cohortSize = (int) ($payload['cohort_size'] ?? 0);
         $success    = (bool) ($payload['success'] ?? true);
+        $cached     = (bool) ($payload['cached'] ?? false);
+        $analysisId = (int) ($payload['deep_analysis_id'] ?? 0);
 
-        if ($success) {
+        if ($success && $cached) {
+            // Cache-hit path. The DeepAnalysisService::findCachedAnalysis
+            // handed back a prior completed run with the same shape (same
+            // team, same mode, same cohort filter, within 24h). We charge
+            // ZERO credits and surface the previous result with a transparency
+            // badge + a 're-run with fresh data' affordance.
+            $this->messages[] = [
+                'role'       => 'assistant',
+                'content'    => __('✅ Here is the analysis of :count contacts from your earlier run. I reused it to save your credits — nothing was charged. Ask me what you want to know, or tap "Re-run with fresh data" if you need the latest state.', [
+                    'count' => $cohortSize,
+                ]),
+                'cached'     => true,
+                'command_id' => $analysisId,
+            ];
+            // Still notify the browser — the user may have the tab backgrounded.
+            $this->dispatch('deep-analysis-ready-notify', cohortSize: $cohortSize);
+        } elseif ($success) {
             $this->messages[] = [
                 'role'    => 'assistant',
                 'content' => __('✅ Deep analysis of :count contacts complete. Ask me what you want to know about them.', [
