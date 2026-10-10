@@ -107,8 +107,16 @@ final class DeepAnalysisService
         string $mode = DeepAnalysis::MODE_CUSTOMER_THEMES,
         array $chargeMeta = [],
     ): DeepAnalysis {
-        // Cache check — see dispatchCacheHit() for what gets returned to callers.
-        if (empty($chargeMeta['force_fresh'])) {
+        // 2026-10-10 — cache disabled by default. The user complaint that killed
+        // it: the cache returned a stale 'customer_themes' summary of 3086
+        // contacts when the operator asked for a per-contact review of the last
+        // 100 messages. Different intents, same (team, mode, filter) hash,
+        // wrong result. Until the cache can detect intent (per-contact vs
+        // theme summary vs agent audit) and age differently per mode, we run
+        // fresh every time. Caller can opt-in explicitly with
+        // chargeMeta['allow_cache'] = true if they're sure the shape is right.
+        $this->wasCacheHit = false;
+        if (! empty($chargeMeta['allow_cache']) && empty($chargeMeta['force_fresh'])) {
             $cached = $this->findCachedAnalysis($team, $cohortFilter, $mode);
             if ($cached !== null) {
                 $this->wasCacheHit = true;
@@ -125,7 +133,6 @@ final class DeepAnalysisService
                 return $cached;
             }
         }
-        $this->wasCacheHit = false;
 
         $quote = $this->quote($team, $cohortFilter, $mode);
         $cohortSize = (int) $quote['cohort_size'];

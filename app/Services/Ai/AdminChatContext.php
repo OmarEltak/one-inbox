@@ -92,10 +92,17 @@ class AdminChatContext
         // the chat context deserves a much larger window AND both sides of each
         // thread (agent + customer) so moderator-audit style questions work.
         // Phase C of the AI credit economy spec (§6).
+        //
+        // 2026-10-10: bumped maxConversations 150 → 300, perConversation 10 → 14,
+        // charBudget 30k → 120k. nemotron-3-ultra-free has 1M context so there's
+        // tons of headroom. User complaint that killed the old limits: asked
+        // "analyze last 100 chats for mishkah, give me each name" and got only
+        // 26 rows because the 30k char budget cut off before conversation 27.
+        // 120k fits ~100-200 full conversations easily.
         if ($expanded) {
-            $maxConversations = 150;
-            $perConversation = 10;
-            $charBudget = 30_000;
+            $maxConversations = 300;
+            $perConversation = 14;
+            $charBudget = 120_000;
         }
 
         $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;

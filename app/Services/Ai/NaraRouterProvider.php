@@ -502,11 +502,19 @@ class NaraRouterProvider implements AiProviderInterface
         // Admin path: we want a visible message when things break (unlike the
         // customer path which stays silent). Catch quota + outage specifically
         // so the operator knows what happened; treat empty as a generic error.
+        //
+        // max_tokens budget: raised 4000 → 24000 on 2026-10-10 after a user
+        // complaint that 'analyze last 100 chats, per-contact review' got cut
+        // short at ~26 rows. A per-contact review of 100 contacts (contact name,
+        // moderator action, professional alternative, 2-3 lines each) runs
+        // ~15-20k output tokens; 4000 was ~1/5 of that. nemotron-3-ultra-free
+        // supports up to 32k output so 24k leaves headroom for reasoning tokens.
+        // deadline bumped 55 → 110s to match (nginx proxy_read_timeout was set
+        // to 180s on 2026-07-08 for exactly this long-response case).
         try {
-            // 40 s per model, 55 s overall — under nginx's 60 s gateway timeout.
-            $this->requestTimeout = 40;
-            $this->deadline = microtime(true) + 55;
-            $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 4000);
+            $this->requestTimeout = 100;
+            $this->deadline = microtime(true) + 110;
+            $response = $this->callChat($this->model, $systemPrompt, $conversationHistory, 24000);
         } catch (AiQuotaExhausted) {
             return 'The AI service is temporarily unavailable — daily quota reached. Try again after the quota resets, or upgrade your plan.';
         } catch (AiAllProvidersUnavailable) {
