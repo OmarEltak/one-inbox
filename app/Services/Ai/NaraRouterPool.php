@@ -94,33 +94,35 @@ final class NaraRouterPool
     }
 
     /**
-     * Text chain prefers text-only models first (preserves vision capacity for
-     * actual vision tasks), then reasoning-capable, then vision-capable as the
-     * last-resort fallback.
+     * Text chain is ordered by context size descending.
+     *
+     * NOTE 2026-10-10: an earlier version of this method tried to be clever —
+     * put text-only models first "to preserve vision capacity for actual vision
+     * tasks". That broke live AI replies for every customer: `jev` is text-only
+     * but only has a 32k context and rejects every real conversation prompt
+     * with HTTP 400 "The model rejected this request". Our provider treats 400
+     * as a non-retriable payload error (correct behavior for Anthropic alternation
+     * failures), so once `jev` 400s on real traffic the whole chain stops.
+     *
+     * Lesson: pick the most-reliable biggest-context models first; a small-ctx
+     * model at the END of the chain is a safety net, at the START it's a time bomb.
+     *
+     * Vision preservation is a non-concern because:
+     *   - Vision tasks query `chainFor('vision')` which filters to vision-capable
+     *     models up front, so a text task consuming a vision-capable model does
+     *     NOT prevent a later vision task from using the same model.
+     *   - Our per-model failover state is tracked separately per chain
+     *     (nararouter:failover_state:text / :vision) so vision/text usage
+     *     doesn't pollute each other's health view.
      *
      * @param array<int, array<string, mixed>> $pool
      * @return array<int, array<string, mixed>>
      */
     private function textChain(array $pool): array
     {
-        $textOnly = array_values(array_filter(
-            $pool,
-            fn ($m) => ! ($m['reasoning'] ?? false) && ! ($m['vision'] ?? false) && ($m['text'] ?? false),
-        ));
-        $reasoning = array_values(array_filter(
-            $pool,
-            fn ($m) => ($m['reasoning'] ?? false) && ! ($m['vision'] ?? false),
-        ));
-        $vision = array_values(array_filter(
-            $pool,
-            fn ($m) => $m['vision'] ?? false,
-        ));
-
-        foreach ([&$textOnly, &$reasoning, &$vision] as &$group) {
-            usort($group, fn ($a, $b) => ($b['ctx'] ?? 0) <=> ($a['ctx'] ?? 0));
-        }
-
-        return array_merge($textOnly, $reasoning, $vision);
+        $sorted = $pool;
+        usort($sorted, fn ($a, $b) => ($b['ctx'] ?? 0) <=> ($a['ctx'] ?? 0));
+        return $sorted;
     }
 
     /**
