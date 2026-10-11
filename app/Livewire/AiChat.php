@@ -902,15 +902,12 @@ class AiChat extends Component
             }
         }
 
-        // Agent-audit mode detection. Matches two intent families:
-        //   A) explicit "audit the team": "audit our agents", "how did our
-        //      moderators respond", "evaluate our staff"
-        //   B) per-contact review: "give me each name...what the moderator
-        //      did...what would you do instead" — the user's 2026-10-10
-        //      complaint. Previously these phrasings fell to customer_themes
-        //      and hash-collided with earlier themes runs, serving a stale
-        //      wrong-shape result from the cache.
-        // Expanded 2026-10-10 — the per-contact signals.
+        // Agent-audit mode detection — the EXPLICIT 'audit the team' phrasings.
+        // The agent_audit DeepAnalysis mode aggregates per MODERATOR (who sent
+        // how many messages, response times, conversion rate) — it does NOT
+        // produce a per-CONTACT review. So we only route to agent_audit when
+        // the user explicitly asks about the TEAM/AGENTS as subjects, not
+        // when they want a per-contact walk-through.
         $isAudit = (bool) preg_match(
             '/\baudit\s+(how\s+)?(our\s+)?(agents?|moderators?|team|staff|humans)\b/iu',
             $lower
@@ -920,23 +917,40 @@ class AiChat extends Component
         ) || (bool) preg_match(
             '/\bevaluate\s+(our\s+)?(agents?|team|moderators?|staff)\b/iu',
             $lower
-        ) || (bool) preg_match(
-            // "what (did|action) our (moderator|agent|team) did/took/handled"
+        );
+
+        // Per-contact-review intent — "give me each name", "what action our
+        // moderator did on each contact", "one by one", etc. These used to
+        // route into agent_audit mode (wrong — that mode aggregates by
+        // moderator, not by contact) which then cache-collided and served
+        // stale aggregate stats. Correct handling: let the parser return
+        // null so the request falls through to the INLINE chat path, where
+        // our expanded 120k-char page digest + 24k output tokens can
+        // actually produce a 100-row per-contact table. Flag it so a smarter
+        // routing decision can be made later (e.g. a dedicated per-contact
+        // Deep Analysis mode) without changing the detection code.
+        $isPerContactReview = (bool) preg_match(
             '/\bwhat\s+(did|action|the\s+action)\s+(our\s+|the\s+)?(moderator|agent|rep|agents|moderators|team|staff|humans)\b/iu',
             $lower
         ) || (bool) preg_match(
-            // "give me each name" / "list each contact" / "per contact" review
             '/\b(give|show|list|tell)\s+(me\s+)?(each|every|all)\s+(name|contact|conversation|chat|customer)/iu',
             $lower
         ) || (bool) preg_match(
-            // "what would (you|u) (do|have done) instead" + "handled it as professional"
             '/\b(what\s+would\s+(you|u)|how\s+would\s+(you|u))\s+(do|have\s+done|handle|handled|respond|replied)\b/iu',
             $lower
         ) || (bool) preg_match(
-            // Explicit per-contact phrasing: "name by name", "one by one"
             '/\b(name\s+by\s+name|one\s+by\s+one|contact\s+by\s+contact|chat\s+by\s+chat)\b/iu',
             $lower
         );
+
+        if ($isPerContactReview) {
+            // Return null so sendMessage() takes the inline-chat path. The
+            // expanded page digest (AdminChatContext when a page is named)
+            // provides up to 300 conversations / 120k chars of real transcript
+            // for the model to iterate through, with 24k output tokens for
+            // the response.
+            return null;
+        }
 
         if (! $isDeep && ! $isAudit) {
             return null;

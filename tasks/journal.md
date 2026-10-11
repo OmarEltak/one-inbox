@@ -2497,3 +2497,12 @@ creative direction). Awaiting Omar's steer.
 
 **Everything local uncommitted.** Rollout checklist in session chat log. Nothing deployed.
 
+
+## 2026-10-10 — Batch34 SEO (10 posts EN+AR) — prod SHA 0925274
+- Seeder database/seeders/AiSeoBlogSeederBatch34NewFeaturesCluster.php (1411 lines, 10 posts, 2300-2460 words each, 10-11 H2s, CTA per language).
+- Local seed OK, commit 0925274 pushed, auto-deploy confirmed on prod via git log.
+- Prod seed: sudo -u deploy php artisan db:seed --class=Database/Seeders/Batch34 --force ? INFO Seeding.
+- Verify: 5 EN + 2 AR URLs curl 200, all 10 loc in sitemap.xml.
+- Rollback: tinker Post where slug in (10 Batch34 slugs) delete; revert commit 0925274.
+- GSC: no browser/API tooling in this session — manual URL Inspection list given to user.
+
