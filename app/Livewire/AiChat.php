@@ -412,17 +412,19 @@ class AiChat extends Component
     }
 
     /**
-     * Public safety-net sync — called by a conditional Blade wire:poll that only
-     * fires when there's at least one pending turn. The moment all pending
-     * turns resolve, pendingChatTurnsCount() returns 0 and the Blade stops the
-     * poll (@if($pendingCount > 0) around the poll div). So this method has
-     * cost = 1 small indexed query per 8s per user with pending work, and
-     * ZERO cost when idle. Reverb is still the primary delivery path; this
-     * is the backup for when WebSocket delivery drops.
+     * Public safety-net sync — called by the Alpine syncPendingWatcher()
+     * every 8s while any [data-pending-bubble] is still in the DOM. On ticks
+     * where NO pending turn has actually completed yet, we skipRender() so
+     * Livewire doesn't morph the component DOM — which was stealing textarea
+     * focus mid-typing (user complaint 2026-10-12). We only let the render
+     * through when syncPendingTurnsFromDb() actually swapped something.
      */
     public function pollPendingTurns(): void
     {
-        $this->syncPendingTurnsFromDb();
+        $swapped = $this->syncPendingTurnsFromDb();
+        if (! $swapped) {
+            $this->skipRender();
+        }
     }
 
     /**
@@ -437,11 +439,11 @@ class AiChat extends Component
      * on `/ai-chat` even though the DB had the completed response — Reverb
      * delivery is best-effort and we can't rely on it as the only sync path.
      */
-    private function syncPendingTurnsFromDb(): void
+    private function syncPendingTurnsFromDb(): bool
     {
         $pending = array_filter($this->messages, fn ($m) => ! empty($m['pending']) && ! empty($m['command_id']));
         if (empty($pending)) {
-            return;
+            return false;
         }
 
         $ids = array_values(array_map(fn ($m) => (int) $m['command_id'], $pending));
@@ -451,9 +453,10 @@ class AiChat extends Component
             ->keyBy('id');
 
         if ($completed->isEmpty()) {
-            return;
+            return false;
         }
 
+        $swapped = false;
         foreach ($this->messages as $i => $m) {
             if (empty($m['pending']) || empty($m['command_id'])) {
                 continue;
@@ -463,9 +466,13 @@ class AiChat extends Component
                     'role'    => 'assistant',
                     'content' => (string) $row->response,
                 ];
+                $swapped = true;
             }
         }
-        $this->clearPendingChatTurnsCache();
+        if ($swapped) {
+            $this->clearPendingChatTurnsCache();
+        }
+        return $swapped;
     }
 
     public function sendMessage(): void
