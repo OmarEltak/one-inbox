@@ -683,16 +683,37 @@ class NaraRouterProvider implements AiProviderInterface
         $startKeyIdx = $this->currentKeyIndex($kind);
         $keyCount    = max(1, count($this->apiKeys));
 
-        foreach ($tryOrder as $tryModel) {
-            if ($this->deadline !== null && $this->deadline - microtime(true) < 5) {
-                return ['status' => 'empty', 'reply' => '', 'attempts' => $attempts, 'last_error' => 'admin time budget used'];
-            }
-            for ($k = 0; $k < $keyCount; $k++) {
-                $keyIdx = ($startKeyIdx + $k) % $keyCount;
-                $key    = $this->apiKeys[$keyIdx] ?? '';
+        // 2026-10-12: outer loop over API keys. Previously the key loop was
+        // INSIDE the model loop, and 5xx errors would `break` out of it,
+        // meaning we'd move to the next MODEL on key 0 without ever trying
+        // key 1. For a sustained upstream outage affecting the account tied
+        // to key 0, we'd exhaust all models on key 0 and set the 30-min
+        // global cooldown — key 1 (secondary NaraRouter account) was NEVER
+        // tried, even though it might have been working. User complaint:
+        // 'why our connections didn't switch between the 2 accs'.
+        //
+        // New flow:
+        //   for each key in (startKey, startKey+1, ...):
+        //     for each model in chain:
+        //       try — on 400 return, on auth break model loop (try next key),
+        //              on 5xx continue (try next model, same key),
+        //              on success return
+        //     end of model loop — if we got here all models failed on this
+        //     key. Try the next key.
+        //   end of key loop — chain truly exhausted across all keys.
+        for ($k = 0; $k < $keyCount; $k++) {
+            $keyIdx = ($startKeyIdx + $k) % $keyCount;
+            $key    = $this->apiKeys[$keyIdx] ?? '';
 
-                if ($key === '') {
-                    continue;
+            if ($key === '') {
+                continue;
+            }
+
+            $authErrorThisKey = false; // if true, skip ahead to next key immediately
+
+            foreach ($tryOrder as $tryModel) {
+                if ($this->deadline !== null && $this->deadline - microtime(true) < 5) {
+                    return ['status' => 'empty', 'reply' => '', 'attempts' => $attempts, 'last_error' => 'admin time budget used'];
                 }
 
                 try {
@@ -708,14 +729,14 @@ class NaraRouterProvider implements AiProviderInterface
                             'max_tokens'  => $maxOutputTokens,
                         ]);
                 } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                    // Timeout / dropped connection: this model is too slow right now — next
-                    // model (used to escape the whole cascade as an exception). Within an
-                    // admin time budget it counts as 'empty' so it never triggers the cooldown.
+                    // Timeout / dropped connection: this model is too slow right now — try the
+                    // next model on the SAME key. Within an admin time budget it counts as
+                    // 'empty' so it never triggers the cooldown.
                     $attempts[] = "model={$tryModel} key={$keyIdx} timeout";
                     $lastError = "timeout on {$tryModel}";
                     $sawEmpty = $sawEmpty || $this->deadline !== null;
                     Log::warning('NaraRouter timeout — trying next model', ['chain' => $kind, 'model' => $tryModel]);
-                    break;
+                    continue;
                 }
 
                 if ($response->successful()) {
@@ -733,7 +754,7 @@ class NaraRouterProvider implements AiProviderInterface
                         Log::warning('NaraRouter empty reply — trying next model', [
                             'chain' => $kind, 'model' => $tryModel, 'finish_reason' => $finish,
                         ]);
-                        break;
+                        continue;
                     }
 
                     $this->markActiveModel($kind, $tryModel);
@@ -778,15 +799,33 @@ class NaraRouterProvider implements AiProviderInterface
                     ];
                 }
 
-                // Auth / payment / rate on THIS key → try next key, same model.
+                // Auth / payment / rate on THIS key → stop trying models on
+                // this key (they'll all fail with the same auth error), jump
+                // straight to the next key in the outer loop.
                 if (in_array($status, [401, 402, 403, 429], true)) {
                     $lastError = "HTTP {$status} on {$tryModel} (key {$keyIdx})";
-                    continue;
+                    $authErrorThisKey = true;
+                    break; // exit model loop, outer key loop advances
                 }
 
-                // 404 / 5xx / timeout: upstream issue with THIS model — cascade.
+                // 404 / 5xx / timeout: upstream issue with THIS model on this key.
+                // Try the next model with the SAME key. Only move to the next
+                // key after we've tried every model on this one.
                 $lastError = "HTTP {$status} on {$tryModel} (key {$keyIdx})";
-                break;
+                continue;
+            }
+
+            // If every model on this key gave upstream errors (5xx/empty), the
+            // next key MIGHT be hitting a different upstream pool and work.
+            // Log and continue to the next key via the outer loop.
+            if ($authErrorThisKey) {
+                Log::warning('NaraRouter key exhausted with auth error — trying next key', [
+                    'chain' => $kind, 'key_index' => $keyIdx,
+                ]);
+            } else {
+                Log::warning('NaraRouter key exhausted with upstream errors — trying next key', [
+                    'chain' => $kind, 'key_index' => $keyIdx, 'attempts_so_far' => count($attempts),
+                ]);
             }
         }
 
