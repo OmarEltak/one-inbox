@@ -86,8 +86,16 @@ class AdminChatContext
      * included from the preview instead of being skipped — otherwise a page
      * connected today looks like it has no customers at all.
      */
-    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 6000, ?int $pageId = null, bool $expanded = false): string
+    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 6000, ?int $pageId = null, bool $expanded = false, bool $slim = false): string
     {
+        // 2026-10-14: slim mode for 'list the last N people who texted' style
+        // questions — we only need breadth (name + first inbound line each),
+        // not depth. Packs 100-200 contacts in the same budget expanded mode
+        // only fits ~36 of. Short-circuits most of the format logic below.
+        if ($slim) {
+            return $this->slimContactList($teamId, $pageId, 200);
+        }
+
         // Targeted-page expansion mode: the operator named a specific page, so
         // the chat context deserves a much larger window AND both sides of each
         // thread (agent + customer) so moderator-audit style questions work.
@@ -438,5 +446,93 @@ class AdminChatContext
     private function clip(?string $text, int $max): string
     {
         return Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $text) ?? ''), $max);
+    }
+
+    /**
+     * Slim contact list digest — one line per contact (name + first inbound
+     * message, clipped to ~180 chars). Used for 'list the last N people who
+     * texted us' style questions where the expanded both-sides digest can
+     * only fit ~36 contacts in the budget. 2026-10-14.
+     */
+    private function slimContactList(int $teamId, ?int $pageId, int $maxContacts): string
+    {
+        $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;
+        $scope = $pageName ? " ON PAGE \"{$pageName}\"" : '';
+
+        $base = Conversation::where('team_id', $teamId)
+            ->when($pageId, fn ($q) => $q->where('page_id', $pageId))
+            ->where('sales_stage', '!=', Conversation::STAGE_SPAM)
+            ->where(fn ($q) => $q->whereHas('messages', fn ($m) => $m->where('direction', 'inbound'))
+                ->orWhereNotNull('last_message_preview'));
+
+        $total = (clone $base)->count();
+        if ($total === 0) {
+            return "=== CUSTOMER CONTACT LIST{$scope} ===\nNo contacts stored for this " . ($pageName ? 'page' : 'account') . ' yet.';
+        }
+
+        $conversations = $base->with(['contact:id,name', 'page:id,name'])
+            ->orderByDesc('last_message_at')
+            ->limit($maxContacts)
+            ->get();
+
+        $firstInbound = Message::whereIn('conversation_id', $conversations->pluck('id'))
+            ->where('direction', 'inbound')
+            ->whereNotNull('content')
+            ->orderBy('conversation_id')
+            ->orderByRaw('COALESCE(platform_sent_at, created_at) ASC')
+            ->get(['conversation_id', 'content'])
+            ->groupBy('conversation_id')
+            ->map(fn ($msgs) => (string) $msgs->first()->content);
+
+        $lines = [];
+        $i = 0;
+        foreach ($conversations as $conv) {
+            $i++;
+            $name = $conv->contact?->name ?? 'Unknown';
+            $firstMsg = $firstInbound[$conv->id] ?? (string) $conv->last_message_preview;
+            if (MediaPlaceholders::isPlaceholder($firstMsg)) {
+                $firstMsg = '[media/image]';
+            }
+            $lines[] = sprintf('%d. %s (contact ID:%d) — %s', $i, $name, $conv->contact_id, $this->clip($firstMsg, 180));
+        }
+
+        $header = "=== CUSTOMER CONTACT LIST{$scope} (" . count($lines) . " most recent of {$total}, slim format: name + first inbound line) ===";
+        $guidance = 'Use this to answer list/breadth questions like "last 100 people who texted us". Each line = one contact. Do NOT fabricate contacts not in this list; if the user asks for more than the list contains, say so.';
+
+        return $header . "\n" . $guidance . "\n" . implode("\n", $lines);
+    }
+
+    /**
+     * Detect "list me N people / contacts / customers" style asks so the
+     * caller can switch customerDigest to slim mode. 2026-10-14. Matches
+     * English and Arabic phrasing used by Omar's user base.
+     */
+    public function looksLikeContactListRequest(string $text): bool
+    {
+        $t = mb_strtolower($text);
+        $enPatterns = [
+            '/\blist\b.*\b(contacts?|people|customers?|clients?|users?|chats?|conversations?)\b/i',
+            '/\b(show|give)\s+me\s+(the\s+)?(last|top|first|recent)\b.*\b(contacts?|people|customers?|clients?|chats?)\b/i',
+            '/\bwho\s+(are|texted|wrote|messaged)\b.*\b(last|recent|first)\b/i',
+            '/\b(names?|list)\b.*\b(last|top|first|recent)\s+\d+/i',
+        ];
+        $arPatterns = [
+            '/قائم.*(العملاء|الأشخاص|الناس|الزبائن|المحادثات)/u',
+            '/اعرض.*قائم/u',
+            '/أعطني.*(العملاء|الأشخاص|قائم)/u',
+            '/آخر\s*\d+.*(شخص|عميل|محادثة|رسالة)/u',
+            '/أسماء.*(آخر|أول|أحدث)/u',
+            '/من\s*(الذين|اللي)\s+(كلّم|كلم|راسل|كتب|بعث)/u',
+        ];
+        foreach (array_merge($enPatterns, $arPatterns) as $re) {
+            if (preg_match($re, $t)) {
+                return true;
+            }
+        }
+        // Explicit "last/top/first N" with a reasonably large N (>=20).
+        if (preg_match('/\b(last|top|first|آخر|أول)\s+(\d+)/u', $t, $m) && (int) $m[2] >= 20) {
+            return true;
+        }
+        return false;
     }
 }

@@ -115,13 +115,22 @@ class ProcessAiChatTurn implements ShouldQueue
                 ->implode("\n");
 
             $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
+            // 2026-10-14: when the user asks for a LIST of N people (vs an
+            // audit of their conversations), use slim mode so we can pack
+            // 100-200 contacts in the budget rather than 36 full transcripts.
+            $wantsList = $chatContext->looksLikeContactListRequest($text);
             if ($pageIds === []) {
-                $digest = $chatContext->customerDigest($team->id);
+                $digest = $chatContext->customerDigest($team->id, slim: $wantsList);
             } elseif (count($pageIds) === 1) {
-                $digest = $chatContext->customerDigest($team->id, pageId: $pageIds[0], expanded: true);
+                $digest = $chatContext->customerDigest(
+                    $team->id,
+                    pageId: $pageIds[0],
+                    expanded: ! $wantsList,
+                    slim: $wantsList,
+                );
             } else {
                 $digest = collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
-                    $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id,
+                    $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id, slim: $wantsList,
                 ))->implode("\n\n");
             }
 
