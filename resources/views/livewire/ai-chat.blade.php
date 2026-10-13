@@ -2,6 +2,7 @@
     isNearBottom: true,
     showNewMessageBadge: false,
     pendingPollTimer: null,
+    savedComposerSel: null,
     scrollToBottom() {
         $nextTick(() => {
             const el = $refs.chatContainer;
@@ -16,6 +17,30 @@
     },
     onNewContent() {
         if (this.isNearBottom) { this.scrollToBottom(); } else { this.showNewMessageBadge = true; }
+    },
+    // 2026-10-13: focus-loss fix. Even with skipRender() guarding pollPendingTurns,
+    // when an answer actually arrives the component morphs and the textarea loses
+    // focus mid-typing (because sibling structure around it changes — the pending
+    // bubble gets replaced by a real answer bubble, and the pendingCount <p>
+    // appears/disappears). We save selection on 'livewire:morph' (before swap)
+    // and restore it on 'livewire:morphed' (after swap). Only applies when the
+    // user was actively typing in the composer textarea.
+    preserveComposerFocus() {
+        const ta = this.$root.querySelector('textarea[wire\\:model="message"]');
+        if (ta && document.activeElement === ta) {
+            this.savedComposerSel = { start: ta.selectionStart, end: ta.selectionEnd };
+        } else {
+            this.savedComposerSel = null;
+        }
+    },
+    restoreComposerFocus() {
+        if (!this.savedComposerSel) return;
+        const ta = this.$root.querySelector('textarea[wire\\:model="message"]');
+        if (ta && document.activeElement !== ta) {
+            ta.focus();
+            try { ta.setSelectionRange(this.savedComposerSel.start, this.savedComposerSel.end); } catch (_) {}
+        }
+        this.savedComposerSel = null;
     },
     stickToBottom() {
         // One scroll on init lands short: web fonts, images and long Arabic
@@ -62,7 +87,8 @@
            else if (Notification.permission !== 'denied') { Notification.requestPermission().then(p => { if (p === 'granted') show(); }); }
        })()
    "
-   x-on:livewire:morph.window="onNewContent()">
+   x-on:livewire:morph.window="preserveComposerFocus(); onNewContent()"
+   x-on:livewire:morphed.window="restoreComposerFocus()">
 
     {{-- Header --}}
     <div class="px-6 py-4 border-b border-zinc-200">

@@ -620,6 +620,25 @@ class NaraRouterProvider implements AiProviderInterface
             return '';
         }
 
+        // 2026-10-13: if the secondary chain is literally empty (no models
+        // configured — vision pool often is), that's a config state, not an
+        // outage. Treat it as a primary-only failure and skip the 30-min global
+        // cooldown — otherwise one flaky model on primary trips a cooldown that
+        // halts AI for every team even though primary comes back minutes later.
+        $secondaryHadModels = ! empty($this->chainFor($otherKind));
+        if (! $secondaryHadModels) {
+            Log::error('NaraRouter: primary chain exhausted, secondary chain is empty — not setting global cooldown', [
+                'primary_kind' => $kind,
+                'last_error'   => $primaryResult['last_error'],
+                'attempts'     => $primaryResult['attempts'],
+            ]);
+
+            throw new AiAllProvidersUnavailable(
+                'NaraRouter primary chain unavailable (no secondary models configured). Last error: '
+                    . ($primaryResult['last_error'] ?? 'unknown')
+            );
+        }
+
         // Both chains exhausted. Set cooldown, email alert, throw.
         $this->setCooldown();
         $this->sendExhaustionAlert(
@@ -675,7 +694,14 @@ class NaraRouterProvider implements AiProviderInterface
 
         $startModel = $this->currentModel($kind);
         $startIndex = array_search($startModel, $chain, true);
-        $tryOrder   = $startIndex === false ? $chain : array_slice($chain, $startIndex);
+        // 2026-10-13: wrap around the chain so a stale active model doesn't shrink
+        // the attempt list. Before: chain=[a,b,c], startIndex=2 → tryOrder=[c].
+        // One timeout on c would exhaust the chain and (with secondary empty)
+        // trip a 30-min global cooldown even when a+b were working fine. Now:
+        // tryOrder=[c, a, b] so a single flaky model can't poison the whole run.
+        $tryOrder = ($startIndex === false || $startIndex === 0)
+            ? $chain
+            : array_merge(array_slice($chain, $startIndex), array_slice($chain, 0, $startIndex));
 
         $lastError   = null;
         $attempts    = [];
