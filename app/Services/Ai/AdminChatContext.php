@@ -94,15 +94,18 @@ class AdminChatContext
         // Phase C of the AI credit economy spec (§6).
         //
         // 2026-10-10: bumped maxConversations 150 → 300, perConversation 10 → 14,
-        // charBudget 30k → 120k. nemotron-3-ultra-free has 1M context so there's
-        // tons of headroom. User complaint that killed the old limits: asked
-        // "analyze last 100 chats for mishkah, give me each name" and got only
-        // 26 rows because the 30k char budget cut off before conversation 27.
-        // 120k fits ~100-200 full conversations easily.
+        // charBudget 30k → 120k.
+        // 2026-10-14: 120k turned out to be aspirational — nemotron-3-ultra and
+        // laguna free models consistently TIMEOUT at 25s with that payload,
+        // AND the queue worker was dying mid-processing without updating the
+        // AiCommand row (prompts >100k spike PHP memory enough that systemd
+        // kills on --max-time boundary). Capping at 60k gives ~40-60 fully-
+        // expanded conversations which is plenty for an audit question and
+        // actually completes within the model's throughput budget.
         if ($expanded) {
-            $maxConversations = 300;
-            $perConversation = 14;
-            $charBudget = 120_000;
+            $maxConversations = 150;
+            $perConversation = 12;
+            $charBudget = 60_000;
         }
 
         $pageName = $pageId ? \App\Models\Page::where('team_id', $teamId)->whereKey($pageId)->value('name') : null;

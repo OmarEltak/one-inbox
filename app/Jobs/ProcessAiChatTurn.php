@@ -62,6 +62,32 @@ class ProcessAiChatTurn implements ShouldQueue
             return;
         }
 
+        // 2026-10-14: last-line safety net. If PHP dies hard mid-processing
+        // (OOM, segfault, worker SIGKILL'd), the finally{} block below never
+        // runs and the AiCommand row stays 'pending' forever. Register a
+        // shutdown function that force-marks it failed if the handler never
+        // reached the finally{}. We clear the flag inside finally{} so a
+        // successful run doesn't trigger this.
+        $shutdownDidRun = false;
+        $cmdId = $this->commandId;
+        $teamId = (int) $command->team_id;
+        $userId = (int) $command->user_id;
+        register_shutdown_function(function () use (&$shutdownDidRun, $cmdId, $teamId, $userId) {
+            if ($shutdownDidRun) {
+                return; // Clean exit path already updated the row.
+            }
+            try {
+                $row = AiCommand::find($cmdId);
+                if ($row && $row->status === 'pending') {
+                    $msg = __('The AI service dropped this request. Try again — if it keeps failing, ask a shorter / more specific question.');
+                    $row->update(['status' => 'failed', 'response' => $msg]);
+                    AiChatTurnCompleted::dispatch($teamId, $userId, $cmdId, $msg);
+                }
+            } catch (\Throwable $e) {
+                // Shutdown-handler failure can't be meaningfully reported.
+            }
+        });
+
         // Outer try/finally — guarantees the command never stays stuck in
         // 'pending' no matter what blows up below. Before 2026-10-12 a crash
         // in customerDigest() (OOM on a 120k char budget) or buildAnalyticsContext()
@@ -186,6 +212,8 @@ class ProcessAiChatTurn implements ShouldQueue
             $command->update($update);
 
             AiChatTurnCompleted::dispatch($team->id ?? (int) $command->team_id, (int) $command->user_id, $command->id, $response);
+            // Tell the shutdown-safety-net it doesn't need to fire.
+            $shutdownDidRun = true;
         }
 
         // If something crashed, let the queue know so the retry policy kicks in.
