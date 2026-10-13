@@ -132,11 +132,14 @@ class ProcessAiChatTurn implements ShouldQueue
             // in pullOfferHint() instructs it to end with [PULL_OFFER:<pid>:<n>]
             // on its own line. We strip that from the user-visible response and
             // stash it on the AiCommand so the UI can render a confirm button.
+            // 2026-10-14: also stash the ORIGINAL user question so when the
+            // backfill completes we can auto-re-ask it against the richer data.
             if (preg_match('/\[PULL_OFFER:(\d+):(\d+)\]/i', $response, $m)) {
                 $pullOffer = [
-                    'type'    => 'pull_offer',
-                    'page_id' => (int) $m[1],
-                    'count'   => (int) $m[2],
+                    'type'              => 'pull_offer',
+                    'page_id'           => (int) $m[1],
+                    'count'             => (int) $m[2],
+                    'original_question' => (string) $command->command,
                 ];
                 $response = trim(preg_replace('/\s*\[PULL_OFFER:\d+:\d+\]\s*/i', '', $response));
             }

@@ -249,24 +249,63 @@
 
                                     {{-- 2026-10-13: AI-offered deep pull. The ProcessAiChatTurn job
                                          extracted a [PULL_OFFER:<pid>:<n>] token from the response and
-                                         stashed it on AiCommand.action_taken. Rough minute estimate:
-                                         ~1.5s per chat (API + sleep) + 10s/batch delay ≈ 0.6 min per 40. --}}
+                                         stashed it on AiCommand.action_taken.
+                                         2026-10-14: pull_offer now has three phases on the client:
+                                           phase 1 — not done: Yes/No confirm card (amber)
+                                           phase 2 — done + !complete: live progress bar (emerald, polling)
+                                           phase 3 — done + complete + replied: celebratory "answered below"
+                                         The poll on phase 2 auto-fires another AiCommand with the user's
+                                         original question when the backfill cycle finishes. --}}
                                     @if(! empty($msg['pull_offer']) && ! empty($msg['command_id']))
                                         @php
                                             $po = $msg['pull_offer'];
                                             $pullCount = (int) ($po['count'] ?? 0);
                                             $pullDone  = ! empty($po['done']);
-                                            $estMin    = max(1, (int) ceil($pullCount * 1.5 / 60));
+                                            $isComplete = ! empty($po['complete']);
+                                            $confirmedCount = (int) ($po['confirmed_count'] ?? $pullCount);
+                                            $pct = (int) ($po['pct'] ?? 0);
+                                            $current = (int) ($po['current'] ?? 0);
+                                            $baseline = (int) ($po['baseline'] ?? 0);
+                                            $doneInThisCycle = max(0, $current - $baseline);
+                                            $estMin = max(1, (int) ceil($pullCount * 1.5 / 60));
                                         @endphp
                                         <div class="mt-2 pt-2 border-t border-blue-100">
-                                            @if($pullDone)
+                                            @if($pullDone && $isComplete)
+                                                {{-- Phase 3: cycle complete, auto re-ask was dispatched. --}}
                                                 <div class="flex items-start gap-2 text-xs text-emerald-800">
                                                     <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                                     </svg>
-                                                    <span>{{ __('Pulling :count more chats in the background. Track progress on the Connections page — ask again once it finishes.', ['count' => $po['confirmed_count'] ?? $pullCount]) }}</span>
+                                                    <span>{{ __('Done — pulled :count chats. I re-asked your original question with the richer data; answer is loading below.', ['count' => $confirmedCount]) }}</span>
+                                                </div>
+                                            @elseif($pullDone)
+                                                {{-- Phase 2: in-flight progress bar, polling every 5s.
+                                                     Progress bar matches the Connections page styling. --}}
+                                                <div wire:poll.5s="pollPullProgress({{ $msg['command_id'] }})"
+                                                     class="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
+                                                    <div class="flex items-center justify-between gap-3 text-xs">
+                                                        <div class="flex items-center gap-2 min-w-0">
+                                                            <svg class="w-4 h-4 text-emerald-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                            </svg>
+                                                            <p class="truncate font-medium text-emerald-900">
+                                                                {{ __('Pulling :count more chats…', ['count' => $confirmedCount]) }}
+                                                            </p>
+                                                        </div>
+                                                        <p class="flex-shrink-0 text-emerald-800 tabular-nums">
+                                                            {{ $doneInThisCycle }} / {{ $confirmedCount }} ({{ $pct }}%)
+                                                        </p>
+                                                    </div>
+                                                    <div class="mt-2 h-1.5 w-full rounded-full bg-emerald-100 overflow-hidden">
+                                                        <div class="h-full rounded-full bg-emerald-500 transition-all duration-500" style="width: {{ max(2, $pct) }}%"></div>
+                                                    </div>
+                                                    <p class="mt-2 text-[11px] text-emerald-700/80">
+                                                        {{ __('When this finishes I will re-answer your original question automatically. Keep chatting about other things in the meantime.') }}
+                                                    </p>
                                                 </div>
                                             @else
+                                                {{-- Phase 1: initial Yes/No offer. --}}
                                                 <div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
                                                     <p class="text-xs text-amber-900">
                                                         {{ __('Want deeper context? I can pull :count more chats from this page. Takes ~:min min. No credits — the pull itself is free; credits only apply when you next ask an analysis question on the richer data.', ['count' => $pullCount, 'min' => $estMin]) }}

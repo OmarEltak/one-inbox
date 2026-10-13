@@ -82,9 +82,16 @@ class AiChat extends Component
                     $action = (array) ($cmd->action_taken ?? []);
                     if (($action['type'] ?? null) === 'pull_offer') {
                         $assistant['pull_offer'] = [
-                            'page_id' => (int) ($action['page_id'] ?? 0),
-                            'count'   => (int) ($action['count']   ?? 0),
-                            'done'    => (bool) ($action['done']   ?? false),
+                            'page_id'         => (int) ($action['page_id'] ?? 0),
+                            'count'           => (int) ($action['count']   ?? 0),
+                            'done'            => (bool) ($action['done']   ?? false),
+                            'confirmed_count' => (int) ($action['confirmed_count'] ?? 0),
+                            'baseline'        => (int) ($action['baseline'] ?? 0),
+                            // On a fresh load we don't know current without a DB hit — the
+                            // pollPullProgress tick (wire:poll.5s on the bubble) fills it in.
+                            'current'         => (int) ($action['baseline'] ?? 0),
+                            'pct'             => ! empty($action['replied_at']) ? 100 : 0,
+                            'complete'        => ! empty($action['replied_at']),
                         ];
                     }
                 }
@@ -145,9 +152,14 @@ class AiChat extends Component
                 $action = (array) ($cmd?->action_taken ?? []);
                 if (($action['type'] ?? null) === 'pull_offer') {
                     $swap['pull_offer'] = [
-                        'page_id' => (int) ($action['page_id'] ?? 0),
-                        'count'   => (int) ($action['count']   ?? 0),
-                        'done'    => (bool) ($action['done']   ?? false),
+                        'page_id'         => (int) ($action['page_id'] ?? 0),
+                        'count'           => (int) ($action['count']   ?? 0),
+                        'done'            => (bool) ($action['done']   ?? false),
+                        'confirmed_count' => (int) ($action['confirmed_count'] ?? 0),
+                        'baseline'        => (int) ($action['baseline'] ?? 0),
+                        'current'         => (int) ($action['baseline'] ?? 0),
+                        'pct'             => ! empty($action['replied_at']) ? 100 : 0,
+                        'complete'        => ! empty($action['replied_at']),
                     ];
                 }
                 $this->messages[$i] = $swap;
@@ -514,6 +526,12 @@ class AiChat extends Component
             return;
         }
 
+        // 2026-10-14: snapshot the current fetched count as baseline so the
+        // progress bar reflects THIS cycle's work, not historical fetches.
+        $baseline = \App\Models\Conversation::where('page_id', $page->id)
+            ->whereJsonContains('metadata->messages_fetched', true)
+            ->count();
+
         \App\Jobs\BackfillPageMessages::dispatch($page->id, $count);
 
         $cmd->update([
@@ -521,6 +539,7 @@ class AiChat extends Component
                 'done'            => true,
                 'dispatched_at'   => now()->toIso8601String(),
                 'confirmed_count' => $count,
+                'baseline'        => $baseline,
             ]),
         ]);
 
@@ -528,10 +547,122 @@ class AiChat extends Component
         // without needing a full reload.
         foreach ($this->messages as $i => $m) {
             if (($m['command_id'] ?? null) === $commandId && isset($m['pull_offer'])) {
-                $this->messages[$i]['pull_offer']['done'] = true;
+                $this->messages[$i]['pull_offer']['done']            = true;
                 $this->messages[$i]['pull_offer']['confirmed_count'] = $count;
+                $this->messages[$i]['pull_offer']['baseline']        = $baseline;
+                $this->messages[$i]['pull_offer']['current']         = $baseline;
+                $this->messages[$i]['pull_offer']['pct']             = 0;
                 break;
             }
+        }
+    }
+
+    /**
+     * Poll called from the pull-offer bubble (wire:poll.5s). Computes current
+     * progress and — on completion — auto-re-asks the user's original question
+     * against the now-richer indexed data. 2026-10-14.
+     *
+     * Skips render when progress hasn't materially changed (same pct) so the
+     * composer textarea doesn't lose focus mid-typing.
+     */
+    public function pollPullProgress(int $commandId): void
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            $this->skipRender();
+            return;
+        }
+
+        $cmd = AiCommand::where('team_id', $team->id)
+            ->where('user_id', Auth::id())
+            ->whereKey($commandId)
+            ->first();
+        if (! $cmd) {
+            $this->skipRender();
+            return;
+        }
+
+        $action = (array) ($cmd->action_taken ?? []);
+        if (($action['type'] ?? null) !== 'pull_offer' || empty($action['done']) || ! empty($action['replied_at'])) {
+            // Not a pull offer, not dispatched, or already handled → nothing to do.
+            $this->skipRender();
+            return;
+        }
+
+        $pageId   = (int) ($action['page_id'] ?? 0);
+        $count    = (int) ($action['confirmed_count'] ?? 0);
+        $baseline = (int) ($action['baseline'] ?? 0);
+
+        $currentFetched = \App\Models\Conversation::where('page_id', $pageId)
+            ->whereJsonContains('metadata->messages_fetched', true)
+            ->count();
+
+        $done       = max(0, $currentFetched - $baseline);
+        $pct        = $count > 0 ? min(100, (int) floor($done * 100 / $count)) : 100;
+        $isComplete = $done >= $count || $pct >= 100;
+
+        // Update the in-memory bubble's progress fields.
+        $prevPct = null;
+        foreach ($this->messages as $i => $m) {
+            if (($m['command_id'] ?? null) === $commandId && isset($m['pull_offer'])) {
+                $prevPct = $m['pull_offer']['pct'] ?? null;
+                $this->messages[$i]['pull_offer']['current']  = $currentFetched;
+                $this->messages[$i]['pull_offer']['done']     = true;
+                $this->messages[$i]['pull_offer']['pct']      = $pct;
+                $this->messages[$i]['pull_offer']['complete'] = $isComplete;
+                break;
+            }
+        }
+
+        if ($isComplete) {
+            // Flag so subsequent polls short-circuit AND auto-re-ask the
+            // original question. We persist replied_at so even on page
+            // refresh the UI knows this cycle is handled.
+            $originalQuestion = trim((string) ($action['original_question'] ?? ''));
+            $action['replied_at']       = now()->toIso8601String();
+            $cmd->update(['action_taken' => $action]);
+
+            if ($originalQuestion !== '') {
+                // Dispatch a FRESH AiCommand + ProcessAiChatTurn so the AI
+                // answers against the now-expanded indexed data. The new
+                // bubble will stream in normally via Reverb / sync poll.
+                $newCmd = AiCommand::create([
+                    'team_id'  => $team->id,
+                    'user_id'  => (int) Auth::id(),
+                    'command'  => $originalQuestion,
+                    'response' => '',
+                    'status'   => 'pending',
+                ]);
+
+                $historySnapshot = collect($this->messages)
+                    ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
+                    ->slice(-12)
+                    ->skipUntil(fn ($m) => $m['role'] === 'user')
+                    ->map(fn ($m) => ['role' => $m['role'], 'content' => \Illuminate\Support\Str::limit((string) ($m['content'] ?? ''), 2000)])
+                    ->values()
+                    ->all();
+
+                \App\Jobs\ProcessAiChatTurn::dispatch($newCmd->id, $historySnapshot);
+
+                // Append the user bubble (re-ask) + typing-dots placeholder for the new reply.
+                $this->messages[] = ['role' => 'user', 'content' => $originalQuestion];
+                $this->messages[] = [
+                    'role'       => 'assistant',
+                    'content'    => '…',
+                    'pending'    => true,
+                    'command_id' => $newCmd->id,
+                ];
+                $this->clearPendingChatTurnsCache();
+                $this->dispatch('message-sent');
+            }
+
+            return; // Let Livewire render; the complete state + new bubble must land.
+        }
+
+        // Still in progress — skipRender when nothing visually changed, so the
+        // textarea keeps focus while the user keeps typing.
+        if ($prevPct === $pct) {
+            $this->skipRender();
         }
     }
 
@@ -615,9 +746,14 @@ class AiChat extends Component
                 $action = (array) ($row->action_taken ?? []);
                 if (($action['type'] ?? null) === 'pull_offer') {
                     $swap['pull_offer'] = [
-                        'page_id' => (int) ($action['page_id'] ?? 0),
-                        'count'   => (int) ($action['count']   ?? 0),
-                        'done'    => (bool) ($action['done']   ?? false),
+                        'page_id'         => (int) ($action['page_id'] ?? 0),
+                        'count'           => (int) ($action['count']   ?? 0),
+                        'done'            => (bool) ($action['done']   ?? false),
+                        'confirmed_count' => (int) ($action['confirmed_count'] ?? 0),
+                        'baseline'        => (int) ($action['baseline'] ?? 0),
+                        'current'         => (int) ($action['baseline'] ?? 0),
+                        'pct'             => ! empty($action['replied_at']) ? 100 : 0,
+                        'complete'        => ! empty($action['replied_at']),
                     ];
                 }
                 $this->messages[$i] = $swap;
