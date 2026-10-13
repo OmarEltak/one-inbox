@@ -169,6 +169,106 @@ class Index extends Component
             ->get();
     }
 
+    /**
+     * Rows for the "Loading your messages…" progress bar + the celebratory
+     * completion toast on /connections. Only includes FB/IG pages where
+     * BackfillPageMessages has marked backfill_in_progress_started_at — so
+     * pages that pre-date this feature (or finished before it shipped) do
+     * NOT light up a surprise toast on first visit.
+     *
+     * Returns an array per page: { page_id, name, platform, fetched, total,
+     * pct, is_complete, needs_toast }. The view polls this every 10s via
+     * wire:poll until every row is acked.
+     *
+     * @return array<int, array{page_id:int,name:string,platform:string,fetched:int,total:int,pct:int,is_complete:bool,needs_toast:bool}>
+     */
+    #[Computed]
+    public function backfillStates(): array
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            return [];
+        }
+
+        $pages = Page::where('team_id', $team->id)
+            ->where('is_active', true)
+            ->whereIn('platform', ['facebook', 'instagram'])
+            ->whereNotNull('metadata->backfill_in_progress_started_at')
+            ->get(['id', 'name', 'platform', 'metadata']);
+
+        if ($pages->isEmpty()) {
+            return [];
+        }
+
+        $pageIds = $pages->pluck('id');
+        $totals = \App\Models\Conversation::whereIn('page_id', $pageIds)
+            ->selectRaw('page_id, count(*) as c')
+            ->groupBy('page_id')
+            ->pluck('c', 'page_id');
+        $fetched = \App\Models\Conversation::whereIn('page_id', $pageIds)
+            ->whereJsonContains('metadata->messages_fetched', true)
+            ->selectRaw('page_id, count(*) as c')
+            ->groupBy('page_id')
+            ->pluck('c', 'page_id');
+
+        $out = [];
+        foreach ($pages as $page) {
+            $total = (int) ($totals[$page->id] ?? 0);
+            $done  = (int) ($fetched[$page->id] ?? 0);
+            if ($total === 0) {
+                continue;
+            }
+            $pct        = (int) floor($done * 100 / max(1, $total));
+            $isComplete = $done >= $total;
+            $acked      = (bool) data_get($page->metadata, 'backfill_notification_acked_at');
+
+            // If complete AND acked, drop it from the list entirely so neither
+            // the bar nor the toast re-renders on this user's next poll tick.
+            if ($isComplete && $acked) {
+                continue;
+            }
+
+            $out[] = [
+                'page_id'     => $page->id,
+                'name'        => (string) $page->name,
+                'platform'    => (string) $page->platform,
+                'fetched'     => $done,
+                'total'       => $total,
+                'pct'         => $pct,
+                'is_complete' => $isComplete,
+                'needs_toast' => $isComplete && ! $acked,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Dismiss the completion toast for a specific page. Clears the in-progress
+     * flag so a fresh backfill (new page connect) can start a new cycle.
+     */
+    public function acknowledgeBackfillComplete(int $pageId): void
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $page = Page::where('team_id', $team->id)->find($pageId);
+        if (! $page) {
+            return;
+        }
+
+        $page->forceFill([
+            'metadata' => array_merge($page->metadata ?? [], [
+                'backfill_notification_acked_at'  => now()->toIso8601String(),
+                'backfill_in_progress_started_at' => null,
+            ]),
+        ])->saveQuietly();
+
+        unset($this->backfillStates);
+    }
+
     #[Computed]
     public function hasFacebook(): bool
     {

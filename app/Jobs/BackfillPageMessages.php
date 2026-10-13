@@ -41,6 +41,20 @@ class BackfillPageMessages implements ShouldQueue
             return;
         }
 
+        // 2026-10-13: mark the page as 'backfill in progress' so the Connections
+        // page can show a progress bar + a dismissable completion toast. Only
+        // set once per backfill cycle — the Connections view clears
+        // backfill_notification_acked_at on dispatch, and we set the started_at
+        // flag here. The toast surfaces when fetched == total AND not yet acked.
+        if (empty(data_get($page->metadata, 'backfill_in_progress_started_at'))) {
+            $page->forceFill([
+                'metadata' => array_merge($page->metadata ?? [], [
+                    'backfill_in_progress_started_at' => now()->toIso8601String(),
+                    'backfill_notification_acked_at'  => null,
+                ]),
+            ])->saveQuietly();
+        }
+
         $pending = Conversation::where('page_id', $page->id)
             ->orderByDesc('last_message_at')
             ->get(['id', 'page_id', 'platform', 'platform_conversation_id', 'metadata'])

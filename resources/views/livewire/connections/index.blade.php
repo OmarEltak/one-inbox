@@ -27,6 +27,78 @@
             <p class="text-sm font-medium text-green-700">{{ session('success') }}</p>
         </div>
     @endif
+
+    {{-- Message-backfill progress + completion toasts.
+         Shown for every FB/IG page where BackfillPageMessages has started (and
+         not yet been acked). Polls every 10s while any page is still loading;
+         the poll naturally stops once backfillStates returns empty.
+         2026-10-13: added after Mishkah (3086 chats) + Eagle Prime (700 chats)
+         sat for a week with 24/3086 and 0/700 fetched and no UI signal to the
+         admin that anything was in flight. --}}
+    @if(count($this->backfillStates) > 0)
+        <div wire:poll.10s="$refresh" class="mb-4 space-y-2">
+            @foreach($this->backfillStates as $state)
+                @if(! $state['is_complete'])
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                        <div class="flex items-center justify-between gap-3 text-sm">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-emerald-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <p class="truncate font-medium text-emerald-900">
+                                    {{ __('Loading your messages from :name', ['name' => $state['name']]) }}
+                                </p>
+                            </div>
+                            <p class="flex-shrink-0 text-xs text-emerald-800 tabular-nums">
+                                {{ $state['fetched'] }} / {{ $state['total'] }} ({{ $state['pct'] }}%)
+                            </p>
+                        </div>
+                        <div class="mt-2 h-1.5 w-full rounded-full bg-emerald-100 overflow-hidden">
+                            <div class="h-full rounded-full bg-emerald-500 transition-all duration-500" style="width: {{ max(2, $state['pct']) }}%"></div>
+                        </div>
+                        <p class="mt-2 text-[11px] text-emerald-700/80">
+                            {{ __('We pull up to 25 recent messages per chat so your AI has full context. This runs in the background — keep using the app.') }}
+                        </p>
+                    </div>
+                @endif
+            @endforeach
+        </div>
+
+        {{-- Persistent completion toast(s): fixed bottom-end, stacked, each with
+             its own X close. No auto-dismiss — only the X calls
+             acknowledgeBackfillComplete, which flips the ack timestamp and drops
+             the row from backfillStates for subsequent polls. --}}
+        <div class="fixed bottom-5 end-5 z-50 flex flex-col gap-2 max-w-sm" style="pointer-events: none;">
+            @foreach($this->backfillStates as $state)
+                @if($state['needs_toast'])
+                    <div style="pointer-events: auto;"
+                         class="rounded-xl border border-emerald-300 bg-white p-4 shadow-lg flex items-start gap-3">
+                        <div class="flex-shrink-0 size-9 rounded-full bg-emerald-100 flex items-center justify-center">
+                            <svg class="size-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-zinc-900">
+                                {{ __(':name is all loaded 🎉', ['name' => $state['name']]) }}
+                            </p>
+                            <p class="mt-1 text-xs text-zinc-600">
+                                {{ __('We pulled :count conversations with full history. Your AI assistant now has the complete context for every chat.', ['count' => $state['total']]) }}
+                            </p>
+                        </div>
+                        <button type="button" wire:click="acknowledgeBackfillComplete({{ $state['page_id'] }})"
+                                aria-label="{{ __('Dismiss') }}"
+                                class="flex-shrink-0 -m-1 p-1 text-zinc-400 hover:text-zinc-700 cursor-pointer">
+                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                @endif
+            @endforeach
+        </div>
+    @endif
     {{-- Syncing toast: fixed bottom-right, dismissible with X.
          No localStorage — session('syncing') is a one-shot flash so it only
          appears for the one render after an OAuth success. Dismissing in-page
