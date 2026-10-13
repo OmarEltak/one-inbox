@@ -372,16 +372,18 @@
             {{-- Deep Analysis info banner. Shows while an analysis is pending.
                  Does NOT lock the composer (composer locks only on 3+ pending
                  inline turns — see CHAT_CONCURRENT_LIMIT).
-                 2026-10-09: removed the wire:poll that used to refresh this —
-                 even at 5s or 15s intervals it was stealing textarea focus
-                 mid-typing. The banner is purely visual now; if it goes stale
-                 after a NaraRouter failure, it clears on the next real
-                 interaction (sending a message, nav away/back). Follow-up:
-                 wire a DeepAnalysisFailed broadcast event so the banner
-                 self-dismisses on failure the same way DeepAnalysisCompleted
-                 handles success. --}}
+                 2026-10-14: wire:poll.10s on the banner div itself calls
+                 refreshDeepAnalysisBanner, which skipRender()s when still
+                 running (keeps textarea focus) and lets Livewire re-render
+                 (dropping the @if div) when the DeepAnalysis has completed
+                 or failed. Scoping the poll to this div means NO polling
+                 happens when banner is false. Fixes "banner stays stuck
+                 after Reverb DeepAnalysisCompleted event drops". --}}
             @if($this->hasRunningDeepAnalysis())
-                <div class="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3">
+                <div
+                    wire:poll.10s="refreshDeepAnalysisBanner"
+                    class="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-start gap-3"
+                >
                     <svg class="w-4 h-4 text-amber-600 animate-spin flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>

@@ -455,6 +455,30 @@ class AiChat extends Component
     }
 
     /**
+     * Banner self-heal poll. 2026-10-14: wire:poll.10s on the banner div fires
+     * this. We call hasRunningDeepAnalysis() exactly once per tick and skip the
+     * render entirely when the result hasn't changed from last-known state —
+     * so a stale banner clears within 10s of the DeepAnalysis row flipping to
+     * completed/failed WITHOUT re-rendering the whole component on every tick
+     * (which would steal textarea focus like the old wire:poll did).
+     *
+     * The poll is scoped to the banner div, so when banner=false → DOM has no
+     * poll → no ticks. On the first banner=true render, Livewire wires the
+     * poll; on the tick that returns false, the banner disappears, taking the
+     * poll with it. Clean lifecycle.
+     */
+    public function refreshDeepAnalysisBanner(): void
+    {
+        $stillRunning = $this->hasRunningDeepAnalysis();
+        // If still running, nothing to swap — skip the render so textarea
+        // focus is preserved. If it flipped to NOT running, let Livewire
+        // re-render so the @if drops the banner div.
+        if ($stillRunning) {
+            $this->skipRender();
+        }
+    }
+
+    /**
      * Confirm a deep-pull offer: dispatches BackfillPageMessages with the
      * agreed limit and flips the offer to 'done' on the AiCommand row so
      * the UI replaces the button with a confirmation line. 2026-10-13.
