@@ -41,7 +41,9 @@
                                     <svg class="mt-0.5 size-4 shrink-0 text-emer-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                     </svg>
-                                    <span>{{ __($feature) }}</span>
+                                    {{-- Features are pre-translated server-side via trans_choice in
+                                         PickYourPlan::planCards(). Rendering raw. --}}
+                                    <span>{{ $feature }}</span>
                                 </li>
                             @endforeach
                         </ul>
@@ -59,7 +61,7 @@
                                     : 'border border-emer-600 text-emer-700 hover:bg-emer-50' }}
                                 disabled:opacity-50 disabled:cursor-wait cursor-pointer">
                             <span wire:loading.remove wire:target="pickPlan('{{ $plan['id'] }}')">
-                                {{ $plan['id'] === 'enterprise' ? __('Talk to sales') : __('Start 14-day trial') }}
+                                {{ __('Start 14-day trial') }}
                             </span>
                             <span wire:loading wire:target="pickPlan('{{ $plan['id'] }}')">
                                 {{ __('One moment...') }}

@@ -75,21 +75,29 @@ class AiSeedComposer
      */
     public function buildTemplate(array $answers): string
     {
-        $businessName   = trim((string) ($answers['business_name']   ?? 'this business'));
-        $businessType   = trim((string) ($answers['business_type']   ?? 'other'));
-        $offer          = trim((string) ($answers['q1_offer']        ?? ''));
-        $topQuestion    = trim((string) ($answers['q2_top_question'] ?? ''));
-        $tone           = trim((string) ($answers['q3_tone']         ?? 'friendly'));
+        $businessName   = trim((string) ($answers['business_name']     ?? 'this business'));
+        $businessType   = trim((string) ($answers['business_type']     ?? 'other'));
+        $offer          = trim((string) ($answers['q1_offer']          ?? ''));
+        $topQuestion    = trim((string) ($answers['q2_top_question']   ?? ''));
+        $typicalAnswer  = trim((string) ($answers['q2_typical_answer'] ?? ''));
+        $tone           = trim((string) ($answers['q3_tone']           ?? 'friendly'));
 
         $businessTypeLabel = $this->labelForBusinessType($businessType);
         $toneLabel         = $this->labelForTone($tone);
+
+        // Owner's typical answer is the strongest voice-training signal we
+        // collect — it's one real sample of their words. Append it as a
+        // "GOLD SAMPLE" block the AI should mimic in style + specificity.
+        $goldSample = $typicalAnswer !== ''
+            ? "\n\nGOLD SAMPLE (how the owner typically answers that question — mirror this voice and level of detail): \"{$typicalAnswer}\""
+            : '';
 
         return <<<PROMPT
 You are the AI sales assistant for {$businessName}.
 Business type: {$businessTypeLabel}.
 What we sell: {$offer}.
 Common customer questions: {$topQuestion}.
-Voice/tone: {$toneLabel} — keep replies short (1-3 sentences), never use emoji unless the customer does first, always end with a soft next-step question when appropriate.
+Voice/tone: {$toneLabel} — keep replies short (1-3 sentences), never use emoji unless the customer does first, always end with a soft next-step question when appropriate.{$goldSample}
 PROMPT;
     }
 
@@ -116,9 +124,10 @@ PROMPT;
             'polished'       => $polished !== '',
             'business_type'  => (string) ($answers['business_type'] ?? 'other'),
             'answers'        => [
-                'q1_offer'        => (string) ($answers['q1_offer']        ?? ''),
-                'q2_top_question' => (string) ($answers['q2_top_question'] ?? ''),
-                'q3_tone'         => (string) ($answers['q3_tone']         ?? ''),
+                'q1_offer'          => (string) ($answers['q1_offer']          ?? ''),
+                'q2_top_question'   => (string) ($answers['q2_top_question']   ?? ''),
+                'q2_typical_answer' => (string) ($answers['q2_typical_answer'] ?? ''),
+                'q3_tone'           => (string) ($answers['q3_tone']           ?? ''),
             ],
             'created_at'     => now()->toIso8601String(),
         ];

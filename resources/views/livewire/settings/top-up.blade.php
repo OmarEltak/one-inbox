@@ -173,54 +173,41 @@
                 </div>
 
                 <ul class="space-y-4 text-sm">
-                    {{-- PayPal --}}
+                    {{-- Bank transfer. 2026-10-13: replaced the PayPal block.
+                         Bank details are sourced from env (same vars that pay-wire
+                         uses) with safe defaults so the view always shows something
+                         even before the env is explicitly set in prod. --}}
+                    @php
+                        $bankDetails = [
+                            __('Account Holder') => env('BANK_HOLDER_NAME', 'Omar Mohamed Ali'),
+                            __('Bank Name')      => env('BANK_NAME', 'National Bank of Egypt (NBE)'),
+                            __('SWIFT / BIC')    => env('BANK_SWIFT', 'NBEGEGCX134'),
+                            __('IBAN')           => env('BANK_IBAN', 'EG180003013450818264140000110'),
+                        ];
+                    @endphp
                     <li>
-                        <div class="font-semibold mb-1">{{ __('PayPal') }}</div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-emerald-900/80 dark:text-emerald-100/80">
-                                {{ __('Send to') }}
-                            </span>
-                            <a
-                                href="{{ $this->payment['paypal_link'] ?? '#' }}"
-                                target="_blank"
-                                rel="noopener"
-                                class="font-mono text-xs break-all underline hover:no-underline"
-                                data-test="paypal-link"
-                            >{{ $this->payment['paypal_link'] ?? '' }}</a>
-                            <button
-                                type="button"
-                                x-data
-                                x-on:click="navigator.clipboard.writeText(@js($this->payment['paypal_link'] ?? ''))"
-                                class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-white/60 px-2 py-1 text-[11px] font-semibold text-emerald-900 hover:bg-white dark:border-emerald-900/60 dark:bg-emerald-900/20 dark:text-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
-                            >
-                                <flux:icon name="clipboard" class="size-3" />
-                                {{ __('Copy') }}
-                            </button>
-                        </div>
-                    </li>
-
-                    {{-- Bank transfer --}}
-                    <li>
-                        <div class="font-semibold mb-1">{{ __('Bank transfer') }}</div>
-                        @if(! empty($this->payment['bank_iban']))
-                            <div class="text-xs">
-                                <span class="text-emerald-900/70 dark:text-emerald-100/70">{{ __('IBAN:') }}</span>
-                                <span class="font-mono break-all">{{ $this->payment['bank_iban'] }}</span>
-                            </div>
-                            @if(! empty($this->payment['bank_beneficiary']))
-                                <div class="text-xs mt-1">
-                                    <span class="text-emerald-900/70 dark:text-emerald-100/70">{{ __('Beneficiary:') }}</span>
-                                    {{ $this->payment['bank_beneficiary'] }}
+                        <div class="font-semibold mb-2">{{ __('Bank transfer') }}</div>
+                        <div class="space-y-1.5">
+                            @foreach($bankDetails as $label => $value)
+                                <div class="flex items-center gap-2 flex-wrap text-xs">
+                                    <span class="text-emerald-900/70 dark:text-emerald-100/70 min-w-[6rem]">{{ $label }}:</span>
+                                    <span class="font-mono break-all text-emerald-900 dark:text-emerald-100">{{ $value }}</span>
+                                    <button
+                                        type="button"
+                                        x-data
+                                        x-on:click="navigator.clipboard.writeText(@js($value))"
+                                        aria-label="{{ __('Copy') }}"
+                                        class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-white/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 hover:bg-white dark:border-emerald-900/60 dark:bg-emerald-900/20 dark:text-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                                    >
+                                        <flux:icon name="clipboard" class="size-3" />
+                                        {{ __('Copy') }}
+                                    </button>
                                 </div>
-                            @endif
-                            <div class="mt-2 text-xs">
-                                <strong>{{ __('Include your team ID (:id) in the transfer reference.', ['id' => $this->team?->id ?? '—']) }}</strong>
-                            </div>
-                        @else
-                            <div class="text-xs text-emerald-900/80 dark:text-emerald-100/80">
-                                {{ __('Message the founder on WhatsApp to request bank details.') }}
-                            </div>
-                        @endif
+                            @endforeach
+                        </div>
+                        <div class="mt-3 rounded-lg bg-white/60 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-900/60 px-3 py-2 text-xs">
+                            <strong>{{ __('Include your team ID (:id) in the transfer reference.', ['id' => $this->team?->id ?? '—']) }}</strong>
+                        </div>
                     </li>
 
                     {{-- WhatsApp --}}

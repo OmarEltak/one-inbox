@@ -150,12 +150,14 @@
                                 ></textarea>
                                 <div class="flex flex-wrap gap-2 mt-3">
                                     @foreach($suggestedQuestions as $q)
+                                        {{-- Translated label shown to user; original English string is
+                                             what gets stored in q2TopQuestion for the prompt seed. --}}
                                         <button
                                             type="button"
-                                            wire:click="useSuggestedQuestion(@js($q))"
+                                            wire:click="useSuggestedQuestion(@js(__($q)))"
                                             class="px-3 py-1.5 rounded-full text-xs bg-emer-50 text-emer-700 border border-emer-200 hover:bg-emer-100 transition cursor-pointer"
                                         >
-                                            {{ $q }}
+                                            {{ __($q) }}
                                         </button>
                                     @endforeach
                                 </div>
@@ -180,10 +182,50 @@
                     </div>
                 @endif
 
-                {{-- Q3 --}}
+                {{-- Q2b — typical ideal answer. 2026-10-13: grounds the AI prompt in
+                     a real sample of the owner's voice + knowledge, not just the tone. --}}
                 @if($questionIndex >= 3)
                     <div class="flex gap-3">
                         <div class="shrink-0 size-9 rounded-full bg-emer-600 flex items-center justify-center text-white text-sm font-bold">3</div>
+                        <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-line p-4">
+                            <div class="text-ink font-medium mb-1">
+                                {{ __('How would YOU typically answer that question?') }}
+                            </div>
+                            <div class="text-ink/60 text-xs mb-3">
+                                {{ __('Write it the way you\'d reply to a real customer — the AI will learn your tone + facts from this.') }}
+                            </div>
+                            @if($questionIndex === 3)
+                                <textarea
+                                    wire:model="q2TypicalAnswer"
+                                    rows="3"
+                                    placeholder="{{ __('e.g. Yes, free 15-min call. We usually book you within 48h — just share your timezone.') }}"
+                                    class="block w-full rounded-lg border border-line bg-white text-ink placeholder:text-ink/40 px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:border-emer-500 focus:ring-2 focus:ring-emer-100 transition resize-y"
+                                ></textarea>
+                                @error('q2TypicalAnswer') <div class="text-xs text-red-600 mt-2">{{ $message }}</div> @enderror
+                                <div class="flex justify-end mt-3">
+                                    <flux:button variant="primary" wire:click="submitQuestion" class="cursor-pointer" data-test="q2b-continue">
+                                        {{ __('Continue') }}
+                                    </flux:button>
+                                </div>
+                            @else
+                                <button
+                                    type="button"
+                                    wire:click="editQuestion(3)"
+                                    class="w-full text-left group cursor-pointer"
+                                    data-test="edit-q2b"
+                                >
+                                    <div class="text-ink/80 text-sm whitespace-pre-wrap">{{ $q2TypicalAnswer }}</div>
+                                    <div class="mt-1.5 text-xs text-ink/60 group-hover:text-emer-700 underline underline-offset-2">{{ __('Edit') }}</div>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Q3 — tone picker --}}
+                @if($questionIndex >= 4)
+                    <div class="flex gap-3">
+                        <div class="shrink-0 size-9 rounded-full bg-emer-600 flex items-center justify-center text-white text-sm font-bold">4</div>
                         <div class="flex-1 rounded-2xl rounded-tl-sm bg-white border border-line p-4">
                             <div class="text-ink font-medium mb-3">
                                 {{ __('How do you want your AI to sound?') }}
@@ -225,22 +267,22 @@
              STEP 3 — Generating (terminal-style animation)
              ═══════════════════════════════════════════════════════════════ --}}
         @if($step === 3)
-            <div class="rounded-xl bg-zinc-900 text-green-400 font-mono text-sm p-6 shadow-xl">
+            <div class="rounded-xl bg-zinc-900 text-green-400 font-mono text-sm p-6 shadow-xl" dir="ltr">
                 <div class="flex items-center gap-2 text-zinc-400 mb-4">
                     <span class="size-3 rounded-full bg-red-500"></span>
                     <span class="size-3 rounded-full bg-yellow-500"></span>
                     <span class="size-3 rounded-full bg-green-500"></span>
-                    <span class="ml-2 text-xs">building your AI…</span>
+                    <span class="ml-2 text-xs">{{ __('building your AI…') }}</span>
                 </div>
 
                 <div wire:loading.remove wire:target="generate" class="space-y-2">
-                    <div>&gt; <span class="animate-pulse">initializing…</span></div>
+                    <div>&gt; <span class="animate-pulse">{{ __('initializing…') }}</span></div>
                 </div>
                 <div wire:loading wire:target="generate" class="space-y-2">
-                    <div>&gt; reading your answers…</div>
-                    <div>&gt; drafting your AI's system prompt…</div>
-                    <div>&gt; matching your writing style…</div>
-                    <div>&gt; almost ready…</div>
+                    <div>&gt; {{ __('reading your answers…') }}</div>
+                    <div>&gt; {{ __('drafting your AI\'s system prompt…') }}</div>
+                    <div>&gt; {{ __('matching your writing style…') }}</div>
+                    <div>&gt; {{ __('almost ready…') }}</div>
                     <div><span class="animate-pulse">▊</span></div>
                 </div>
             </div>

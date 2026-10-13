@@ -201,10 +201,6 @@ class Index extends Component
         }
 
         $pageIds = $pages->pluck('id');
-        $totals = \App\Models\Conversation::whereIn('page_id', $pageIds)
-            ->selectRaw('page_id, count(*) as c')
-            ->groupBy('page_id')
-            ->pluck('c', 'page_id');
         $fetched = \App\Models\Conversation::whereIn('page_id', $pageIds)
             ->whereJsonContains('metadata->messages_fetched', true)
             ->selectRaw('page_id, count(*) as c')
@@ -213,14 +209,23 @@ class Index extends Component
 
         $out = [];
         foreach ($pages as $page) {
-            $total = (int) ($totals[$page->id] ?? 0);
-            $done  = (int) ($fetched[$page->id] ?? 0);
-            if ($total === 0) {
+            // Target = how many THIS cycle plans to backfill (capped by DEFAULT_LIMIT
+            // for connect-time runs, uncapped for admin/AI re-dispatches).
+            // Baseline = how many were already fetched when the cycle started —
+            // we subtract so the progress bar reflects THIS cycle's work, not
+            // historical fetches.
+            $target   = (int) data_get($page->metadata, 'backfill_cycle_target', 0);
+            $baseline = (int) data_get($page->metadata, 'backfill_cycle_started_fetched_count', 0);
+            $doneAll  = (int) ($fetched[$page->id] ?? 0);
+            $done     = max(0, $doneAll - $baseline);
+
+            if ($target === 0) {
                 continue;
             }
-            $pct        = (int) floor($done * 100 / max(1, $total));
-            $isComplete = $done >= $total;
+            $pct        = (int) floor($done * 100 / max(1, $target));
+            $isComplete = $done >= $target;
             $acked      = (bool) data_get($page->metadata, 'backfill_notification_acked_at');
+            $total      = $target;
 
             // If complete AND acked, drop it from the list entirely so neither
             // the bar nor the toast re-renders on this user's next poll tick.

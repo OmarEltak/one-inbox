@@ -53,13 +53,14 @@ class MeetYourAi extends Component
     // Step 1 — business type card.
     public string $businessType = '';
 
-    // Step 2 — three conversational questions.
-    public string $q1Offer       = '';
-    public string $q2TopQuestion = '';
-    public string $q3Tone        = 'friendly';
-    public string $q3CustomTone  = ''; // filled only when q3Tone === 'my_own'
+    // Step 2 — four conversational questions.
+    public string $q1Offer           = '';
+    public string $q2TopQuestion     = '';
+    public string $q2TypicalAnswer   = ''; // 2026-10-13: how the owner typically answers Q2
+    public string $q3Tone            = 'friendly';
+    public string $q3CustomTone      = ''; // filled only when q3Tone === 'my_own'
 
-    // Step 2 progress inside the chat-style question stack. 1..3 → shown; 4 → all done.
+    // Step 2 progress inside the chat-style question stack. 1..4 → shown; 5 → all done.
     #[Locked]
     public int $questionIndex = 1;
 
@@ -138,7 +139,17 @@ class MeetYourAi extends Component
             return;
         }
 
+        // 2026-10-13: new Q2b — typical ideal answer. Grounds the AI prompt in
+        // a real sample of the owner's voice + knowledge, not just the tone.
         if ($this->questionIndex === 3) {
+            $this->validate([
+                'q2TypicalAnswer' => 'required|string|min:5|max:1000',
+            ]);
+            $this->questionIndex = 4;
+            return;
+        }
+
+        if ($this->questionIndex === 4) {
             $this->validate([
                 'q3Tone' => 'required|in:formal,friendly,playful,my_own',
                 'q3CustomTone' => $this->q3Tone === 'my_own' ? 'required|string|min:5|max:250' : 'nullable|string|max:250',
@@ -176,11 +187,12 @@ class MeetYourAi extends Component
         $this->isGenerating = true;
 
         $answers = [
-            'business_name'   => $team->name,
-            'business_type'   => $this->businessType,
-            'q1_offer'        => $this->q1Offer,
-            'q2_top_question' => $this->q2TopQuestion,
-            'q3_tone'         => $this->q3Tone === 'my_own' && $this->q3CustomTone !== ''
+            'business_name'      => $team->name,
+            'business_type'      => $this->businessType,
+            'q1_offer'           => $this->q1Offer,
+            'q2_top_question'    => $this->q2TopQuestion,
+            'q2_typical_answer'  => $this->q2TypicalAnswer,
+            'q3_tone'            => $this->q3Tone === 'my_own' && $this->q3CustomTone !== ''
                 ? $this->q3CustomTone
                 : $this->q3Tone,
         ];
@@ -295,6 +307,16 @@ class MeetYourAi extends Component
             $systemPrompt = 'You are a helpful sales assistant. Keep replies short.';
         }
 
+        // 2026-10-13: inject the registrant's locale so step-4 preview replies
+        // land in the language the user actually speaks. Without this an AR
+        // signup types their intro Q in English (seeded by English chip
+        // suggestions) and the AI continues in English for the whole demo —
+        // which left half the preview feeling un-localized.
+        $locale = app()->getLocale();
+        if ($locale === 'ar') {
+            $systemPrompt .= "\n\nIMPORTANT: Reply ONLY in Arabic (prefer Egyptian / Levantine conversational tone — not formal MSA — unless the customer writes in formal MSA). Keep replies natural and concise.";
+        }
+
         // Build a compact one-shot user turn: concatenate the last few turns
         // into a labeled transcript. NaraRouter's coalesceRoles() runs inside
         // callChat() so we don't have to worry about role alternation here.
@@ -308,16 +330,16 @@ class MeetYourAi extends Component
         try {
             $reply = $ai->generateText($systemPrompt, $userMessage);
         } catch (AiQuotaExhausted) {
-            $this->chatSoftError = 'AI is temporarily unavailable (daily quota reached). Try again shortly.';
+            $this->chatSoftError = __('AI is temporarily unavailable (daily quota reached). Try again shortly.');
             $this->isAiTyping = false;
             return;
         } catch (AiAllProvidersUnavailable) {
-            $this->chatSoftError = 'AI is temporarily unavailable. Try again in a few minutes.';
+            $this->chatSoftError = __('AI is temporarily unavailable. Try again in a few minutes.');
             $this->isAiTyping = false;
             return;
         } catch (Throwable $e) {
             Log::warning('MeetYourAi step-4 chat threw', ['error' => $e->getMessage()]);
-            $this->chatSoftError = 'Could not reach the AI. Try again.';
+            $this->chatSoftError = __('Could not reach the AI. Try again.');
             $this->isAiTyping = false;
             return;
         }
@@ -327,7 +349,7 @@ class MeetYourAi extends Component
         // CLAUDE.md pin #5: provider returns '' on non-quota failures. Do NOT
         // fabricate an apology reply — surface a soft-error banner instead.
         if ($reply === '') {
-            $this->chatSoftError = 'AI didn\'t reply this time. Give it another try.';
+            $this->chatSoftError = __('AI didn\'t reply this time. Give it another try.');
             $this->isAiTyping = false;
             return;
         }
@@ -463,7 +485,7 @@ class MeetYourAi extends Component
      */
     public function editQuestion(int $index): void
     {
-        if ($index < 1 || $index > 3) {
+        if ($index < 1 || $index > 4) {
             return;
         }
         $this->step = 2;

@@ -57,7 +57,11 @@ class PickYourPlan extends Component
      */
     public function pickPlan(string $plan): void
     {
-        if (! in_array($plan, ['free', 'basic', 'starter', 'pro', 'enterprise'], true)) {
+        // 2026-10-13: Phase RP collapsed the ladder to 4 tiers. 'enterprise'
+        // and 'basic' are legacy slugs — kept in the allowlist so an old
+        // bookmark/URL doesn't break, but resolved to 'business' downstream
+        // via Team::resolvePlanSlug().
+        if (! in_array($plan, ['free', 'starter', 'pro', 'business', 'basic', 'enterprise'], true)) {
             return;
         }
 
@@ -75,16 +79,6 @@ class PickYourPlan extends Component
         $this->dispatch('heron-event', name: 'plan_picked', payload: [
             'plan' => $plan,
         ]);
-
-        // Enterprise picks route to WhatsApp for a real sales conversation;
-        // everyone else lands on /inbox to start using the product.
-        if ($plan === 'enterprise') {
-            // Absolute URL is intentional — external link.
-            $this->redirect('https://wa.me/201026361218?text=' . urlencode(
-                "Hi, I picked the Enterprise plan on OT1-Pro and want to talk."
-            ));
-            return;
-        }
 
         $this->redirect(route('dashboard', absolute: false), navigate: true);
     }
@@ -118,68 +112,62 @@ class PickYourPlan extends Component
     }
 
     /**
-     * Plan cards for the picker. Kept in-component (rather than a config) so
-     * Blade stays trivial and the reviewer can read one file to see all copy.
+     * Plan cards for the picker. Sourced from config/plans.php so prices +
+     * credits + pages stay in sync with the public /pricing page and the
+     * server-side limit enforcement in Team::monthlyCampaignLimit() and
+     * Team::aiCreditsPerMonth(). Feature strings go through __() in the
+     * Blade so AR translations live in lang/ar.json.
      *
      * @return array<int, array{id: string, name: string, price: string, tagline: string, features: array<int,string>, popular: bool}>
      */
     protected function planCards(): array
     {
-        return [
-            [
-                'id'       => 'free',
-                'name'     => 'Free',
-                'price'    => '$0',
-                'tagline'  => 'Try before you commit',
-                'features' => [
-                    '1 connected page',
-                    '20 AI responses/mo',
-                    'Unified inbox',
-                    '1 team member',
-                ],
-                'popular'  => false,
-            ],
-            [
-                'id'       => 'starter',
-                'name'     => 'Starter',
-                'price'    => '$29/mo',
-                'tagline'  => 'Your AI sales rep, 24/7',
-                'features' => [
-                    '3 connected pages',
-                    '500 AI responses/mo',
-                    'All 4 platforms',
-                    '3 team members',
-                ],
-                'popular'  => false,
-            ],
-            [
-                'id'       => 'pro',
-                'name'     => 'Pro',
-                'price'    => '$79/mo',
-                'tagline'  => 'Built for teams that close deals',
-                'features' => [
-                    '5 connected pages',
-                    '2,000 AI responses/mo',
-                    'AI bulk campaigns',
-                    'Advanced analytics',
-                    '10 team members',
-                ],
-                'popular'  => true,
-            ],
-            [
-                'id'       => 'enterprise',
-                'name'     => 'Enterprise',
-                'price'    => 'Custom',
-                'tagline'  => 'For agencies & large teams',
-                'features' => [
-                    'Unlimited pages',
-                    'Unlimited AI responses',
-                    'Custom AI voice & training',
-                    'White-label option',
-                    'Dedicated onboarding',
-                ],
-                'popular'  => false,
-            ],
+        $plans = (array) config('plans.plans', []);
+        $cards = [];
+
+        $taglines = [
+            'free'     => 'Try before you commit',
+            'starter'  => 'For side-projects',
+            'pro'      => 'For growing DMs',
+            'business' => 'Scale without hiring',
         ];
+        $popular = 'pro';
+
+        foreach (['free', 'starter', 'pro', 'business'] as $slug) {
+            $def = $plans[$slug] ?? null;
+            if (! $def) {
+                continue;
+            }
+
+            $price      = (int) ($def['price'] ?? 0);
+            $credits    = (int) ($def['ai_credits'] ?? 0);
+            $pages      = (int) ($def['limits']['pages'] ?? $def['pages'] ?? 0);
+            $campaigns  = (int) ($def['limits']['bulk_campaigns_monthly'] ?? 0);
+            $wa         = (int) ($def['limits']['whatsapp_numbers'] ?? 0);
+
+            // Feature list: keep each string short + translatable. Each
+            // string lives in ar.json so Blade's __() picks it up.
+            $features = [
+                trans_choice('{1} :count connected page|[2,*] :count connected pages', $pages, ['count' => $pages]),
+                trans_choice('{1} :count AI credit \/ mo|[2,*] :count AI credits \/ mo', $credits, ['count' => number_format($credits)]),
+                $wa === 0
+                    ? __('No WhatsApp numbers')
+                    : trans_choice('{1} :count WhatsApp number|[2,*] :count WhatsApp numbers', $wa, ['count' => $wa]),
+                $campaigns === 0
+                    ? __('No bulk campaigns')
+                    : trans_choice('{1} :count bulk campaign \/ mo|[2,*] :count bulk campaigns \/ mo', $campaigns, ['count' => $campaigns]),
+            ];
+
+            $cards[] = [
+                'id'       => $slug,
+                'name'     => $def['name'] ?? ucfirst($slug),
+                'price'    => $price === 0 ? '$0' : "\${$price}/mo",
+                'tagline'  => $taglines[$slug] ?? '',
+                'features' => $features,
+                'popular'  => $slug === $popular,
+            ];
+        }
+
+        return $cards;
     }
 }
