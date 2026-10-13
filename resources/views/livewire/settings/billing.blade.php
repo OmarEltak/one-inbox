@@ -73,6 +73,35 @@
                 </div>
             </div>
 
+            {{-- ══ PLAN SUMMARY ══
+                 2026-10-13: moved above Usage history per user feedback —
+                 'what plan am I on + credits' is more useful at a glance than
+                 the ledger table, which users scroll to only when auditing. --}}
+            <div>
+                <flux:heading size="sm">{{ __('Current Plan') }}</flux:heading>
+                <div class="mt-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            {{ $this->plans[$this->currentPlan]['name'] ?? __('Free') }}
+                        </div>
+                        <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                            @if($this->isUnlimited)
+                                {{ __('Unlimited AI credits / month') }}
+                            @else
+                                {{ __(':n AI credits / month', ['n' => number_format($this->monthlyQuota)]) }}
+                            @endif
+                        </div>
+                    </div>
+                    <a
+                        href="{{ route('settings.billing.top-up') }}"
+                        wire:navigate.hover
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 px-3 py-1.5 text-xs font-semibold transition-colors dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+                    >
+                        {{ __('Upgrade') }}
+                    </a>
+                </div>
+            </div>
+
             {{-- ══ LEDGER ══ --}}
             <div>
                 <div class="flex items-center justify-between gap-3 mb-3">
@@ -159,32 +188,6 @@
                             </div>
                         @endif
                     @endif
-                </div>
-            </div>
-
-            {{-- ══ PLAN SUMMARY ══ --}}
-            <div>
-                <flux:heading size="sm">{{ __('Current Plan') }}</flux:heading>
-                <div class="mt-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800 flex items-center justify-between gap-3">
-                    <div>
-                        <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                            {{ $this->plans[$this->currentPlan]['name'] ?? __('Free') }}
-                        </div>
-                        <div class="text-xs text-zinc-500 dark:text-zinc-400">
-                            @if($this->isUnlimited)
-                                {{ __('Unlimited AI credits / month') }}
-                            @else
-                                {{ __(':n AI credits / month', ['n' => number_format($this->monthlyQuota)]) }}
-                            @endif
-                        </div>
-                    </div>
-                    <a
-                        href="{{ route('settings.billing.top-up') }}"
-                        wire:navigate.hover
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 px-3 py-1.5 text-xs font-semibold transition-colors dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
-                    >
-                        {{ __('Upgrade') }}
-                    </a>
                 </div>
             </div>
 

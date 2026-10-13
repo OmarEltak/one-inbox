@@ -192,15 +192,27 @@
                                 <div class="flex items-center gap-2 flex-wrap text-xs">
                                     <span class="text-emerald-900/70 dark:text-emerald-100/70 min-w-[6rem]">{{ $label }}:</span>
                                     <span class="font-mono break-all text-emerald-900 dark:text-emerald-100">{{ $value }}</span>
+                                    {{-- 2026-10-13: visible 'Copied' feedback for 3s then revert. Each
+                                         button owns its own copied state via x-data; copy() clears the
+                                         previous timer so rapid re-clicks always get a full 3s window. --}}
                                     <button
                                         type="button"
-                                        x-data
-                                        x-on:click="navigator.clipboard.writeText(@js($value))"
-                                        aria-label="{{ __('Copy') }}"
-                                        class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-white/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 hover:bg-white dark:border-emerald-900/60 dark:bg-emerald-900/20 dark:text-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                                        x-data="{ copied: false, timer: null, copy() {
+                                            navigator.clipboard.writeText(@js($value));
+                                            this.copied = true;
+                                            if (this.timer) clearTimeout(this.timer);
+                                            this.timer = setTimeout(() => { this.copied = false; this.timer = null; }, 3000);
+                                        } }"
+                                        x-on:click="copy()"
+                                        :aria-label="copied ? '{{ __('Copied') }}' : '{{ __('Copy') }}'"
+                                        class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold transition-colors"
+                                        :class="copied
+                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                            : 'bg-white/60 text-emerald-900 border-emerald-200 hover:bg-white dark:bg-emerald-900/20 dark:text-emerald-100 dark:border-emerald-900/60 dark:hover:bg-emerald-900/40'"
                                     >
-                                        <flux:icon name="clipboard" class="size-3" />
-                                        {{ __('Copy') }}
+                                        <flux:icon name="clipboard" class="size-3" x-show="! copied" />
+                                        <flux:icon name="check" class="size-3" x-show="copied" x-cloak />
+                                        <span x-text="copied ? '{{ __('Copied') }}' : '{{ __('Copy') }}'"></span>
                                     </button>
                                 </div>
                             @endforeach
