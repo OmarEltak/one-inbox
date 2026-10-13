@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
  * Phase 2 of the 5-phase load-management plan (docs/OT1_LIMITS.md §11).
  *
  * Phase RP (2026-10-06): numeric caps changed to the 4-tier ladder —
- * Free=0, Starter=3, Pro=15, Business=100. Config source moved from
+ * Free=0, Starter=1, Pro=3, Business=12. Config source moved from
  * config/campaigns.php to config('plans.plans.{plan}.limits.bulk_campaigns_monthly').
  */
 
@@ -56,7 +56,7 @@ it('defaults to free-plan cap of 0 campaigns per rolling 30 days', function () {
 });
 
 it('applies starter, pro, and business caps from the plans config', function () {
-    foreach (['starter' => 3, 'pro' => 15, 'business' => 100] as $plan => $expected) {
+    foreach (['starter' => 1, 'pro' => 3, 'business' => 12] as $plan => $expected) {
         [, $team] = makeLimitTeam(plan: $plan);
         expect($team->monthlyCampaignLimit())->toBe($expected);
     }
@@ -79,10 +79,10 @@ it('treats an unknown plan slug as free-tier fallback (0 campaigns)', function (
     expect($team->fresh()->monthlyCampaignLimit())->toBe(0);
 });
 
-it('pro plan holds 15 campaigns then blocks the 16th', function () {
+it('pro plan holds 3 campaigns then blocks the 4th', function () {
     [, $team] = makeLimitTeam(plan: 'pro');
 
-    for ($i = 0; $i < 15; $i++) {
+    for ($i = 0; $i < 3; $i++) {
         makeCampaign($team);
     }
 
@@ -90,10 +90,10 @@ it('pro plan holds 15 campaigns then blocks the 16th', function () {
     expect($team->fresh()->campaignsRemainingThisMonth())->toBe(0);
 });
 
-it('business plan holds 100 campaigns then blocks the 101st', function () {
+it('business plan holds 12 campaigns then blocks the 13th', function () {
     [, $team] = makeLimitTeam(plan: 'business');
 
-    for ($i = 0; $i < 100; $i++) {
+    for ($i = 0; $i < 12; $i++) {
         makeCampaign($team);
     }
 

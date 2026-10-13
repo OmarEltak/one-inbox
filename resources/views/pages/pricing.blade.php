@@ -99,7 +99,7 @@
                     <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('500 AI credits / month') }}</li>
                     <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('3 connected pages') }}</li>
                     <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 WhatsApp number') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('3 bulk campaigns / mo') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 bulk campaign / mo') }}</li>
                 </ul>
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start 14-day trial') }}</a>
@@ -116,7 +116,7 @@
                     <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3,000 AI credits / month') }}</li>
                     <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('8 connected pages') }}</li>
                     <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 WhatsApp numbers') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('15 bulk campaigns / mo') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 bulk campaigns / mo') }}</li>
                 </ul>
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="block w-full text-center bg-ink text-cream hover:bg-ink2 rounded-full py-3 text-sm font-semibold transition">{{ __('Start 14-day trial') }}</a>
@@ -132,7 +132,7 @@
                     <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('12,000 AI credits / month') }}</li>
                     <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('20 connected pages') }}</li>
                     <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('10 WhatsApp numbers') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('100 bulk campaigns / mo') }}</li>
+                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('12 bulk campaigns / mo') }}</li>
                 </ul>
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start 14-day trial') }}</a>

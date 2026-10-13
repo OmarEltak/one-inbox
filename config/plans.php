@@ -69,7 +69,7 @@ return [
             'limits' => [
                 'pages'                  => 3,
                 'whatsapp_numbers'       => 1,
-                'bulk_campaigns_monthly' => 3,
+                'bulk_campaigns_monthly' => 1,
                 'contacts_stored'        => 5_000,
             ],
         ],
@@ -82,7 +82,7 @@ return [
             'limits' => [
                 'pages'                  => 8,
                 'whatsapp_numbers'       => 3,
-                'bulk_campaigns_monthly' => 15,
+                'bulk_campaigns_monthly' => 3,
                 'contacts_stored'        => 25_000,
             ],
         ],
@@ -95,7 +95,7 @@ return [
             'limits' => [
                 'pages'                  => 20,
                 'whatsapp_numbers'       => 10,
-                'bulk_campaigns_monthly' => 100,
+                'bulk_campaigns_monthly' => 12,
                 'contacts_stored'        => 500_000,
             ],
         ],
