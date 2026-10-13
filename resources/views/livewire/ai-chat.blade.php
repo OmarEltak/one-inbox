@@ -246,6 +246,49 @@
                                             </button>
                                         </div>
                                     @endif
+
+                                    {{-- 2026-10-13: AI-offered deep pull. The ProcessAiChatTurn job
+                                         extracted a [PULL_OFFER:<pid>:<n>] token from the response and
+                                         stashed it on AiCommand.action_taken. Rough minute estimate:
+                                         ~1.5s per chat (API + sleep) + 10s/batch delay ≈ 0.6 min per 40. --}}
+                                    @if(! empty($msg['pull_offer']) && ! empty($msg['command_id']))
+                                        @php
+                                            $po = $msg['pull_offer'];
+                                            $pullCount = (int) ($po['count'] ?? 0);
+                                            $pullDone  = ! empty($po['done']);
+                                            $estMin    = max(1, (int) ceil($pullCount * 1.5 / 60));
+                                        @endphp
+                                        <div class="mt-2 pt-2 border-t border-blue-100">
+                                            @if($pullDone)
+                                                <div class="flex items-start gap-2 text-xs text-emerald-800">
+                                                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                    <span>{{ __('Pulling :count more chats in the background. Track progress on the Connections page — ask again once it finishes.', ['count' => $po['confirmed_count'] ?? $pullCount]) }}</span>
+                                                </div>
+                                            @else
+                                                <div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                                                    <p class="text-xs text-amber-900">
+                                                        {{ __('Want deeper context? I can pull :count more chats from this page. Takes ~:min min. No credits — the pull itself is free; credits only apply when you next ask an analysis question on the richer data.', ['count' => $pullCount, 'min' => $estMin]) }}
+                                                    </p>
+                                                    <div class="mt-2 flex items-center gap-2">
+                                                        <button type="button"
+                                                            wire:click="requestDeepPull({{ $msg['command_id'] }}, {{ (int) $po['page_id'] }}, {{ $pullCount }})"
+                                                            wire:loading.attr="disabled"
+                                                            class="rounded-md bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 text-xs font-semibold cursor-pointer">
+                                                            {{ __('Yes, pull :count more', ['count' => $pullCount]) }}
+                                                        </button>
+                                                        <button type="button"
+                                                            wire:click="dismissDeepPullOffer({{ $msg['command_id'] }})"
+                                                            wire:loading.attr="disabled"
+                                                            class="text-xs text-zinc-600 hover:text-zinc-900 underline underline-offset-2 cursor-pointer">
+                                                            {{ __('No, use what I have') }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 @endif
                             </div>
                         </div>

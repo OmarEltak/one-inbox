@@ -230,6 +230,87 @@ class AdminChatContext
         return [];
     }
 
+    /**
+     * Deep-pull offer block appended to the AI system prompt. 2026-10-13:
+     * when a page has significantly more unfetched conversations than are
+     * currently indexed, we instruct the AI to offer a backfill via a
+     * machine-readable token the Livewire layer parses out and renders as
+     * a confirm button. Returns '' when no page qualifies.
+     *
+     * Qualification: at least 50 unfetched convos AND the user's turn mentions
+     * analysis / depth (so a casual single-contact question doesn't trigger).
+     *
+     * Token format: `[PULL_OFFER:page_id:count]` on its own line. The chat
+     * component strips the token, stores the structured offer on the AiCommand
+     * row, and renders a Yes/No card beneath the bubble.
+     */
+    public function pullOfferHint(int $teamId, string $userText): string
+    {
+        if (! $this->looksLikeDepthRequest($userText)) {
+            return '';
+        }
+
+        $pages = \App\Models\Page::where('team_id', $teamId)
+            ->where('is_active', true)
+            ->whereIn('platform', ['facebook', 'instagram'])
+            ->get(['id', 'name']);
+
+        if ($pages->isEmpty()) {
+            return '';
+        }
+
+        $totals = Conversation::whereIn('page_id', $pages->pluck('id'))
+            ->selectRaw('page_id, count(*) as c')
+            ->groupBy('page_id')
+            ->pluck('c', 'page_id');
+        $fetched = Conversation::whereIn('page_id', $pages->pluck('id'))
+            ->whereJsonContains('metadata->messages_fetched', true)
+            ->selectRaw('page_id, count(*) as c')
+            ->groupBy('page_id')
+            ->pluck('c', 'page_id');
+
+        $offers = [];
+        foreach ($pages as $page) {
+            $total   = (int) ($totals[$page->id] ?? 0);
+            $done    = (int) ($fetched[$page->id] ?? 0);
+            $missing = $total - $done;
+            if ($missing < 50) {
+                continue;
+            }
+            // Suggest a reasonable chunk — min(missing, 500) so a single
+            // offer doesn't commit the user to a multi-hour pull.
+            $suggest = min($missing, 500);
+            $offers[] = "- {$page->name}: {$done} of {$total} indexed; can pull +{$suggest} more. If user wants this, emit on its own last line: [PULL_OFFER:{$page->id}:{$suggest}]";
+        }
+
+        if ($offers === []) {
+            return '';
+        }
+
+        return "\n\n=== DEEP-PULL OPTIONS ===\n"
+            . "The user asked for a deeper/wider analysis sample. These pages have unindexed conversations:\n"
+            . implode("\n", $offers)
+            . "\nONLY emit a [PULL_OFFER:...] token if the user explicitly wants more coverage than you currently have. Never emit one in a casual single-contact answer. One token max per reply.";
+    }
+
+    /**
+     * Heuristic: does the user's turn ask for an analysis depth we should
+     * surface a deep-pull offer for? Deliberately conservative — false
+     * positives generate noise.
+     */
+    private function looksLikeDepthRequest(string $text): bool
+    {
+        $t = mb_strtolower($text);
+        $en = ['analyze', 'analyse', 'audit', 'review all', 'last 100', 'last 500', 'last 1000', 'all chats', 'every chat', 'every customer', 'all customers', 'full history', 'all my chats', 'all conversations'];
+        $ar = ['حلل', 'حلّل', 'تحليل', 'كل العملاء', 'جميع العملاء', 'كل المحادثات', 'جميع المحادثات', 'آخر 100', 'آخر 500', 'آخر 1000', 'التاريخ الكامل'];
+        foreach (array_merge($en, $ar) as $needle) {
+            if (str_contains($t, $needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private function contactBlock(Contact $contact): string
     {
         $conversation = Conversation::where('contact_id', $contact->id)

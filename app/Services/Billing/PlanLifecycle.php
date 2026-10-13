@@ -78,6 +78,8 @@ class PlanLifecycle
             return;
         }
 
+        $alreadyStarted = $team->plan_trial_started_at !== null;
+
         $team->plan_status = self::STATUS_TRIAL;
         $team->plan_trial_started_at ??= now();
         $team->plan_payment_due_at = null;
@@ -86,11 +88,31 @@ class PlanLifecycle
         // the app (EnforcePlanLimits, sidebar badge, etc.) sees the intent.
         // We do NOT set subscription_ends_at here — that stays a super-admin
         // grant concept. plan_trial_started_at is the trial clock.
-        if (in_array($plan, ['free', 'basic', 'starter', 'pro', 'enterprise'], true)) {
+        if (in_array($plan, ['free', 'basic', 'starter', 'pro', 'business', 'enterprise'], true)) {
             $team->subscription_plan = $plan;
         }
 
         $team->save();
+
+        // 2026-10-13: send a one-time trial-started confirmation email on the
+        // FIRST startTrial call for this team. Idempotent via $alreadyStarted
+        // so re-entering /pick-your-plan or double-fire from Livewire doesn't
+        // re-send. Guarded in try/catch — mailer failure must not block the
+        // user's post-pick redirect.
+        if (! $alreadyStarted) {
+            try {
+                $owner = $team->owner;
+                if ($owner && $owner->email) {
+                    \Illuminate\Support\Facades\Mail::to($owner->email)->queue(
+                        new \App\Mail\PlanTrialStarted($owner, $team, $plan)
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('PlanTrialStarted mail dispatch failed', [
+                    'team_id' => $team->id, 'plan' => $plan, 'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**

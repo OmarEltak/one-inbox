@@ -71,6 +71,7 @@ class ProcessAiChatTurn implements ShouldQueue
         $aiSucceeded = false;
         $response    = '';
         $crashed     = false;
+        $pullOffer   = null; // populated by [PULL_OFFER] token parse inside the try
 
         try {
             $team = Team::find($command->team_id);
@@ -102,7 +103,8 @@ class ProcessAiChatTurn implements ShouldQueue
 
             $analyticsContext = $this->buildAnalyticsContext($team->id)
                 . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
-                . "\n\n" . $digest;
+                . "\n\n" . $digest
+                . $chatContext->pullOfferHint($team->id, $text);
 
             $history = collect($this->history)
                 ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
@@ -125,6 +127,20 @@ class ProcessAiChatTurn implements ShouldQueue
             }
 
             $response = \App\Livewire\AiChat::stripInternalIdsPublic($response);
+
+            // 2026-10-13: extract any deep-pull offer the AI emitted. The hint
+            // in pullOfferHint() instructs it to end with [PULL_OFFER:<pid>:<n>]
+            // on its own line. We strip that from the user-visible response and
+            // stash it on the AiCommand so the UI can render a confirm button.
+            if (preg_match('/\[PULL_OFFER:(\d+):(\d+)\]/i', $response, $m)) {
+                $pullOffer = [
+                    'type'    => 'pull_offer',
+                    'page_id' => (int) $m[1],
+                    'count'   => (int) $m[2],
+                ];
+                $response = trim(preg_replace('/\s*\[PULL_OFFER:\d+:\d+\]\s*/i', '', $response));
+            }
+
             if (trim((string) $response) === '') {
                 $response = __('I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.');
             }
@@ -155,10 +171,16 @@ class ProcessAiChatTurn implements ShouldQueue
         } finally {
             // ALWAYS update the row — even on crashes above — so the client
             // never sees typing dots forever.
-            $command->update([
+            $update = [
                 'status'   => $aiSucceeded ? 'completed' : 'failed',
                 'response' => $response !== '' ? $response : __('Sorry, I encountered an error processing your request. Please try again.'),
-            ]);
+            ];
+            // action_taken persists any structured offer the AI made (currently
+            // just pull_offer; could carry other action affordances later).
+            if (! empty($pullOffer)) {
+                $update['action_taken'] = $pullOffer;
+            }
+            $command->update($update);
 
             AiChatTurnCompleted::dispatch($team->id ?? (int) $command->team_id, (int) $command->user_id, $command->id, $response);
         }

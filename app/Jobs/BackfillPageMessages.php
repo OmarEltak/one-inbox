@@ -82,10 +82,13 @@ class BackfillPageMessages implements ShouldQueue
 
             $page->forceFill([
                 'metadata' => array_merge($page->metadata ?? [], [
-                    'backfill_in_progress_started_at'       => now()->toIso8601String(),
-                    'backfill_notification_acked_at'        => null,
-                    'backfill_cycle_target'                 => $cycleTarget,
-                    'backfill_cycle_started_fetched_count' => $alreadyFetched,
+                    'backfill_in_progress_started_at'            => now()->toIso8601String(),
+                    'backfill_notification_acked_at'             => null,
+                    'backfill_cycle_target'                      => $cycleTarget,
+                    'backfill_cycle_started_fetched_count'       => $alreadyFetched,
+                    // Reset the email guard so this cycle's completion
+                    // triggers a fresh email (prior cycle's send doesn't block).
+                    'backfill_cycle_completed_email_sent_at'     => null,
                 ]),
             ])->saveQuietly();
         }
@@ -134,6 +137,37 @@ class BackfillPageMessages implements ShouldQueue
 
         if ($stillPending && ($unlimited || $newRemaining > 0)) {
             self::dispatch($page->id, $unlimited ? 0 : $newRemaining)->delay(now()->addSeconds(10));
+            return;
+        }
+
+        // 2026-10-13: cycle complete — email the team owner once (gated by
+        // backfill_cycle_completed_email_sent_at so re-dispatches don't spam).
+        // The /connections toast is still the primary completion signal; this
+        // email covers users who weren't on that tab when the cycle finished.
+        try {
+            $meta = $page->fresh()->metadata ?? [];
+            if (empty($meta['backfill_cycle_completed_email_sent_at'])) {
+                $chatsLoaded = (int) \App\Models\Conversation::where('page_id', $page->id)
+                    ->whereJsonContains('metadata->messages_fetched', true)
+                    ->count();
+
+                $owner = $page->team?->owner;
+                if ($owner && $owner->email && $chatsLoaded > 0) {
+                    \Illuminate\Support\Facades\Mail::to($owner->email)->queue(
+                        new \App\Mail\PageBackfillComplete($owner, $page, $chatsLoaded)
+                    );
+                }
+
+                $page->forceFill([
+                    'metadata' => array_merge($meta, [
+                        'backfill_cycle_completed_email_sent_at' => now()->toIso8601String(),
+                    ]),
+                ])->saveQuietly();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('PageBackfillComplete email dispatch failed', [
+                'page_id' => $page->id, 'error' => $e->getMessage(),
+            ]);
         }
     }
 }

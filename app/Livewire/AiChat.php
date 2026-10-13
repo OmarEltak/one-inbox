@@ -72,9 +72,22 @@ class AiChat extends Component
             ->get()
             ->reverse()
             ->flatMap(function (AiCommand $cmd) {
-                $assistant = $cmd->status === 'pending'
-                    ? ['role' => 'assistant', 'content' => '…', 'pending' => true, 'command_id' => $cmd->id]
-                    : ['role' => 'assistant', 'content' => (string) $cmd->response];
+                if ($cmd->status === 'pending') {
+                    $assistant = ['role' => 'assistant', 'content' => '…', 'pending' => true, 'command_id' => $cmd->id];
+                } else {
+                    $assistant = ['role' => 'assistant', 'content' => (string) $cmd->response, 'command_id' => $cmd->id];
+                    // 2026-10-13: surface pull_offer action_taken so the UI can
+                    // render the confirm card beneath this bubble (even across
+                    // reloads / fresh mounts, not just mid-session).
+                    $action = (array) ($cmd->action_taken ?? []);
+                    if (($action['type'] ?? null) === 'pull_offer') {
+                        $assistant['pull_offer'] = [
+                            'page_id' => (int) ($action['page_id'] ?? 0),
+                            'count'   => (int) ($action['count']   ?? 0),
+                            'done'    => (bool) ($action['done']   ?? false),
+                        ];
+                    }
+                }
                 return [['role' => 'user', 'content' => $cmd->command], $assistant];
             })
             ->values()
@@ -120,10 +133,24 @@ class AiChat extends Component
             return; // belongs to a different user on the same team
         }
 
+        // 2026-10-13: re-read the AiCommand row so we can surface any
+        // action_taken (e.g. pull_offer) alongside the response — the event
+        // payload only carries the plain text.
+        $cmd = AiCommand::find($commandId);
+
         $swapped = false;
         foreach ($this->messages as $i => $m) {
             if (! empty($m['pending']) && ($m['command_id'] ?? null) === $commandId) {
-                $this->messages[$i] = ['role' => 'assistant', 'content' => $response];
+                $swap = ['role' => 'assistant', 'content' => $response, 'command_id' => $commandId];
+                $action = (array) ($cmd?->action_taken ?? []);
+                if (($action['type'] ?? null) === 'pull_offer') {
+                    $swap['pull_offer'] = [
+                        'page_id' => (int) ($action['page_id'] ?? 0),
+                        'count'   => (int) ($action['count']   ?? 0),
+                        'done'    => (bool) ($action['done']   ?? false),
+                    ];
+                }
+                $this->messages[$i] = $swap;
                 $swapped = true;
                 break;
             }
@@ -428,6 +455,94 @@ class AiChat extends Component
     }
 
     /**
+     * Confirm a deep-pull offer: dispatches BackfillPageMessages with the
+     * agreed limit and flips the offer to 'done' on the AiCommand row so
+     * the UI replaces the button with a confirmation line. 2026-10-13.
+     *
+     * No credit charge — pulls are operational work, not AI compute. The
+     * credit cost comes later when the user asks a bigger analysis
+     * question against the now-expanded indexed set.
+     */
+    public function requestDeepPull(int $commandId, int $pageId, int $count): void
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $cmd = AiCommand::where('team_id', $team->id)
+            ->where('user_id', Auth::id())
+            ->whereKey($commandId)
+            ->first();
+        $page = \App\Models\Page::where('team_id', $team->id)->whereKey($pageId)->first();
+
+        if (! $cmd || ! $page || ! in_array($page->platform, ['facebook', 'instagram'], true)) {
+            return;
+        }
+        if ($count < 1 || $count > 5000) {
+            return;
+        }
+
+        // Idempotency: if the offer is already marked done, ignore so a
+        // double-click or stale UI doesn't dispatch twice.
+        $action = (array) ($cmd->action_taken ?? []);
+        if (($action['type'] ?? null) !== 'pull_offer' || ! empty($action['done'])) {
+            return;
+        }
+
+        \App\Jobs\BackfillPageMessages::dispatch($page->id, $count);
+
+        $cmd->update([
+            'action_taken' => array_merge($action, [
+                'done'            => true,
+                'dispatched_at'   => now()->toIso8601String(),
+                'confirmed_count' => $count,
+            ]),
+        ]);
+
+        // Update the in-memory bubble so the UI switches to the "pulling…" state
+        // without needing a full reload.
+        foreach ($this->messages as $i => $m) {
+            if (($m['command_id'] ?? null) === $commandId && isset($m['pull_offer'])) {
+                $this->messages[$i]['pull_offer']['done'] = true;
+                $this->messages[$i]['pull_offer']['confirmed_count'] = $count;
+                break;
+            }
+        }
+    }
+
+    /**
+     * User tapped "No, use what I have" on a pull_offer card. Removes the
+     * offer from action_taken so the card disappears next render and the
+     * AI doesn't re-ask on the next turn. 2026-10-13.
+     */
+    public function dismissDeepPullOffer(int $commandId): void
+    {
+        $team = Auth::user()?->currentTeam;
+        if (! $team) {
+            return;
+        }
+
+        $cmd = AiCommand::where('team_id', $team->id)
+            ->where('user_id', Auth::id())
+            ->whereKey($commandId)
+            ->first();
+        if (! $cmd) {
+            return;
+        }
+
+        $cmd->update(['action_taken' => null]);
+
+        foreach ($this->messages as $i => $m) {
+            if (($m['command_id'] ?? null) === $commandId && isset($m['pull_offer'])) {
+                unset($this->messages[$i]['pull_offer']);
+                break;
+            }
+        }
+        $this->messages = array_values($this->messages);
+    }
+
+    /**
      * On every user interaction (sendMessage, useSuggestion, re-run), reconcile
      * the in-memory messages array against the DB. Any pending AiCommand that
      * actually completed (ProcessAiChatTurn ran, result written) but whose
@@ -454,7 +569,7 @@ class AiChat extends Component
         // in attention for this request — show them the result either way.
         $completed = AiCommand::whereIn('id', $ids)
             ->whereIn('status', ['completed', 'failed'])
-            ->get(['id', 'response'])
+            ->get(['id', 'response', 'action_taken'])
             ->keyBy('id');
 
         if ($completed->isEmpty()) {
@@ -467,10 +582,21 @@ class AiChat extends Component
                 continue;
             }
             if ($row = $completed->get((int) $m['command_id'])) {
-                $this->messages[$i] = [
-                    'role'    => 'assistant',
-                    'content' => (string) $row->response,
+                $swap = [
+                    'role'       => 'assistant',
+                    'content'    => (string) $row->response,
+                    'command_id' => (int) $row->id,
                 ];
+                // Carry the pull_offer forward if the AI emitted one.
+                $action = (array) ($row->action_taken ?? []);
+                if (($action['type'] ?? null) === 'pull_offer') {
+                    $swap['pull_offer'] = [
+                        'page_id' => (int) ($action['page_id'] ?? 0),
+                        'count'   => (int) ($action['count']   ?? 0),
+                        'done'    => (bool) ($action['done']   ?? false),
+                    ];
+                }
+                $this->messages[$i] = $swap;
                 $swapped = true;
             }
         }
