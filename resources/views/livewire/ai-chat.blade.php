@@ -26,7 +26,7 @@
     // and restore it on 'livewire:morphed' (after swap). Only applies when the
     // user was actively typing in the composer textarea.
     preserveComposerFocus() {
-        const ta = this.$root.querySelector('textarea[wire\\:model="message"]');
+        const ta = this.$refs.textInput?.querySelector('textarea');
         if (ta && document.activeElement === ta) {
             this.savedComposerSel = { start: ta.selectionStart, end: ta.selectionEnd };
         } else {
@@ -35,7 +35,7 @@
     },
     restoreComposerFocus() {
         if (!this.savedComposerSel) return;
-        const ta = this.$root.querySelector('textarea[wire\\:model="message"]');
+        const ta = this.$refs.textInput?.querySelector('textarea');
         if (ta && document.activeElement !== ta) {
             ta.focus();
             try { ta.setSelectionRange(this.savedComposerSel.start, this.savedComposerSel.end); } catch (_) {}
