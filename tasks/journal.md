@@ -2506,3 +2506,22 @@ creative direction). Awaiting Omar's steer.
 - Rollback: tinker Post where slug in (10 Batch34 slugs) delete; revert commit 0925274.
 - GSC: no browser/API tooling in this session — manual URL Inspection list given to user.
 
+
+## 2026-10-12 — Batch35 SEO (5 volume posts) — prod SHA 10c6f94
+- Seeder database/seeders/AiSeoBlogSeederBatch35VolumeCluster.php (5 posts, differentiated angles to avoid cannibalization).
+- Prod deploy raced auto-deploy (503 window ~1 min, stale routes-v7 cache); resolved itself, all URLs 200 after.
+- Prod seed OK, all 5 loc in sitemap.xml, all 5 Google Indexing API notified 12:31 UTC.
+- Rollback: tinker Post where slug in (5 Batch35 slugs) delete; revert 10c6f94.
+
+
+## 2026-10-12 — Batch36 SEO (5 rank-pick posts) — prod SHA 6c5944d
+- Seeder AiSeoBlogSeederBatch36RankPicksCluster.php: voice transcription, lead scoring EN+AR, comment-to-DM modes, photo replies AR.
+- Clean deploy, all 5 URLs 200, all 5 Google Indexing API notified 12:55 UTC.
+- Rollback: tinker Post where slug in (5 Batch36 slugs) delete; revert 6c5944d.
+
+
+## 2026-10-12 — Batch37 SEO (5 trust-tech posts) — prod SHA 2accebe
+- Seeder AiSeoBlogSeederBatch37TrustTechCluster.php: agent audit, 24h window, webhooks, failover, dialect AR.
+- Same transient 503 deploy window (~1 min), cleared. All 5 URLs 200, all 5 Indexing API notified 13:58 UTC.
+- Rollback: tinker Post where slug in (5 Batch37 slugs) delete; revert 2accebe.
+

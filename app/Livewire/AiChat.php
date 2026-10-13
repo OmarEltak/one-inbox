@@ -447,8 +447,13 @@ class AiChat extends Component
         }
 
         $ids = array_values(array_map(fn ($m) => (int) $m['command_id'], $pending));
+        // Also match 'failed' — the job writes a user-friendly error message
+        // on failure (NaraRouter outage, etc.). Before 2026-10-12 the poll
+        // only matched 'completed', so failed turns stuck as typing dots
+        // forever when the Reverb delivery dropped. The user already paid
+        // in attention for this request — show them the result either way.
         $completed = AiCommand::whereIn('id', $ids)
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'failed'])
             ->get(['id', 'response'])
             ->keyBy('id');
 

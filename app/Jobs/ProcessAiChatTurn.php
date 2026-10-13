@@ -62,85 +62,111 @@ class ProcessAiChatTurn implements ShouldQueue
             return;
         }
 
-        $team = Team::find($command->team_id);
-        if (! $team) {
-            $command->update(['status' => 'failed', 'response' => 'Team no longer exists.']);
-            return;
-        }
-
-        $text = (string) $command->command;
-
-        // Context block — same pieces sendMessage() used to build inline.
-        $recentUserTalk = collect($this->history)
-            ->where('role', 'user')
-            ->pluck('content')
-            ->implode("\n");
-
-        $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
-        if ($pageIds === []) {
-            $digest = $chatContext->customerDigest($team->id);
-        } elseif (count($pageIds) === 1) {
-            $digest = $chatContext->customerDigest($team->id, pageId: $pageIds[0], expanded: true);
-        } else {
-            $digest = collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
-                $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id,
-            ))->implode("\n\n");
-        }
-
-        $recentTalk = collect($this->history)->pluck('content')->implode("\n");
-
-        $analyticsContext = $this->buildAnalyticsContext($team->id)
-            . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
-            . "\n\n" . $digest;
-
-        $history = collect($this->history)
-            ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
-            ->map(fn ($m) => [
-                'role' => $m['role'] === 'user' ? 'user' : 'model',
-                'content' => Str::limit((string) $m['content'], 2000),
-            ])
-            ->values()
-            ->all();
-
+        // Outer try/finally — guarantees the command never stays stuck in
+        // 'pending' no matter what blows up below. Before 2026-10-12 a crash
+        // in customerDigest() (OOM on a 120k char budget) or buildAnalyticsContext()
+        // would propagate past the inner NaraRouter try/catch, Laravel would
+        // mark the job as failed after $tries, but the AiCommand row stayed
+        // 'pending' forever — client saw typing dots indefinitely.
         $aiSucceeded = false;
+        $response    = '';
+        $crashed     = false;
+
         try {
-            $response = $this->callWithRetry($provider, $team->id, (int) $command->user_id, $text, $analyticsContext, $history);
-            $aiSucceeded = true;
-        } catch (\Throwable $e) {
-            Log::error('ProcessAiChatTurn: NaraRouter call failed', [
-                'command_id' => $command->id,
-                'error' => $e->getMessage(),
-            ]);
-            $response = __('Sorry, I encountered an error processing your request. Please try again.');
-        }
-
-        $response = \App\Livewire\AiChat::stripInternalIdsPublic($response);
-        if (trim((string) $response) === '') {
-            $response = __('I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.');
-        }
-
-        $command->update([
-            'status'   => $aiSucceeded ? 'completed' : 'failed',
-            'response' => $response,
-        ]);
-
-        if ($aiSucceeded) {
-            try {
-                $credits->charge(
-                    team: $team,
-                    action: 'ai_chat_turn',
-                    meta: [
-                        'idempotency_key'  => 'aichat:' . hash('sha256', $team->id . '|' . $command->user_id . '|' . trim($text)),
-                        'cost_source_type' => AiCommand::class,
-                        'cost_source_id'   => $command->id,
-                    ],
-                );
-            } catch (\Throwable $e) {
-                Log::warning("AiCredits::charge failed for team {$team->id}", ['error' => $e->getMessage()]);
+            $team = Team::find($command->team_id);
+            if (! $team) {
+                $command->update(['status' => 'failed', 'response' => 'Team no longer exists.']);
+                return;
             }
+
+            $text = (string) $command->command;
+
+            // Context block — same pieces sendMessage() used to build inline.
+            $recentUserTalk = collect($this->history)
+                ->where('role', 'user')
+                ->pluck('content')
+                ->implode("\n");
+
+            $pageIds = $chatContext->mentionedPageIds($team->id, $text, $recentUserTalk);
+            if ($pageIds === []) {
+                $digest = $chatContext->customerDigest($team->id);
+            } elseif (count($pageIds) === 1) {
+                $digest = $chatContext->customerDigest($team->id, pageId: $pageIds[0], expanded: true);
+            } else {
+                $digest = collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
+                    $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id,
+                ))->implode("\n\n");
+            }
+
+            $recentTalk = collect($this->history)->pluck('content')->implode("\n");
+
+            $analyticsContext = $this->buildAnalyticsContext($team->id)
+                . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
+                . "\n\n" . $digest;
+
+            $history = collect($this->history)
+                ->filter(fn ($m) => $m['role'] === 'user' || $m['role'] === 'assistant')
+                ->map(fn ($m) => [
+                    'role' => $m['role'] === 'user' ? 'user' : 'model',
+                    'content' => Str::limit((string) $m['content'], 2000),
+                ])
+                ->values()
+                ->all();
+
+            try {
+                $response = $this->callWithRetry($provider, $team->id, (int) $command->user_id, $text, $analyticsContext, $history);
+                $aiSucceeded = true;
+            } catch (\Throwable $e) {
+                Log::error('ProcessAiChatTurn: NaraRouter call failed', [
+                    'command_id' => $command->id,
+                    'error' => $e->getMessage(),
+                ]);
+                $response = __('Sorry, I encountered an error processing your request. Please try again.');
+            }
+
+            $response = \App\Livewire\AiChat::stripInternalIdsPublic($response);
+            if (trim((string) $response) === '') {
+                $response = __('I could not put an answer together for that. Try rephrasing, or ask about a specific contact or campaign.');
+            }
+
+            if ($aiSucceeded) {
+                try {
+                    $credits->charge(
+                        team: $team,
+                        action: 'ai_chat_turn',
+                        meta: [
+                            'idempotency_key'  => 'aichat:' . hash('sha256', $team->id . '|' . $command->user_id . '|' . trim($text)),
+                            'cost_source_type' => AiCommand::class,
+                            'cost_source_id'   => $command->id,
+                        ],
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("AiCredits::charge failed for team {$team->id}", ['error' => $e->getMessage()]);
+                }
+            }
+        } catch (\Throwable $e) {
+            $crashed = true;
+            Log::error('ProcessAiChatTurn: unhandled crash in handle()', [
+                'command_id' => $command->id,
+                'error'      => $e->getMessage(),
+                'at'         => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            $response = __('Sorry, the server crashed while processing this. Try again or ask something simpler.');
+        } finally {
+            // ALWAYS update the row — even on crashes above — so the client
+            // never sees typing dots forever.
+            $command->update([
+                'status'   => $aiSucceeded ? 'completed' : 'failed',
+                'response' => $response !== '' ? $response : __('Sorry, I encountered an error processing your request. Please try again.'),
+            ]);
+
+            AiChatTurnCompleted::dispatch($team->id ?? (int) $command->team_id, (int) $command->user_id, $command->id, $response);
         }
 
-        AiChatTurnCompleted::dispatch($team->id, (int) $command->user_id, $command->id, $response);
+        // If something crashed, let the queue know so the retry policy kicks in.
+        if ($crashed) {
+            throw new \RuntimeException('ProcessAiChatTurn crashed; row marked failed');
+        }
     }
 
     /**
