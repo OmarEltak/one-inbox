@@ -185,22 +185,18 @@ class AdminChatContext
 
         $sampled = count($blocks);
 
-        // 2026-10-13: three-way note so the AI gives the right answer by data shape.
-        //   (a) All full transcripts → no caveat, just answer in depth.
-        //   (b) All preview-only (brand-new page connection) → explain the gap and
-        //       offer a Meta backfill (some >90 days are unrecoverable).
-        //   (c) Mixed → audit the full ones in depth, lightly summarize the preview
-        //       ones, then offer backfill for the import-only slice.
-        // User expectation: 'if the user connection is new tell them we can backfill;
-        // if they are ours since before, just answer; if mixed, serve both.'
-        if ($previewOnly === 0) {
-            $note = '';
-        } elseif ($previewOnly === $sampled) {
-            $note = "Note: ALL {$previewOnly} of these conversations are import-only — the page was connected recently, so we have only the last-message preview per thread, not the full back-and-forth. Summarize what the previews suggest about themes/intent, but DO NOT fabricate a detailed per-contact action audit from one line each. End your answer by telling the user, in their language, that their page was connected recently so you only have last-message previews, and that if they want a full-depth audit you can backfill the historical messages from Meta (threads older than ~90 days may not be recoverable). Do NOT suggest exporting chats, Meta Business Suite, or a CRM.\n";
-        } else {
-            $full = $sampled - $previewOnly;
-            $note = "Note: {$full} of these conversations have FULL transcripts (captured after the page was connected); {$previewOnly} are IMPORT-ONLY (last-message preview only — those threads happened before the connection). Give a detailed audit of the {$full} fully-captured ones first (quote evidence). Then give a lighter theme-level summary of the {$previewOnly} preview-only ones. End by telling the user, in their language, that you audited the fully-captured threads in depth, and for the {$previewOnly} import-only threads you can backfill them from Meta if they want a full audit (threads older than ~90 days may not be recoverable). Do NOT suggest exporting chats, Meta Business Suite, or a CRM.\n";
-        }
+        // 2026-10-13: the preview-only count reflects threads whose message
+        // backfill hasn't landed yet (the BackfillPageMessages job runs on a
+        // 10s-chained batch of 40 — for a page with thousands of chats this
+        // takes ~1 hour to complete; the first few batches land first and
+        // the rest fill in as the queue progresses). This is NOT a Meta API
+        // limit and NOT something the user needs to opt into — it's our own
+        // background work. So we tell the AI to answer from what is here
+        // without hedging the whole answer behind "sample is limited" and
+        // without inventing a user-facing backfill offer.
+        $note = $previewOnly > 0
+            ? "Note: {$previewOnly} of these conversations are still being backfilled in the background (we store the last-message preview immediately on page connect, and pull the full 25-message history per thread over the next hour). Answer in depth from the threads that DO have full transcripts, and for the backfilling ones just rely on the preview line. Do NOT tell the user to export chats, use Meta Business Suite, or wait — the backfill is automatic and running right now.\n"
+            : '';
 
         $header = $expanded
             ? "=== EXPANDED CUSTOMER CONVERSATIONS{$scope} (BOTH SIDES OF EACH THREAD) ({$sampled} most recent of {$total} conversations; inbound+outbound, oldest→newest per chat) ==="

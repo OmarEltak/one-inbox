@@ -101,5 +101,13 @@ class SyncPageConversations implements ShouldQueue
             'backfill_completed_at' => $page->metadata['backfill_completed_at'],
             'backfill_oldest_at' => $page->metadata['backfill_oldest_at'],
         ]);
+
+        // 2026-10-13: dispatch message-level backfill. Facebook pages already
+        // got this via the legacy path above (line ~47), but Instagram pages
+        // never did — the chained-list path finished without ever asking for
+        // the 25-messages-per-chat body backfill, leaving 700+ Eagle Prime
+        // chats as preview-only. BackfillPageMessages is idempotent on
+        // metadata.messages_fetched, so re-dispatching is safe.
+        BackfillPageMessages::dispatch($page->id)->delay(now()->addSeconds(30));
     }
 }

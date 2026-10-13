@@ -47,20 +47,34 @@ class BackfillPageMessages implements ShouldQueue
             ->reject(fn (Conversation $c) => data_get($c->metadata, 'messages_fetched'))
             ->values();
 
-        $failures = 0;
+        // 2026-10-13: previously stopped the whole backfill at 3 total failures.
+        // On a 3000-conv page that was catastrophic — Mishkah got 24/3086 before
+        // giving up. Now we only treat auth-type errors (page token revoked /
+        // insufficient scopes) as fatal. Everything else (404, 5xx, rate limit)
+        // just skips the conversation and keeps chaining — those will be retried
+        // on the next scheduled sync. Also chain the next batch BEFORE early
+        // return on fatal, so bail doesn't drop queue identity.
+        $authErrors = 0;
         foreach ($pending->take(self::BATCH) as $conversation) {
             $conversation->setRelation('page', $page);
             try {
                 $platform->fetchAndStoreMessages($conversation);
             } catch (\Throwable $e) {
-                Log::warning('Message backfill failed for a conversation', ['conversation' => $conversation->id, 'error' => $e->getMessage()]);
-            }
+                $msg = $e->getMessage();
+                $isAuth = str_contains($msg, 'OAuthException')
+                    || str_contains($msg, '401')
+                    || str_contains($msg, '403')
+                    || str_contains($msg, 'access token');
+                if ($isAuth && ++$authErrors >= 3) {
+                    Log::error('Message backfill stopped: page token is refusing auth', [
+                        'page' => $page->id, 'name' => $page->name, 'error' => $msg,
+                    ]);
 
-            // fetchAndStoreMessages only sets the flag on success.
-            if (! data_get($conversation->fresh()?->metadata, 'messages_fetched') && ++$failures >= 3) {
-                Log::error('Message backfill stopped: Meta keeps refusing this page', ['page' => $page->id, 'name' => $page->name]);
-
-                return;
+                    return;
+                }
+                Log::warning('Message backfill failed for a conversation (skipping)', [
+                    'conversation' => $conversation->id, 'error' => $msg,
+                ]);
             }
             usleep(300_000); // stay well under Meta's per-page rate limit
         }
