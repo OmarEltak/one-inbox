@@ -644,8 +644,14 @@ class AiChat extends Component
 
                 \App\Jobs\ProcessAiChatTurn::dispatch($newCmd->id, $historySnapshot);
 
-                // Append the user bubble (re-ask) + typing-dots placeholder for the new reply.
-                $this->messages[] = ['role' => 'user', 'content' => $originalQuestion];
+                // 2026-10-14: only append the typing-dots placeholder, NOT the
+                // user question bubble. The question is already visible higher
+                // up in the thread from the ORIGINAL ask that triggered the
+                // pull-offer, so re-rendering it as a new 'user' bubble just
+                // creates a confusing duplicate. The phase-3 celebratory text
+                // in the pull-offer bubble ('I re-asked your original question
+                // … answer is loading below') is the user's visual marker that
+                // the next bubble is the re-ask response.
                 $this->messages[] = [
                     'role'       => 'assistant',
                     'content'    => '…',
