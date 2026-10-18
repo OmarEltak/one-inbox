@@ -212,6 +212,7 @@ class LoadTestE2eTrace extends Command
         AiConfig::firstOrCreate(
             ['page_id' => $page->id],
             [
+                'team_id'                     => $team->id,
                 'is_active'                   => true,
                 'is_24_7'                     => true,
                 'tone'                        => 'professional',
