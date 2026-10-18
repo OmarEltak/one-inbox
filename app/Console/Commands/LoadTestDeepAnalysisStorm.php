@@ -170,9 +170,13 @@ class LoadTestDeepAnalysisStorm extends Command
 
     private function ensureFixture(int $cohort): array
     {
+        $ownerId = (int) (User::query()->min('id') ?? 1);
+
         $team = Team::firstOrCreate(
             ['name' => self::TEAM_NAME],
             [
+                'slug'              => 'loadtest-deepanalysis-sink',
+                'owner_id'          => $ownerId,
                 'subscription_plan' => 'business',
                 'ai_credits_used'   => 0,
                 'ai_credits_limit'  => 999_999,
