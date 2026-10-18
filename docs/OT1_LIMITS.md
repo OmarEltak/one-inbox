@@ -1,6 +1,6 @@
 # OT1-Pro Production Limits & Capacity Playbook
 
-**Last measured**: 2026-09-28 (hardware / FPM / queue baselines) · last reviewed 2026-10-08
+**Last measured**: 2026-10-18 (k6 load tests against prod — webhook ingest + homepage breakpoint; see `docs/load-tests/`) · prior baseline 2026-09-28
 **Prod host**: `187.77.67.94` (`https://ot1-pro.com`)
 **Purpose**: Single source of truth for what this box can handle, where the breaking points are, and when to alert / scale.
 
@@ -40,26 +40,35 @@ Anytime you change the hardware, add a service, tune PHP-FPM/MySQL/nginx, or run
 
 ---
 
-## 3 · The tightest bottleneck: PHP-FPM `max_children = 5`
+## 3 · The tightest bottleneck: PHP-FPM `max_children = 20`
+
+**2026-10-18 correction**: this doc previously claimed `max_children = 5` — the actual value in `/etc/php/8.4/fpm/pool.d/www.conf` is **20**. The §3 upgrade step was taken at some point and the doc wasn't updated. All ceiling math downstream has been revised against the measured 20-worker config.
 
 ```ini
 pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
+pm.max_children = 20
+pm.start_servers = 5
+pm.min_spare_servers = 3
+pm.max_spare_servers = 10
 ```
 
-**Meaning**: at most **5 concurrent HTTP requests can execute in PHP simultaneously**. Request #6 queues behind them in nginx. Under load this is the single-most-visible failure mode — pages hang for 5-30 s, then either respond or 504.
+**Meaning**: at most **20 concurrent HTTP requests can execute in PHP simultaneously**. Request #21 queues behind them in nginx. Under load this is still the single-most-visible failure mode — pages hang for 5-30 s, then either respond or 504.
 
-**Napkin math for load**:
-- Each dashboard page ≈ 200 ms → 5 workers × 5 req/sec/worker = **25 req/sec sustained** ceiling
-- Each webhook ingest ≈ 50 ms → theoretical **100 req/sec** ceiling
-- Any single slow request (>2 s DB query, hung external API) burns a worker for its whole duration
+**Measured behavior under saturation** (k6 run 2026-10-18, 300 VUs vs `/api/webhooks/meta` with invalid sig, 4 min):
+- FPM scaled from 6 idle procs → 21 (20 workers + 1 master) within ~15 s of the ramp
+- `/var/log/php8.4-fpm.log` fired `WARNING: server reached pm.max_children setting (20)` repeatedly
+- Dynamic spawning adds first-burst latency — the FPM log also showed `spawning 16 children, there are 0 idle, and 19 total children` meaning requests arrived faster than `pm.start_servers=5` could warm up. Switching to `pm = static` with the same cap would eliminate that first-burst stall.
+- CPU 1-min load avg peaked at **19.89 on 2 vCPU (≈10× saturation)** — box still served 98 req/s with 0 % 5xx. nginx + FPM queueing was clean.
+- RAM peak 1.49 GB used of 7.8 GB — no memory pressure whatsoever.
 
-**Alert threshold**: `active FPM children ≥ 4 for > 30 s` → send Omar an email.
+**Measured ceilings** (replacing earlier napkin math):
+- Signature-rejected webhook (`/api/webhooks/meta` with invalid HMAC) — **~98 req/s hard ceiling**, p95 1.0s @ 100 VUs → 3.4s @ 300 VUs (same throughput, more queueing). Measured 2026-10-18.
+- Homepage render (`/`, full Blade + DB + Vite manifest) — **~30 req/s sustained**, p95 14 s @ 500 VUs with 0.51 % error rate. Measured 2026-10-18. First real break (non-200 responses) appears above ~30 req/s sustained.
+- Any single slow request (>2 s DB query, hung external API) still burns a worker for its whole duration — the 20-worker budget is softened only by throughput, not by request duration.
 
-**Upgrade path**: bump to `max_children = 20` once we go to 4 vCPU + 16 GB — each PHP worker ~40 MB, so 20 workers ≈ 800 MB.
+**Alert threshold**: `active FPM children ≥ 18 for > 30 s` → send Omar an email (was `≥ 4` under the stale 5-child assumption).
+
+**Next upgrade path**: switch `pm = dynamic` → `pm = static` with `pm.max_children = 20` to eliminate first-burst spawn latency, OR bump to `max_children = 40` on 4 vCPU + 16 GB (each PHP worker ~70 MB measured, so 40 workers ≈ 2.8 GB).
 
 ---
 
@@ -202,10 +211,11 @@ Numbers derived from the per-feature data above. Anything marked **(theory)** ha
 
 | Feature | Comfortable | Hard ceiling | Root constraint |
 |---|---|---|---|
-| Browsing dashboards / settings / inbox UI | ~50-100 signed-in with normal think-time | **5 truly-simultaneous HTTP requests** | PHP-FPM `max_children = 5` |
-| Landing on homepage (marketing) | ~25 fresh visits/sec | ~100/sec burst before 504 (theory) | 200ms/req × 5 FPM |
-| Sending a message from inbox | 5 users clicking Send at once | Same 5 | Each send holds a FPM worker |
-| Inbound webhook ingest | ~30 msg/sec sustained | ~100/sec burst (theory) | 50ms HMAC-verify + insert × 5 FPM |
+| Browsing dashboards / settings / inbox UI | ~50-100 signed-in with normal think-time | **20 truly-simultaneous HTTP requests** | PHP-FPM `max_children = 20` (corrected 2026-10-18) |
+| Landing on homepage (marketing) | ~25 fresh visits/sec | **~30/sec sustained; errors (0.51 %) appear above this, p95 → 14 s at 500 VUs** (measured 2026-10-18, Run 3) | 500 ms Blade+DB render × 20 FPM; 60 s nginx `fastcgi_read_timeout` |
+| Sending a message from inbox | 5 users clicking Send at once | Same (needs auth test) | Each send holds a FPM worker |
+| Inbound webhook ingest (sig-rejected) | ~90 req/sec sustained | **~98/sec hard ceiling** (measured 2026-10-18, Runs 1+2); 0 % 5xx up to 300 concurrent VUs | CPU 2 vCPU (not FPM — FPM queued cleanly at 10× saturation) |
+| Inbound webhook ingest (valid HMAC + DB write + queue dispatch) | Not yet measured | Lower than sig-reject — expect ~40-60 req/sec | MySQL write + Redis LPUSH added per request |
 | AI replies to inbound | 5-10 simultaneous | **10 calls/sec** before NaraRouter cooldown | 5 `urgent` workers + provider quota |
 | AI lead scoring | Shares AI reply budget | 10 calls/sec — but doubles the AI rate (every inbound = 1 reply + 1 score) | 5 `default` workers, 1 NaraRouter call each |
 | Voice notes (Groq path) | ~50 in-flight globally (5/team × 10 teams) | Groq API rate limit | Per-team cap + Groq quota |
@@ -226,12 +236,15 @@ Numbers derived from the per-feature data above. Anything marked **(theory)** ha
 | Actively receiving inbound messages that trigger AI replies | ~30 msg/sec across all customers → **~5-10 customers actively conversing at once** |
 | Running bulk campaigns at the same time | 1 gets fast throughput; others wait |
 
-**Where ceilings break first** (in order):
+**Where ceilings break first** (in order — revised 2026-10-18 after live-prod k6 runs):
 
-1. **PHP-FPM = 5** — loudest failure mode. >5 heavy concurrent requests → others see 504/lag.
-2. **NaraRouter provider cooldown** — 10 AI calls/sec practical ceiling. Every inbound = 2 AI calls → cooldown at ~5 inbound/sec sustained across all customers.
-3. **Single-worker queues** (campaigns, comments-ingest, comments-send, transcription) — no per-team fairness, first user monopolizes.
-4. **MySQL sort-memory** on `webhook_logs` — already shipped once; can re-blow on concurrent analytics.
+1. **CPU on 2 vCPU** — the TRUE wall for stateless endpoints. Load1 hit 19.89 on the 300-VU webhook burst; FPM queued cleanly up to 300 concurrent connections without a single 5xx. Doubling to 4 vCPU is still the single highest-ROI upgrade (as §1 already said).
+2. **PHP-FPM = 20** (was documented as 5 — corrected 2026-10-18). ~20 heavy concurrent requests → request #21 queues behind, up to the 60 s nginx `fastcgi_read_timeout` ceiling.
+3. **Nginx `fastcgi_read_timeout = 60 s`** — the first user-visible failure. Homepage test (500 VUs) produced 30 of 5 819 requests that either 5xx'd or returned empty bodies after hitting this wall.
+4. **NaraRouter provider cooldown** — 10 AI calls/sec practical ceiling. Every inbound = 2 AI calls → cooldown at ~5 inbound/sec sustained across all customers.
+5. **Single-worker queues** (campaigns, comments-ingest, comments-send, transcription) — no per-team fairness, first user monopolizes.
+6. **MySQL sort-memory** on `webhook_logs` — already shipped once; can re-blow on concurrent analytics.
+7. **RAM** — NOT a bottleneck at current scale. Peak 1.5 GB of 7.8 GB during the hardest test. We can push `max_children` to 40 before RAM matters.
 
 **Growth triggers** (when to act):
 
@@ -294,6 +307,55 @@ Scripts to write, in priority order:
 6. `scripts/load/compound-realistic.js` — combined scenario mixing all of the above at realistic ratios
 
 Each script emits a JSON report → `docs/load-tests/YYYY-MM-DD-<scenario>.json` and a markdown summary that appends the "current known ceiling" table in §5.
+
+---
+
+## 8.5 · Measured load-test results (2026-10-18)
+
+Raw CSV telemetry + k6 summaries live in `docs/load-tests/`. Each run was done against **live prod** (`https://ot1-pro.com`) while no customer traffic was present. Server-side telemetry was captured every 1 s via `/tmp/loadmon.sh` on the VPS (load1, RAM, FPM proc count, queue depths, MySQL process count, established HTTP conn count).
+
+### Run 1 — webhook ingest, invalid HMAC, 10→100 VUs, 3m30s
+- Script: `scripts/load/webhook-ingest.js`
+- Telemetry: `docs/load-tests/2026-10-18-webhook-ingest-telemetry.csv`
+- Result: **94.4 req/s sustained**, 19 827 requests, 0 % 5xx, 0 errors, p50 520 ms, p95 **1.01 s**, max 2.82 s
+- Server peak: load1 **18.91 / 2 vCPU**, FPM procs **21** (max_children hit), RAM 1.49 GB, 102 active HTTP conns
+- Interpretation: HMAC rejection is cheap enough that 20 FPM workers × ~5 req/s/worker ≈ measured 94.
+
+### Run 2 — webhook ingest breakpoint, invalid HMAC, 50→300 VUs, 4m00s
+- Script: `scripts/load/webhook-ingest-breakpoint.js` (new 2026-10-18)
+- Telemetry: `docs/load-tests/2026-10-18-webhook-ingest-breakpoint-telemetry.csv`
+- Result: **98.0 req/s sustained** (same throughput as Run 1 — ceiling hit), 23 526 requests, 0 % 5xx, 0 errors, p50 1.76 s, p95 **3.42 s**, max 5.14 s
+- Server peak: load1 **19.89**, FPM procs **21**, 303 active HTTP conns, RAM 1.36 GB
+- Interpretation: Throughput is **CPU-bound at ~98 req/s** for signature-rejected traffic on this hardware. Pushing from 100 → 300 VUs just adds queue latency, not throughput. Nginx + FPM socket queue absorbed 300 concurrent connections without any 5xx. **Even at 10× CPU saturation the box did not drop a single request** — it just got slower.
+
+### Run 3 — homepage render, 50→500 VUs, 3m00s
+- Script: `scripts/load/homepage.js`
+- Telemetry: `docs/load-tests/2026-10-18-homepage-telemetry.csv`
+- Result: **29.6 req/s sustained**, 5 819 requests, **0.51 % error rate (30 failures / 5 819)**, p50 3.63 s, p95 **14.03 s**, max **60 s** (nginx timeout)
+- Server peak: load1 **12.95**, FPM procs **21**, RAM 1.43 GB, 301 active conns
+- Interpretation: Homepage render is **3× heavier per request than webhook rejection** (~500 ms vs ~200 ms per worker-second). Load avg is *lower* than Run 2 because workers spend most of their time waiting on MySQL, not burning CPU. The first break (non-200 responses) appeared when sustained req rate exceeded ~30 req/s. **Max response time hit the 60-second nginx `fastcgi_read_timeout` ceiling** — some requests were killed outright.
+
+### What breaks first (observed, in order)
+1. **FPM `max_children=20` saturates almost instantly** on any burst > 20 concurrent — subsequent requests queue in the nginx/FPM socket.
+2. **CPU 1-min load exceeds 10× capacity** on sig-reject bursts, 6× capacity on homepage bursts. The 2 vCPU is the true wall.
+3. **Nginx `fastcgi_read_timeout` (60 s)** kills requests that waited > 60 s for a worker. This is the first user-visible failure mode (5xx or empty body).
+4. **RAM was never the bottleneck** in any test — 1.5 GB peak of 7.8 GB. We can confidently raise `max_children` to 40+ before memory becomes a concern.
+
+### Run 4 — marketing-pages mix (50 % /, 25 % blog, 15 % /pricing, 10 % /vs/wati), 50→300 VUs, 4m30s
+- Script: `scripts/load/marketing-pages-mix.js` (new 2026-10-18)
+- Telemetry: `docs/load-tests/2026-10-18-marketing-mix-telemetry.csv`
+- Result: **43.5 req/s mixed**, 11 831 requests, 0 % 5xx, **1 of 11 831 empty-body**, p50 1.14 s, p95 **5.73 s**, max 45.5 s
+- Per-page latency: home p95 6.18 s, blog p95 5.12 s, pricing/vs p95 5.03 s
+- Server peak: load1 **11.65**, FPM procs **21**, 180 active conns
+- Interpretation: Blog/pricing render ~15 % faster than homepage (fewer DB queries on simpler layouts). Mixed-traffic sustain is **~44 req/s** — higher than Run 3 (29 req/s) because of the 1-3 s think time between requests. Marketing stack is production-ready for ~500 unique visitors in a 30 s burst (a Hacker News front-page spike feels like this).
+
+### What was NOT measured yet (next test cycle — focused on real customer-flow break points per Omar 2026-10-18)
+- **Inbound message storm**: valid-HMAC Meta webhook → DB write → ProcessIncomingMessage job → NaraRouter reply → ScoreLead. The REAL pipeline — this is where ad-driven inbound traffic actually breaks.
+- **Voice-note storm**: TranscribeAudio burst — Groq primary + whisper.cpp fallback. Per-team throttle = 5 in-flight.
+- **Campaign send storm**: SendCampaignWhatsAppJob flood from multiple teams simultaneously — tests the 3-per-team throttle vs the 1 campaigns-queue worker.
+- **Deep Analysis concurrent**: multiple heavy-analysis jobs across teams — each hits NaraRouter 11×.
+- **Analytics viewers concurrent**: authenticated `/analytics` loads hitting `webhook_logs` aggregates — this is where MySQL sort buffer blew up historically (§5.5).
+- **Compound ("real Monday morning")**: inbound storm + 2 campaigns + 3 Deep Analyses + 5 dashboard viewers all at once.
 
 ---
 
