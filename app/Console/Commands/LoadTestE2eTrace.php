@@ -184,8 +184,13 @@ class LoadTestE2eTrace extends Command
             $team->update(['ai_enabled' => true]);
         }
         $credits = app(AiCredits::class);
-        if ($credits->balance($team) < 100) {
-            $credits->grant($team, 1000, 'load_test_grant', ['source' => 'load-test:e2e-trace']);
+        if ($credits->balance($team)->total() < 100) {
+            $credits->grant(
+                team: $team,
+                amount: 1000,
+                balanceType: \App\Models\AiCreditLedgerEntry::BALANCE_WALLET,
+                reason: 'load_test_grant',
+            );
         }
 
         $connectedAccount = ConnectedAccount::firstOrCreate(
