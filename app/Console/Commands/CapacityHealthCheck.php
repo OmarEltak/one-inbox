@@ -43,6 +43,7 @@ class CapacityHealthCheck extends Command
         $signals = array_merge(
             $this->systemSignals(),
             $this->queueSignals(),
+            $this->workerLivenessSignals(),
         );
 
         $tripped = array_filter($signals, fn ($s) => $s['tripped']);
@@ -161,6 +162,55 @@ class CapacityHealthCheck extends Command
             }
         } catch (\Throwable $e) {
             Log::warning('Capacity health-check: AI cooldown signal unavailable', ['error' => $e->getMessage()]);
+        }
+
+        return $signals;
+    }
+
+    /**
+     * Check that each required queue worker systemd unit is active.
+     *
+     * Uncovered 2026-10-18 during Run 9: the main `one-inbox-queue.service`
+     * had been STOPPED for 18 hours, silently blocking all `heavy-analysis`,
+     * `comments-ingest`, `comments-send` processing. No existing signal
+     * caught it. Live services doesn't fully prove queue progress, but
+     * `systemctl is-active` catches dead units outright.
+     *
+     * @return array<string, array{tripped: bool, value: mixed, threshold: mixed, message: string}>
+     */
+    protected function workerLivenessSignals(): array
+    {
+        $signals = [];
+
+        $required = (array) config('services.capacity_alerts.required_services', [
+            'one-inbox-queue',           // consumes heavy-analysis + comments-* — most impactful if dead
+            'one-inbox-queue@1',
+            'one-inbox-queue@2',
+            'one-inbox-queue@3',
+            'one-inbox-queue@4',
+            'one-inbox-queue-campaigns',
+            'one-inbox-whisper',
+            'one-inbox-reverb',
+        ]);
+
+        foreach ($required as $unit) {
+            try {
+                $output = @shell_exec('systemctl is-active ' . escapeshellarg($unit) . ' 2>&1');
+                $status = trim((string) $output);
+                $isDead = ! in_array($status, ['active', 'activating'], true);
+
+                $signals["worker_{$unit}"] = [
+                    'tripped'   => $isDead,
+                    'value'     => $status ?: 'unknown',
+                    'threshold' => 'active',
+                    'message'   => sprintf('systemd unit %s is %s (expected active)', $unit, $status ?: 'unknown'),
+                ];
+            } catch (\Throwable $e) {
+                Log::warning('Capacity health-check: worker liveness probe failed', [
+                    'unit'  => $unit,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return $signals;

@@ -1,0 +1,20 @@
+[Unit]
+Description=One Inbox Queue Worker
+After=network.target
+
+[Service]
+User=deploy
+WorkingDirectory=/var/www/ot1-pro.com
+# Consumes: urgent, default, AND the three slow-path queues (heavy-analysis,
+# comments-ingest, comments-send) that no @N instance picks up. If this unit
+# is stopped, Deep Analysis + Meta comment automation silently hangs — the
+# 2026-10-08 and 2026-10-18 incidents were both this unit being inactive.
+ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --timeout=300 --queue=urgent,default,heavy-analysis,comments-ingest,comments-send
+Restart=always
+TimeoutStopSec=600
+KillMode=mixed
+KillSignal=SIGTERM
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

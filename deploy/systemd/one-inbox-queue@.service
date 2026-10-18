@@ -1,0 +1,19 @@
+[Unit]
+Description=One Inbox Queue Worker (instance %i)
+After=network.target
+
+[Service]
+User=deploy
+WorkingDirectory=/var/www/ot1-pro.com
+# --sleep=1 (was 3): shorter idle-poll = up to 2s faster delayed-job pickup.
+# --queue=urgent,default: urgent drained fully before default gets any look.
+# 4 parallel instances (@1..@4) via templated unit — 4x throughput ceiling.
+# These instances do NOT consume heavy-analysis / comments-* — the main
+# one-inbox-queue.service is the only consumer for those. Do not change
+# this list without updating OT1_LIMITS.md §4 and the health check.
+ExecStart=/usr/bin/php artisan queue:work --sleep=1 --tries=3 --max-time=3600 --timeout=300 --queue=urgent,default
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=One Inbox Reverb WebSocket Server
+After=network.target
+
+[Service]
+User=deploy
+WorkingDirectory=/var/www/ot1-pro.com
+ExecStart=/usr/bin/php artisan reverb:start --port=8080
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
