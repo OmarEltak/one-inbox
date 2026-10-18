@@ -254,9 +254,12 @@ class LoadTestDeepAnalysisStorm extends Command
         $this->warn("Deleting fixture (team id={$team->id})...");
 
         $daDeleted   = DB::table('deep_analyses')->where('team_id', $team->id)->delete();
-        $leadDeleted = DB::table('lead_events')
-            ->whereIn('contact_id', DB::table('contacts')->where('team_id', $team->id)->pluck('id'))
-            ->delete();
+        $leadDeleted = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('lead_events')) {
+            $leadDeleted = DB::table('lead_events')
+                ->whereIn('contact_id', DB::table('contacts')->where('team_id', $team->id)->pluck('id'))
+                ->delete();
+        }
         $msgDeleted = DB::table('messages')
             ->whereIn('conversation_id', DB::table('conversations')->where('team_id', $team->id)->pluck('id'))
             ->delete();
