@@ -113,7 +113,12 @@ class NaraRouterProvider implements AiProviderInterface
         $this->apiKey                = (string) config('services.nararouter.api_key', '');
         $secondary                   = (string) config('services.nararouter.api_key_secondary', '');
         $this->baseUrl               = rtrim(config('services.nararouter.base_url', 'https://router.bynara.id/v1'), '/');
-        $this->model                 = config('services.nararouter.model', 'nemotron-3-ultra-free');
+        // Empty default is intentional — see config/services.php comment. A
+        // non-empty hint pointing at a model NaraRouter has dropped from its
+        // catalog poisons every callChat() with a guaranteed 400 (bit us
+        // 2026-10-08 with nemotron-3-super-free and 2026-10-19 with
+        // nemotron-3-ultra-free). Empty hint → callChat delegates to the chain.
+        $this->model                 = config('services.nararouter.model', '');
         $this->scoringModel          = config('services.nararouter.scoring_model', $this->model);
         $this->resetHours            = max(1, (int) config('services.nararouter.reset_hours', 5));
         $this->exhaustionCooldownMin = max(1, (int) config('services.nararouter.exhaustion_cooldown_min', 30));

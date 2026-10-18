@@ -136,8 +136,16 @@ return [
         'api_key'                 => env('NARAROUTER_API_KEY'),                                    // primary key (Nara account 1)
         'api_key_secondary'       => env('NARAROUTER_API_KEY_SECONDARY'),                          // optional 2nd account
         'base_url'                => env('NARAROUTER_BASE_URL', 'https://router.bynara.id/v1'),
-        'model'                   => env('NARAROUTER_MODEL', 'nemotron-3-ultra-free'),             // text-chain primary (used as the "hint" model)
-        'scoring_model'           => env('NARAROUTER_SCORING_MODEL', 'nemotron-3-ultra-free'),     // background scoring — cheapest reliable free model
+        // Model hint passed to NaraRouterProvider::callChat. If the hint matches
+        // the active chain, callChat delegates to the full failover chain. If it
+        // DOES NOT match (out-of-chain), callChat issues a one-shot direct call
+        // with no fallback. So a stale hard-coded default here is uniquely
+        // dangerous: when the upstream catalog drops the model (as happened with
+        // nemotron-3-super-free on 2026-10-08 and nemotron-3-ultra-free on
+        // 2026-10-19), every /ai-chat call ate a guaranteed 400 before dying.
+        // Default is empty → callChat always delegates to the chain (source of truth).
+        'model'                   => env('NARAROUTER_MODEL', ''),
+        'scoring_model'           => env('NARAROUTER_SCORING_MODEL', ''),
         // Chain is now API-driven via NaraRouterPool (see app/Services/Ai/NaraRouterPool.php).
         // These env vars are read ONLY as a defence-in-depth override when the pool is empty
         // AND the operator has explicitly set them. No default model names — the old hardcoded
