@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\ProcessIncomingMessage;
 use App\Jobs\SendPlatformMessage;
+use App\Models\AiConfig;
 use App\Models\ConnectedAccount;
 use App\Models\Contact;
 use App\Models\Conversation;
@@ -14,6 +15,7 @@ use App\Models\Page;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\WebhookLog;
+use App\Services\Billing\AiCredits;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -173,8 +175,18 @@ class LoadTestE2eTrace extends Command
                 'subscription_plan' => 'business',
                 'ai_credits_used'   => 0,
                 'ai_credits_limit'  => 999_999,
+                'ai_enabled'        => true,
             ],
         );
+
+        // Ensure gates pass: enable AI, grant credits so canDispatchAi() returns true.
+        if (! $team->ai_enabled) {
+            $team->update(['ai_enabled' => true]);
+        }
+        $credits = app(AiCredits::class);
+        if ($credits->balance($team) < 100) {
+            $credits->grant($team, 1000, 'load_test_grant', ['source' => 'load-test:e2e-trace']);
+        }
 
         $connectedAccount = ConnectedAccount::firstOrCreate(
             ['team_id' => $team->id, 'platform' => 'facebook', 'platform_user_id' => 'LOADTEST_E2E_FB_USER'],
@@ -191,6 +203,21 @@ class LoadTestE2eTrace extends Command
             ],
         );
 
+        // Active 24/7 AI config so SendAiResponse gates pass.
+        AiConfig::firstOrCreate(
+            ['page_id' => $page->id],
+            [
+                'is_active'                   => true,
+                'is_24_7'                     => true,
+                'tone'                        => 'professional',
+                'language'                    => 'en',
+                'response_delay_min_seconds'  => 0,
+                'response_delay_max_seconds'  => 1,
+                'contact_ai_reply_cap'        => 100,
+                'working_hours'               => [],
+            ],
+        );
+
         return [$team, $page, $ownerId];
     }
 
@@ -204,6 +231,8 @@ class LoadTestE2eTrace extends Command
 
         $this->warn("Deleting fixture (team id={$team->id})...");
 
+        $pageIds = DB::table('pages')->where('team_id', $team->id)->pluck('id');
+        $acDeleted = DB::table('ai_configs')->whereIn('page_id', $pageIds)->delete();
         $msgDeleted = DB::table('messages')
             ->whereIn('conversation_id', DB::table('conversations')->where('team_id', $team->id)->pluck('id'))
             ->delete();
@@ -214,9 +243,10 @@ class LoadTestE2eTrace extends Command
         $whDeleted = DB::table('webhook_logs')
             ->where('event_type', 'load-test.e2e')
             ->delete();
+        $ledgerDeleted = DB::table('ai_credit_ledger')->where('team_id', $team->id)->delete();
         $teamDeleted = DB::table('teams')->where('id', $team->id)->delete();
 
-        $this->info("Deleted: {$msgDeleted} msgs, {$convDeleted} convs, {$contactDeleted} contacts, {$pageDeleted} pages, {$caDeleted} accounts, {$whDeleted} webhook_logs, {$teamDeleted} teams");
+        $this->info("Deleted: {$acDeleted} ai_configs, {$msgDeleted} msgs, {$convDeleted} convs, {$contactDeleted} contacts, {$pageDeleted} pages, {$caDeleted} accounts, {$whDeleted} webhook_logs, {$ledgerDeleted} ledger, {$teamDeleted} teams");
 
         return self::SUCCESS;
     }
