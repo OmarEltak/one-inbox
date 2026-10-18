@@ -60,8 +60,8 @@ class LoadTestDeepAnalysisStorm extends Command
             return self::FAILURE;
         }
 
-        [$team, $page] = $this->ensureFixture($cohort);
-        $this->line("Test team id={$team->id}, page id={$page->id}");
+        [$team, $page, $ownerId] = $this->ensureFixture($cohort);
+        $this->line("Test team id={$team->id}, page id={$page->id}, owner user_id={$ownerId}");
 
         $startDepth = (int) Redis::llen('queues:heavy-analysis');
         $this->line("heavy-analysis queue depth at start: {$startDepth}");
@@ -73,7 +73,7 @@ class LoadTestDeepAnalysisStorm extends Command
         for ($i = 1; $i <= $concurrent; $i++) {
             $da = DeepAnalysis::create([
                 'team_id'              => $team->id,
-                'triggered_by_user_id' => 1, // any admin — fallback
+                'triggered_by_user_id' => $ownerId,
                 'mode'                 => DeepAnalysis::MODE_CUSTOMER_THEMES,
                 'cohort_filter'        => ['limit' => $cohort],
                 'cohort_size'          => $cohort,
@@ -239,7 +239,7 @@ class LoadTestDeepAnalysisStorm extends Command
             }
         }
 
-        return [$team, $page];
+        return [$team, $page, $ownerId];
     }
 
     private function cleanup(): int
