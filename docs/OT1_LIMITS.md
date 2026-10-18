@@ -31,7 +31,7 @@ Anytime you change the hardware, add a service, tune PHP-FPM/MySQL/nginx, or run
 | `mysql` (8.0) | Primary DB | `one_inbox` schema |
 | `redis-server` | Queues + cache + session | Backing store for horizon-style queue processing |
 | `docker` + `containerd` | Wuzapi WhatsApp gateway container | Bound to `127.0.0.1:8082` (see prod-ops runbook) |
-| `one-inbox-queue.service` | Main queue worker | Consumes `urgent, default, heavy-analysis, comments-ingest, comments-send` in that priority order (verified 2026-10-08). `heavy-analysis` was added 2026-10-08 after a user-reported 20-hour stuck Deep Analysis — the queue was created with the AI credit economy spec but the worker config was never updated. **The systemd unit file is NOT in git** — see §9 open verification. |
+| `one-inbox-queue.service` | Main queue worker | Consumes `urgent, default, heavy-analysis, comments-ingest, comments-send` in that priority order (verified 2026-10-18). `heavy-analysis` was added 2026-10-08 after a 20-hour stuck Deep Analysis incident. **Shared-worker contention risk**: this unit is the ONLY consumer of `heavy-analysis`, `comments-ingest`, `comments-send`, AND it also pulls from `urgent, default`. A long-running Deep Analysis (60-120 s per spec §13) blocks this worker's `urgent`-reply capacity for its full duration. The @1..@4 instances still absorb urgent, but effective urgent concurrency drops from 5 → 4 during an active Deep Analysis. Unit file version-controlled at `deploy/systemd/one-inbox-queue.service` as of 2026-10-18. |
 | `one-inbox-queue@1..4` | 4× worker instances | Consume `urgent, default` ONLY — do NOT process comment queues (verified 2026-09-29) |
 | `one-inbox-queue-campaigns.service` | Dedicated campaigns worker | Consumes `campaigns` only. `--max-jobs=1000 --timeout=60` (verified 2026-09-29) |
 | `one-inbox-whisper.service` | Transcription queue worker | Consumes `transcription` only. `--tries=1 --timeout=90`. This is a Laravel queue worker (misnamed "whisper" — the actual whisper.cpp HTTP daemon is separate). Verified 2026-09-29 |
@@ -83,7 +83,7 @@ The app uses **7 named queues** on Redis. Workers are dedicated per role so a bu
 | `campaigns` | Bulk WhatsApp/email per-recipient sends | **1 worker** (`one-inbox-queue-campaigns.service`) | Campaigns run slowly; inbound unaffected |
 | `comments-ingest` | Meta comment webhooks classification | **1 worker** (main service only — `@1..4` do NOT process) | AI comment replies delayed |
 | `comments-send` | Publishing AI comment replies | **1 worker** (same) | Same |
-| `heavy-analysis` | Deep Analysis jobs (`DispatchDeepAnalysisJob`) + any async paid-cohort work | **1 worker** (main service only — added 2026-10-08) | Operator Deep Analyses stall; `/ai-chat` idempotency lock keeps the user on the "Analysis in progress" banner until the job runs or fails. |
+| `heavy-analysis` | Deep Analysis jobs (`DispatchDeepAnalysisJob`) + any async paid-cohort work | **1 worker (shared with urgent/default/comments-*)** — the main `one-inbox-queue.service`, not isolated. See §2 contention note. | Operator Deep Analyses stall OR concurrently drag down urgent-reply latency when the shared worker is busy on a 60-120 s analysis. Spec §13 originally called for a dedicated worker; still open as a config change (new systemd unit for `heavy-analysis` only). |
 | `default` | `ConvertAudioToOgg`, `DescribeImage`, `ScoreLeadJob`, `ProcessAiChatTurn` (admin chat async turn — added 2026-10-08), misc | **5 workers** (`one-inbox-queue` + `@1..4`) | Lead scoring + voice/image previews delayed; admin chat replies stuck in "typing dots" placeholder. |
 
 **Per-team throttles**:
@@ -111,7 +111,7 @@ The number in **bold** is what we *think* is the ceiling; unknown = we haven't m
 | Webhook ingest rate (valid HMAC + DB write + queue dispatch) | **Not yet measured end-to-end** — projection: lower than 98 req/s because the accept path adds signature verify, JSON decode, DB write, and Redis LPUSH |
 | End-to-end message → AI reply latency | 3-15 s (dominated by NaraRouter call) |
 | AI call rate — scoring model (direct benchmark) | **23 calls/sec sustained with 10 concurrent workers**, p50 0.5 s, no cooldown (measured 2026-10-18, Run 6) |
-| AI call rate — reply generation (full `generateResponse`) | **~0.9 msgs/sec sustained** on 5-worker urgent queue (measured 2026-10-18, Run 8 — single message 32.5 s end-to-end). Reply model is a larger tier than the scoring model. |
+| AI call rate — reply generation (full `generateResponse`) | **Single-message latency = 32.5 s** (measured 2026-10-18, Run 8, outbound mocked). Sustained concurrent throughput UNVERIFIED. The commonly-cited "~0.9 msgs/sec" is `32.5 s / 5 workers` — a projection, not a measurement. |
 | Concurrent AI dispatches per team | Unlimited at code level — bounded only by `Team::canDispatchAi()` gates |
 
 **Combined pain point (Omar's scenario A — "10 users × 10 voice notes each")**:
@@ -135,44 +135,27 @@ The number in **bold** is what we *think* is the ceiling; unknown = we haven't m
 
 **Practical implication**: Whisper's CPU cost only bites during Groq outage or quota exhaustion. In steady state you're paying pennies to Groq for ~1 s transcriptions. Local Whisper is insurance so voice notes never fail hard. **CPU contention on this box is a fallback-only concern, not a normal-day concern.**
 
-### 5.3 · Bulk WhatsApp campaigns
+### 5.3 · Bulk WhatsApp + Email campaigns
 
-⚠️ ~~**CONFIRMED LANDMINE — 2026-09-28.**~~ **RESOLVED for WhatsApp wizard 2026-09-29 (PR #63)** — parse now runs in the async `ImportCampaignRecipients` job. Email wizard (`EmailWizard@confirmMapAndImport`) still sync as of 2026-09-29 — deferred as Phase 3b.
-
-`app/Livewire/Campaigns/WhatsAppWizard.php:155-170` — `advanceToCompose()`:
-```php
-$rows = iterator_to_array($parser->stream());   // loads entire file into memory
-$importer->import(rows: $rows, ...);            // inserts every row synchronously
-```
+**Current state (verified against code 2026-10-18)**:
+- **WhatsApp wizard** — async. `app/Livewire/Campaigns/WhatsAppWizard.php:161` → `advanceToCompose()` dispatches `App\Jobs\ImportCampaignRecipients` on `default` queue with per-team throttle, transitions to the `importing` step with a `wire:poll.2s` progress bar. Upload cap 10 MB. Shipped 2026-09-29 (PR #63).
+- **Email wizard** — async. `app/Livewire/Campaigns/EmailWizard.php:152` → `confirmMapAndImport()` dispatches `App\Jobs\ImportEmailRecipients` on `default` queue, same per-team throttle (`email:import:inflight:{team}` key). Shipped 2026-09-30 (PR #74, Task C — closes Phase 3b).
+- Neither wizard holds an FPM worker during parse. The `iterator_to_array` + `set_time_limit(90)` guards from the Sep 29 mitigation are **removed**; the sync-parse landmine is **resolved**.
 
 | Metric | Value |
 |---|---|
-| Max upload size (Livewire validation) | `max:2048` = **2 MB** (was 10 MB pre-mitigation) |
-| 2 MB Excel row count | ~20k rows |
-| Parse + insert time (single user, 2 MB) | ~2-10 s (unverified precisely — needs load test) |
-| PHP-FPM worker held during parse | YES — bounded by `set_time_limit(90)` guard |
-| Memory during parse | Capped at 256 MB by `ini_set('memory_limit', '256M')` guard |
-| Per-recipient send rate (after parse) | 1-5 msg/sec per WA number (WhatsApp policy) |
+| Max upload size (both wizards) | **10 MB** (~100k rows) |
+| Import time | async job on `default` queue — not an FPM concern |
+| FPM worker held during parse | NO — Livewire returns immediately after dispatch |
+| Per-team throttle on import | 1 import in-flight per team (`campaign:import:inflight` / `email:import:inflight`) |
+| Per-recipient send rate (post-import, WhatsApp) | 1-5 msg/sec per WA number (WhatsApp policy) |
+| Per-team concurrent sends (WhatsApp) | 3 (Phase 4 throttle on `SendCampaignWhatsAppJob`) |
 
-**Combined pain point (Omar's scenario B — "10 users upload 2 MB Excel + run campaigns simultaneously")**:
-- Each parse now takes 2-10 s instead of 10-60 s → **6-30× less worker-hold time**
-- Still bounded by 20 FPM workers — under 25 concurrent uploads, excess users wait or 504 during the parse burst (projection; not re-measured since the 2026-09-29 mitigation)
-- Real full fix: async `ImportCampaignRecipients` job (still TODO)
-- Sends themselves (post-parse) run on isolated `campaigns` queue → those DO NOT starve inbound `urgent` ✓
+**Combined pain point revisited** — the sync-parse FPM-hold scenario no longer applies. The remaining bottleneck is the 1-worker `campaigns` queue (serial sends across teams, bounded by WhatsApp per-number rate):
+- Sends run on the isolated `campaigns` queue → do NOT starve inbound `urgent` ✓
+- 10 users × 100k = 1M messages queued still takes ~5.5 h to drain at WhatsApp's 1-5 msg/sec/number ceiling. Server is NOT the bottleneck; the external messaging policy is.
 
-**Fix path (must-do before scaling)**:
-1. Convert `advanceToCompose()` to enqueue an `ImportCampaignRecipients` job
-2. Return immediately with an `import_id` and poll for progress via Livewire
-3. Show a progress bar ("Imported 12,384 / 98,201 contacts")
-4. Only unlock the "Compose message" step once import is complete
-
-**Mitigations shipped 2026-09-29** (`fix/campaigns-import-mitigation`):
-- `max:10240` → `max:2048` in both `WhatsAppWizard@advanceToMap` and `EmailWizard@uploadAndPreview`
-- `ini_set('memory_limit', '256M')` + `set_time_limit(90)` guards inside both parse methods
-- Amber contrast-safe notice on both wizards' upload step (EN + AR translations)
-- Per-form custom validation message tells users the limit and the `support@ot1-pro.com` fallback in one line
-- Bottleneck: 10 users × 100k = **1M messages queued**. Even at 5 msg/sec per WA number × 10 numbers = 50 msg/sec = **20,000 seconds ≈ 5.5 hours to drain**
-- Real limit is not our server — it's WhatsApp's per-number rate
+**Not re-measured end-to-end** after the Phase 3/3b async refactor. A compound-load test (multiple teams importing 10 MB files concurrently) would validate the per-team throttle holds; flagged as follow-up.
 
 ### 5.4 · AI lead scoring
 
@@ -196,7 +179,7 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 | Concurrent viewers we've tested | Unknown |
 | Cache TTL | Unknown |
 
-**Known risk**: `webhook_logs` "Out of sort memory" error already shipped once (memory `feedback_prod_out_of_sort_memory`). If analytics queries hit that table without proper LIMIT + indexed WHERE, they can crash MySQL sort buffer under any concurrent access.
+**Historical risk (mitigated 2026-10-18)**: `webhook_logs` "Out of sort memory" error shipped once (memory `feedback_prod_out_of_sort_memory`). The 2026-10-18 session's Run 7 measured the historical heavy query at 143-295 ms warm and did NOT trigger sort-buffer errors. Adding `webhook_logs_created_at_index` dropped it to ~1 ms (migration `2026_10_18_000001`). The specific query pattern that originally blew the sort buffer may differ from the one tested; the risk is low but not formally re-closed until re-tested against the exact original error-producing query.
 
 ### 5.6 · Reverb WebSocket (live inbox)
 
@@ -217,7 +200,7 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 | Inbound-webhook transport (DB insert + Redis LPUSH + worker SELECT no-AI) | **141 jobs/s enqueue, 39 jobs/s drain** sustained | Platform-webhook burst |
 | **Inbound full AI pipeline (reply + ScoreLead)** | **ONE-MESSAGE measurement: 32.5 s wall time (Run 8, outbound mocked).** The "~0.9 msgs/s sustained" number below is a PROJECTION (single-message latency × 5 workers), **NOT measured concurrent throughput**. A concurrent end-to-end test has not yet been run. | Real customer-message storm |
 | NaraRouter scoring calls (direct, concurrent) | **~23 calls/sec at 10 parallel workers, 0 cooldown** | AI-only benchmark |
-| Analytics (super-admin, heavy webhook_logs query) | **20 concurrent viewers in 2 s drain** | Dashboard refresh burst |
+| Analytics — **heaviest single query only** (not full-page) | 20 concurrent query hits drained in 2 s via direct MySQL (Run 7). **FULL PAGE capacity unverified** — each dashboard load fires ~10 queries and requires an authenticated session fixture not yet built. | Direct `webhook_logs` groupBy benchmark |
 | MySQL concurrent connections during peak | **~15 processes** | All above combined |
 | Peak RAM used across all tests | **1.6 GB of 7.8 GB** | Never a bottleneck |
 | Peak CPU load1 during tests | **19.89 / 2 vCPU** (load1, not %CPU — see caveat below; 0 req dropped) | Webhook flood |
@@ -243,7 +226,7 @@ Numbers below are derived from the per-feature data above. Anything marked **(th
 | Inbound webhook ingest (sig-rejected) | ~90 req/sec sustained | **~98/sec hard ceiling** (measured 2026-10-18, Runs 1+2); 0 % 5xx up to 300 concurrent VUs | CPU 2 vCPU (not FPM — FPM queued cleanly at load1=19.89, but `%user` was not captured so true CPU saturation is unverified) |
 | Inbound webhook — transport only (DB insert + queue dispatch + worker SELECT) | ~30 jobs/s | **39 jobs/s drain, 141 jobs/s enqueue** (measured 2026-10-18, Run 5) | 5 urgent workers × 155 ms/job no-op |
 | Inbound webhook — full AI pipeline (NaraRouter reply + ScoreLead) | Not yet measured concurrent | **ONE-MESSAGE latency = 32.5 s** (Run 8, outbound mocked). Sustained concurrent throughput UNVERIFIED — the "~0.9 msgs/s" figure elsewhere is a single-latency × worker-count PROJECTION, not a measurement. | NaraRouter `generateResponse` latency |
-| Analytics dashboards (super-admin, cold) | ~10 concurrent viewers | **20+ concurrent sustainable** (measured 2026-10-18, Run 7: 20 heavy queries drained in 2 s; MySQL sort buffer did NOT blow) | MySQL CPU; cache TTL hides repeat views |
+| Analytics dashboards — **single-query cost** (not full page) | — | **20 concurrent raw-SQL queries drain in 2 s** (measured 2026-10-18, Run 7 — direct MySQL, not through PHP/Livewire). **Full-page capacity NOT measured** — needs authenticated session fixture. | MySQL CPU for the measured query only |
 | AI replies to inbound (per-worker, single message) | 1 msg every ~30 s per worker | **~28-32 s per message serial** (Run 8). Per-worker CONCURRENT throughput unverified. | NaraRouter chat latency, not provider quota |
 | AI lead scoring (direct scoring-chain) | 10+ concurrent fine | **23 calls/s aggregate with 10 workers** (measured 2026-10-18, Run 6), 0 cooldown | NaraRouter scoring-chain latency — not a bottleneck |
 | Voice notes (Groq path) | ~50 in-flight globally (5/team × 10 teams) | Groq API rate limit | Per-team cap + Groq quota |
@@ -251,7 +234,7 @@ Numbers below are derived from the per-feature data above. Anything marked **(th
 | Bulk WhatsApp campaigns | 1 team fast, others queue behind | **1-5 msg/sec per WA number** (WhatsApp policy) | 1 `campaigns` worker + WA gateway |
 | Excel upload (contacts import) | 5 users uploading 2 MB simultaneously | Same 5 (FPM cap, held ≤90s by guards) | FPM + sync parse |
 | Comment automation (FB/IG) | ~1 comment/sec end-to-end | Same | Only 1 worker on each comment queue |
-| Analytics dashboards | ~5-10 concurrent viewers (theory) | Blocked first by MySQL sort-memory on `webhook_logs` aggregates | FPM + MySQL |
+<!-- Duplicate analytics row removed 2026-10-18 — superseded by the "single-query cost" row above. The former "sort-memory blow-up" risk is historically significant but mitigated by `webhook_logs_created_at_index`; the real page-level ceiling needs an authenticated-session test to measure. -->
 | Live inbox updates (Reverb WS) | ~500-1000 idle connected users (theory) | 1024 fd default | Reverb port 8080 |
 
 **Total-user rollups** (what "N users at the same time" really means):
@@ -266,12 +249,12 @@ Numbers below are derived from the per-feature data above. Anything marked **(th
 
 **Where ceilings break first** (in order — revised 2026-10-18 after full load-test session: k6 Runs 1-4 + inbound-storm Run 5 + AI-latency Run 6 + MySQL Run 7):
 
-1. **NaraRouter / AI provider latency** — the TRUE customer-facing wall, but **less tight than previously projected**. Run 6 measured p50 **0.5 s** per scoring call and **23 calls/sec concurrent** with no cooldown. Full inbound pipeline (reply + ScoreLead = 2 AI calls per msg at ~0.5-2 s each) sustains **~8-10 messages/s** across 5 urgent workers before NaraRouter chain exhaustion. During an ad-driven burst the urgent queue still grows (ingest 141 jobs/s vs AI-drain ~10/s = ~130 jobs/s accumulation) but drains ~2× faster than the pre-measurement projection.
+1. **NaraRouter `generateResponse` latency** — the TRUE customer-facing wall. Run 6 measured scoring-chain at p50 **0.5 s**, 23 calls/sec concurrent with no cooldown — scoring is NOT the bottleneck. Run 8 measured a single full inbound → AI reply end-to-end at **32.5 s** on an idle box with outbound mocked. Sustained concurrent AI-pipeline throughput is **UNVERIFIED** (the "~0.9 msgs/s" derived from single-latency × worker-count is a projection, not a measurement). During an ad-driven burst the urgent queue grows faster than the AI drains — exact ratio depends on the concurrent test that still needs to run.
 2. **CPU on 2 vCPU** — the TRUE wall for stateless endpoints. Load1 hit 19.89 on the 300-VU webhook burst; FPM queued cleanly up to 300 concurrent connections without a single 5xx. Doubling to 4 vCPU is still the single highest-ROI upgrade (as §1 already said).
 3. **PHP-FPM = 20** (was documented as 5 — corrected 2026-10-18). ~20 heavy concurrent requests → request #21 queues behind, up to the 60 s nginx `fastcgi_read_timeout` ceiling.
 4. **Nginx `fastcgi_read_timeout = 60 s`** — the first user-visible failure. Homepage test (500 VUs) produced 30 of 5 819 requests that either 5xx'd or returned empty bodies after hitting this wall.
 5. **Single-worker queues** (campaigns, comments-ingest, comments-send, transcription) — no per-team fairness, first user monopolizes.
-6. **MySQL sort-memory** on `webhook_logs` — already shipped once; can re-blow on concurrent analytics.
+6. **MySQL sort-memory** on `webhook_logs` — shipped once historically; the heavy query tested in Run 7 did NOT re-trigger it, and the 2026-10-18 `created_at` index dropped the query 150-300× faster. Formal all-clear requires re-testing the specific original failing query, not just the heaviest current query.
 7. **RAM** — NOT a bottleneck at current scale. Peak 1.6 GB of 7.8 GB during the hardest test. RAM headroom allows more workers, but RAM alone is not sufficient justification — raising `max_children` requires first measuring whether workers are CPU-bound via `mpstat %user` under load.
 
 ### Security finding (2026-10-18) — webhook throttle appears bypassed; mechanism UNVERIFIED
@@ -368,7 +351,7 @@ Raw CSV telemetry + k6 summaries live in `docs/load-tests/`. Each run was done a
 - Telemetry: `docs/load-tests/2026-10-18-webhook-ingest-breakpoint-telemetry.csv`
 - Result: **98.0 req/s sustained** (same throughput as Run 1 — ceiling hit), 23 526 requests, 0 % 5xx, 0 errors, p50 1.76 s, p95 **3.42 s**, max 5.14 s
 - Server peak: load1 **19.89**, FPM procs **21**, 303 active HTTP conns, RAM 1.36 GB
-- Interpretation: Throughput is **CPU-bound at ~98 req/s** for signature-rejected traffic on this hardware. Pushing from 100 → 300 VUs just adds queue latency, not throughput. Nginx + FPM socket queue absorbed 300 concurrent connections without any 5xx. **Even at 10× CPU saturation the box did not drop a single request** — it just got slower.
+- Interpretation: Throughput plateaus at **~98 req/s** for signature-rejected traffic. "CPU-bound" is the most likely explanation but is NOT confirmed — load1 (19.89) is not CPU utilization, and `%user / %iowait / %idle` were not captured. The box could also be limited by nginx accept-queue tuning, FPM socket backlog, or Redis latency; next run must capture `mpstat -P ALL 1` to decide. What IS confirmed: 300 concurrent VUs produced 0 5xx and the box never dropped a request — it got slower, which is a strong "queue not fail" signal.
 
 ### Run 3 — homepage render, 50→500 VUs, 3m00s
 - Script: `scripts/load/homepage.js`
@@ -379,7 +362,7 @@ Raw CSV telemetry + k6 summaries live in `docs/load-tests/`. Each run was done a
 
 ### What breaks first (observed, in order)
 1. **FPM `max_children=20` saturates almost instantly** on any burst > 20 concurrent — subsequent requests queue in the nginx/FPM socket.
-2. **CPU 1-min load exceeds 10× capacity** on sig-reject bursts, 6× capacity on homepage bursts. The 2 vCPU is the true wall.
+2. **CPU — PROVISIONALLY the next wall after queue/FPM.** Load1 reached 19.89 under the 300-VU webhook flood and 12.95 under the 500-VU homepage flood, but load1 is not %CPU. mpstat was not captured; "the 2 vCPU is the true wall" is a strong hypothesis, not a confirmed finding. Next load-test run must capture `%user / %iowait / %idle` to decide between CPU-bound, I/O-bound, or lock-bound.
 3. **Nginx `fastcgi_read_timeout` (60 s)** kills requests that waited > 60 s for a worker. This is the first user-visible failure mode (5xx or empty body).
 4. **RAM was never the bottleneck** in any test — 1.5 GB peak of 7.8 GB. RAM allows more workers; CPU-utilization measurement (not captured — only load1) must confirm workers are I/O-waiting before raising `max_children`.
 
@@ -455,7 +438,7 @@ Raw CSV telemetry + k6 summaries live in `docs/load-tests/`. Each run was done a
 - Interpretation:
   - **Enqueue ceiling ≈ 141 jobs/s** — bounded by Eloquent `WebhookLog::create()` DB insert speed + Redis LPUSH (JSON serialization + dispatch pipeline). This is the ingest layer.
   - **Drain ceiling ≈ 39 jobs/s sustained** — bounded by the 5 `urgent` workers at ~155 ms/job each (DB SELECT + Eloquent event firing + DB UPDATE markProcessed). Converges across 500 / 2 000 / 5 000 counts.
-  - This is the **no-AI floor**. Real customer inbound (NaraRouter reply + ScoreLead) was later measured at **~0.9 msgs/s sustained** full-pipeline (Run 8). The transport layer absorbs ~140× more than the AI pipeline can process.
+  - This is the **no-AI floor**. Full-pipeline sustained concurrent throughput was NOT measured. Run 8 only measured a single message at 32.5 s. The transport layer absorbs vastly more than any current realistic AI-pipeline estimate, but the exact ratio is unverified until a concurrent E2E test runs.
   - **Scaling implication**: during a real inbound burst, the urgent queue depth builds up fast (ingest 141/s vs AI-drain 0.9/s → ~140 jobs/s accumulation). A 60-second ad-driven burst would park ~8 400 messages waiting for AI replies, with the last customer waiting ~2.5 hours for their reply at current infra.
   - **The reply-generation NaraRouter call is the real bottleneck**, not the queue infra, not provider rate-limit, not CPU. Each inbound message blocks a worker for ~28 s on `generateResponse`.
 
@@ -513,7 +496,24 @@ Raw CSV telemetry + k6 summaries live in `docs/load-tests/`. Each run was done a
 
 ### Next action
 
-Build and run `load-test:e2e-trace` (single-message end-to-end trace, outbound mocked, sync execution, per-stage timing) **before** running the Deep Analysis storm. That test closes the biggest honesty gap (unmeasured full pipeline) and establishes the baseline that S2 and S3 ramp from.
+Both prerequisite tests are DONE (2026-10-18):
+- Run 8 — `load-test:e2e-trace` single-message baseline (32.5 s / 1 msg)
+- Run 9 — Deep Analysis storm (also uncovered the 18h dead-worker incident)
+
+**Next required test: controlled CONCURRENT full-AI-pipeline test** with isolated test data and outbound sends mocked. Must measure:
+1. **Successful AI replies/sec** at a defined sustained inbound rate (ramp 0.5 → 2 → 5 msgs/s inbound, 60 s hold at each level)
+2. **p50 / p95 reply latency** measured as `message.platform_sent_at - message.created_at` across all successful replies in the measurement window
+3. **urgent queue depth over time** sampled every 2 s during ramp + hold + drain
+4. **Failures / retries** — SendAiResponse exceptions, NaraRouter 5xx, dispatch failures, idempotency re-fires
+5. **CPU utilization decomposition** — `mpstat -P ALL 1` capturing `%user / %iowait / %idle` throughout
+6. **DB + AI latency** per stage — DB query log + NaraRouter per-call timing
+
+Only after that test do the §10 S2 / S3 SLOs become verifiable claims. Until then they are aspirational.
+
+**Dependencies before this test can run safely**:
+- Isolated test fixture (same pattern as `load-test:e2e-trace` but concurrent — needs the `load-test:ai-pipeline-storm` command, not yet built)
+- Outbound send mocking — either reinstate the LOADTEST_AI_* page-prefix guard in SendPlatformMessage (previously rejected as risky — needs a safer design, e.g. mocking via a dedicated test-mode service binding rather than a prod env flag), or inject a fake HTTP driver for Meta Graph for the duration of the test
+- `mpstat` installed on prod (likely via `sysstat` package — verify with `which mpstat`)
 
 ---
 
@@ -533,8 +533,7 @@ Build and run `load-test:e2e-trace` (single-message end-to-end trace, outbound m
 - [ ] Reverb concurrent connection ceiling under real message load
 - [x] ~~Transcription driver order~~ **Groq primary, whisper.cpp fallback — verified in `AppServiceProvider@register`** (2026-09-28)
 - [x] ~~`heavy-analysis` queue listed in `one-inbox-queue.service` ExecStart?~~ **Fixed 2026-10-08 — added to the `--queue=` list after a 20h stuck Deep Analysis.** The systemd unit file lives only on prod — captured below as a durable follow-up.
-- [x] ~~**Systemd unit files are not version-controlled.**~~ **Fixed 2026-10-18** — captured all 5 units in `deploy/systemd/` with README. See §9 above.
-- [ ] (historical note, kept for context) **Systemd unit files are not version-controlled.** Both `one-inbox-queue.service` and the related `@1..4` + `one-inbox-queue-campaigns` + `one-inbox-whisper` + `one-inbox-reverb` units live only at `/etc/systemd/system/` on prod. Any `--queue=X,Y,Z` change (like the 2026-10-08 `heavy-analysis` fix) is invisible to future greps + will be lost on a server rebuild. **Follow-up**: move canonical versions under `deploy/systemd/` in the repo, add a deploy step to `scp` them to prod when they change.
+- [x] ~~**Systemd unit files are not version-controlled.**~~ **Fixed 2026-10-18** — captured all 5 units in `deploy/systemd/{one-inbox-queue,one-inbox-queue@,one-inbox-queue-campaigns,one-inbox-whisper,one-inbox-reverb}.service` with a README documenting the deploy flow. The `one-inbox-queue.service` + `one-inbox-queue@.service` had never been in Git before; they are now. **Rule going forward**: any edit to the live unit on prod MUST be mirrored to `deploy/systemd/` in the same commit. Both `one-inbox-queue.service` and the related `@1..4` + `one-inbox-queue-campaigns` + `one-inbox-whisper` + `one-inbox-reverb` units live only at `/etc/systemd/system/` on prod. Any `--queue=X,Y,Z` change (like the 2026-10-08 `heavy-analysis` fix) is invisible to future greps + will be lost on a server rebuild. **Follow-up**: move canonical versions under `deploy/systemd/` in the repo, add a deploy step to `scp` them to prod when they change.
 
 I'll close these as we run the load tests.
 
@@ -652,7 +651,11 @@ The AI chat was silently capping customer-conversation context at ~14 of thousan
 - **H** — agent-audit sub-feature on Deep Analysis path (needs `messages.handled_by_user_id`, 1 day)
 
 ### Capacity impact on this box
-Minimal. The `heavy-analysis` queue was originally spec'd to need **one dedicated worker**; in practice it's folded into `one-inbox-queue.service`'s queue list alongside `urgent, default, comments-*` (2026-10-08 fix after a 20h stuck Deep Analysis — the queue was created with the spec but the worker config was never updated to listen on it). Each Deep Analysis job hits NaraRouter 11 times (10 chunks + 1 aggregation) over ~60-120 s. At the napkin-math ceiling of 10 NaraRouter calls/sec (§5.1), each concurrent Deep Analysis consumes ~1 sec/sec of our AI budget — so **max 2 concurrent Deep Analyses team-wide** before AI-reply latency starts to climb. Cost table caps per-user frequency (expensive queries need credits) which naturally throttles this.
+**Not minimal — the current `one-inbox-queue.service` is shared, not dedicated.** The `heavy-analysis` queue was originally spec'd to need **one dedicated worker**; in practice (2026-10-08 fix after a 20h stuck Deep Analysis) it was folded into `one-inbox-queue.service`'s queue list alongside `urgent, default, comments-*`. That means a Deep Analysis running on this worker blocks it from `urgent`-reply work for 60-120 s. The @1..@4 instances still process `urgent`, so effective urgent concurrency drops from 5 → 4 during an active Deep Analysis — not 5 → 0, but still a real contention cost.
+
+**Recommended follow-up**: carve `heavy-analysis` into its own systemd unit (`one-inbox-queue-heavy.service`) so Deep Analysis never contends with urgent replies. Low-risk config change; blocked only on finding time to deploy + test.
+
+Per-analysis cost: ~11 NaraRouter calls (10 chunks + 1 aggregation) over ~60-120 s. Scoring-chain measurement (Run 6, 23 calls/sec concurrent) suggests the AI provider is NOT the ceiling — the queue-worker time is. **Max 2 concurrent Deep Analyses before measurable urgent-reply impact** remains a reasonable working estimate; a concurrent AI-pipeline test would confirm.
 
 If Deep Analysis volume grows (3+ running at once observed), split it off into its own dedicated service so `urgent` isn't fighting for the same worker during an analysis burst.
 
@@ -732,6 +735,6 @@ Expect a number > 30. Zero = APP_KEY missing from `.env`. See `ot1-pro-prod-ops`
 | 2026-10-18 | **Run 9 — Deep Analysis storm uncovered an 18h-dead queue worker.** `one-inbox-queue.service` had been stopped since 2026-10-17 22:59 UTC and never re-enabled. It is the ONLY worker consuming `heavy-analysis`, `comments-ingest`, `comments-send` — @1..4 instances only handle `urgent, default`. Any Deep Analysis a real customer triggered in that window would have silently hung. **Remediation**: `systemctl start one-inbox-queue && systemctl enable one-inbox-queue`. Service now active + enabled for auto-start. Also added to the Run 9 writeup: §7's `capacity:health-check` command doesn't check for dead queue workers — that gap is now the highest-priority follow-up along with the §9 "systemd units in Git" item. |
 | 2026-10-18 | **Run 8 — first measured single-message end-to-end latency for AI pipeline.** Single-message sync trace with outbound mocked via Bus::fake. **32.5 s wall time for one message.** The derived "~0.9 msgs/s aggregate" (5 workers × 1/28 s) is a projection, NOT measured concurrent throughput. Open question: whether 5 concurrent reply calls run in parallel at ~28 s each, or whether DB/NaraRouter contention stretches that under real load. A concurrent end-to-end test is the next priority. |
 | 2026-10-18 | **Added `webhook_logs_created_at_index`** (migration `2026_10_18_000001`) — fixes the missing index flagged in Run 7. Post-index EXPLAIN: range scan on 153 rows (was 56 412 on the platform-index); timing dropped **143-295 ms → ~1 ms** per query (150-300× faster). Analytics "sort buffer" risk for this access pattern now effectively eliminated. |
-| 2026-10-18 | **Extended load-test session (part 2)** — added `load-test:ai-latency` benchmark + direct MySQL analytics-query measurement. AI scoring p50 **0.5 s**, aggregate **23 calls/sec** with 10 concurrent workers, 0 cooldown. MySQL analytics drains **20 concurrent heavy queries in 2 s** — sort buffer did not blow. ~~Revised ceiling in §5.7 to ~8-10 msgs/s~~ **SUPERSEDED later same day by Run 8 — the 8-10 msgs/s number was itself a projection from scoring-call latency × worker count and was wrong by ~10×. Actual measured ceiling is 0.9 msgs/s.** Found missing `created_at` index on `webhook_logs`. All load-test artifacts cleaned up. Total AI spend well under \$1. |
-| 2026-10-18 | **First measured load-test session against prod** — ran k6 webhook-ingest (100 VU + 300 VU), homepage (500 VU), marketing-pages-mix (300 VU), and new `load-test:inbound-storm` artisan command (500 / 2 000 / 5 000 synthetic webhooks). Raw results and server-side telemetry in `docs/load-tests/`. Measured ceilings now live in §3 and §8.5. Key findings: (1) `pm.max_children` is actually **20**, not the documented 5 — doc corrected. (2) Signature-rejected webhook ingest ceiling is **98 req/s** CPU-bound; 0 % 5xx even at 300 VUs. (3) Homepage ceiling is **30 req/s** before 0.5 % error rate at 500 VUs. (4) Inbound-storm transport layer drains at **39 jobs/s sustained** with 141 jobs/s enqueue rate. (5) Full AI pipeline — original rough projection was 1.5-5 msgs/s; **actual measured ceiling (Run 8, later same day): 0.9 msgs/s**, 40-150× below the transport ingest layer. (6) Security finding: `throttle:webhooks` is bypassed because Cloudflare's edge IP pool defeats `$request->ip()` — fix via `TrustProxies` + `CF-Connecting-IP`. |
+| 2026-10-18 | **Extended load-test session (part 2)** — added `load-test:ai-latency` benchmark + direct MySQL analytics-query measurement. AI scoring p50 **0.5 s**, aggregate **23 calls/sec** with 10 concurrent workers, 0 cooldown. MySQL analytics drains **20 concurrent heavy queries in 2 s** — sort buffer did not blow. ~~Revised ceiling in §5.7 to ~8-10 msgs/s~~ **SUPERSEDED same day by Run 8 — the 8-10 msgs/s and the 0.9 msgs/s numbers are BOTH latency × worker-count projections.** Run 8 is a measured single-message latency (32.5 s); sustained concurrent AI-pipeline throughput remains UNVERIFIED. Found missing `created_at` index on `webhook_logs`. All load-test artifacts cleaned up. Total AI spend well under \$1. |
+| 2026-10-18 | **First measured load-test session against prod** — ran k6 webhook-ingest (100 VU + 300 VU), homepage (500 VU), marketing-pages-mix (300 VU), and new `load-test:inbound-storm` artisan command (500 / 2 000 / 5 000 synthetic webhooks). Raw results and server-side telemetry in `docs/load-tests/`. Measured ceilings now live in §3 and §8.5. Key findings: (1) `pm.max_children` is actually **20**, not the documented 5 — doc corrected. (2) Signature-rejected webhook ingest ceiling is **98 req/s** CPU-bound; 0 % 5xx even at 300 VUs. (3) Homepage ceiling is **30 req/s** before 0.5 % error rate at 500 VUs. (4) Inbound-storm transport layer drains at **39 jobs/s sustained** with 141 jobs/s enqueue rate. (5) Full AI pipeline — Run 8 measured single-message E2E latency at **32.5 s** (outbound mocked). Sustained concurrent throughput is UNVERIFIED; the frequently-cited "0.9 msgs/s" is a `latency × workers` projection, not a measurement. Multiple orders of magnitude below the transport ingest layer regardless. (6) Security finding: `throttle:webhooks` is bypassed because Cloudflare's edge IP pool defeats `$request->ip()` — fix via `TrustProxies` + `CF-Connecting-IP`. |
 | 2026-10-08 | **UX fixes bundle** — (a) sidebar perf: `User::hasPermission()` was 8 DB queries per sidebar render for non-owner team members, now memoized to 1 (commit `c3cedf3`); (b) /settings/billing ledger + AI chat markdown tables both wrap in `overflow-x-auto` for mobile scroll; AI chat ruleset rewritten to fix "20 → 2\n0" column-crush bug (commit `6181f04`); (c) connections syncing banner converted from persistent inline bar to dismissible toast; (d) error page copy sweep to founder voice ("I'm giving the site a quick tune-up" instead of "We're..."), replaced `support@ot1-pro.com` with `omareltak7@gmail.com` across 12 files (commit `06678eb`); (e) ai-quota banner `grid-column: 2/-1` to stop crushing every page's main column to ~222px (commit `b5aeebd`). |
