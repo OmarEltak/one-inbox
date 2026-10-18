@@ -214,14 +214,14 @@ $importer->import(rows: $rows, ...);            // inserts every row synchronous
 | Mixed marketing pages (home/blog/pricing/vs) | **~44 req/s** with 1-3 s think time | Normal SEO traffic |
 | Webhook ingest (sig-rejected) | **~98 req/s CPU-ceiling**, 0 % 5xx | Attacker flood on `/api/webhooks/meta` |
 | Inbound-webhook transport (DB insert + Redis LPUSH + worker SELECT no-AI) | **141 jobs/s enqueue, 39 jobs/s drain** sustained | Platform-webhook burst |
-| Inbound full AI pipeline (reply + ScoreLead) | **PROJECTED ~8-10 msgs/s — NOT end-to-end measured** (derived from scoring p50 × worker count; the full `generateResponse` + outbound + retry path has not been exercised) | Real customer-message storm |
+| Inbound full AI pipeline (reply + ScoreLead) | **MEASURED ≈ 0.9 msgs/s sustained** (32.5 s per message end-to-end, outbound mocked — Run 8, 2026-10-18). 5 urgent workers × (1 msg / ~28 s async) ≈ 0.18 msgs/s/worker. | Real customer-message storm |
 | NaraRouter scoring calls (direct, concurrent) | **~23 calls/sec at 10 parallel workers, 0 cooldown** | AI-only benchmark |
 | Analytics (super-admin, heavy webhook_logs query) | **20 concurrent viewers in 2 s drain** | Dashboard refresh burst |
 | MySQL concurrent connections during peak | **~15 processes** | All above combined |
 | Peak RAM used across all tests | **1.6 GB of 7.8 GB** | Never a bottleneck |
 | Peak CPU load1 during tests | **19.89 / 2 vCPU** (10× saturation; 0 req dropped) | Webhook flood |
 
-**The actual customer-facing user ceiling on current infra**: *not yet measured end-to-end*. The scoring-call benchmark (Run 6) only measures one of the two AI calls per inbound message, with no reply generation, no queue scheduling, no outbound send, and no retry-under-contention. Treat the "~8-10 msgs/s" projection in the row above as an upper bound. **Resolving this is the next load-test priority** (`load-test:e2e-trace` + full valid-HMAC storm, per the agreed ordering).
+**The actual customer-facing user ceiling on current infra (MEASURED 2026-10-18 via Run 8)**: ≈ 0.9 messages/sec sustained — about **10× lower** than the earlier projection. Single-message serial wall time was 32.5 s with no contention; async pipeline estimate ≈ 28 s/message after burst-debounce overlap. The §5.7 earlier "~8-10 msgs/s" projection (based on `scoreMessage` latency × worker count) under-counted the real reply-generation cost by an order of magnitude.
 
 **Also noted (2026-10-18 critique)**:
 - "Load avg 19.89 on 2 vCPU = 10× saturation" overstates. Load1 includes I/O-wait and D-state processes, not pure CPU. Future tests capture `mpstat -P ALL 1` for `%user`, `%iowait`, `%idle`.
@@ -375,6 +375,26 @@ Raw CSV telemetry + k6 summaries live in `docs/load-tests/`. Each run was done a
 2. **CPU 1-min load exceeds 10× capacity** on sig-reject bursts, 6× capacity on homepage bursts. The 2 vCPU is the true wall.
 3. **Nginx `fastcgi_read_timeout` (60 s)** kills requests that waited > 60 s for a worker. This is the first user-visible failure mode (5xx or empty body).
 4. **RAM was never the bottleneck** in any test — 1.5 GB peak of 7.8 GB. We can confidently raise `max_children` to 40+ before memory becomes a concern.
+
+### Run 8 — First measured end-to-end baseline, single message (2026-10-18)
+- Command: `php artisan load-test:e2e-trace` (new; `app/Console/Commands/LoadTestE2eTrace.php`)
+- Fixture: isolated test team (ai_enabled=true, 1 000 wallet credits granted), test Page with 24/7 active AiConfig, Bus::fake for SendPlatformMessage so outbound HTTP never fires.
+- EXERCISED: `webhook_logs` INSERT → ProcessIncomingMessage → SendAiResponse (REAL NaraRouter `generateResponse` call) → ScoreLeadJob (REAL NaraRouter `scoreMessage` call)
+- BYPASSED (documented explicitly): nginx+FPM HTTP entry, signature verify, `throttle:webhooks`, SendPlatformMessage::handle (outbound mocked), retry loops
+- **Result: 32.53 s wall time for ONE message**, 68 SQL queries, inbound + outbound (AI reply) rows both created, outbound dispatch captured but not sent.
+- Verified AI reply content was real + coherent: *"Absolutely — we do offer volume pricing for teams of 50. The..."*
+- Interpretation:
+  - This is the first **measured** end-to-end number on this doc. All prior AI-pipeline capacity numbers were projections.
+  - The 32.5 s breakdown (sync execution, so stages serialize instead of overlap):
+    - WebhookLog INSERT: 5 ms
+    - ProcessIncomingMessage: ~2 s (contact create, conversation create, message create, dispatch chains)
+    - SendAiResponse debounce (`usleep(2_000_000)`): 2 s
+    - SendAiResponse NaraRouter `generateResponse`: estimated 20-25 s (large text-primary model, full conversation context)
+    - ScoreLeadJob NaraRouter `scoreMessage`: ~0.5-1 s
+    - Response-delay simulation + remaining DB writes: ~2-3 s
+  - **In production** (async), the 2 s debounce and 0-1 s response-delay-min overlap with the AI call rather than serialize, trimming maybe 3 s. True async per-message wall time is estimated **~25-30 s**.
+  - Per-worker throughput: 5 urgent workers × (1 msg / 28 s) = **≈ 0.18 msgs/sec/worker**, aggregate **≈ 0.9 msgs/sec sustained** on current infra — about **10× worse** than the §5.7 "~8-10 msgs/s" projection that was based on scoring-call latency alone. The §5.7 TL;DR has been corrected.
+  - **What this means for scale**: with 0.9 msgs/sec sustained end-to-end, a 100-message burst (10 teams × 10 msgs) parks ~90 messages in the queue; last-arriving customer waits ~100 s for their reply. Still acceptable for current scale, catastrophic above ~50 msgs/min inbound sustained.
 
 ### Run 6 — AI-call latency, direct `scoreMessage()` benchmark
 - Command: `php artisan load-test:ai-latency --count=N` (new 2026-10-18; `app/Console/Commands/LoadTestAiLatency.php`)
