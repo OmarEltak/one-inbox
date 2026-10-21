@@ -148,6 +148,16 @@ class Index extends Component
             $query->where('sales_stage', Conversation::STAGE_COMPLETED);
         } elseif ($this->filter === 'spam') {
             $query->where('sales_stage', Conversation::STAGE_SPAM);
+        } elseif ($this->filter === 'from_comments') {
+            // Phase 2 — surface conversations whose first inbound DM was
+            // linked back to a public comment via source_comment_id. The
+            // EXISTS subquery is scoped to inbound rows only; outbound AI
+            // messages never carry source_comment_id so this is purely a
+            // narrowing filter against the already team-scoped base query.
+            $query->whereHas('messages', function ($q) {
+                $q->where('direction', 'inbound')
+                    ->whereNotNull('source_comment_id');
+            });
         } elseif (in_array($this->filter, ['facebook', 'instagram', 'whatsapp', 'telegram'])) {
             $query->where('platform', $this->filter);
         } elseif (array_key_exists($this->filter, self::LABELS)) {
@@ -270,6 +280,39 @@ class Index extends Component
         $conversation->setRelation('messages', $messages);
 
         return $conversation;
+    }
+
+    /**
+     * Phase 2 — the originating Comment for the selected conversation, if any.
+     *
+     * Returns the Comment linked by the FIRST inbound Message's
+     * `source_comment_id`. Rendered as a banner above the message list so the
+     * operator knows the DM thread started from a public comment, plus the
+     * AI's public reply status (success / failure / not-replied) mirrors the
+     * visual language of the Comments sidebar (Phase 3).
+     *
+     * Null when:
+     *  - no conversation is selected
+     *  - the first inbound message has no source_comment_id (the common case)
+     */
+    #[Computed]
+    public function sourceCommentForSelected(): ?\App\Models\Comment
+    {
+        $conversation = $this->selectedConversation;
+
+        if (! $conversation) {
+            return null;
+        }
+
+        $firstInbound = $conversation->messages
+            ->firstWhere(fn ($m) => $m->isInbound() && $m->source_comment_id !== null);
+
+        if (! $firstInbound) {
+            return null;
+        }
+
+        return \App\Models\Comment::with(['page', 'pagesPost'])
+            ->find($firstInbound->source_comment_id);
     }
 
     public function setContactLeadStatus(int $contactId, string $status): void

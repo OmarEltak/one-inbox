@@ -7,6 +7,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Comment extends Model
 {
@@ -60,5 +62,30 @@ class Comment extends Model
     public function pagesPost(): BelongsTo
     {
         return $this->belongsTo(PagesPost::class);
+    }
+
+    /**
+     * Phase 1 (comment-to-DM link) — every inbound DM Message whose
+     * provenance resolves back to this Comment via `source_comment_id`.
+     * Multiple rows are theoretically possible (same commenter keeps
+     * replying inside the 72h match window), but in practice this is a
+     * HasMany so Phase 3's Comments sidebar can show the full thread.
+     */
+    public function inboundMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'source_comment_id')
+            ->orderBy('platform_sent_at');
+    }
+
+    /**
+     * Phase 1 (comment-to-DM link) — the common "first DM reply" case.
+     * Phase 2's inbox banner needs ONE message to deep-link into, so this
+     * returns the earliest matching inbound Message. Null when the
+     * commenter never replied to the DM.
+     */
+    public function inboundMessage(): HasOne
+    {
+        return $this->hasOne(Message::class, 'source_comment_id')
+            ->orderBy('platform_sent_at');
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +22,7 @@ class Message extends Model
         'media_type',
         'media_asset_id',
         'reply_to_message_id',
+        'source_comment_id',
         'ai_confidence',
         'metadata',
         'platform_sent_at',
@@ -67,6 +70,18 @@ class Message extends Model
     public function mediaAsset(): BelongsTo
     {
         return $this->belongsTo(MediaAsset::class);
+    }
+
+    /**
+     * Phase 1 (comment-to-DM link) — the Comment row whose AI public-reply
+     * one-shot DM triggered this inbound message. Null for every other
+     * message (normal inbound, outbound, user, AI, etc.). Populated by
+     * ProcessIncomingMessage immediately after Meta inbound DM Message
+     * creation when the sender matches a recent `dm_graph_message_id`.
+     */
+    public function sourceComment(): BelongsTo
+    {
+        return $this->belongsTo(Comment::class, 'source_comment_id');
     }
 
     public function isInbound(): bool

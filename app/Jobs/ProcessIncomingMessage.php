@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Contracts\AiProviderInterface;
 use App\Events\NewMessageReceived;
+use App\Models\Comment;
 use App\Models\Contact;
 use App\Models\ContactPlatform;
 use App\Models\Conversation;
@@ -287,6 +288,18 @@ class ProcessIncomingMessage implements ShouldQueue
             'media_type'          => $ownedMediaType ?? ($messageData['attachments'][0]['type'] ?? null),
             'platform_sent_at'    => isset($event['timestamp']) ? \Carbon\Carbon::createFromTimestampMs($event['timestamp']) : now(),
         ]);
+
+        // Phase 1 (comment-to-DM link): if this is a true inbound DM (not an
+        // echo of our own outbound), see whether the sender just replied to a
+        // one-shot DM we sent via SendAiCommentReplyJob. We can't match the
+        // inbound mid to Comment.dm_graph_message_id directly — Meta assigns
+        // separate `mid` values to the outbound private-reply we sent and the
+        // contact's inbound reply. So we match on sender identity + 72h window
+        // against comments where dm_graph_message_id is non-null (i.e. the
+        // outbound DM actually succeeded).
+        if (! $isEcho) {
+            $this->linkInboundMessageToSourceComment($message, $page, $contactExternalId);
+        }
 
         $conversation->update([
             'last_message_at'      => now(),
@@ -1458,6 +1471,47 @@ class ProcessIncomingMessage implements ShouldQueue
         }
 
         $this->safeBroadcast(NewMessageReceived::fromMessage($message, $conversation));
+    }
+
+    /**
+     * Phase 1 (comment-to-DM link) — stamp `source_comment_id` on an inbound
+     * Facebook/Instagram DM when the sender just replied to a one-shot DM we
+     * sent via SendAiCommentReplyJob.
+     *
+     * Match condition:
+     *   - page_id = inbound DM's page (keep rows scoped per team)
+     *   - commenter_platform_id = DM sender's PSID/IGSID
+     *   - dm_graph_message_id IS NOT NULL (we actually sent a DM to them)
+     *   - dm_sent_at >= now() - 72 hours (bounded recency, avoids stale rows)
+     *
+     * Multiple hits are possible if the same commenter comments twice within
+     * 72h; the most recent dm_sent_at wins. New-messages-only — no historical
+     * backfill.
+     */
+    protected function linkInboundMessageToSourceComment(Message $message, Page $page, string $senderExternalId): void
+    {
+        $comment = Comment::query()
+            ->where('page_id', $page->id)
+            ->where('commenter_platform_id', $senderExternalId)
+            ->whereNotNull('dm_graph_message_id')
+            ->where('dm_sent_at', '>=', now()->subHours(72))
+            ->orderByDesc('dm_sent_at')
+            ->first();
+
+        if ($comment === null) {
+            return;
+        }
+
+        $message->forceFill(['source_comment_id' => $comment->id])->save();
+
+        Log::info('comment_to_dm_link.matched', [
+            'message_id'            => $message->id,
+            'comment_id'            => $comment->id,
+            'page_id'               => $page->id,
+            'commenter_platform_id' => $senderExternalId,
+            'dm_graph_message_id'   => $comment->dm_graph_message_id,
+            'inbound_mid'           => $message->platform_message_id,
+        ]);
     }
 
     protected function fetchMetaSenderProfile(string $senderId, Page $page): array

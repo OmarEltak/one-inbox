@@ -114,11 +114,29 @@
 
                     // Onboarding gate — super-admins bypass so they can navigate any team.
                     $hasConnections = $user->isSuperAdmin() ? true : ($team?->hasAnyConnection() ?? false);
-                    $lockedRoutes = ['inbox', 'contacts.index', 'campaigns.index', 'analytics', 'ai-chat', 'settings.ai'];
+                    $lockedRoutes = ['inbox', 'comments.index', 'contacts.index', 'campaigns.index', 'analytics', 'ai-chat', 'settings.ai'];
                     $lockIf = fn (string $route): bool => ! $hasConnections && in_array($route, $lockedRoutes, true);
 
                     if ($user->isHeadAdmin() || $user->hasPermission('dashboard')) {
                         $navItems[] = ['route' => 'dashboard', 'label' => 'Home', 'icon' => 'home', 'match' => 'dashboard', 'locked' => false];
+                    }
+                    // Comments — only shown when the team has at least one active
+                    // FB or IG page (comments only exist on those platforms).
+                    // Rendered right after the Inbox dropdown so operators find
+                    // "what did the AI say publicly" one hop from the inbox.
+                    $hasFbOrIgPage = $team
+                        ? \Illuminate\Support\Facades\Cache::remember(
+                            "team.{$team->id}.has_fb_or_ig_page",
+                            300,
+                            fn () => \App\Models\Page::query()
+                                ->where('team_id', $team->id)
+                                ->where('is_active', true)
+                                ->whereIn('platform', ['facebook', 'instagram'])
+                                ->exists()
+                        )
+                        : false;
+                    if (($user->isHeadAdmin() || $user->hasPermission('inbox')) && ($hasFbOrIgPage || $user->isSuperAdmin())) {
+                        $navItems[] = ['route' => 'comments.index', 'label' => 'Comments', 'icon' => 'chat-bubble-left-right', 'match' => 'comments.index', 'locked' => $lockIf('comments.index')];
                     }
                     if ($user->isHeadAdmin() || $user->hasPermission('contacts')) {
                         $navItems[] = ['route' => 'contacts.index', 'label' => 'Contacts', 'icon' => 'users', 'match' => 'contacts*', 'locked' => $lockIf('contacts.index')];

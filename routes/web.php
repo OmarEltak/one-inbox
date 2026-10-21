@@ -300,6 +300,12 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
     // Contacts
     Route::get('contacts', \App\Livewire\Contacts\Index::class)->middleware(['permission:contacts', 'require.connection'])->name('contacts.index');
 
+    // Comments — AI public comment activity across the team's active FB/IG pages.
+    // Gated by `require.connection` to match other authenticated screens: a
+    // team with no active pages has no comments by definition. We reuse the
+    // `inbox` permission (same operator-visibility semantics as the inbox).
+    Route::get('comments', \App\Livewire\Comments\Index::class)->middleware(['permission:inbox', 'require.connection'])->name('comments.index');
+
     // Connections (connected accounts/pages)
     Route::middleware('permission:connections')->group(function () {
         Route::get('connections', \App\Livewire\Connections\Index::class)->name('connections.index');
