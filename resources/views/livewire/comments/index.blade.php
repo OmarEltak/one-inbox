@@ -204,7 +204,7 @@
                                             — <span class="text-zinc-600">{{ $decisionLabel }}</span>
                                         @endif
                                         @if($comment->decision_reason)
-                                            <br><span class="text-[11px] text-zinc-400" dir="auto">{{ $comment->decision_reason }}</span>
+                                            <br><span class="text-[11px] text-zinc-400" dir="auto">{{ $this->prettyDecisionReason($comment->decision_reason) }}</span>
                                         @endif
                                     </p>
                                 </div>

@@ -511,122 +511,48 @@
                         @endif
                     </div>
                 @endif
-            </div>
 
-            {{-- Phase 2 — Comment-source banner.
-                 Rendered inline (normal flow, not fixed/absolute) above the
-                 message list when the thread's first inbound DM was linked
-                 to a public comment via source_comment_id. Visual states
-                 (success / failure / not-replied) mirror the Comments
-                 sidebar in resources/views/livewire/comments/index.blade.php
-                 so the two surfaces stay consistent. Alpine state is a bare
-                 inline object literal — no function reference — see
-                 inbox-composer-safety failure mode 5. --}}
-            @if($this->sourceCommentForSelected)
-                @php
-                    $__sc              = $this->sourceCommentForSelected;
-                    $__scPlatform      = $__sc->page?->platform ?? $conv->platform;
-                    $__scHasReply      = ! empty($__sc->graph_reply_id);
-                    $__scHasError      = ! empty($__sc->graph_error);
-                    $__scErrorMsg      = null;
-                    if ($__scHasError && is_array($__sc->graph_error)) {
-                        $__scErrorMsg = $__sc->graph_error['message']
-                            ?? $__sc->graph_error['error']['message']
-                            ?? json_encode($__sc->graph_error);
-                    }
-                    // Facebook: facebook.com/{comment_id} resolves to the
-                    // comment (same convention as the Comments sidebar).
-                    // Instagram: no reliable public comment URL from the id
-                    // alone, so we omit the "View post" link for IG.
-                    $__scPostUrl = null;
-                    if ($__scPlatform === 'facebook' && $__sc->platform_comment_id) {
-                        $__scPostUrl = 'https://facebook.com/' . $__sc->platform_comment_id;
-                    }
-                    $__scCommenter = $__sc->commenter_name ?: __('Unknown');
-                @endphp
-                <div x-data="{ open: false }"
-                     class="border-b border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-900/10 px-4 py-2.5">
-                    <div class="flex items-start gap-2">
-                        <flux:icon name="chat-bubble-left-right" class="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" />
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between gap-2 flex-wrap">
-                                <p class="text-xs font-medium text-zinc-800 dark:text-zinc-200 text-start">
-                                    {{ __('Started from a comment by :name', ['name' => $__scCommenter]) }}
-                                </p>
-                                <div class="flex items-center gap-2 flex-shrink-0">
-                                    @if($__scPostUrl)
-                                        <a href="{{ $__scPostUrl }}" target="_blank" rel="noopener noreferrer"
-                                           class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 dark:text-emerald-400">
-                                            <flux:icon name="arrow-top-right-on-square" class="w-3 h-3" />
-                                            {{ __('View post') }}
-                                        </a>
-                                    @endif
-                                    <button type="button" x-on:click="open = !open"
-                                            class="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 cursor-pointer">
-                                        <span x-text="open ? @js(__('Hide details')) : @js(__('Show details'))"></span>
-                                        <flux:icon name="chevron-down" class="w-3 h-3 transition-transform" x-bind:class="open && 'rotate-180'" />
-                                    </button>
-                                </div>
-                            </div>
-                            <div x-show="open" x-cloak x-transition class="mt-2 space-y-2">
-                                {{-- Original comment text --}}
-                                <div class="rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2">
-                                    <p class="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 mb-1 text-start">
-                                        {{ __('Original comment') }}
-                                    </p>
-                                    <p class="text-xs text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap break-words" dir="auto">
-                                        {{ $__sc->text ?: __('(empty)') }}
-                                    </p>
-                                </div>
-                                {{-- AI public reply — same three states as the
-                                     Comments sidebar: ✓ success / ⚠ failure /
-                                     ⊖ not-replied. --}}
-                                @if($__scHasReply && $__sc->reply_text)
-                                    <div class="flex items-start gap-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2">
-                                        <flux:icon name="check-circle" class="size-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[11px] uppercase tracking-wider font-semibold text-emerald-700 mb-1 text-start">
-                                                {{ __('AI public reply') }}
-                                            </p>
-                                            <p class="text-xs text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap break-words" dir="auto">
-                                                {{ $__sc->reply_text }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                @elseif($__scHasError)
-                                    <div class="flex items-start gap-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 px-3 py-2">
-                                        <flux:icon name="exclamation-triangle" class="size-4 text-red-500 flex-shrink-0 mt-0.5" />
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[11px] uppercase tracking-wider font-semibold text-red-700 mb-1 text-start">
-                                                {{ __('Public reply failed') }}
-                                            </p>
-                                            <p class="text-xs text-red-600 dark:text-red-300 break-words" dir="auto">
-                                                {{ $__scErrorMsg ?: __('Unknown Graph API error') }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="flex items-start gap-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-3 py-2">
-                                        <flux:icon name="minus-circle" class="size-4 text-zinc-400 flex-shrink-0 mt-0.5" />
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[11px] uppercase tracking-wider font-semibold text-zinc-500 mb-1 text-start">
-                                                {{ __('No public reply') }}
-                                            </p>
-                                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                                                @if($__sc->decision)
-                                                    {{ __('Decision') }}: <span class="text-zinc-700 dark:text-zinc-300">{{ $__sc->decision }}</span>
-                                                @else
-                                                    {{ __('AI chose not to reply publicly.') }}
-                                                @endif
-                                            </p>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
+                {{-- Phase 2 — Comment-source chip.
+                     Compact inline tag that replaces the earlier collapsible
+                     banner. Sits in the same badges row as Active / AI /
+                     Converted. Facebook: clickable link to the public comment
+                     via facebook.com/{comment_id}. Instagram: non-link chip
+                     with a tooltip (no reliable public comment URL from id
+                     alone). Pure HTML — no Alpine / no inline script — see
+                     inbox-composer-safety invariants #3, #4, #5. --}}
+                @if($this->sourceCommentForSelected)
+                    @php
+                        $__sc          = $this->sourceCommentForSelected;
+                        $__scPlatform  = $__sc->page?->platform ?? $conv->platform;
+                        $__scIsFb      = $__scPlatform === 'facebook';
+                        $__scIsIg      = in_array($__scPlatform, ['instagram', 'instagram_business'], true);
+                        $__scLabel     = $__scIsIg
+                            ? __('Instagram comment')
+                            : __('Facebook comment');
+                        $__scUrl       = ($__scIsFb && $__sc->platform_comment_id)
+                            ? 'https://facebook.com/' . $__sc->platform_comment_id
+                            : null;
+                        $__scDotColor  = $__scIsIg ? 'bg-pink-500' : 'bg-blue-500';
+                    @endphp
+                    @if($__scUrl)
+                        <a href="{{ $__scUrl }}" target="_blank" rel="noopener"
+                           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 cursor-pointer transition-colors text-xs font-medium bg-zinc-100 dark:bg-zinc-800 !text-zinc-900 dark:!text-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                           title="{{ $__scLabel }}">
+                            <span class="w-2 h-2 rounded-full {{ $__scDotColor }} flex-shrink-0"></span>
+                            <flux:icon name="chat-bubble-left-right" class="w-3.5 h-3.5" />
+                            <span>{{ $__scLabel }}</span>
+                        </a>
+                    @else
+                        <span
+                           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 text-xs font-medium bg-zinc-100 dark:bg-zinc-800 !text-zinc-500 dark:!text-zinc-500 cursor-default opacity-70"
+                           title="{{ __('No public link available') }}">
+                            <span class="w-2 h-2 rounded-full {{ $__scDotColor }} flex-shrink-0"></span>
+                            <flux:icon name="chat-bubble-left-right" class="w-3.5 h-3.5" />
+                            <span>{{ $__scLabel }}</span>
+                        </span>
+                    @endif
+                @endif
+            </div>
 
             {{-- Messages --}}
             <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 flex flex-col" id="message-thread"

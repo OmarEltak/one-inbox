@@ -128,3 +128,36 @@ test('sourceCommentForSelected is null when the thread has no linked comment', f
 
     expect($component->instance()->sourceCommentForSelected)->toBeNull();
 });
+
+test('facebook comment chip renders as a link to facebook.com/{platform_comment_id}', function () {
+    [$user, $team] = makeUserWithTeam();
+    $team->forceFill(['onboarding_completed_at' => now()])->save();
+    $page = phase2Page($team, 'facebook');
+    [$conversation, $comment] = phase2ConversationWithComment($team, $page, withComment: true);
+
+    $expectedUrl = 'https://facebook.com/' . $comment->platform_comment_id;
+
+    Livewire::actingAs($user->fresh())
+        ->test(Index::class)
+        ->set('selectedConversationId', $conversation->id)
+        ->assertSee('Facebook comment')
+        ->assertSeeHtml('href="' . $expectedUrl . '"')
+        ->assertSeeHtml('target="_blank"')
+        ->assertSeeHtml('rel="noopener"');
+});
+
+test('instagram comment chip renders as a non-link span with tooltip', function () {
+    [$user, $team] = makeUserWithTeam();
+    $team->forceFill(['onboarding_completed_at' => now()])->save();
+    $page = phase2Page($team, 'instagram');
+    [$conversation, $comment] = phase2ConversationWithComment($team, $page, withComment: true);
+
+    $forbiddenUrl = 'https://facebook.com/' . $comment->platform_comment_id;
+
+    Livewire::actingAs($user->fresh())
+        ->test(Index::class)
+        ->set('selectedConversationId', $conversation->id)
+        ->assertSee('Instagram comment')
+        ->assertDontSeeHtml('href="' . $forbiddenUrl . '"')
+        ->assertSeeHtml('title="No public link available"');
+});

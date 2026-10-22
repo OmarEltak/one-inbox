@@ -147,6 +147,24 @@ class Index extends Component
             ->all();
     }
 
+    /**
+     * Translate stored `decision_reason` values into user-friendly text.
+     * Internal keys (set by jobs) map to localized strings. Legacy / free-form
+     * reasons fall through as-is so filter_* reasons remain readable.
+     */
+    public function prettyDecisionReason(?string $raw): string
+    {
+        if ($raw === null || $raw === '') {
+            return '';
+        }
+
+        return match ($raw) {
+            'ai_provider_empty_response'   => __('The AI provider returned an empty response.'),
+            'ai_classifier_empty_response' => __('The AI classifier returned an empty response.'),
+            default                        => $raw,
+        };
+    }
+
     #[Computed]
     public function comments(): LengthAwarePaginator
     {

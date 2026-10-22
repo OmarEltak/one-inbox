@@ -103,7 +103,7 @@ class SendAiCommentReplyJob implements ShouldQueue
             // Per pin #5: empty string = provider failure. Do NOT send fallback text.
             $comment->update([
                 'decision'        => Comment::DECISION_ERROR_AI,
-                'decision_reason' => 'Nara returned empty string',
+                'decision_reason' => 'ai_provider_empty_response',
             ]);
             return;
         }

@@ -43,7 +43,7 @@ class ClassifyCommentJob implements ShouldQueue
         if ($response === '') {
             $comment->update([
                 'decision'        => Comment::DECISION_ERROR_AI,
-                'decision_reason' => 'classifier returned empty (Nara failure)',
+                'decision_reason' => 'ai_classifier_empty_response',
             ]);
             return;
         }
