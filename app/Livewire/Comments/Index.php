@@ -158,10 +158,14 @@ class Index extends Component
             return '';
         }
 
+        // Includes legacy raw strings written by jobs before 2026-10-22 so
+        // existing DB rows render as translated text rather than raw jargon.
         return match ($raw) {
-            'ai_provider_empty_response'   => __('The AI provider returned an empty response.'),
-            'ai_classifier_empty_response' => __('The AI classifier returned an empty response.'),
-            default                        => $raw,
+            'ai_provider_empty_response',
+            'Nara returned empty string'                 => __('The AI provider returned an empty response.'),
+            'ai_classifier_empty_response',
+            'classifier returned empty (Nara failure)'   => __('The AI classifier returned an empty response.'),
+            default                                      => $raw,
         };
     }
 
