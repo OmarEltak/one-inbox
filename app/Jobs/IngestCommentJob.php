@@ -55,15 +55,10 @@ class IngestCommentJob implements ShouldQueue
             return;
         }
 
-        // 3. Resolve/cache post.
+        // 3. Resolve/cache post. Always returns a PagesPost (uses now() as the
+        // created_at_platform fallback if the Graph fetch failed — see
+        // PostCreationTimeCache::resolve() comment).
         $post = $postCache->resolve($page, $this->parsed['platform_post_id']);
-        if (! $post) {
-            Log::warning('IngestCommentJob: could not resolve post creation time', [
-                'page_id' => $page->id,
-                'post_id' => $this->parsed['platform_post_id'],
-            ]);
-            return;
-        }
 
         // 4. Run filter decision tree.
         $decision = $filter->decide($page, $page->aiConfig, $post, $this->parsed);
