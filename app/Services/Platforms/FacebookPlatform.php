@@ -50,9 +50,16 @@ class FacebookPlatform extends AbstractPlatform
      *
      * Phase 0 audit (2026-10-24) found via-FB IG pages had subscribed_fields=["messages"]
      * only despite the scope being granted → zero IG comment webhooks ever delivered.
-     * Added `comments` + `message_echoes` here to fix.
+     * Added `comments` here to fix.
+     *
+     * `message_echoes` is NOT valid for IG — it's a Messenger-only field. Sending it
+     * causes Meta to reject the WHOLE subscribe call with (#100). IG's whitelist:
+     * {comment_poll_response, comments, follow, live_comments, mentions, message_edit,
+     *  message_reactions, messages, messaging_optins, messaging_postbacks,
+     *  messaging_referral, messaging_seen, onboarding_welcome_message_series,
+     *  share_to_story, standby, story_insights, story_poll_response}.
      */
-    public const IG_VIA_FB_SUBSCRIBED_FIELDS = 'messages,message_echoes,comments';
+    public const IG_VIA_FB_SUBSCRIBED_FIELDS = 'messages,comments';
 
     protected string $graphUrl;
     protected string $appId;
