@@ -25,7 +25,7 @@ The developer never requested `pages_read_user_content` directly (it's a scope M
 
 > "it triggered Meta to match a Facebook Login for Business config that includes the deprecated pages_read_user_content scope, and Meta rejected the whole request"
 
-So `pages_manage_engagement` was **removed from the scope list** as a temporary workaround, with the note: "Re-add ONLY after the FLfB config on the Meta Dev Console is cleaned of pages_read_user_content."
+So `pages_manage_engagement` was **removed from the scope list** as a temporary workaround, with the note: "Re-add ONLY after the (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) config on the Meta Dev Console is cleaned of pages_read_user_content."
 
 That workaround is still in effect today.
 
@@ -44,7 +44,7 @@ https://www.facebook.com/v21.0/dialog/oauth?
   state={CSRF_TOKEN}
 ```
 
-**Key fact:** our code uses **classic Facebook Login** (no `config_id` parameter). Not Facebook Login for Business (FLfB). This matters — see validation section below.
+**Key fact:** our code uses **classic Facebook Login** (no `config_id` parameter). Not Facebook Login for Business ((IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB)). This matters — see validation section below.
 
 `FacebookPlatform::getInstagramViaFacebookConnectUrl()` at line 103-120 is the same pattern but adds `instagram_basic, instagram_manage_messages, instagram_manage_comments`.
 
@@ -82,7 +82,7 @@ Confirmed via Dev Console:
 - Instagram API — no `pages_read_user_content` ✓
 - WhatsApp — no `pages_read_user_content` ✓
 
-### FLfB config "One Inbox Messaging" (`config_id=896835833159946`)
+### (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) config "One Inbox Messaging" (`config_id=896835833159946`)
 
 Current scope list:
 
@@ -99,7 +99,7 @@ pages_show_list
 pages_utility_messaging
 ```
 
-**`pages_manage_engagement` is already in the FLfB config.** `instagram_business_manage_comments` is NOT in this config but we don't need it right now (the older `instagram_manage_comments` covers us).
+**`pages_manage_engagement` is already in the (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) config.** `instagram_business_manage_comments` is NOT in this config but we don't need it right now (the older `instagram_manage_comments` covers us).
 
 ### Classic Login settings (app-wide)
 
@@ -167,7 +167,7 @@ Result: same generic "Sorry, something went wrong."
 
 ### Why both failed
 
-Our prod code does NOT use `config_id`. Both tests above targeted the FLfB config directly, but the prod OAuth flow is classic Facebook Login. The FLfB test URLs likely failed due to a parameter requirement specific to FLfB flows (not scope-related). This diagnostic path was a dead end for our actual use case.
+Our prod code does NOT use `config_id`. Both tests above targeted the (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) config directly, but the prod OAuth flow is classic Facebook Login. The (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) test URLs likely failed due to a parameter requirement specific to (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) flows (not scope-related). This diagnostic path was a dead end for our actual use case.
 
 ### Test #3 — mirrors prod code (NO `config_id`, with `pages_manage_engagement` added)
 
@@ -199,7 +199,7 @@ Meta's error says users would silently ignore the deprecated scope — meaning f
 
 4. **Meta Developer Support ticket** — the error enforcement likely lives in Meta's internal scope-matching logic that isn't exposed on the Dev Console. A support ticket citing this exact error + screenshots of the clean use cases + the failing OAuth URL is likely needed.
 
-5. **FLfB configs OTHER than "One Inbox Messaging"** — audit all FLfB configs on the app, not just the primary one.
+5. **(IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) configs OTHER than "One Inbox Messaging"** — audit all (IGNORE: FLfB was a wrong diagnosis — this app uses classic FB Login, not FLfB) configs on the app, not just the primary one.
 
 ---
 

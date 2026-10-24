@@ -39,6 +39,21 @@ class FacebookPlatform extends AbstractPlatform
      */
     public const IG_SUBSCRIBED_FIELDS = 'messages';
 
+    /**
+     * subscribed_fields for Instagram pages connected VIA FACEBOOK (graph.facebook.com).
+     *
+     * These IG pages piggyback on a parent FB Page token and are subscribed through
+     * graph.facebook.com/{ig_account_id}/subscribed_apps (NOT graph.instagram.com).
+     * `instagram_manage_comments` IS granted on this OAuth path (see
+     * getInstagramViaFacebookConnectUrl()), so `comments` is safe here — unlike
+     * the direct-IG path above where the scope is NOT requested.
+     *
+     * Phase 0 audit (2026-10-24) found via-FB IG pages had subscribed_fields=["messages"]
+     * only despite the scope being granted → zero IG comment webhooks ever delivered.
+     * Added `comments` + `message_echoes` here to fix.
+     */
+    public const IG_VIA_FB_SUBSCRIBED_FIELDS = 'messages,message_echoes,comments';
+
     protected string $graphUrl;
     protected string $appId;
     protected string $appSecret;
@@ -80,16 +95,14 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id' => $this->appId,
                 'redirect_uri' => $redirectUri,
-                // pages_manage_engagement removed on 2026-09-07 — it triggered Meta to
-                // match a Facebook Login for Business config that includes the deprecated
-                // pages_read_user_content scope, and Meta rejected the whole request with
-                // "Invalid Scopes: pages_read_user_content". Re-add ONLY after the FLfB
-                // config on the Meta Dev Console is cleaned of pages_read_user_content.
+                // pages_manage_engagement — required for AI to publish public replies on page
+                // comments. Grants at Standard Access for app testers immediately; real users
+                // need App Review approval (in progress).
                 // business_management added 2026-10-07: Business-Portfolio-owned Pages
                 // (New Pages Experience, 2024+) do NOT appear in /me/accounts when the
                 // user's Page role was assigned via the Business layer rather than as
                 // a direct Page admin. Required to traverse /me/businesses/{id}/owned_pages.
-                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,business_management',
+                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,business_management',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -111,9 +124,11 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
-                // pages_manage_engagement removed on 2026-09-07 — see getConnectUrl() note.
+                // pages_manage_engagement — required for AI to publish public replies on page
+                // comments. Grants at Standard Access for app testers immediately; real users
+                // need App Review approval (in progress).
                 // business_management added 2026-10-07 — see getConnectUrl() note.
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
@@ -158,6 +173,23 @@ class FacebookPlatform extends AbstractPlatform
                 ]);
 
             if ($igPage) {
+                // Subscribe the IG page itself via FB graph to the IG webhook fields.
+                // This is a SEPARATE subscription from the FB page's above — this one
+                // posts to the IG account's platform_page_id (IGBID), using
+                // graph.facebook.com (NOT graph.instagram.com — that host is for the
+                // direct-IG login path which has a different scope story and MUST NOT
+                // get `comments` added without instagram_business_manage_comments; see
+                // IG_SUBSCRIBED_FIELDS constant comment).
+                //
+                // Why this is needed: Phase 0 audit (2026-10-24) found via-FB IG pages
+                // had subscribed_fields=["messages"] only, so Meta never pushed IG
+                // comment webhooks even though instagram_manage_comments was granted
+                // (visible in granular_scopes on the user token).
+                Http::withToken($igPage->page_access_token)
+                    ->post("{$this->graphUrl}/{$igPage->platform_page_id}/subscribed_apps", [
+                        'subscribed_fields' => self::IG_VIA_FB_SUBSCRIBED_FIELDS,
+                    ]);
+
                 \App\Jobs\SyncPageConversations::dispatch(pageId: $igPage->id);
             }
         }
@@ -385,6 +417,10 @@ class FacebookPlatform extends AbstractPlatform
         // we send to platform_page_id since that's what webhook routing keys off as well.
         $igbid = $page->platform_page_id;
 
+        // TODO: direct IG comments subscription awaits the instagram_business_manage_comments
+        //       scope being added to the Dev Console Instagram use case + the OAuth URL —
+        //       see tasks/meta-pages-manage-engagement-blocker.md. Do NOT add `comments`
+        //       here until then, or the whole subscribe call 400s and DMs silently break.
         $response = Http::post("https://graph.instagram.com/{$version}/{$igbid}/subscribed_apps", [
             'subscribed_fields' => self::IG_SUBSCRIBED_FIELDS,
             'access_token'      => $page->page_access_token,
