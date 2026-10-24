@@ -20,9 +20,12 @@ class ResubscribeInstagramCommentsWebhook extends Command
 {
     protected $signature = 'app:resubscribe-ig-comments {--dry-run : Print planned POSTs without executing}';
 
-    protected $description = 'Re-subscribe IG-via-FB pages to messages,message_echoes,comments on graph.facebook.com.';
+    protected $description = 'Re-subscribe IG-via-FB pages to messages,comments on graph.facebook.com.';
 
-    private const SUBSCRIBED_FIELDS = 'messages,message_echoes,comments';
+    // Mirror of FacebookPlatform::IG_VIA_FB_SUBSCRIBED_FIELDS. IG accepts a
+    // specific field whitelist — `message_echoes` is Messenger-only and causes
+    // (#100) rejection on IG.
+    private const SUBSCRIBED_FIELDS = 'messages,comments';
 
     private const GRAPH_URL = 'https://graph.facebook.com/v23.0';
 
