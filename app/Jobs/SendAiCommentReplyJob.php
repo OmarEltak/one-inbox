@@ -283,8 +283,18 @@ class SendAiCommentReplyJob implements ShouldQueue
     /** @return array{ok: bool, id?: string, status: int, error?: array} */
     protected function postPublicReply(Comment $comment, string $reply): array
     {
+        // Meta uses different reply subpaths per platform:
+        //   • FB comments:  POST /{comment-id}/comments   (nested comment thread)
+        //   • IG comments:  POST /{comment-id}/replies    (IG's reply model)
+        // Hitting the wrong one returns HTTP 400 "(#100) Unsupported post request.
+        // Object with ID '…' does not exist, cannot be loaded due to missing
+        // permissions, or does not support this operation" because the subpath
+        // literally doesn't exist on the other platform's comment object.
+        $isIg    = in_array($comment->page->platform, ['instagram', 'instagram_business'], true);
+        $subpath = $isIg ? 'replies' : 'comments';
+
         $response = Http::timeout(15)->asJson()->post(
-            "https://graph.facebook.com/v21.0/{$comment->platform_comment_id}/comments",
+            "https://graph.facebook.com/v21.0/{$comment->platform_comment_id}/{$subpath}",
             [
                 'message'      => $reply,
                 'access_token' => $comment->page->page_access_token,
