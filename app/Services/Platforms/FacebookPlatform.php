@@ -102,14 +102,18 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id' => $this->appId,
                 'redirect_uri' => $redirectUri,
-                // pages_manage_engagement — required for AI to publish public replies on page
-                // comments. Grants at Standard Access for app testers immediately; real users
-                // need App Review approval (in progress).
+                // pages_manage_posts (NOT pages_manage_engagement) — required for AI to publish
+                // public replies on page comments. We previously used pages_manage_engagement but
+                // 2026-10-25 testing in browser confirmed Meta's OAuth validator internally
+                // bundles pages_manage_engagement with the deprecated pages_read_user_content
+                // and rejects the whole OAuth with "Invalid Scopes: pages_read_user_content"
+                // even though we never request the deprecated scope. pages_manage_posts covers
+                // the same POST /{comment-id}/comments endpoint without triggering the bundle.
                 // business_management added 2026-10-07: Business-Portfolio-owned Pages
                 // (New Pages Experience, 2024+) do NOT appear in /me/accounts when the
                 // user's Page role was assigned via the Business layer rather than as
                 // a direct Page admin. Required to traverse /me/businesses/{id}/owned_pages.
-                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,business_management',
+                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,business_management',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -131,11 +135,11 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
-                // pages_manage_engagement — required for AI to publish public replies on page
-                // comments. Grants at Standard Access for app testers immediately; real users
-                // need App Review approval (in progress).
+                // pages_manage_posts (NOT pages_manage_engagement) — see getConnectUrl() note
+                // explaining the Meta OAuth validator dependency-chain bug that makes the
+                // former unusable.
                 // business_management added 2026-10-07 — see getConnectUrl() note.
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
