@@ -150,30 +150,33 @@ class NaraRouterProvider implements AiProviderInterface
         // CORRECT behavior — silently falling back to a hardcoded model would
         // hide the real problem (API unreachable + operator never set an
         // override) behind a bill we didn't expect.
-        $pool = new NaraRouterPool(
-            baseUrl: $this->baseUrl,
-            apiKey: $this->apiKey,
-            alertEmail: $this->alertEmail,
-        );
+        // Precedence (changed 2026-10-25 for pay-as-you-go demo path):
+        //   1. Explicit NARAROUTER_TEXT_MODELS / NARAROUTER_VISION_MODELS env
+        //      strings win — operator opted into a specific (possibly paid)
+        //      chain and we must honor it, not silently use the free pool.
+        //   2. NaraRouterPool (nightly /v1/models discovery, free-tier only)
+        //      is the fallback when env is unset.
+        //   3. Empty chain → callChat() throws AiAllProvidersUnavailable.
+        $textConfigured   = (string) (config('services.nararouter.text_models') ?: '');
+        $legacyFallback   = (string) (config('services.nararouter.fallback_models') ?: '');
+        $textString       = $textConfigured !== '' ? $textConfigured : $legacyFallback;
+        $visionConfigured = (string) (config('services.nararouter.vision_models') ?: '');
 
-        $this->textChain   = $pool->chainFor('text');
-        $this->visionChain = $pool->chainFor('vision');
+        $this->textChain   = $textString !== '' ? $this->parseChain($textString) : [];
+        $this->visionChain = $visionConfigured !== '' ? $this->parseChain($visionConfigured) : [];
 
-        // Pool-empty env override. These stay as explicit operator-set strings
-        // only — no default values here.
-        if (empty($this->textChain)) {
-            $textConfigured = (string) (config('services.nararouter.text_models') ?: '');
-            $legacyFallback = (string) (config('services.nararouter.fallback_models') ?: '');
-            $textString     = $textConfigured !== '' ? $textConfigured : $legacyFallback;
-            if ($textString !== '') {
-                $this->textChain = $this->parseChain($textString);
+        if (empty($this->textChain) || empty($this->visionChain)) {
+            $pool = new NaraRouterPool(
+                baseUrl: $this->baseUrl,
+                apiKey: $this->apiKey,
+                alertEmail: $this->alertEmail,
+            );
+
+            if (empty($this->textChain)) {
+                $this->textChain = $pool->chainFor('text');
             }
-        }
-
-        if (empty($this->visionChain)) {
-            $visionConfigured = (string) (config('services.nararouter.vision_models') ?: '');
-            if ($visionConfigured !== '') {
-                $this->visionChain = $this->parseChain($visionConfigured);
+            if (empty($this->visionChain)) {
+                $this->visionChain = $pool->chainFor('vision');
             }
         }
     }
