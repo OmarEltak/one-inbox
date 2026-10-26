@@ -139,7 +139,31 @@
                 @endif
             </div>
         </div>
-        <p class="mt-8 text-xs text-cream/60 text-center">{{ __('Need more than 12,000 credits, on-prem, or a franchise?') }} <a href="{{ route('contact') }}" class="underline hover:text-emer-400">{{ __('Email Omar') }}</a> — {{ __('he handles enterprise personally.') }}</p>
+    </div>
+</section>
+
+{{-- ═══════ ENTERPRISE / CUSTOM CTA ═══════ --}}
+<section class="bg-ink text-cream pb-24 grain relative">
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="bg-ink2 border border-cream/15 rounded-2xl p-8 md:p-10 fade-up">
+            <div class="grid md:grid-cols-3 gap-8 items-center">
+                <div class="md:col-span-2">
+                    <div class="text-xs uppercase tracking-[0.2em] text-emer-400 mb-3">{{ __('Enterprise / Custom') }}</div>
+                    <h3 class="serif text-3xl md:text-4xl leading-tight mb-4">
+                        {{ __('Running at scale?') }} <span class="serif-it text-emer-400">{{ __('Let us build your plan.') }}</span>
+                    </h3>
+                    <p class="text-cream/70 text-sm leading-relaxed">
+                        {{ __('For teams needing 20,000+ AI credits, WhatsApp group automation, API integration with your student/CRM database, dedicated instance with data isolation, or on-prem deployment — contact us for a tailored proposal.') }}
+                    </p>
+                </div>
+                <div class="md:text-end">
+                    <a href="{{ route('contact') }}" class="inline-flex items-center gap-2 bg-emer-500 text-ink px-7 py-4 rounded-full font-semibold text-base hover:bg-emer-400 transition">
+                        {{ __('Request Custom Quote') }}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
