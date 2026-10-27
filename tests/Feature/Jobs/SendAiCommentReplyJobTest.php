@@ -121,6 +121,42 @@ it('sends a DM when dm_mode=always', function () {
     expect($comment->dm_graph_message_id)->toBe('M_1');
 });
 
+it('routes Direct IG Login comment replies to graph.instagram.com, not graph.facebook.com', function () {
+    // Regression: 2026-10-27 OWOWOKWKSJF comments failed with error code 190
+    // "Invalid OAuth access token - Cannot parse access token" because the
+    // reply job hard-coded graph.facebook.com but Direct IG Login tokens are
+    // minted by graph.instagram.com's auth server and are not interchangeable.
+    // Pages with metadata.auth_type='instagram_business' must use graph.instagram.com
+    // for both the public reply AND the DM — same convention as
+    // FacebookPlatform::fetchAndStoreMessages (host switch at line 1261 of that file).
+    Http::fake([
+        'graph.instagram.com/v21.0/*/replies'  => Http::response(['id' => 'IG_REPLY_1'], 200),
+        'graph.instagram.com/v21.0/*/messages*' => Http::response(['message_id' => 'IG_M_1'], 200),
+    ]);
+    $ai = Mockery::mock(AiProviderInterface::class);
+    $ai->shouldReceive('generateText')->twice()->andReturn('public reply', 'dm text');
+
+    $comment = makeCommentForSend([
+        'dm_mode' => AiConfig::COMMENT_DM_ALWAYS,
+    ]);
+    // Flip the page into a Direct IG Login page by matching the convention
+    // from FacebookPlatform::handleInstagramCallback (auth_type sentinel).
+    $comment->page->update([
+        'platform' => 'instagram',
+        'metadata' => array_merge($comment->page->metadata ?? [], ['auth_type' => 'instagram_business']),
+    ]);
+    $comment->load('page');
+
+    (new SendAiCommentReplyJob($comment->id))->handle($ai);
+
+    Http::assertSentCount(2);
+    // Explicit negative: zero calls to graph.facebook.com (that's what prod hit by mistake).
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), 'graph.facebook.com'));
+    expect($comment->fresh()->decision)->toBe(Comment::DECISION_REPLIED)
+        ->and($comment->fresh()->graph_reply_id)->toBe('IG_REPLY_1')
+        ->and($comment->fresh()->dm_graph_message_id)->toBe('IG_M_1');
+});
+
 it('skips DM when dm_mode=on_purchase_intent and no keyword match', function () {
     Http::fake([
         'graph.facebook.com/v21.0/*/comments' => Http::response(['id' => 'REPLY_1'], 200),

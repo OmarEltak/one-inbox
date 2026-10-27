@@ -280,6 +280,24 @@ class SendAiCommentReplyJob implements ShouldQueue
             ->all();
     }
 
+    /**
+     * Pick the Graph host for a page. Direct IG Login pages have tokens minted
+     * by graph.instagram.com's auth server and are rejected by graph.facebook.com
+     * with code 190 "Cannot parse access token" (observed in prod on
+     * OWOWOKWKSJF comments 2026-10-27). Other IG pages (via-FB) and all FB
+     * pages use graph.facebook.com. The auth_type sentinel 'instagram_business'
+     * is written by handleInstagramCallback and matches the convention used in
+     * FacebookPlatform::fetchAndStoreMessages + fetchConversationsPage +
+     * sendMessageToConversation (lines 925, 983, 1122, 1235) — keep in sync.
+     */
+    protected function graphHostFor(Comment $comment): string
+    {
+        $isInstagramBusiness = ($comment->page->metadata['auth_type'] ?? null) === 'instagram_business';
+        return $isInstagramBusiness
+            ? 'https://graph.instagram.com/v21.0'
+            : 'https://graph.facebook.com/v21.0';
+    }
+
     /** @return array{ok: bool, id?: string, status: int, error?: array} */
     protected function postPublicReply(Comment $comment, string $reply): array
     {
@@ -292,9 +310,10 @@ class SendAiCommentReplyJob implements ShouldQueue
         // literally doesn't exist on the other platform's comment object.
         $isIg    = in_array($comment->page->platform, ['instagram', 'instagram_business'], true);
         $subpath = $isIg ? 'replies' : 'comments';
+        $host    = $this->graphHostFor($comment);
 
         $response = Http::timeout(15)->asJson()->post(
-            "https://graph.facebook.com/v21.0/{$comment->platform_comment_id}/{$subpath}",
+            "{$host}/{$comment->platform_comment_id}/{$subpath}",
             [
                 'message'      => $reply,
                 'access_token' => $comment->page->page_access_token,
@@ -324,8 +343,9 @@ class SendAiCommentReplyJob implements ShouldQueue
         }
 
         $token = $comment->page->page_access_token;
+        $host  = $this->graphHostFor($comment);
         $response = Http::timeout(15)->asJson()->post(
-            "https://graph.facebook.com/v21.0/{$recipientContainerId}/messages?access_token=" . urlencode($token),
+            "{$host}/{$recipientContainerId}/messages?access_token=" . urlencode($token),
             $body
         );
 
