@@ -187,13 +187,13 @@ History of attempts (grepping for `pages_manage_engagement` in git log is useful
 
 Brandk-style FB pages will show `Public reply failed — (#200) pages_read_user_content not available` on `/comments` for every attempted public reply. The DM path still works (that's the actual customer value). Decision will land as `DECISION_DM_ONLY` if the AI config has DM enabled; otherwise `DECISION_ERROR_GRAPH_API`.
 
-### Options NOT YET IMPLEMENTED (future work)
+### Attempted workarounds — results
 
-1. **Open a Meta support ticket** about the OAuth validator bundling `pages_manage_engagement` with the deprecated `pages_read_user_content`. Reference the error message. This is the only clean fix.
-2. **Soft-degrade the UI**: when `SendAiCommentReplyJob::postPublicReply` returns a 200/`pages_read_user_content`-flavoured error, mark decision as `DECISION_DM_ONLY` with `decision_reason='fb_scope_bundling_bug'` instead of `DECISION_ERROR_GRAPH_API`. Keeps `/comments` honest (not alarmist red rows) while the DM value is still delivered. One day's work, no scope changes.
-3. **Switch public-reply strategy**: post as a NEW top-level comment on the parent post (which `pages_manage_posts` DOES cover) tagged with `@commenter`. UX is worse (no threading), but it works today. ~2 days work including testing.
+1. **Open a Meta support ticket** about the OAuth validator bundling `pages_manage_engagement` with the deprecated `pages_read_user_content`. Reference the error message. **This is the only known clean fix.** Not opened yet.
+2. **Soft-degrade the UI**: when a DM also succeeds, the current terminal state already lands as `DECISION_DM_ONLY` with `decision_reason='public reply blocked, DM delivered'` — see `SendAiCommentReplyJob::handle` match block. The `/comments` row shows the yellow "DM ONLY" chip + the Meta error text + green "DM sent". That's honest. No code change needed.
+3. **~~Switch public-reply strategy: fall back to a top-level comment on the parent post~~ (ATTEMPTED 2026-10-27, DID NOT WORK — commit `32e6fd5` added it, `6e82df9` reverted it).** When nested `POST /{comment-id}/comments` returned the pages_read_user_content error, we retried `POST /{post-id}/comments` — Meta rejected THAT too with `(#200) You do not have sufficient permissions to perform this action`. So `pages_manage_posts` does NOT cover posting comments on the Page's own posts either, even though docs suggest it should. The specific error from the fallback endpoint is captured in the regression test `it surfaces the FB scope-bundling error cleanly as decision=dm_only`. **Do NOT re-try this fallback approach without first proving via a live Graph call that the scope matrix has changed.**
 
-Prefer (1) + (2) over (3). Do NOT attempt (4) — adding `pages_manage_engagement` again. That's attempt #6 and the pin test will stop you.
+Only (1) is a real forward path. Do NOT attempt re-adding `pages_manage_engagement` — the pin test (`FacebookPlatformScopesTest`) will stop you, and the 5-attempt history is documented above.
 
 ---
 

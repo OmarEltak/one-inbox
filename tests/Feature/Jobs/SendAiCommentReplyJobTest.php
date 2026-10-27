@@ -121,86 +121,35 @@ it('sends a DM when dm_mode=always', function () {
     expect($comment->dm_graph_message_id)->toBe('M_1');
 });
 
-it('falls back to a top-level comment on the parent post when FB nested reply hits the pages_manage_engagement bundling bug', function () {
-    // 2026-10-27: Brandk-style failure. Nested-reply attempt returns 400 with
-    // code 200 / "pages_read_user_content" (Meta's canonical shape for "you
-    // lack pages_manage_engagement"). The job must retry against
-    // POST /{post-id}/comments with the commenter's name prefixed, and set
-    // graph_reply_id + graph_error.fallback_used so /comments can show the
-    // "replied as top-level" badge.
+it('surfaces the FB scope-bundling error cleanly as decision=dm_only when a DM also succeeds', function () {
+    // 2026-10-27: Brandk-style failure. pages_manage_engagement cannot be
+    // requested (OAuth validator bundling bug) and the "fall back to top-level
+    // comment on the parent post" workaround ALSO fails with "(#200) You do
+    // not have sufficient permissions" — pages_manage_posts does not cover
+    // comments on the Page's own post either (tested on prod, same error).
+    // So this is the honest terminal state: public reply fails, DM delivers,
+    // decision = DM_ONLY. The error body is stored on graph_error so
+    // /comments can show the full "pages_read_user_content" message that
+    // Meta returns, and operators know why no public response landed.
     Http::fake([
         'graph.facebook.com/v21.0/COMMENT_1/comments' => Http::response([
             'error' => ['code' => 200, 'type' => 'OAuthException', 'message' => '(#200) The permission(s) pages_read_user_content are not available. It could because either they are deprecated or need to be approved by App Review.'],
         ], 400),
-        'graph.facebook.com/v21.0/POST_1/comments' => Http::response(['id' => 'FALLBACK_REPLY_1'], 200),
+        'graph.facebook.com/v21.0/*/messages*' => Http::response(['message_id' => 'M_1'], 200),
     ]);
     $ai = Mockery::mock(AiProviderInterface::class);
-    $ai->shouldReceive('generateText')->once()->andReturn('Thanks for asking!');
-    $comment = makeCommentForSend();
-    // Pin the IDs used by the fakes so the matcher knows which URL to serve.
-    $comment->update(['platform_comment_id' => 'COMMENT_1', 'commenter_name' => 'Jane']);
-    $comment->pagesPost->update(['platform_post_id' => 'POST_1']);
-    $comment->load('page', 'pagesPost');
+    $ai->shouldReceive('generateText')->twice()->andReturn('public text', 'dm text');
+    $comment = makeCommentForSend(['dm_mode' => AiConfig::COMMENT_DM_ALWAYS]);
+    $comment->update(['platform_comment_id' => 'COMMENT_1']);
+    $comment->load('page');
 
     (new SendAiCommentReplyJob($comment->id))->handle($ai);
 
     $comment->refresh();
-    expect($comment->decision)->toBe(Comment::DECISION_REPLIED)
-        ->and($comment->graph_reply_id)->toBe('FALLBACK_REPLY_1')
-        ->and($comment->graph_error['fallback_used'] ?? null)->toBe('top_level_post_comment');
-    // The fallback MUST prefix the reply with the commenter name so it reads
-    // as a direct response even though it is not nested under their comment.
-    Http::assertSent(fn ($r) => str_ends_with($r->url(), 'POST_1/comments')
-        && str_contains($r['message'], '@Jane')
-        && str_contains($r['message'], 'Thanks for asking!'));
-});
-
-it('does NOT fall back to top-level when FB nested reply fails for a non-scope-bundling reason', function () {
-    // Guard: only pages_read_user_content triggers the fallback. Any other 4xx
-    // (e.g. comment deleted) must surface as DECISION_ERROR_GRAPH_API, not get
-    // silently re-posted as a new comment on the parent post.
-    Http::fake([
-        'graph.facebook.com/v21.0/COMMENT_X/comments' => Http::response([
-            'error' => ['code' => 100, 'message' => '(#100) Object with ID COMMENT_X does not exist'],
-        ], 400),
-    ]);
-    $ai = Mockery::mock(AiProviderInterface::class);
-    $ai->shouldReceive('generateText')->once()->andReturn('hi!');
-    $comment = makeCommentForSend();
-    $comment->update(['platform_comment_id' => 'COMMENT_X']);
-    $comment->pagesPost->update(['platform_post_id' => 'POST_X']);
-    $comment->load('page', 'pagesPost');
-
-    (new SendAiCommentReplyJob($comment->id))->handle($ai);
-
-    expect($comment->fresh()->decision)->toBe(Comment::DECISION_ERROR_GRAPH_API);
-    // Must NOT have made the fallback call.
-    Http::assertNotSent(fn ($r) => str_ends_with($r->url(), 'POST_X/comments'));
-});
-
-it('skips the top-level fallback when the comment is itself a reply to another comment (would land on wrong thread)', function () {
-    // A fallback top-level comment on the parent POST would be nowhere near
-    // the thread the reply was for. Better to surface the error than lie.
-    Http::fake([
-        'graph.facebook.com/v21.0/*/comments' => Http::response([
-            'error' => ['code' => 200, 'message' => 'pages_read_user_content'],
-        ], 400),
-    ]);
-    $ai = Mockery::mock(AiProviderInterface::class);
-    $ai->shouldReceive('generateText')->once()->andReturn('hi!');
-    $comment = makeCommentForSend();
-    $comment->update([
-        'platform_comment_id' => 'NESTED_COMMENT_1',
-        'parent_comment_id'   => 'SOME_OTHER_COMMENT',  // => this comment is a reply, not top-level
-    ]);
-    $comment->pagesPost->update(['platform_post_id' => 'POST_Z']);
-    $comment->load('page', 'pagesPost');
-
-    (new SendAiCommentReplyJob($comment->id))->handle($ai);
-
-    expect($comment->fresh()->decision)->toBe(Comment::DECISION_ERROR_GRAPH_API);
-    // Fallback must NOT have been attempted — only ONE call was made.
-    Http::assertSentCount(1);
+    expect($comment->decision)->toBe(Comment::DECISION_DM_ONLY)
+        ->and($comment->decision_reason)->toContain('public reply blocked')
+        ->and($comment->dm_sent_at)->not->toBeNull()
+        ->and($comment->graph_error['error']['message'] ?? null)->toContain('pages_read_user_content');
 });
 
 it('routes Direct IG Login comment replies to graph.instagram.com, not graph.facebook.com', function () {
