@@ -33,7 +33,7 @@ class SendAiCommentReplyJob implements ShouldQueue
 
     public function handle(AiProviderInterface $ai): void
     {
-        $comment = Comment::with('page.team', 'page.aiConfig')->find($this->commentId);
+        $comment = Comment::with('page.team', 'page.aiConfig', 'pagesPost')->find($this->commentId);
         if (! $comment || $comment->decision !== null) {
             return;
         }
@@ -118,6 +118,12 @@ class SendAiCommentReplyJob implements ShouldQueue
             $publicOk = $graphResp['ok'];
             if ($publicOk) {
                 $comment->graph_reply_id = $graphResp['id'];
+                if (! empty($graphResp['fallback_used'])) {
+                    // Record so /comments can show the subtle "replied as top-level
+                    // comment on parent post" badge and operators can tell apart
+                    // nested-reply success from fallback success without reading logs.
+                    $comment->graph_error = ['fallback_used' => 'top_level_post_comment', 'reason' => 'fb_scope_bundling_pages_manage_engagement'];
+                }
             } else {
                 $comment->graph_error = $graphResp['error'] ?? null;
                 Log::warning('SendAiCommentReplyJob: public reply failed', [
@@ -298,7 +304,7 @@ class SendAiCommentReplyJob implements ShouldQueue
             : 'https://graph.facebook.com/v21.0';
     }
 
-    /** @return array{ok: bool, id?: string, status: int, error?: array} */
+    /** @return array{ok: bool, id?: string, status: int, error?: array, fallback_used?: bool} */
     protected function postPublicReply(Comment $comment, string $reply): array
     {
         // Meta uses different reply subpaths per platform:
@@ -321,6 +327,92 @@ class SendAiCommentReplyJob implements ShouldQueue
         );
 
         if ($response->successful()) {
+            return ['ok' => true, 'id' => (string) $response->json('id'), 'status' => $response->status()];
+        }
+
+        $errorBody = (array) $response->json();
+
+        // 2026-10-27 fallback: FB nested replies on a user's comment need
+        // pages_manage_engagement, which we cannot request (OAuth validator
+        // bundling bug with deprecated pages_read_user_content — see
+        // tests/Unit/Services/Platforms/FacebookPlatformScopesTest.php and the
+        // comments-architecture skill §6 for the 5-attempt history). When Meta
+        // returns the specific "pages_read_user_content not available" error,
+        // retry by posting a NEW top-level comment on the Page's own post
+        // (POST /{post-id}/comments) — that endpoint is covered by
+        // pages_manage_posts which we DO have. Prefix with the commenter's name
+        // so the reply still reads as a direct response. IG does NOT get this
+        // fallback (its comment reply path works fine via /replies). Remove this
+        // fallback branch if Meta ever fixes the bundling bug and we can re-add
+        // pages_manage_engagement — the primary nested path is a better UX.
+        if (! $isIg && $this->isScopeBundlingError($response->status(), $errorBody) && $this->canFallBackToTopLevel($comment)) {
+            $fallback = $this->postTopLevelCommentFallback($comment, $reply, $host);
+            if ($fallback['ok']) {
+                return $fallback + ['fallback_used' => true];
+            }
+            // Fallback also failed — return THAT error, more actionable than
+            // the pages_read_user_content one we already knew about.
+            return $fallback + ['fallback_used' => true];
+        }
+
+        return ['ok' => false, 'status' => $response->status(), 'error' => $errorBody];
+    }
+
+    /**
+     * Detect Meta's "you lack pages_manage_engagement" error. Code 200 +
+     * message containing 'pages_read_user_content' is Meta's canonical shape
+     * for this since 2026-09 (confirmed by the Brandk prod error row at
+     * /comments on 2026-10-27). Any other 4xx is a different problem.
+     */
+    protected function isScopeBundlingError(int $status, array $errorBody): bool
+    {
+        if ($status !== 400 && $status !== 403) {
+            return false;
+        }
+        $err  = $errorBody['error'] ?? [];
+        $code = (int) ($err['code'] ?? 0);
+        $msg  = (string) ($err['message'] ?? '');
+        return $code === 200 && str_contains($msg, 'pages_read_user_content');
+    }
+
+    /**
+     * Fallback is only valid when we know the parent post ID. For nested
+     * reply-to-a-reply the top-level fallback would land on the WRONG thread,
+     * so skip the fallback — better to surface the error than lie publicly.
+     */
+    protected function canFallBackToTopLevel(Comment $comment): bool
+    {
+        if ($comment->parent_comment_id !== null) {
+            return false;
+        }
+        $post = $comment->pagesPost;
+        return $post !== null && ! empty($post->platform_post_id);
+    }
+
+    /** @return array{ok: bool, id?: string, status: int, error?: array} */
+    protected function postTopLevelCommentFallback(Comment $comment, string $reply, string $host): array
+    {
+        $postId = (string) $comment->pagesPost->platform_post_id;
+        // Prefix with commenter name so the reply reads as a direct response
+        // even though it is not nested. FB does NOT auto-notify tagged people
+        // without proper @mention tagging (which requires another scope),
+        // so this is just human-readable attribution, not a real tag.
+        $prefixedReply = "@{$comment->commenter_name} {$reply}";
+
+        $response = Http::timeout(15)->asJson()->post(
+            "{$host}/{$postId}/comments",
+            [
+                'message'      => $prefixedReply,
+                'access_token' => $comment->page->page_access_token,
+            ]
+        );
+
+        if ($response->successful()) {
+            Log::info('SendAiCommentReplyJob: nested reply blocked by scope bundling; delivered as top-level comment on parent post', [
+                'comment_id'   => $comment->id,
+                'post_id'      => $postId,
+                'reply_id'     => (string) $response->json('id'),
+            ]);
             return ['ok' => true, 'id' => (string) $response->json('id'), 'status' => $response->status()];
         }
 
