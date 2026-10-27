@@ -81,7 +81,12 @@ it('shows the Direct (IG Login) button to super-admins while the app is unapprov
         ->assertSee('only receives DMs from app testers');
 });
 
-it('subscribes Business Login pages to messages only', function () {
+it('subscribes Business Login pages to messages AND comments', function () {
+    // 2026-10-27: Direct IG Login now also subscribes to comments. The OAuth
+    // scope `instagram_business_manage_comments` was added at the same time —
+    // see FacebookPlatform::getInstagramConnectUrl + IG_SUBSCRIBED_FIELDS.
+    // Pre-condition for prod: the scope must be enabled in the Direct IG Login
+    // app's Instagram use-case Permissions on developers.facebook.com.
     Http::fake(['graph.instagram.com/*' => Http::response(['success' => true])]);
 
     $page = Page::factory()->create([
@@ -93,7 +98,18 @@ it('subscribes Business Login pages to messages only', function () {
     expect(app(FacebookPlatform::class)->subscribeInstagramPage($page))->toBeTrue();
 
     Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/17841400000000001/subscribed_apps')
-        && $r['subscribed_fields'] === 'messages');
+        && $r['subscribed_fields'] === 'messages,comments');
+});
+
+it('requests the comments scope in the Direct IG Login OAuth URL', function () {
+    // Regression pin: if this scope ever gets dropped from the OAuth URL
+    // without also dropping `comments` from IG_SUBSCRIBED_FIELDS, Meta rejects
+    // the whole subscribe call and DMs silently stop working for new connects.
+    $url = app(FacebookPlatform::class)->getInstagramConnectUrl();
+
+    expect($url)->toContain('instagram_business_manage_comments')
+        ->and($url)->toContain('instagram_business_manage_messages')
+        ->and($url)->toContain('instagram_business_basic');
 });
 
 it('reports success when the Instagram message subscription succeeds', function () {

@@ -30,14 +30,18 @@ class FacebookPlatform extends AbstractPlatform
     /**
      * subscribed_fields for Instagram Business Login pages (graph.instagram.com).
      *
-     * `messages` ONLY. Do NOT add `comments` back: it needs
-     * instagram_business_manage_comments, which getInstagramConnectUrl() does
-     * not request, and Meta rejects the WHOLE call (400 "Application does not
-     * have the capability") — so `messages` silently never gets subscribed and
-     * the account shows "Connected" but receives zero DMs. Shipped that way
-     * 2026-09-06 → 2026-10-01. Add `comments` only together with the scope.
+     * Includes `comments` — getInstagramConnectUrl() now requests the matching
+     * `instagram_business_manage_comments` scope (2026-10-27). Prerequisite:
+     * that scope must also be listed in the Direct IG Login app's Instagram
+     * use-case Permissions in developers.facebook.com, otherwise Meta rejects
+     * the OAuth with "Invalid Scopes" for every user. If a prod incident shows
+     * that error, revert this constant to 'messages' + drop the scope from
+     * getInstagramConnectUrl() + ask the user to add the Permission in the Dev
+     * Console. Historical note: this was 'messages' only from 2026-09-06 →
+     * 2026-10-27 because the scope wasn't requested — DMs would silently break
+     * if we added `comments` without the scope (Meta rejects the whole call).
      */
-    public const IG_SUBSCRIBED_FIELDS = 'messages';
+    public const IG_SUBSCRIBED_FIELDS = 'messages,comments';
 
     /**
      * subscribed_fields for Instagram pages connected VIA FACEBOOK (graph.facebook.com).
@@ -223,7 +227,13 @@ class FacebookPlatform extends AbstractPlatform
         $params = [
             'client_id'     => $this->instagramAppId,
             'redirect_uri'  => $redirectUri,
-            'scope'         => 'instagram_business_basic,instagram_business_manage_messages',
+            // instagram_business_manage_comments added 2026-10-27 so Direct IG
+            // Login pages can subscribe to the `comments` webhook field (see
+            // IG_SUBSCRIBED_FIELDS). REQUIRES the scope to also be listed in
+            // the Direct IG Login app's Instagram use-case Permissions on
+            // developers.facebook.com — otherwise Meta returns "Invalid Scopes"
+            // and OAuth fails for every user.
+            'scope'         => 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments',
             'response_type' => 'code',
             'state'         => $state,
         ];
@@ -310,7 +320,7 @@ class FacebookPlatform extends AbstractPlatform
                 'email'            => null,
                 'access_token'     => $longLivedToken,
                 'token_expires_at' => now()->addSeconds($expiresIn),
-                'scopes'           => ['instagram_business_basic', 'instagram_business_manage_messages'],
+                'scopes'           => ['instagram_business_basic', 'instagram_business_manage_messages', 'instagram_business_manage_comments'],
                 'is_active'        => true,
                 'connected_at'     => now(),
             ]
@@ -428,10 +438,11 @@ class FacebookPlatform extends AbstractPlatform
         // we send to platform_page_id since that's what webhook routing keys off as well.
         $igbid = $page->platform_page_id;
 
-        // TODO: direct IG comments subscription awaits the instagram_business_manage_comments
-        //       scope being added to the Dev Console Instagram use case + the OAuth URL —
-        //       see tasks/meta-pages-manage-engagement-blocker.md. Do NOT add `comments`
-        //       here until then, or the whole subscribe call 400s and DMs silently break.
+        // 2026-10-27: `comments` is now in IG_SUBSCRIBED_FIELDS and the OAuth
+        // scope `instagram_business_manage_comments` is in getInstagramConnectUrl().
+        // If this POST starts 400ing with "Application does not have the capability",
+        // the scope is missing from the Dev Console Permissions list — see the
+        // IG_SUBSCRIBED_FIELDS docblock for the rollback path.
         $response = Http::post("https://graph.instagram.com/{$version}/{$igbid}/subscribed_apps", [
             'subscribed_fields' => self::IG_SUBSCRIBED_FIELDS,
             'access_token'      => $page->page_access_token,

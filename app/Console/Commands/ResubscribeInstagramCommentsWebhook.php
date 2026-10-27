@@ -10,11 +10,14 @@ use Illuminate\Support\Facades\Http;
 
 /**
  * One-shot operational command: re-subscribe existing IG-via-FB pages with
- * `subscribed_fields=messages,message_echoes,comments` so IG comment webhooks
- * actually arrive. Direct IG Business Login pages are intentionally skipped —
- * their scope story (instagram_business_manage_comments) is not yet granted,
- * and POSTing `comments` to graph.instagram.com/.../subscribed_apps 400s the
- * WHOLE call and silently kills DMs. See FacebookPlatform::IG_SUBSCRIBED_FIELDS.
+ * `subscribed_fields=messages,comments` so IG comment webhooks actually
+ * arrive. Direct IG Business Login pages are still skipped by this command —
+ * NOT because the scope is missing anymore (as of 2026-10-27 it is requested
+ * in getInstagramConnectUrl + listed in IG_SUBSCRIBED_FIELDS), but because
+ * for Direct IG Login pages the user must RECONNECT to get a token that
+ * carries the new scope. subscribeInstagramPage() reruns on reconnect and
+ * subscribes to `messages,comments` automatically — this command would only
+ * attempt it with the OLD token which lacks the capability and would 400.
  */
 class ResubscribeInstagramCommentsWebhook extends Command
 {
