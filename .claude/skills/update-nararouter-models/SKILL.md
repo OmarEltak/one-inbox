@@ -150,8 +150,7 @@ ssh root@187.77.67.94 'cd /var/www/ot1-pro.com
 
 ## What the skill does NOT do
 
-- **Does not modify `NARAROUTER_MODEL`** (the "hint" primary). That's a separate operation — usually you want to change the chain FIRST and only change `NARAROUTER_MODEL` if you want a callable outside the chain (rare). If the user wants to change the primary, ask if they mean "make X the head of text chain" (this skill) or "pin X as a direct-call model" (different flow).
-- **Does not modify `NARAROUTER_SCORING_MODEL`.** Scoring is background and should stay cheap (`nemotron-3-ultra-free` weight 0.01x). Change only on user request.
+- **Does not modify `NARAROUTER_MODEL` or `NARAROUTER_SCORING_MODEL`** — both are **deprecated as of 2026-10-27**. The provider reads them on boot, emits a one-time `Log::info` deprecation notice if either is set, then internally forces them to empty string. All call sites (`scoreMessage`, `analyzeConversation`, `generateText`, `chatWithAdmin`) now pass empty hint → go through the main `NARAROUTER_TEXT_MODELS` chain (paid primary → paid fallback → free safety net). If a user asks to "change the primary model", that means "change the head of `NARAROUTER_TEXT_MODELS`" — this skill. If they ask to "pin a scoring model", explain the deprecation: either (a) move the preferred scoring model to the HEAD of the text chain, or (b) build a scoring-specific chain env var (new infra, not covered by this skill — don't resurrect the direct-call hint, it's what we just removed).
 - **Does not modify keys, base_url, reset_hours, cooldown_min, or alert_email.** Those are in `nararouter-ops` §6.
 - **Does not restart Reverb, scheduler, or nginx.** Only the queue workers need the new config.
 

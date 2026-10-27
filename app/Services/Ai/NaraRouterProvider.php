@@ -118,8 +118,24 @@ class NaraRouterProvider implements AiProviderInterface
         // catalog poisons every callChat() with a guaranteed 400 (bit us
         // 2026-10-08 with nemotron-3-super-free and 2026-10-19 with
         // nemotron-3-ultra-free). Empty hint → callChat delegates to the chain.
-        $this->model                 = config('services.nararouter.model', '');
-        $this->scoringModel          = config('services.nararouter.scoring_model', $this->model);
+        // DEPRECATED 2026-10-27: NARAROUTER_MODEL and NARAROUTER_SCORING_MODEL used
+        // to be a "model hint" that bypassed the failover chain and did a one-shot
+        // direct call. That meant if the hinted model's free-tier quota was burned,
+        // scoring and admin-chat calls silently 429'd with no fallback. All callers
+        // now pass empty hint → go through the main chain (paid primary, paid
+        // fallback, free safety-net, cross-chain, cooldown). The env vars stay
+        // readable for one release cycle so a rollback is possible if we need it,
+        // but internally we zero them out and log a one-time deprecation line.
+        $envModel        = (string) config('services.nararouter.model', '');
+        $envScoringModel = (string) config('services.nararouter.scoring_model', '');
+        if ($envModel !== '' || $envScoringModel !== '') {
+            Log::info('NaraRouter: NARAROUTER_MODEL / NARAROUTER_SCORING_MODEL are deprecated and ignored — all calls now route through the chain', [
+                'model_env'         => $envModel,
+                'scoring_model_env' => $envScoringModel,
+            ]);
+        }
+        $this->model        = '';
+        $this->scoringModel = '';
         $this->resetHours            = max(1, (int) config('services.nararouter.reset_hours', 5));
         $this->exhaustionCooldownMin = max(1, (int) config('services.nararouter.exhaustion_cooldown_min', 30));
         $this->alertEmail            = config('services.nararouter.alert_email');
@@ -872,13 +888,24 @@ class NaraRouterProvider implements AiProviderInterface
     }
 
     /**
-     * One-shot direct call bypassing both chains + failover. Used only when a
-     * caller passes a model hint that isn't in either configured chain (BC
-     * escape hatch for hard-pinned model names). No cache updates, no cascade.
+     * One-shot direct call for a hinted model, falling through to the main
+     * text chain on failure.
+     *
+     * BC escape hatch for callers that pin a specific model name. Internal code
+     * no longer uses this path (2026-10-27: scoring + admin chat switched to
+     * empty hint), but we keep it live for external/future callers.
+     *
+     * Failure semantics (changed 2026-10-27):
+     *   - HTTP 2xx with content          → return reply
+     *   - HTTP 400 (payload error)       → return '' (retrying payload bugs is pointless)
+     *   - HTTP 4xx (quota/auth) or 5xx   → cascade to dispatch(KIND_TEXT, ...)
+     *     so the caller gets the full chain safety net instead of a silent fail
+     *   - Cooldown active                → cascade handles the throw uniformly
      */
     protected function directCall(string $model, string $systemPrompt, array $conversationHistory, int $maxOutputTokens): string
     {
         if ($this->isInCooldown()) {
+            // Even the cascade would throw here — cheaper to throw directly.
             throw new AiAllProvidersUnavailable(
                 'NaraRouter global cooldown active — ' . $this->cooldownRemainingSec() . 's remaining'
             );
@@ -915,12 +942,22 @@ class NaraRouterProvider implements AiProviderInterface
             return (string) $response->json('choices.0.message.content', '');
         }
 
-        Log::warning('NaraRouter direct call failed (out-of-chain model hint)', [
+        $status = $response->status();
+        Log::warning('NaraRouter direct call failed (out-of-chain model hint) — cascading to main chain', [
             'model'  => $model,
-            'status' => $response->status(),
+            'status' => $status,
             'body'   => substr($response->body(), 0, 240),
         ]);
-        return '';
+
+        // 400 = payload error. Retrying on a different model won't help.
+        if ($status === 400) {
+            return '';
+        }
+
+        // Any other non-2xx (401/402/403/404/408/429/5xx/timeout): fall through to
+        // the main text chain so the caller gets the full failover safety net
+        // (deepseek → haiku → free safety-net → cross-chain → cooldown).
+        return $this->dispatch(self::KIND_TEXT, $systemPrompt, $conversationHistory, $maxOutputTokens);
     }
 
     /**

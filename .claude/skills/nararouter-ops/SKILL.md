@@ -61,13 +61,11 @@ When every (chain × model × key) attempt fails within one `dispatch()`, we (a)
 Set in prod `.env` at `/var/www/ot1-pro.com/.env`, mode 600, owner `deploy:deploy`. Never `git`-tracked.
 
 ```
-NARAROUTER_API_KEY=<primary — Nara account 1, Free tier>
-NARAROUTER_API_KEY_SECONDARY=<secondary — Nara account 2, Free tier>
+NARAROUTER_API_KEY=<primary — Nara PAYG account>
+NARAROUTER_API_KEY_SECONDARY=<secondary — optional isolation key>
 NARAROUTER_BASE_URL=https://router.bynara.id/v1
-NARAROUTER_MODEL=nemotron-3-ultra-free
-NARAROUTER_SCORING_MODEL=nemotron-3-ultra-free
-NARAROUTER_TEXT_MODELS=nemotron-3-ultra-free,nemotron-3-super-free,nemotron-3.5-lightning-free,agnes-2.5-flash
-NARAROUTER_VISION_MODELS=agnes-2.5-flash,nex-n2.5-pro,ling-3.0-flash-vl-free
+NARAROUTER_TEXT_MODELS=deepseek-v4.1-flash-fast,claude-haiku-5.5,nemotron-3.5-lightning-free,laguna-s-2.1
+NARAROUTER_VISION_MODELS=deepseek-v4.1-flash-fast,claude-haiku-5.5
 NARAROUTER_RESET_HOURS=5
 NARAROUTER_EXHAUSTION_COOLDOWN_MIN=30
 NARAROUTER_ALERT_EMAIL=omareltak7@gmail.com
@@ -75,30 +73,39 @@ NARAROUTER_ALERT_EMAIL=omareltak7@gmail.com
 
 Legacy `NARAROUTER_FALLBACK_MODELS` is still read as a BC fallback for `TEXT_MODELS` when the new var is absent. Leave it unset in fresh installs.
 
-### Model chain rationale
+**DEPRECATED env vars (2026-10-27):** `NARAROUTER_MODEL` and `NARAROUTER_SCORING_MODEL` are read on boot but **ignored**. They used to pin a specific model for admin-chat/generateText and scoring (one-shot direct call, no fallback). That meant any free-tier quota exhaustion silently 429'd scoring and admin paths with no safety net. All call sites now pass an empty hint and go through the main chain. Leave the vars present in prod `.env` through one release cycle for rollback; delete after. If they're set, the provider emits one `Log::info("NaraRouter: NARAROUTER_MODEL / NARAROUTER_SCORING_MODEL are deprecated and ignored…")` per worker boot so operators notice.
 
-Nara's Free plan gives you access to a limited model set with `-free` suffix on non-paid variants. Non-`-free` models (`qwen3.8-max`, `deepseek-v4-flash`, `glm-*`, `kimi-*`, etc.) now return `429 rate_limited "Insufficient credits"` — they require a paid top-up.
+### Model chain rationale (updated 2026-10-27)
 
-**Text chain** (customer-visible quality first, safety net last):
+As of the PAYG switch, chains lead with **paid** models for latency and append **free** models as a last-mile safety net before cross-chain fallback and cooldown. Deepseek + Claude Haiku are both vision-capable, fast, and cheap enough that scoring (which runs on every inbound message) also routes through them without a meaningful cost impact (~Rp1 per score ≈ $5/month at typical volume).
 
-| # | Model | Ctx | Vision | Why in this position |
+**Text chain** (paid primary → paid fallback → free safety net):
+
+| # | Model | Ctx | Vision | Role |
 |---|---|---|---|---|
-| 1 | `nemotron-3-ultra-free` | 1M | ❌ | Weight 0.01x — nearly-free NVIDIA Nemotron. Primary because it's reliable and cheap. |
-| 2 | `nemotron-3-super-free` | 262K | ❌ | Different Nemotron variant — outage isolation from Ultra. |
-| 3 | `nemotron-3.5-lightning-free` | 1M | ❌ | Newer generation. Currently intermittent (was 502-ing 2026-09-21) but recovers. |
-| 4 | `agnes-2.5-flash` | 512K | ✅ | Gemini Flash 2.5 — highest quality, works for text too. Final backup. |
+| 1 | `deepseek-v4.1-flash-fast` | 128K | ✅ | **Primary.** Sub-second TTFT, Rp15 per 4k tokens, best latency/quality/cost mix. |
+| 2 | `claude-haiku-5.5` | 200K | ✅ | **Paid fallback.** Different provider family → outage isolation from Deepseek. |
+| 3 | `nemotron-3.5-lightning-free` | 1M | ❌ | **Free safety net.** Slow (7-35s) but keeps AI alive if both paid tiers die. High ctx handles mid-conversation fallbacks. |
+| 4 | `laguna-s-2.1` | 512K | ❌ | **Free safety net 2.** Last resort before cross-chain → cooldown. |
 
-**Vision chain**:
+**Vision chain** (paid-only — no free vision models currently on Nara):
 
-| # | Model | Ctx | Why |
+| # | Model | Ctx | Role |
 |---|---|---|---|
-| 1 | `agnes-2.5-flash` | 512K | Only reliably-up vision-capable model on Free tier. Primary. |
-| 2 | `nex-n2.5-pro` | 262K | Free-tier vision. Currently 502-ing but should recover. |
-| 3 | `ling-3.0-flash-vl-free` | 262K | Alibaba vision-language (`-vl-` suffix). Currently 502-ing but should recover. |
+| 1 | `deepseek-v4.1-flash-fast` | 128K | **Primary.** Same model as text chain, vision-enabled. |
+| 2 | `claude-haiku-5.5` | 200K | **Paid fallback.** |
 
-### Scoring model
+When both vision models die, cross-chain fallback runs the TEXT chain in degraded mode (image dropped, system note added: "customer sent an image, model can't see it"). Because the text chain has free safety nets, vision tasks also benefit from the free fallback — just as text-only replies.
 
-`ScoreLeadJob` and `analyzeConversation` use `NARAROUTER_SCORING_MODEL = nemotron-3-ultra-free` (weight 0.01x). These are background jobs, never customer-visible. Using a cheap classifier here saves quota vs the reply chain. **Do not** upgrade this to a smart model "for better scoring" — the score doesn't drive customer-visible behavior directly.
+### Scoring model (as of 2026-10-27)
+
+`ScoreLeadJob` and `analyzeConversation` **no longer pin a model**. They pass empty hint to `callChat()`, routing through the full chain. Reasons:
+
+- Scoring was previously `NARAROUTER_SCORING_MODEL = nemotron-*` on direct-call semantics. If free quota 429'd, scoring silently died with no fallback.
+- With deepseek primary at ~Rp1 per score and sub-second TTFT, scoring is now faster (10-20x throughput per queue worker) and reliably survives free-tier outages.
+- Free Nemotron still catches 100% of scoring calls when both paid models fail, so cost is bounded on the upside.
+
+**Do not** restore `NARAROUTER_SCORING_MODEL` as an active setting. If someone needs scoring to use a different model again, add a scoring-specific chain env var instead of resurrecting the direct-call hint.
 
 ### Two-key rotation (unchanged from v1)
 

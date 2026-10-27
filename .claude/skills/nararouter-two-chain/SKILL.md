@@ -157,16 +157,16 @@ Pinned by `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php` (8 tests) — must
 | Method | Access | Purpose |
 |---|---|---|
 | `generateResponse(Conversation, Message, AiConfig)` | public | Customer-reply entry. Detects kind, calls `dispatch()`. |
-| `scoreMessage(Message, Contact)` | public | Background scoring. Uses `callChat()` with scoring model. |
-| `analyzeConversation(Conversation)` | public | Background analysis. Uses `callChat()` with scoring model. |
-| `generateText(string, string)` | public | Generic text call (used by CaptureExtractor). Uses `callChat()`. |
-| `chatWithAdmin(...)` | public | Admin Command Center chat. Uses `callChat()` with error strings. |
+| `scoreMessage(Message, Contact)` | public | Background scoring. Uses `callChat()` with **empty hint** → runs full main chain (changed 2026-10-27). |
+| `analyzeConversation(Conversation)` | public | Background analysis. Uses `callChat()` with **empty hint** → runs full main chain (changed 2026-10-27). |
+| `generateText(string, string)` | public | Generic text call (used by CaptureExtractor). Uses `callChat()` with **empty hint** → runs full main chain (changed 2026-10-27). |
+| `chatWithAdmin(...)` | public | Admin Command Center chat. Uses `callChat()` with **empty hint** → runs full main chain (changed 2026-10-27). |
 | `detectMessageKind(Message)` | public | Returns `'text'` or `'vision'`. Public for test/reuse. |
 | `coalesceRoles(array)` | public | Merges same-role turns. Public for tests. |
-| `callChat($modelHint, ...)` | protected | BC entry point — routes to `dispatch(text)` or `directCall()`. |
+| `callChat($modelHint, ...)` | protected | Routes to `dispatch(text)` (empty hint) or `directCall()` (out-of-chain hint). Internal code always passes empty hint. |
 | `dispatch($kind, ...)` | protected | Orchestrator — cooldown gate + primary chain + cross-fallback + exhaustion. |
 | `runChain($kind, ...)` | protected | Single-chain iterator. Returns status envelope. |
-| `directCall($model, ...)` | protected | One-shot, no cascade. Used only when `$modelHint` is outside both chains. |
+| `directCall($model, ...)` | protected | Hinted call. On 2xx → return reply; on 400 → return `''` (payload bug); on any other failure → cascade to `dispatch(KIND_TEXT, ...)`. Only reachable from external/future callers now; internal code bypasses it with empty hint (changed 2026-10-27). |
 | `currentModel($kind)` | protected | Cached active model for the chain, or head-of-chain. |
 | `markActiveModel($kind, $model)` | protected | Cache write preserving `reset_at`. |
 | `currentKeyIndex($kind)` | protected | Cached active key for the chain, or 0. |

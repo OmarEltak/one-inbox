@@ -132,11 +132,15 @@ NaraRouter runs **two independent model chains** (text + vision), each with its 
 
 Env-configurable, comma-separated:
 ```
-NARAROUTER_TEXT_MODELS=nemotron-3-ultra-free,nemotron-3-super-free,nemotron-3.5-lightning-free,agnes-2.5-flash
-NARAROUTER_VISION_MODELS=agnes-2.5-flash,nex-n2.5-pro,ling-3.0-flash-vl-free
+NARAROUTER_TEXT_MODELS=deepseek-v4.1-flash-fast,claude-haiku-5.5,nemotron-3.5-lightning-free,laguna-s-2.1
+NARAROUTER_VISION_MODELS=deepseek-v4.1-flash-fast,claude-haiku-5.5
 ```
 
+Current shape (as of 2026-10-27 PAYG switch): **paid primary → paid fallback → free safety net** on text; paid-only on vision (free vision pool is empty on Nara as of this writing). Deepseek + Haiku are both vision-capable so vision stays 2-deep without needing a text-only cross-fallback for most cases; when both vision models die, the existing cross-chain fallback routes the request through the text chain in degraded mode (image dropped, system note added).
+
 Names must **exactly** match Nara's aliases (probe `GET /v1/models` before adjusting — the runbook has the command). The legacy `NARAROUTER_FALLBACK_MODELS` is still read as a BC fallback for `text_models` when the new env var is unset.
+
+**Deprecated env vars (2026-10-27):** `NARAROUTER_MODEL` and `NARAROUTER_SCORING_MODEL`. They used to pin a specific model for `generateText`/`chatWithAdmin`/`scoreMessage`/`analyzeConversation` and triggered `directCall()` — a one-shot direct HTTP call with no fallback. That meant any free-tier quota exhaustion silently 429'd scoring + admin calls. All four call sites now pass empty hint and route through the main chain, inheriting the full failover + safety net. If either env var is set, the provider emits one `Log::info` deprecation line per boot. `directCall()` is kept as a BC escape hatch for external future callers but now cascades to `dispatch(KIND_TEXT, ...)` on any non-200 non-400 response.
 
 ### The mechanism
 `NaraRouterProvider::generateResponse` inspects the incoming `Message` via `detectMessageKind()`:
@@ -199,6 +203,7 @@ Two real code paths violate this without a guard:
 - `app/Exceptions/AiAllProvidersUnavailable.php`
 - `tests/Unit/Services/Ai/NaraRouterCoalesceTest.php`
 - `tests/Unit/Services/Ai/NaraRouterTwoChainTest.php`
+- `tests/Unit/Services/Ai/NaraRouterChainSafetyNetTest.php` (pins the 2026-10-27 unified-chain behavior: deprecated hint env vars ignored, hinted calls cascade to main chain)
 - Skills: `.claude/skills/nararouter-ops/`, `.claude/skills/nararouter-two-chain/`, `.claude/skills/update-nararouter-models/`
 
 ---
