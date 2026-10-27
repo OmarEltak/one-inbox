@@ -119,6 +119,21 @@ class BackfillPageMessages implements ShouldQueue
                         'page' => $page->id, 'name' => $page->name, 'error' => $msg,
                     ]);
 
+                    // Clear the in-progress flag so the /connections "Loading your
+                    // messages from X 0/N" bar stops lying about progress. Record a
+                    // paused reason + timestamp so a future reconnect-triggered
+                    // sync (or an admin re-dispatch) can tell this was an auth stop
+                    // rather than a fresh page. The DisconnectedPagesNotice banner
+                    // (driven by PageHealthCheckCommand's metadata.subscription_error)
+                    // is what nudges the user to reconnect.
+                    $page->forceFill([
+                        'metadata' => array_merge($page->metadata ?? [], [
+                            'backfill_in_progress_started_at' => null,
+                            'backfill_paused_at'              => now()->toIso8601String(),
+                            'backfill_paused_reason'          => 'auth_failed',
+                        ]),
+                    ])->saveQuietly();
+
                     return;
                 }
                 Log::warning('Message backfill failed for a conversation (skipping)', [
@@ -134,6 +149,36 @@ class BackfillPageMessages implements ShouldQueue
         $processed = $toProcess->count();
         $stillPending = $pending->count() - $processed > 0;
         $newRemaining = $unlimited ? 0 : max(0, $remaining - $processed);
+
+        // 2026-10-27: FacebookPlatform::fetchAndStoreMessages logs + returns 0
+        // on failure instead of throwing — so the earlier auth-fail bail at
+        // $authErrors >= 3 is only triggered when a lower-level exception
+        // escapes. The common Brandk-style stuck case is "every call returned
+        // 0, no exception". Detect that by checking whether ANY conversation
+        // we just processed actually got messages_fetched set. If none did,
+        // the backfill is making no forward progress — stop lying to the UI.
+        if ($processed > 0) {
+            $justFetched = Conversation::where('page_id', $page->id)
+                ->whereIn('id', $toProcess->pluck('id'))
+                ->whereJsonContains('metadata->messages_fetched', true)
+                ->count();
+
+            if ($justFetched === 0) {
+                Log::warning('Message backfill made zero progress this tick (likely auth or scope issue, see PageHealthCheckCommand)', [
+                    'page_id'   => $page->id,
+                    'name'      => $page->name,
+                    'processed' => $processed,
+                ]);
+                $page->forceFill([
+                    'metadata' => array_merge($page->metadata ?? [], [
+                        'backfill_in_progress_started_at' => null,
+                        'backfill_paused_at'              => now()->toIso8601String(),
+                        'backfill_paused_reason'          => 'no_progress',
+                    ]),
+                ])->saveQuietly();
+                return;
+            }
+        }
 
         if ($stillPending && ($unlimited || $newRemaining > 0)) {
             self::dispatch($page->id, $unlimited ? 0 : $newRemaining)->delay(now()->addSeconds(10));

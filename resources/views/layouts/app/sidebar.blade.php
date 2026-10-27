@@ -509,6 +509,15 @@
 
         @include('partials.ai-quota-banner')
 
+        {{-- Floating "page X needs reconnect" nudge. Reads active FB/IG pages
+             with metadata.subscription_error (written hourly by
+             PageHealthCheckCommand). Dismissible per-page per-incident. --}}
+        @auth
+            @if($team)
+                <livewire:disconnected-pages-notice />
+            @endif
+        @endauth
+
         {{-- Onboarding gate modal — fires when a locked sidebar item is clicked. --}}
         <div x-data="{ open: false }"
              @needs-connection.window="open = true"
