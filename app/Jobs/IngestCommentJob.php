@@ -51,7 +51,9 @@ class IngestCommentJob implements ShouldQueue
             ->latest()
             ->first();
 
-        if (! $page || ! $page->aiConfig) {
+        // Page lookup failure is terminal — we don't know whose team this
+        // belongs to, so there's no team-scoped row to show on /comments.
+        if (! $page) {
             return;
         }
 
@@ -60,8 +62,18 @@ class IngestCommentJob implements ShouldQueue
         // PostCreationTimeCache::resolve() comment).
         $post = $postCache->resolve($page, $this->parsed['platform_post_id']);
 
-        // 4. Run filter decision tree.
-        $decision = $filter->decide($page, $page->aiConfig, $post, $this->parsed);
+        // 4. Run filter decision tree — OR, if the page has no AiConfig yet
+        // (first-time connect, user hasn't visited /settings/ai/config), short
+        // circuit to FILTERED_OFF so the comment STILL lands on /comments as a
+        // "AI not configured on this page" row. Without this short-circuit the
+        // operator sees nothing and assumes webhooks are broken. Previously
+        // bailed at step 2; changed 2026-10-28 after Khaled Kandeel's tester
+        // comment on a freshly-connected FB page was silently dropped.
+        if (! $page->aiConfig) {
+            $decision = ['decision' => Comment::DECISION_FILTERED_OFF, 'reason' => 'no_ai_config_for_page'];
+        } else {
+            $decision = $filter->decide($page, $page->aiConfig, $post, $this->parsed);
+        }
 
         // 5. Store row (decision may be null → "queued for reply").
         $comment = Comment::create([
@@ -81,7 +93,9 @@ class IngestCommentJob implements ShouldQueue
             return;
         }
 
-        // 6. Dispatch classifier (q&c mode) or straight to sender.
+        // 6. Dispatch classifier (q&c mode) or straight to sender. $page->aiConfig
+        // is guaranteed non-null here — $decision would be FILTERED_OFF (not null)
+        // when it's missing, which the early-return above already handled.
         $settings = $page->aiConfig->comment_settings ?? AiConfig::defaultCommentSettings();
         $mode = $settings['reply_mode'] ?? AiConfig::COMMENT_REPLY_OFF;
         if ($mode === AiConfig::COMMENT_REPLY_QUESTIONS_AND_COMPLAINTS) {

@@ -81,6 +81,38 @@ function runIngest(array $parsed, string $platformPageId): void
     );
 }
 
+it('stores a FILTERED_OFF comment row (no AI dispatch) when the page has no AiConfig yet', function () {
+    // Regression: 2026-10-28 Khaled Kandeel's test comment on a freshly-connected
+    // FB page was silently dropped because IngestCommentJob previously bailed at
+    // `! $page->aiConfig`. The row MUST still land so operators see "a webhook
+    // arrived; AI isn't configured on this page" on /comments instead of
+    // assuming webhooks are broken.
+    Queue::fake();
+    fakePostCreatedTimeResponse();
+    // Build a Page WITHOUT any AiConfig.
+    $user    = User::factory()->create();
+    $team    = Team::factory()->create(['owner_id' => $user->id]);
+    $account = ConnectedAccount::factory()->create(['team_id' => $team->id, 'platform' => 'facebook']);
+    $page    = Page::factory()->create([
+        'team_id'              => $team->id,
+        'connected_account_id' => $account->id,
+        'platform'             => 'facebook',
+        'platform_page_id'     => 'PAGE_facebook',
+        'is_active'            => true,
+    ]);
+    expect($page->aiConfig)->toBeNull();  // sanity
+
+    runIngest(parsedComment(), $page->platform_page_id);
+
+    expect(Comment::count())->toBe(1);
+    $c = Comment::first();
+    expect($c->decision)->toBe(Comment::DECISION_FILTERED_OFF)
+        ->and($c->decision_reason)->toBe('no_ai_config_for_page')
+        ->and($c->page_id)->toBe($page->id);
+    Queue::assertNotPushed(SendAiCommentReplyJob::class);
+    Queue::assertNotPushed(ClassifyCommentJob::class);
+});
+
 it('stores a comment and dispatches SendAiCommentReplyJob when mode=all', function () {
     Queue::fake();
     fakePostCreatedTimeResponse();

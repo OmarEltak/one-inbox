@@ -227,7 +227,7 @@ max_ai_replies_per_post_per_day     : int                   (per-POST public rep
 |---|---|---|---|
 | `DECISION_REPLIED` | Public reply success | `SendAiCommentReplyJob` | Public reply graph call returned 200 |
 | `DECISION_DM_ONLY` | DM only (no public reply) | `SendAiCommentReplyJob` OR `CommentFilterService` | DM succeeded while public was blocked, OR filter decided DM-only ahead of time |
-| `DECISION_FILTERED_OFF` | Filtered — AI off | `SendAiCommentReplyJob` early-exit | `reply_mode=off` AND `dm_mode=off` |
+| `DECISION_FILTERED_OFF` | Filtered — AI off | `SendAiCommentReplyJob` early-exit OR `IngestCommentJob` when page has no AiConfig | `reply_mode=off` AND `dm_mode=off`, OR `decision_reason='no_ai_config_for_page'` for a page that was connected but never had AI configured. The row still lands so operators can see the webhook arrived. |
 | `DECISION_FILTERED_MODE` | Filtered — mode | `CommentFilterService` | reply_mode didn't match (e.g. mode=questions_and_complaints, comment is a compliment) |
 | `DECISION_FILTERED_SCOPE` | Filtered — scope | `CommentFilterService` | Post is too old (>24h, outside messaging window) |
 | `DECISION_FILTERED_KEYWORD` | Filtered — keyword | `CommentFilterService` | reply_mode=custom_keywords and no match |
