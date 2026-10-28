@@ -2525,3 +2525,15 @@ creative direction). Awaiting Omar's steer.
 - Same transient 503 deploy window (~1 min), cleared. All 5 URLs 200, all 5 Indexing API notified 13:58 UTC.
 - Rollback: tinker Post where slug in (5 Batch37 slugs) delete; revert 2accebe.
 
+
+
+## 2026-10-28 — pages_manage_engagement unblocked + docs synced + /comments cleared for Omar's team
+- Meta responded to ticket 2162436254672944: pages_manage_engagement has an undeclared OAuth-validator dependency on pages_read_user_content. Added pages_read_user_content to the Pages API use case on developers.facebook.com via browser (Meta auto-granted Standard Access on "Add to App Review" click).
+- Live OAuth verified cleanly in-browser before any code push — consent screen loads instead of "Invalid Scopes".
+- Code change: re-added pages_manage_engagement to both FB OAuth URLs in FacebookPlatform (commit a7a6439). Scope-pin test flipped to require both pages_manage_posts AND pages_manage_engagement.
+- Omar reconnected Brandk, posted test FB comment — "REPLIED" chip + "DM sent" chip appeared in /comments (verified).
+- Six comments-system docs updated so they consistently describe the working state (commit 5e96687). Comments-architecture skill is the single source of truth.
+- Prod .env unchanged; just an app-code deploy. No config:cache needed.
+- /comments cleared for Omar's team (team_id=2, 21 pages) before reviewer arrives: 34 Comment rows deleted via tinker as www-data. Pages themselves untouched; new webhooks will populate fresh.
+- Rollback for Dev Console change: unlikely needed but — on developers.facebook.com Pages API use case Permissions tab → pages_read_user_content → "Remove from use case". OAuth will break again immediately.
+- Rollback for code: revert commit a7a6439 and the pin test will auto-fail (good — it means the revert is honest). CI tests always pass this suite.
