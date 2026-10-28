@@ -121,37 +121,6 @@ it('sends a DM when dm_mode=always', function () {
     expect($comment->dm_graph_message_id)->toBe('M_1');
 });
 
-it('surfaces the FB scope-bundling error cleanly as decision=dm_only when a DM also succeeds', function () {
-    // 2026-10-27: Brandk-style failure. pages_manage_engagement cannot be
-    // requested (OAuth validator bundling bug) and the "fall back to top-level
-    // comment on the parent post" workaround ALSO fails with "(#200) You do
-    // not have sufficient permissions" — pages_manage_posts does not cover
-    // comments on the Page's own post either (tested on prod, same error).
-    // So this is the honest terminal state: public reply fails, DM delivers,
-    // decision = DM_ONLY. The error body is stored on graph_error so
-    // /comments can show the full "pages_read_user_content" message that
-    // Meta returns, and operators know why no public response landed.
-    Http::fake([
-        'graph.facebook.com/v21.0/COMMENT_1/comments' => Http::response([
-            'error' => ['code' => 200, 'type' => 'OAuthException', 'message' => '(#200) The permission(s) pages_read_user_content are not available. It could because either they are deprecated or need to be approved by App Review.'],
-        ], 400),
-        'graph.facebook.com/v21.0/*/messages*' => Http::response(['message_id' => 'M_1'], 200),
-    ]);
-    $ai = Mockery::mock(AiProviderInterface::class);
-    $ai->shouldReceive('generateText')->twice()->andReturn('public text', 'dm text');
-    $comment = makeCommentForSend(['dm_mode' => AiConfig::COMMENT_DM_ALWAYS]);
-    $comment->update(['platform_comment_id' => 'COMMENT_1']);
-    $comment->load('page');
-
-    (new SendAiCommentReplyJob($comment->id))->handle($ai);
-
-    $comment->refresh();
-    expect($comment->decision)->toBe(Comment::DECISION_DM_ONLY)
-        ->and($comment->decision_reason)->toContain('public reply blocked')
-        ->and($comment->dm_sent_at)->not->toBeNull()
-        ->and($comment->graph_error['error']['message'] ?? null)->toContain('pages_read_user_content');
-});
-
 it('routes Direct IG Login comment replies to graph.instagram.com, not graph.facebook.com', function () {
     // Regression: 2026-10-27 OWOWOKWKSJF comments failed with error code 190
     // "Invalid OAuth access token - Cannot parse access token" because the

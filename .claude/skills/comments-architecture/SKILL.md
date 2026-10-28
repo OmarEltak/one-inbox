@@ -153,7 +153,7 @@ Fully working for tester accounts. Advanced Access via App Review needed for pub
 
 Works for tester accounts; blocked for public users until rejection is addressed.
 
-### FB (main app) — THE SCOPE-MATRIX LANDMINE
+### FB (main app)
 
 | Capability | Scope | Requested? | Status |
 |---|---|---|---|
@@ -161,39 +161,39 @@ Works for tester accounts; blocked for public users until rejection is addressed
 | Receive messages | `pages_messaging` | ✅ | REJECTED (testers OK) |
 | Read engagement (reactions, comments bodies) | `pages_read_engagement` | ✅ | REJECTED (testers OK) |
 | Publish on Page's own feed | `pages_manage_posts` | ✅ | Standard |
-| Reply publicly to a user's FB comment<br>(`POST /{comment-id}/comments`) | **`pages_manage_engagement`** | **❌ CANNOT ADD — see §6** | Standard in Dev Console |
+| Reply publicly to a user's FB comment<br>(`POST /{comment-id}/comments`) | `pages_manage_engagement` | ✅ (re-added 2026-10-28) | Standard (works for testers) |
+| Read user-generated content on a Page (dependency of `pages_manage_engagement`) | `pages_read_user_content` | ❌ not in OAuth, but MUST be in use case | Standard (added 2026-10-28 to unblock the OAuth validator) |
 | DM a commenter (`POST /{page-id}/messages` with recipient.comment_id) | `pages_messaging` | ✅ | REJECTED (testers OK) |
 
-**This is why Brandk's public FB comment replies fail with "pages_read_user_content not available" at send-time** — our token lacks `pages_manage_engagement`, and Meta's error wording cites the deprecated scope. DMs work because they use `pages_messaging` which we DO have.
+Fully working for tester accounts as of 2026-10-28 after reconnecting pages. For public (non-tester) users, both `pages_manage_engagement` AND `pages_read_user_content` need App Review Advanced Access — submit as part of the main App Review push.
 
 ---
 
-## 6. The `pages_manage_engagement` landmine — DO NOT TRY AGAIN
+## 6. The `pages_manage_engagement` saga — RESOLVED 2026-10-28
 
-History of attempts (grepping for `pages_manage_engagement` in git log is useful):
+**TL;DR:** `pages_manage_engagement` is required for `POST /{comment-id}/comments` (public reply to a user's FB comment). We've requested → removed → re-requested → removed it four times over two months because every re-add broke OAuth with "Invalid Scopes: pages_read_user_content". The root cause was explained by Meta on 2026-10-28 (ticket 2162436254672944): the OAuth validator fails when any requested scope's internal dependency is missing from the app. `pages_manage_engagement` depends on `pages_read_user_content`. Adding `pages_read_user_content` to the Pages API use case (Standard Access auto-grants on "Add to App Review" click) unblocks the OAuth validator. Both scopes are now in the OAuth URL as of commit after `f9b99ff`.
+
+### Full attempt history (keep this for the next time someone considers removing the scope)
 
 | Commit | Date | Action | Outcome |
 |---|---|---|---|
 | `ea12a17` | 2026-09 | Originally removed | — |
 | `cc3cfc0` | later | Re-added "config fixed on Meta side" | OAuth broken |
 | `f692bda` | right after | Reverted the re-add | Restored |
-| `7137fbf` | 2026-10-25 | Swapped to `pages_manage_posts` on the hypothesis that it covers the same endpoint | Public FB replies silently break with "pages_read_user_content not available" because `pages_manage_posts` is for the Page's own feed, NOT replies to users' comments |
-| `49b8815` | 2026-10-27 | **My re-add after Dev Console audit** — audit showed clean row, no visible bundling, so I re-added | OAuth broken AGAIN — Arabic error page "هذا المحتوى غير متوفر الآن" + "Invalid Scopes: pages_read_user_content" |
-| `6b75c62` | 2026-10-27 | Reverted my re-add | Restored |
+| `7137fbf` | 2026-10-25 | Swapped to `pages_manage_posts` on the hypothesis that it covers the same endpoint | Public FB replies silently break — `pages_manage_posts` is for the Page's own feed, NOT replies to users' comments |
+| `49b8815` | 2026-10-27 | Re-add after Dev Console audit showed clean row | OAuth broken AGAIN — Arabic error page "هذا المحتوى غير متوفر الآن" + "Invalid Scopes: pages_read_user_content" |
+| `6b75c62` | 2026-10-27 | Revert | Restored |
+| (ticket submitted via browser) | 2026-10-27 | Meta bug report `2162436254672944` | Meta responded next day explaining the dependency |
+| current | 2026-10-28 | Added `pages_read_user_content` to the Pages API use case → Meta auto-granted Standard Access → verified consent screen loads cleanly in-browser → re-added `pages_manage_engagement` to the OAuth URL | WORKING |
 
-**The permanent lesson:** the Dev Console Permissions UI does NOT show OAuth-validator bundling. The only way to prove the bundling is gone is a LIVE OAuth attempt. Omar's test on prod on 2026-10-27 confirmed the bundling IS still active. Pin: `tests/Unit/Services/Platforms/FacebookPlatformScopesTest.php` asserts `pages_manage_engagement` is NOT present with a 5-attempt history comment.
+### The permanent lesson (if someone proposes removing or re-swapping the scope again)
 
-### What this means for FB comment replies today
+- The Dev Console Permissions UI does NOT show OAuth-validator dependencies. The only way to prove a scope works is a LIVE OAuth attempt in a browser.
+- `pages_manage_posts` is NOT a valid substitute for `pages_manage_engagement` for `POST /{comment-id}/comments` — it covers only the Page's own feed publishing.
+- `POST /{post-id}/comments` (publishing a new top-level comment on the Page's own post) ALSO fails without `pages_manage_engagement`, despite docs suggesting `pages_manage_posts` covers it. Tested in prod `32e6fd5` → `6e82df9`.
+- `pages_read_user_content` MUST stay in the Pages API use case on developers.facebook.com. If anyone removes it there, OAuth breaks again with the exact same "Invalid Scopes" error. There's no code visibility to catch that drift — only a live OAuth test does.
 
-Brandk-style FB pages will show `Public reply failed — (#200) pages_read_user_content not available` on `/comments` for every attempted public reply. The DM path still works (that's the actual customer value). Decision will land as `DECISION_DM_ONLY` if the AI config has DM enabled; otherwise `DECISION_ERROR_GRAPH_API`.
-
-### Attempted workarounds — results
-
-1. **Meta bug report submitted 2026-10-27** — ticket ID **2162436254672944** on developers.facebook.com/support/bugs/, filed against product tree "واجهة API وSDK > Graph API > التعليق" for app `1469090344742803`. Reproduction steps + the exact scope string + screenshot of the "Invalid Scopes: pages_read_user_content" error are in the ticket body. Check status at `https://developers.facebook.com/support/bugs/2162436254672944/` while logged in as the app admin. **This is the only known clean fix.**
-2. **Soft-degrade the UI**: when a DM also succeeds, the current terminal state already lands as `DECISION_DM_ONLY` with `decision_reason='public reply blocked, DM delivered'` — see `SendAiCommentReplyJob::handle` match block. The `/comments` row shows the yellow "DM ONLY" chip + the Meta error text + green "DM sent". That's honest. No code change needed.
-3. **~~Switch public-reply strategy: fall back to a top-level comment on the parent post~~ (ATTEMPTED 2026-10-27, DID NOT WORK — commit `32e6fd5` added it, `6e82df9` reverted it).** When nested `POST /{comment-id}/comments` returned the pages_read_user_content error, we retried `POST /{post-id}/comments` — Meta rejected THAT too with `(#200) You do not have sufficient permissions to perform this action`. So `pages_manage_posts` does NOT cover posting comments on the Page's own posts either, even though docs suggest it should. The specific error from the fallback endpoint is captured in the regression test `it surfaces the FB scope-bundling error cleanly as decision=dm_only`. **Do NOT re-try this fallback approach without first proving via a live Graph call that the scope matrix has changed.**
-
-Only (1) is a real forward path. Do NOT attempt re-adding `pages_manage_engagement` — the pin test (`FacebookPlatformScopesTest`) will stop you, and the 5-attempt history is documented above.
+Pin: `tests/Unit/Services/Platforms/FacebookPlatformScopesTest.php` asserts BOTH `pages_manage_engagement` AND `pages_manage_posts` are present in both FB OAuth URLs.
 
 ---
 

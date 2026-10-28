@@ -309,16 +309,11 @@ class SendAiCommentReplyJob implements ShouldQueue
         // permissions, or does not support this operation" because the subpath
         // literally doesn't exist on the other platform's comment object.
         //
-        // ⚠️ FB-specific limitation: this endpoint requires pages_manage_engagement,
-        // which we cannot request (Meta OAuth validator bundles it with the
-        // deprecated pages_read_user_content). 2026-10-27 we tried a fallback to
-        // POST /{post-id}/comments on the parent post (which pages_manage_posts
-        // supposedly covers) — Meta rejected THAT too with "(#200) You do not
-        // have sufficient permissions to perform this action". Both routes are
-        // blocked. The honest result today: FB public comment replies always
-        // fail → decision lands as DM_ONLY (when a DM succeeds) or
-        // ERROR_GRAPH_API (when neither succeeds). The DM path still works.
-        // See comments-architecture skill §6 for the Meta support-ticket plan.
+        // 2026-10-28: pages_manage_engagement is now in the FB OAuth URL —
+        // Meta's internal dependency on pages_read_user_content was unblocked
+        // by adding that scope to the Pages API use case on developers.facebook.com.
+        // Reconnected pages carry the scope; the nested-reply endpoint works.
+        // See getConnectUrl() note for the full history + Meta ticket 2162436254672944.
         $isIg    = in_array($comment->page->platform, ['instagram', 'instagram_business'], true);
         $subpath = $isIg ? 'replies' : 'comments';
         $host    = $this->graphHostFor($comment);

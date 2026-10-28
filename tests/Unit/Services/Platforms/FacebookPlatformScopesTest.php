@@ -7,31 +7,38 @@ use App\Services\Platforms\FacebookPlatform;
 uses(Tests\TestCase::class);
 
 /*
- * Scope regression pin — pages_manage_engagement MUST NOT be in either FB
- * OAuth URL. CONFIRMED 2026-10-27 via live OAuth test: Meta's OAuth
- * validator still internally bundles pages_manage_engagement with the
- * deprecated pages_read_user_content and rejects the whole OAuth with
- * "Invalid Scopes: pages_read_user_content" — the user-facing error page
- * is Arabic "هذا المحتوى غير متوفر الآن" and the whole connect flow is
- * broken. This has been attempted and reverted five times:
- *   ea12a17 — originally removed
- *   cc3cfc0 — re-added
- *   f692bda — reverted re-add
- *   7137fbf — swapped to pages_manage_posts
- *   49b8815 — re-added again (regression) — reverted immediately on prod feedback
- * The current state (pages_manage_posts only) means FB AI comment replies
- * via POST /{comment-id}/comments return "pages_read_user_content not
- * available" at send-time (Brandk's visible bug at /comments). That is a
- * SEPARATE problem from the OAuth-side issue this test pins against — do
- * NOT try to fix it by re-adding pages_manage_engagement. See
- * tasks/meta-pages-manage-engagement-blocker.md for alternative paths.
+ * Scope regression pin — both pages_manage_posts AND pages_manage_engagement
+ * must be present in both FB OAuth URLs.
+ *
+ * History (the previous author of this pin flipped it multiple times — the
+ * resolution is in the comment on FacebookPlatform::getConnectUrl, don't
+ * repeat the swap debate):
+ *   • ea12a17 — pages_manage_engagement originally removed
+ *   • cc3cfc0 → f692bda — re-added, OAuth broke, reverted
+ *   • 7137fbf — swapped to pages_manage_posts (pin FORBID pages_manage_engagement)
+ *   • 49b8815 → 6b75c62 — re-added after Dev Console audit; OAuth broke again
+ *     because the Dev Console UI does not reveal OAuth-validator dependencies;
+ *     reverted
+ *   • Meta support ticket 2162436254672944 (opened 2026-10-27) explained the
+ *     root cause: pages_manage_engagement has an internal dependency on
+ *     pages_read_user_content; the validator rejects OAuth when any requested
+ *     scope's dependency is not granted to the app
+ *   • Fix (2026-10-28): added pages_read_user_content to the Pages API use
+ *     case on developers.facebook.com → Meta auto-granted Standard Access →
+ *     live OAuth now loads the consent screen cleanly
+ *   • THIS pin — both scopes REQUIRED
+ *
+ * Pre-condition for this pin to stay green on prod: pages_read_user_content
+ * MUST remain in the Pages API use case at Standard Access or higher. If it
+ * is ever removed from the use case, OAuth will break again with the same
+ * "Invalid Scopes: pages_read_user_content" error.
  */
 
-it('does NOT request pages_manage_engagement in the FB-only OAuth URL (OAuth validator bundling bug)', function () {
+it('requests BOTH pages_manage_posts AND pages_manage_engagement in the FB-only OAuth URL', function () {
     config(['services.meta.app_id' => 'test-app', 'services.meta.app_secret' => 'test-secret']);
     $url = (new FacebookPlatform())->getConnectUrl();
-    expect($url)->not->toContain('pages_manage_engagement');
     expect($url)->toContain('pages_manage_posts');
+    expect($url)->toContain('pages_manage_engagement');
     // Regression safety: existing required scopes must still be present.
     expect($url)->toContain('pages_messaging');
     expect($url)->toContain('pages_read_engagement');
@@ -40,11 +47,11 @@ it('does NOT request pages_manage_engagement in the FB-only OAuth URL (OAuth val
     expect($url)->toContain('business_management');
 });
 
-it('does NOT request pages_manage_engagement in the FB+IG combined OAuth URL (OAuth validator bundling bug)', function () {
+it('requests BOTH pages_manage_posts AND pages_manage_engagement in the FB+IG combined OAuth URL', function () {
     config(['services.meta.app_id' => 'test-app', 'services.meta.app_secret' => 'test-secret']);
     $url = (new FacebookPlatform())->getInstagramViaFacebookConnectUrl();
-    expect($url)->not->toContain('pages_manage_engagement');
     expect($url)->toContain('pages_manage_posts');
+    expect($url)->toContain('pages_manage_engagement');
     expect($url)->toContain('instagram_manage_comments');
     expect($url)->toContain('pages_messaging');
     expect($url)->toContain('instagram_basic');

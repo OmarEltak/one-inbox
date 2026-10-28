@@ -106,29 +106,28 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id' => $this->appId,
                 'redirect_uri' => $redirectUri,
-                // ⚠️ DO NOT add pages_manage_engagement back. CONFIRMED 2026-10-27 via
-                // live OAuth test: Meta's OAuth validator still internally bundles
-                // pages_manage_engagement with the deprecated pages_read_user_content
-                // and rejects the whole OAuth with "Invalid Scopes:
-                // pages_read_user_content. This message is only shown to developers.
-                // Users of your app will ignore these permissions if present. ..."
-                // Dev Console audit (tasks/meta-app-permissions-snapshot.md) shows the
-                // scope as a clean row — the bundling is INSIDE the OAuth validator,
-                // not visible in the Permissions UI. The user-facing error page is
-                // Arabic "هذا المحتوى غير متوفر الآن". Previous attempts: ea12a17
-                // (removed), cc3cfc0 (re-added), f692bda (reverted re-add), 7137fbf
-                // (swapped to pages_manage_posts), 49b8815 (my re-add, broke OAuth
-                // again, reverted here). pages_manage_posts is NOT a valid substitute
-                // for POST /{comment-id}/comments — that endpoint is why Brandk's AI
-                // public comment replies return "pages_read_user_content not
-                // available" at send-time. See tasks/meta-pages-manage-engagement-blocker.md
-                // for the open workaround options (poll + raw-reply via a system user
-                // token, or wait on Meta support ticket).
+                // pages_manage_engagement — required for AI to POST /{comment-id}/comments
+                // (public reply on a user's FB comment). RESOLVED 2026-10-28 after Meta
+                // support ticket 2162436254672944 explained the root cause: the OAuth
+                // validator fails when a requested scope's internal dependency is not
+                // granted to the app. pages_manage_engagement implicitly depends on
+                // pages_read_user_content (both act on user-generated content on a Page).
+                // Fix was adding pages_read_user_content to the Pages API use case on
+                // developers.facebook.com — which Meta auto-granted at Standard Access
+                // immediately on "Add to App Review" click. Live OAuth verified in-browser
+                // on 2026-10-28: consent screen now loads cleanly instead of
+                // "Invalid Scopes: pages_read_user_content" error. Attempt history:
+                // ea12a17 (removed), cc3cfc0 (re-added), f692bda (reverted re-add),
+                // 7137fbf (swapped to pages_manage_posts), 49b8815 (re-added, failed —
+                // we hadn't added pages_read_user_content yet), 6b75c62 (reverted),
+                // THIS commit (re-added, pages_read_user_content now at Standard Access
+                // → OAuth works). For public (non-tester) users to use this, both scopes
+                // need App Review Advanced Access — submission is a separate step.
                 // business_management added 2026-10-07: Business-Portfolio-owned Pages
                 // (New Pages Experience, 2024+) do NOT appear in /me/accounts when the
                 // user's Page role was assigned via the Business layer rather than as
                 // a direct Page admin. Required to traverse /me/businesses/{id}/owned_pages.
-                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,business_management',
+                'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,pages_manage_engagement,business_management',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -150,10 +149,13 @@ class FacebookPlatform extends AbstractPlatform
             . http_build_query([
                 'client_id'     => $this->appId,
                 'redirect_uri'  => $redirectUri,
-                // ⚠️ DO NOT add pages_manage_engagement — see getConnectUrl() note.
-                // Confirmed broken again 2026-10-27 via live OAuth test.
+                // pages_manage_engagement re-added 2026-10-28 — see getConnectUrl()
+                // note. Keeping pages_manage_posts alongside; some endpoints document
+                // both as acceptable alternatives, and pinning both via
+                // FacebookPlatformScopesTest prevents a future refactor from silently
+                // dropping one.
                 // business_management added 2026-10-07 — see getConnectUrl() note.
-                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,pages_manage_engagement,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
