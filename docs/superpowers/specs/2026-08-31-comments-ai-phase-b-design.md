@@ -1,7 +1,9 @@
 # Comments AI — Phase B (Ingestion + Sending) Design
 
+> ⚠️ **FROZEN HISTORICAL DOC (2026-08-31).** This is the as-designed spec; prod has evolved. For the CURRENT state read `.claude/skills/comments-architecture/SKILL.md` — covers the three Graph hosts (FB / IG-via-FB / IG Direct Login), the Comment.decision enum, every scope by platform, and the 2026-10-28 resolution of the `pages_manage_engagement` saga via Meta ticket 2162436254672944.
+
 **Date:** 2026-08-31
-**Status:** Approved, ready to plan
+**Status:** Shipped (Phase B landed 2026-09; design doc frozen; see skill for current state)
 **Scope:** Turn Phase A's dormant configuration into a live system: subscribe to Meta feed/comment webhooks, classify + filter + rate-limit, send public replies via Graph API, and optionally open a one-shot DM with the commenter. Ships without waiting for Meta App Review because the managed OAuth flow already places customer Pages inside our verified Business Portfolio (Standard Access is sufficient).
 
 **Depends on:** [Phase A spec](./2026-08-31-comments-ai-config-design.md) — the `comment_settings` JSON column and its constants.

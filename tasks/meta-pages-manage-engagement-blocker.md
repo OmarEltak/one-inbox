@@ -1,6 +1,16 @@
-# Meta `pages_manage_engagement` blocker — findings + state
+# Meta `pages_manage_engagement` blocker — ✅ RESOLVED 2026-10-28
 
-Last updated: 2026-10-19 by Claude Code session.
+> **Current state (2026-10-28):** FIXED. `pages_manage_engagement` is back in both FB OAuth URLs (commit `a7a6439`), FB public comment replies work for Brandk and tester accounts, both the AI public reply AND DM succeed on `/comments`.
+>
+> **How it was resolved:** Meta ticket `2162436254672944` (opened 2026-10-27, resolved 2026-10-28) explained the real cause — `pages_manage_engagement` has an **internal dependency** on `pages_read_user_content`. Meta's OAuth validator rejects the whole request when any dependency scope isn't granted to the app, and names the dependency scope in the error (which is why "Invalid Scopes: pages_read_user_content" fired even though we never requested it). Fix: add `pages_read_user_content` to the Pages API use case on developers.facebook.com → Meta auto-grants Standard Access on "Add to App Review" click → OAuth with `pages_manage_engagement` works.
+>
+> **The hidden invariant going forward:** `pages_read_user_content` must stay in the Pages API use case on developers.facebook.com. If it's removed there (even without a code change), OAuth breaks again. Only a live OAuth attempt catches that drift. See `.claude/skills/comments-architecture/SKILL.md` §6 and the auto-memory entry `feedback_pages_manage_engagement_landmine.md` for the full history + diagnostic protocol.
+>
+> **Still open (for public users, not blocking tester-only use):** both `pages_manage_engagement` and `pages_read_user_content` need App Review Advanced Access before non-tester customers can use the comment-reply feature. That is a separate submission step — handled in `docs/meta-app-review/comments-permissions-submission.md`.
+>
+> The body below is kept as the historical investigation record. Do NOT act on the "end state we need" steps below — they are already done.
+
+---
 
 ## The goal
 

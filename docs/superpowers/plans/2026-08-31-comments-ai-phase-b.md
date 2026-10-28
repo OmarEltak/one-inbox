@@ -1,5 +1,7 @@
 # Comments AI — Phase B Implementation Plan
 
+> ⚠️ **FROZEN HISTORICAL DOC (2026-08-31).** For the CURRENT state of how comments actually work in prod — ingestion pipeline, Comment.decision enum, every scope by platform, the 2-month `pages_manage_engagement` saga and its 2026-10-28 resolution via Meta ticket 2162436254672944 — read `.claude/skills/comments-architecture/SKILL.md`. Do not plan from this file; the scope matrix, OAuth URLs, and endpoint host rules have all evolved since.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn Phase A's dormant `comment_settings` JSON into a live system: ingest Meta comment webhooks → classify + filter + rate-limit → post AI reply publicly and optionally DM the commenter. Ships live without waiting for Meta App Review (Standard Access is sufficient inside our verified Business Portfolio).

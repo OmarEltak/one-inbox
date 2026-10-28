@@ -1,6 +1,13 @@
-# Meta App Review: `pages_manage_engagement` + `instagram_manage_comments`
+# Meta App Review: comment-reply permissions
 
-**Purpose:** Get Advanced Access on Meta for these two permissions so future self-serve OAuth (post managed-onboarding phase) works for every customer, not only those inside our Business Portfolio.
+**Scope list (updated 2026-10-28):**
+- `pages_manage_engagement` — FB public comment reply (POST /{comment-id}/comments)
+- `pages_read_user_content` — Meta OAuth-validator dependency of `pages_manage_engagement`; must be submitted alongside it even though we never request it in the OAuth URL
+- `pages_manage_posts` — fallback for Page's own feed publishing (currently requested for defence in depth)
+- `instagram_manage_comments` — IG via-FB public comment reply
+- `instagram_business_manage_comments` — IG Direct Login public comment reply (added 2026-10-27)
+
+**Purpose:** Get Advanced Access on Meta for these permissions so future self-serve OAuth (post managed-onboarding phase) works for every customer, not only those inside our Business Portfolio.
 
 **Status when this doc lands in prod:** feature ships live to existing customers **before** approval, because managed OAuth places every real Page inside our verified Business Portfolio (OT1 Pro, ID `2169075923895403`), where Standard Access is sufficient. Submission is parallel/future-proofing.
 
@@ -39,6 +46,20 @@ We do NOT hide, delete, or moderate comments. We do NOT modify posts. We do NOT 
 **Volume & rate limits:** Businesses set a per-post daily cap (default 20, max 100 replies per post per 24 hours). The system enforces this cap in code via a Redis-backed counter to protect Meta's rate limits and the business's own AI budget.
 
 **Data we do NOT touch with this permission:** comment moderation (hide, delete, ban), post edits, page-level engagement stats, Reels comments (planned for a later phase).
+
+---
+
+## 2b. `pages_read_user_content` — submission text (REQUIRED alongside `pages_manage_engagement`)
+
+**Why we need it (and why we don't request it in OAuth):** Meta's OAuth validator refuses an authorization request containing `pages_manage_engagement` if the app does not have `pages_read_user_content` granted at Standard Access or higher. This was confirmed by Meta support in ticket 2162436254672944 on 2026-10-28:
+
+> "An authorisation request cannot carry a permission the app has no access to, which is why the request is rejected by name even though you did not include it in your scope parameter... Posting a reply to a person's comment on a Page acts on content that person created, and pages_read_user_content is the permission that governs user-generated content on a Page, including posts and comments left by people other than the Page."
+
+So we add this scope to the Pages API use case solely as the OAuth-validator unblock. The user-visible functionality — posting a reply to a customer's comment on a connected Page's post — is what Meta is actually gating with the two-scope pair.
+
+**How it's used in our app:** We do not call the Graph API with `pages_read_user_content` as the acting token scope. We never request it in the OAuth URL. Its presence at the app level is purely so Meta allows `pages_manage_engagement` through the validator. The AI's actual read access to a user comment arrives via the `feed` webhook (field `comment`, item `add`), which the business has already opted into when granting `pages_manage_metadata` (webhook subscription) and `pages_read_engagement` (reading the Page's own content stream). No independent per-request use.
+
+**Data we do NOT touch:** we never crawl or batch-fetch user-generated content; we only read the specific comment event Meta sent us a webhook for. We never read user comments on any Page the business has not connected and enabled comment-reply for.
 
 ---
 

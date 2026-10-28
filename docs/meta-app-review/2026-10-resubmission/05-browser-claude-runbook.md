@@ -16,7 +16,7 @@ in Arabic. For each permission listed in README.md "Scope of this submission":
    permission needs a successful API test call first (Testing tab), can take 24h to register.
 Then fill: App access instructions from 03-reviewer-instructions.md (credentials I will type
 myself), and the data-handling questions from 04-data-handling.md.
-Remove pages_utility_messaging and pages_manage_engagement from the request if present.
+Remove pages_utility_messaging from the request if present. (NOTE 2026-10-28: pages_manage_engagement is now INCLUDED in this submission — it was previously blocked by Meta's OAuth validator but has since been unblocked by adding pages_read_user_content to the Pages API use case. Also submit pages_read_user_content itself for Advanced Access alongside pages_manage_engagement — see docs/meta-app-review/comments-permissions-submission.md.)
 Stop before the final submit button and show me a summary of every field.
 ```
 
@@ -38,5 +38,6 @@ Stop before the final submit button and show me a summary of every field.
 ## API test-call requirement
 
 Each requested permission needs ≥1 successful call made by the app in the last 30 days.
-The normal app traffic covers messaging permissions; a permission the app never calls (e.g.
-`pages_manage_engagement` today) shows 0/1 and blocks submission until a call succeeds.
+The normal app traffic covers messaging permissions. For `pages_manage_engagement` the test
+call is a successful `POST /{comment-id}/comments` from the AI (observed in prod 2026-10-28
+after Brandk reconnected — the first replied comment registers the required API call).

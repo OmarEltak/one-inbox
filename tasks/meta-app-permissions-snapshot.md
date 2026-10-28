@@ -103,7 +103,8 @@
 | `pages_manage_metadata` | **App Review REJECTED** | 8.5 k | Testers OK. |
 | `pages_read_engagement` | **App Review REJECTED** | 8.8 k | Testers OK. |
 | `pages_manage_posts` | **Standard** | 94 | ✅ Requested. Testers only. Covers Page's own feed publishing. |
-| `pages_manage_engagement` | **Standard** | 0 | ⚠️ **ADDED but NOT requested in our OAuth URL.** This is the scope needed to reply to users' comments on Page posts. Re-adding to the OAuth string would fix the Brandk comment-reply bug for tester accounts immediately. |
+| `pages_manage_engagement` | **Standard** | 0 | ✅ Requested (re-added 2026-10-28 after Meta ticket 2162436254672944 explained the dependency). Needed for `POST /{comment-id}/comments` (public reply to user comments). Testers only. |
+| `pages_read_user_content` | **Standard** | 0 | ✅ Added to use case 2026-10-28 (NOT requested in OAuth URL). **Hidden invariant:** this scope must stay in this use case or OAuth with `pages_manage_engagement` breaks with "Invalid Scopes: pages_read_user_content". It's a Meta OAuth-validator dependency — do not remove from the Dev Console. |
 | `business_management` | **Advanced Access** | 4.5 k | Live. |
 | `email`, `public_profile` | **Advanced Access** | — | Live. |
 | `read_insights`, `facebook_branded_content_ads_brand` | Standard | 0 | Not requested. |
@@ -114,21 +115,21 @@ Not audited in this session — the WhatsApp URL enum didn't resolve on first at
 
 ---
 
-## Known-actionable gaps (as of 2026-10-27)
+## Known-actionable gaps (updated 2026-10-28)
 
-1. **✅ FIXED in this session:** `instagram_business_manage_comments` added to the OT1 Direct Connect Instagram use case. Reconnecting @ammlmsdtt will now carry the scope. Comment webhooks + replies on Direct IG Login pages should work for testers (code was pushed in commits `d021271` + `c3637fe`).
+1. **✅ FIXED 2026-10-27:** `instagram_business_manage_comments` added to the OT1 Direct Connect Instagram use case. Reconnecting @ammlmsdtt carries the scope. IG Direct Login comment webhooks + replies verified working on prod (commits `d021271` + `c3637fe`).
 
-2. **⚠️ Open:** `pages_manage_engagement` is cleanly in the Pages API use case at Standard Access but is **NOT requested** by `FacebookPlatform::getConnectUrl` or `getInstagramViaFacebookConnectUrl`. The 2026-10-25 commit `7137fbf` swapped it for `pages_manage_posts` because of a believed-OAuth-validator bug. Current Dev Console state shows no evidence of that bug now (`pages_manage_engagement` is a clean row, no deprecated-scope dependency visible). **Re-adding it should fix Brandk's "pages_read_user_content not available" comment-reply bug for tester accounts.** Verify by reconnecting Brandk after the scope is re-added; if OAuth returns "Invalid Scopes: pages_read_user_content" → revert; if OAuth succeeds → post a test comment and check `/comments`.
+2. **✅ FIXED 2026-10-28:** `pages_manage_engagement` is now requested in both FB OAuth URLs (commit `a7a6439`). The 2-month block was a Meta OAuth-validator dependency: `pages_manage_engagement` requires `pages_read_user_content` to be in the Pages API use case even though we never request it in OAuth. Fix was to add `pages_read_user_content` to that use case (Standard Access auto-granted). Verified: Brandk reconnected, test FB comment landed in `/comments` with "REPLIED" + "DM sent". See `.claude/skills/comments-architecture/SKILL.md` §6 and Meta ticket 2162436254672944 for the full diagnosis.
 
-3. **🟡 Submission-blocking (for public users, not for Omar's testing):** The following permissions must be re-submitted and approved before non-tester users can use the app:
+3. **🟡 Submission-blocking (for public users, not for Omar's testing):** The following permissions must be re-submitted and approved before non-tester customers can use the app:
    - FB Messaging: `pages_messaging`, `pages_manage_metadata`, `pages_read_engagement`
    - via-FB IG: `instagram_basic`, `instagram_manage_messages`, `instagram_manage_comments`
    - Pages: `pages_manage_metadata`, `pages_read_engagement`
    - All of the above show `تم رفض مراجعة التطبيقات` (App Review Rejected). Omar's hired reviewer needs to address the rejection reasons (visible in each permission's details) and resubmit.
 
-4. **🟡 Submission needed:** `pages_manage_engagement` and `pages_manage_posts` are currently Standard. For public users to post AI comment replies, they need App Review Advanced Access. Submit alongside the resubmission above.
+4. **🟡 Submission needed:** `pages_manage_engagement`, `pages_manage_posts`, and `pages_read_user_content` are currently Standard Access. For public (non-tester) customers to post AI comment replies, all three need App Review Advanced Access. Submit alongside the main resubmission. Submission text draft in `docs/meta-app-review/comments-permissions-submission.md`.
 
-5. **🟡 Direct IG Login:** `instagram_business_manage_comments` was just added at Standard. For public (non-tester) users to receive comment webhooks + replies, submit it for Advanced Access via the App Review tab.
+5. **🟡 Direct IG Login:** `instagram_business_manage_comments` is Standard. For public (non-tester) customers to receive comment webhooks + replies, submit it for Advanced Access via the App Review tab.
 
 ---
 

@@ -120,9 +120,14 @@ Each rule below exists because a session broke it in production.
   OAuth scope that grants it and (b) the app-level subscription. Meta rejects the **whole**
   `subscribed_apps` call if one field lacks permission — `messages` then never subscribes
   and the UI still says "Connected" (2026-09-06 → 10-01).
-- Add an OAuth scope that isn't checked in the Facebook Login for Business config —
-  Meta returns "Invalid Scopes: pages_read_user_content" for *every* user (2026-09-08).
-  Admin accounts see a consent screen anyway, so admin testing gives a false positive.
+- Add an OAuth scope with a Meta OAuth-validator dependency that is NOT present in
+  the app's use case — Meta returns "Invalid Scopes: <the-dependency-scope>" for
+  *every* user. (Current example: `pages_manage_engagement` depends on
+  `pages_read_user_content`; the latter must be in the Pages API use case or the
+  former breaks OAuth. Resolved 2026-10-28 after Meta ticket 2162436254672944 —
+  see comments-architecture skill §6 for the full history + diagnostic.)
+  Admin accounts see this error too; it is NOT an admin-vs-public difference.
+  The only authoritative test is a live OAuth attempt in a browser.
 - Remove the "Connect Direct (IG Login)" button or "Connect via Meta" — they are different
   Meta apps with different access; removing one silently changed which app new IG
   connections use (8c46719, 2026-09-27).
