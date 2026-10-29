@@ -64,13 +64,20 @@ beforeEach(function () {
 it('does NOT call graph.facebook.com/debug_token for Direct IG Login pages', function () {
     $page = makeDirectIgPage();
 
+    // Note: Meta returns an INTERNAL subscription-binding id in the response
+    // (17-digit object id), NOT our dev-console instagram_app_id. The health
+    // check must not compare against instagram_app_id — pin for the secondary
+    // false positive uncovered on 2026-10-29.
     Http::fake([
         'graph.instagram.com/*/me*' => Http::response([
             'user_id'  => '17841400000000001',
             'username' => 'acme_store',
         ]),
         'graph.instagram.com/*/subscribed_apps*' => Http::response([
-            'data' => [['id' => 'ig-app-id']],
+            'data' => [[
+                'id' => '17989107939061961',
+                'subscribed_fields' => ['messages', 'comments'],
+            ]],
         ]),
     ]);
 
@@ -99,7 +106,10 @@ it('clears a previously-written false-positive subscription_error for Direct IG 
             'username' => 'acme_store',
         ]),
         'graph.instagram.com/*/subscribed_apps*' => Http::response([
-            'data' => [['id' => 'ig-app-id']],
+            'data' => [[
+                'id' => '17989107939061961',
+                'subscribed_fields' => ['messages', 'comments'],
+            ]],
         ]),
     ]);
 
@@ -129,7 +139,34 @@ it('reports a Direct IG Login token as broken when graph.instagram.com rejects i
         ->and($err['source'])->toBe('ig_me');
 });
 
-it('reports a Direct IG Login page as broken when our Instagram app is no longer subscribed', function () {
+it('reports a Direct IG Login page as broken when `messages` is not in subscribed_fields', function () {
+    $page = makeDirectIgPage();
+
+    // Empty data array OR data without 'messages' both mean our app is not
+    // subscribed for the inbox webhook. Test the realistic case: Meta returned
+    // the subscription but somehow it dropped `messages`.
+    Http::fake([
+        'graph.instagram.com/*/me*' => Http::response([
+            'user_id'  => '17841400000000001',
+            'username' => 'acme_store',
+        ]),
+        'graph.instagram.com/*/subscribed_apps*' => Http::response([
+            'data' => [[
+                'id' => '17989107939061961',
+                'subscribed_fields' => ['comments'],
+            ]],
+        ]),
+    ]);
+
+    $this->artisan('pages:health-check', ['--page' => $page->id])->assertExitCode(0);
+
+    $err = $page->fresh()->metadata['subscription_error'] ?? null;
+    expect($err)->not->toBeNull()
+        ->and($err['code'])->toBe('not_subscribed')
+        ->and($err['source'])->toBe('ig_subscribed_apps');
+});
+
+it('reports a Direct IG Login page as broken when subscribed_apps returns an empty data array', function () {
     $page = makeDirectIgPage();
 
     Http::fake([
@@ -138,7 +175,7 @@ it('reports a Direct IG Login page as broken when our Instagram app is no longer
             'username' => 'acme_store',
         ]),
         'graph.instagram.com/*/subscribed_apps*' => Http::response([
-            'data' => [['id' => 'some-other-app-id']],
+            'data' => [],
         ]),
     ]);
 

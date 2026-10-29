@@ -231,11 +231,22 @@ class PageHealthCheckCommand extends Command
             ];
         }
 
-        $igAppId = (string) config('services.meta.instagram_app_id');
+        // Unlike graph.facebook.com/{page}/subscribed_apps which lists all apps
+        // subscribed to the page, graph.instagram.com/{igbid}/subscribed_apps
+        // only returns subscriptions owned by the app whose token we send — so
+        // any non-empty data[] already proves our Instagram app is subscribed.
+        // The `id` field in the response is Meta's internal subscription-binding
+        // ID (17-digit object id), NOT our dev-console app id (services.meta.
+        // instagram_app_id, 16-digit); comparing them was a secondary false
+        // positive discovered during the 2026-10-29 prod verification of this
+        // very fix. We DO verify `messages` is in subscribed_fields because that
+        // is the field the inbox depends on.
         $apps = $sub['data'] ?? [];
-        $ourAppSubscribed = collect($apps)->contains(fn ($a) => (string) ($a['id'] ?? '') === $igAppId);
+        $messagesSubscribed = collect($apps)->contains(
+            fn ($a) => in_array('messages', (array) ($a['subscribed_fields'] ?? []), true)
+        );
 
-        if (! $ourAppSubscribed && ! empty($igAppId)) {
+        if (! $messagesSubscribed) {
             return [
                 'code' => 'not_subscribed',
                 'message' => 'This Instagram account is no longer subscribed to our app webhooks.',
