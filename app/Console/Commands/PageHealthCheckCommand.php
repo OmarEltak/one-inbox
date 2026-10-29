@@ -99,6 +99,25 @@ class PageHealthCheckCommand extends Command
             return ['code' => 'no_token', 'message' => 'No page access token stored', 'source' => 'local'];
         }
 
+        // Direct Instagram Business Login tokens are issued by the SEPARATE Instagram
+        // app (services.meta.instagram_app_id/_secret) and live on graph.instagram.com.
+        // Validating them against graph.facebook.com/debug_token with the Facebook
+        // app's secret returns "Invalid OAuth access token - Cannot parse access token"
+        // for every one of them — a 100% false positive that put every Direct-IG
+        // customer into an endless Needs-reconnect loop ~1h after each reconnect
+        // (fixed 2026-10-29, same discriminator as 7 other sites in FacebookPlatform).
+        if ($page->platform === 'instagram' && ($page->metadata['auth_type'] ?? null) === 'instagram_business') {
+            return $this->checkInstagramBusinessPage($page, $token);
+        }
+
+        return $this->checkFacebookGraphPage($page, $token, $graphUrl, $appAccess);
+    }
+
+    /**
+     * @return array{code: int|string, message: string, source: string}|null
+     */
+    private function checkFacebookGraphPage(Page $page, string $token, string $graphUrl, string $appAccess): ?array
+    {
         try {
             $debug = Http::timeout(10)->get("{$graphUrl}/debug_token", [
                 'input_token' => $token,
@@ -148,6 +167,79 @@ class PageHealthCheckCommand extends Command
                 'code' => 'not_subscribed',
                 'message' => 'This page is no longer subscribed to our app webhooks.',
                 'source' => 'subscribed_apps',
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate Direct Instagram Business Login pages via graph.instagram.com.
+     * These tokens are issued by a distinct Meta app and must not be checked
+     * against graph.facebook.com with the FB app's secret.
+     *
+     * We use /me as the liveness probe rather than /debug_token because debug_token
+     * on graph.instagram.com is inconsistently supported across app configurations,
+     * while /me is universal: HTTP 200 proves the token can authenticate and the
+     * account is reachable; HTTP 400/401 with error.code 190 means the token is
+     * truly revoked/expired and the user must reconnect.
+     *
+     * @return array{code: int|string, message: string, source: string}|null
+     */
+    private function checkInstagramBusinessPage(Page $page, string $token): ?array
+    {
+        $version = config('services.meta.graph_api_version', 'v21.0');
+        $igGraph = "https://graph.instagram.com/{$version}";
+
+        try {
+            $me = Http::timeout(10)->get("{$igGraph}/me", [
+                'fields' => 'user_id,username',
+                'access_token' => $token,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('pages:health-check IG /me http error', [
+                'page_id' => $page->id,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+
+        $body = $me->json() ?: [];
+        if (! $me->successful() || isset($body['error'])) {
+            $err = $body['error'] ?? [];
+            return [
+                'code' => (int) ($err['code'] ?? 190),
+                'message' => $this->summarize((string) ($err['message'] ?? 'Instagram token is invalid')),
+                'source' => 'ig_me',
+            ];
+        }
+
+        try {
+            $sub = Http::timeout(10)->get("{$igGraph}/{$page->platform_page_id}/subscribed_apps", [
+                'access_token' => $token,
+            ])->json();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if (isset($sub['error'])) {
+            $err = $sub['error'];
+            return [
+                'code' => (int) ($err['code'] ?? 190),
+                'message' => $this->summarize((string) ($err['message'] ?? 'Unknown Instagram subscription error')),
+                'source' => 'ig_subscribed_apps',
+            ];
+        }
+
+        $igAppId = (string) config('services.meta.instagram_app_id');
+        $apps = $sub['data'] ?? [];
+        $ourAppSubscribed = collect($apps)->contains(fn ($a) => (string) ($a['id'] ?? '') === $igAppId);
+
+        if (! $ourAppSubscribed && ! empty($igAppId)) {
+            return [
+                'code' => 'not_subscribed',
+                'message' => 'This Instagram account is no longer subscribed to our app webhooks.',
+                'source' => 'ig_subscribed_apps',
             ];
         }
 
