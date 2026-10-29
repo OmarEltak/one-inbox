@@ -21,6 +21,16 @@ Schedule::command('campaigns:dispatch-recipients')
 Schedule::command('snapchat:fetch-messages')->everyTwoMinutes();
 Schedule::command('instagram:refresh-subscriptions')->monthly();
 
+// Daily refresh of Direct Instagram Business Login long-lived tokens. Each
+// refresh grants a fresh 60-day window; we refresh when ≤14 days remain so a
+// transient Meta outage has 14 daily retries before the cliff. Load profile
+// is serial with jittered sleep inside the command — see command docblock.
+// Slot 02:40 UTC sits between credits:reset-monthly (02:00) and
+// nararouter:refresh-chain (03:00), both already quiet.
+Schedule::command('ig-direct:refresh-tokens')
+    ->dailyAt('02:40')
+    ->withoutOverlapping();
+
 // Hourly subscription-health check for Facebook/Instagram pages.
 // Writes metadata.subscription_error on pages whose token is invalid or
 // which are no longer subscribed to our app on Meta's side. The UI
