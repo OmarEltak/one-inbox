@@ -2562,3 +2562,28 @@ creative direction). Awaiting Omar's steer.
 
 **No config:cache run** — this was a pure DB update via Eloquent, no .env or code change.
 
+## 2026-11-03 (later) — Pricing pivot shipped to prod + OT1-Pro pages reactivated
+
+**Deploy:** commit `94d7557` (feat(pricing): pivot public pages to concierge model) pushed to main, auto-deployed in ~30s.
+
+**Prod verification:**
+- `https://ot1-pro.com/pricing` → HTTP 200, 49,226 bytes, 36 matches of new tier names, 0 matches of old `Starter`/`Pay in cash`.
+- `https://ot1-pro.com/` → HTTP 200, 90,023 bytes, 20 matches new, 0 old.
+- `https://ot1-pro.com/llms.txt` → serves new concierge pricing block (will train ChatGPT/Claude/Perplexity answers).
+- Brief 503 window observed during deploy; cleared within ~10s.
+
+**OT1-Pro brand page reactivation (user did it from UI):**
+- Page 17 (FB `OT1-Pro`, platform_page_id 1202369876301509, team 2) → `is_active=true`, updated_at 14:38:44.
+- Page 41 (IG `OT1-Pro`, platform_page_id 17841435059805096, team 2) → `is_active=true`, updated_at 14:39:22.
+- AiConfigs 8 + 10 (both 12,840-char system prompt, concierge model) still correctly attached. Reconnect reused existing Page rows, so no AiConfig re-wiring needed.
+- Duplicate inactive rows on team 41 (pages 36 FB, 22 IG) left as-is (`is_active=false`, no routing conflict).
+
+**Token health probe (Graph API `/me?fields=id,name,category`):**
+- Page 17 FB → HTTP 200, returned Page metadata correctly.
+- Page 41 IG → HTTP 200 (returns linked FB Page metadata, expected behavior for IG Business tokens).
+
+**Rollback for pricing commit:** `git revert 94d7557 && git push` → auto-redeploy in ~30s. The .env is unchanged; no cache rebuild needed on rollback.
+
+**Known transient during deploy:** one tinker call hit a SQLite config error ("Database file at path [database/database.sqlite]") during the ~5-second window where `config:cache` was being rebuilt. Not a real bug; the request executed before the new cache file was written. Did not affect any user-facing traffic. Noting here in case future deploys show the same symptom — it's cosmetic and auto-recovers.
+
+
