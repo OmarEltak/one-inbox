@@ -40,6 +40,21 @@ Route::view('features', 'pages.features')->name('features');
 // It is NOT an SEO landing page. CTAs deliberately unwired until Meta App
 // Review completes; see CLAUDE.md pin #1.
 Route::view('find-your-fit', 'pages.find-your-fit')->name('find-your-fit');
+
+// /l/* — persona-country UTM landing pages for Meta ads. Each page fires the Meta
+// Pixel Lead event, then auto-redirects to WhatsApp after 2s with a source tag.
+// Locale is handled by SetLocale middleware (?lang=ar / ?lang=en). Noindex.
+Route::prefix('l')->group(function () {
+    Route::view('p1-eg', 'public.landing.p1_eg')->name('landing.p1-eg');
+    Route::view('p1-sa', 'public.landing.p1_sa')->name('landing.p1-sa');
+    Route::view('p1-ae', 'public.landing.p1_ae')->name('landing.p1-ae');
+    Route::view('p2-eg', 'public.landing.p2_eg')->name('landing.p2-eg');
+    Route::view('p2-ae', 'public.landing.p2_ae')->name('landing.p2-ae');
+    Route::view('p3-sa', 'public.landing.p3_sa')->name('landing.p3-sa');
+    Route::view('p4-eg', 'public.landing.p4_eg')->name('landing.p4-eg');
+    Route::view('p5-ae', 'public.landing.p5_ae')->name('landing.p5-ae');
+    Route::view('p6-eg', 'public.landing.p6_eg')->name('landing.p6-eg');
+});
 // /ai-campaign-manager kept as a 301 to the canonical homepage `/` so any inbound
 // links (backlinks, blog references, sitemap history) don't 404. Named route preserved
 // so existing `route('ai-campaign-manager')` calls in views resolve to the same URL.

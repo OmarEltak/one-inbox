@@ -67,6 +67,9 @@ return [
         // re-assigns the page) instead of direct OAuth.
         'app_verified' => env('META_APP_VERIFIED', false),
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN', ''),
+        // Meta/Facebook Pixel for ad conversion tracking on /l/* landing pages.
+        // Leave blank in dev; set on prod once the Pixel is created in Events Manager.
+        'pixel_id' => env('META_PIXEL_ID', ''),
         'graph_api_version' => env('META_GRAPH_API_VERSION', 'v21.0'),
         'login_config_id' => env('META_LOGIN_CONFIG_ID', ''),
         // WhatsApp Embedded Signup configuration ID — created in
