@@ -2586,4 +2586,28 @@ creative direction). Awaiting Omar's steer.
 
 **Known transient during deploy:** one tinker call hit a SQLite config error ("Database file at path [database/database.sqlite]") during the ~5-second window where `config:cache` was being rebuilt. Not a real bug; the request executed before the new cache file was written. Did not affect any user-facing traffic. Noting here in case future deploys show the same symptom — it's cosmetic and auto-recovers.
 
+## 2026-11-03 (later still) — Shipped 9 landing pages for Meta ads + Pixel wiring
+
+**Deploy:** commit `15395e1` (feat(landing): build 9 /l/* UTM landing pages for Meta ads).
+
+**Added:**
+- `resources/views/public/landing/_layout.blade.php` — shared layout with Meta Pixel init (PageView + Lead + Contact-on-click), 2-second meta-refresh redirect to WhatsApp +201026361218 with prefilled source tag, mobile-first styling (Cairo for AR / Inter for EN), lang-switcher corner widget, `noindex` meta.
+- 9 persona-country views: `p1_eg`, `p1_sa`, `p1_ae`, `p2_eg`, `p2_ae`, `p3_sa`, `p4_eg`, `p5_ae`, `p6_eg`. Each ships AR + EN inline (not relying on `__()` for the body copy — faster to iterate per persona).
+- `routes/web.php` → `Route::prefix('l')->group(...)` with 9 named routes `landing.p1-eg` etc.
+- `config/services.php` → `meta.pixel_id` env-sourced from `META_PIXEL_ID`. Blank-tolerant — if env is unset, Pixel script simply doesn't render (redirect still works). **Not setting META_PIXEL_ID yet** — needs Pixel to be created in business.facebook.com/events_manager first.
+- `lang/ar.json` → added "Redirecting you to WhatsApp in 2 seconds…" translation.
+
+**Prod verification:** 18 URLs (9 routes × 2 languages via `?lang=ar` / `?lang=en`) all return HTTP 200. P1-EG AR spot-check confirms RTL, Cairo font, Arabic body, correct source tag, correct WhatsApp number.
+
+**Marketing docs updated on Desktop:**
+- `landing-pages.md` rewritten from spec → "✅ SHIPPED" with live URL table
+- `README.md` updated to reflect shipped state
+- `week-1-launch.md` checklist item ticked
+- `personas-and-ads.md` top-of-file reference table added + 3 stale `/l/*` references fixed
+- `user-journey.md` friction map updated
+
+**META_APP_VERIFIED unchanged** (still what the user set it to) — explicitly left alone per request. Landing pages don't depend on it; they are static Blade.
+
+**Rollback:** `git revert 15395e1 && git push`. Only touches new files + 3 small edits in web.php/services.php/ar.json. No DB change. No cache rebuild needed on revert — just view:clear on next deploy.
+
 
