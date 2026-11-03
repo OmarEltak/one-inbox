@@ -2610,4 +2610,32 @@ creative direction). Awaiting Omar's steer.
 
 **Rollback:** `git revert 15395e1 && git push`. Only touches new files + 3 small edits in web.php/services.php/ar.json. No DB change. No cache rebuild needed on revert — just view:clear on next deploy.
 
+## 2026-11-03 (end-of-day) — Landing-page UX cleanup + Pixel wired + Calendly stripped
+
+**User feedback:** "stupid bad ui for 5 secs then redirects to whatsapp" + "this calendar bullshit and we will do it manually".
+
+**Commits shipped:**
+- `096cdab` fix(landing): make /l/* an instant redirect (kill 2s UI delay). Dropped the Blade layout from 164 lines of styled trust bullets → 41-line near-empty document (536 bytes rendered). Fires Meta Pixel inline (if `META_PIXEL_ID` set) then `window.location.replace()` immediately. Visitor sees ~100-300ms blank page then WhatsApp opens.
+- Prod verified serving the instant-redirect version at /l/p1-eg?lang=ar (1970 bytes before Pixel, 3042 bytes after).
+
+**OT1-Pro AiConfig cleanup (DB-only on prod, no code change):**
+- `AiConfig::find(8)` and `AiConfig::find(10)` — stripped all mentions of Calendly, Google Meet, and the "book via Calendly link" scripts. Replaced with "WhatsApp voice/video call (Omar schedules manually in-chat)" language. Length changed 12840 → 13000 chars. Verified: `Calendly=0, Google Meet=0` substring count on both configs.
+
+**Meta Pixel wired to prod .env:**
+- Backup: `.env.bak.1793734783` on prod (preserved).
+- Pattern: idempotent sentinel block `# --- MetaPixel --- / # --- End MetaPixel ---` so re-running the setter replaces cleanly.
+- `META_PIXEL_ID=1469090344742803` (reusing the "One Inbox Business" dataset ID in the ad account `590468179005536`). This is the Meta App ID doubling as the dataset ID — per Meta's unified Datasets model, web Pixel events will aggregate into the same dataset as the app's event source. Verified `services.meta.pixel_id = 1469090344742803` via `config:show`.
+- Executed `sudo -u deploy XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan config:cache` then `systemctl reload php8.4-fpm` per prod-ops rule #1.
+- Smoke test: `/l/p1-eg?lang=ar` → HTTP 200, 3042 bytes, embeds `fbq('init', "1469090344742803")` + `fbq('track','Lead')` + `fbq('track','Contact')` + `location.replace(wa.me/201026361218...)`.
+- **Caveat to monitor:** We tried to create a *new* web Pixel via business.facebook.com/events_manager; Meta's UI had the "Web" option disabled (`cursor:not-allowed`) for this ad account, so we reused the existing dataset instead. If after ~10 real conversion events we don't see them in Events Manager, swap `META_PIXEL_ID` to a dedicated web Pixel created from the OT1 Pro Business Portfolio context (ID `2169075923895403`) instead.
+- Rollback: `ssh root@187.77.67.94 "cd /var/www/ot1-pro.com && mv .env.bak.1793734783 .env && sudo -u deploy XDG_CONFIG_HOME=/tmp HOME=/tmp php artisan config:cache && systemctl reload php8.4-fpm"`.
+
+**META_APP_VERIFIED unchanged** — explicitly left alone, as asked.
+
+**Marketing docs updated (Desktop/Ot1 business/marketing/):**
+- `landing-pages.md` — rewritten to reflect instant-redirect behavior + Pixel-is-wired state.
+- `user-journey.md` — renamed section from "Google Meet decision matrix" to "call decision matrix", all format columns say WhatsApp voice/video, friction map updated.
+- `week-1-launch.md` — Calendly line replaced with "manual scheduling via WhatsApp" + Google Sheet tracking.
+- `personas-and-ads.md` — unchanged (no Calendly refs there).
+
 
