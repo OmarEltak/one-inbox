@@ -2498,29 +2498,29 @@ creative direction). Awaiting Omar's steer.
 **Everything local uncommitted.** Rollout checklist in session chat log. Nothing deployed.
 
 
-## 2026-10-10 � Batch34 SEO (10 posts EN+AR) � prod SHA 0925274
+## 2026-10-10 � Batch34 SEO (10 posts EN+AR) � prod SHA 0925274
 - Seeder database/seeders/AiSeoBlogSeederBatch34NewFeaturesCluster.php (1411 lines, 10 posts, 2300-2460 words each, 10-11 H2s, CTA per language).
 - Local seed OK, commit 0925274 pushed, auto-deploy confirmed on prod via git log.
 - Prod seed: sudo -u deploy php artisan db:seed --class=Database/Seeders/Batch34 --force ? INFO Seeding.
 - Verify: 5 EN + 2 AR URLs curl 200, all 10 loc in sitemap.xml.
 - Rollback: tinker Post where slug in (10 Batch34 slugs) delete; revert commit 0925274.
-- GSC: no browser/API tooling in this session � manual URL Inspection list given to user.
+- GSC: no browser/API tooling in this session � manual URL Inspection list given to user.
 
 
-## 2026-10-12 � Batch35 SEO (5 volume posts) � prod SHA 10c6f94
+## 2026-10-12 � Batch35 SEO (5 volume posts) � prod SHA 10c6f94
 - Seeder database/seeders/AiSeoBlogSeederBatch35VolumeCluster.php (5 posts, differentiated angles to avoid cannibalization).
 - Prod deploy raced auto-deploy (503 window ~1 min, stale routes-v7 cache); resolved itself, all URLs 200 after.
 - Prod seed OK, all 5 loc in sitemap.xml, all 5 Google Indexing API notified 12:31 UTC.
 - Rollback: tinker Post where slug in (5 Batch35 slugs) delete; revert 10c6f94.
 
 
-## 2026-10-12 � Batch36 SEO (5 rank-pick posts) � prod SHA 6c5944d
+## 2026-10-12 � Batch36 SEO (5 rank-pick posts) � prod SHA 6c5944d
 - Seeder AiSeoBlogSeederBatch36RankPicksCluster.php: voice transcription, lead scoring EN+AR, comment-to-DM modes, photo replies AR.
 - Clean deploy, all 5 URLs 200, all 5 Google Indexing API notified 12:55 UTC.
 - Rollback: tinker Post where slug in (5 Batch36 slugs) delete; revert 6c5944d.
 
 
-## 2026-10-12 � Batch37 SEO (5 trust-tech posts) � prod SHA 2accebe
+## 2026-10-12 � Batch37 SEO (5 trust-tech posts) � prod SHA 2accebe
 - Seeder AiSeoBlogSeederBatch37TrustTechCluster.php: agent audit, 24h window, webhooks, failover, dialect AR.
 - Same transient 503 deploy window (~1 min), cleared. All 5 URLs 200, all 5 Indexing API notified 13:58 UTC.
 - Rollback: tinker Post where slug in (5 Batch37 slugs) delete; revert 2accebe.
@@ -2537,3 +2537,28 @@ creative direction). Awaiting Omar's steer.
 - /comments cleared for Omar's team (team_id=2, 21 pages) before reviewer arrives: 34 Comment rows deleted via tinker as www-data. Pages themselves untouched; new webhooks will populate fresh.
 - Rollback for Dev Console change: unlikely needed but — on developers.facebook.com Pages API use case Permissions tab → pages_read_user_content → "Remove from use case". OAuth will break again immediately.
 - Rollback for code: revert commit a7a6439 and the pin test will auto-fail (good — it means the revert is honest). CI tests always pass this suite.
+
+## 2026-11-03 — Marketing kit written + OT1-Pro own-brand AiConfig pivoted to concierge model
+
+**Marketing kit (`C:\Users\NanoChip\Desktop\Ot1 business\marketing\`):**
+- `README.md` — exec summary + 6 personas ranked by priority + weekly budget
+- `pricing.md` — new concierge pricing: AI Pilot / Founding Partner / White-Glove in EGP/SAR/AED/USD, objection script
+- `personas-and-ads.md` — 12 ad briefs (6 personas × 2 ads each) with full creative direction, shot lists, AR+EN scripts
+- `week-1-launch.md` — operational checklist, $280 total budget, daily decision rules
+- `landing-pages.md` — Blade-ready `/l/{code}` landing page copy for 9 UTM routes
+- `user-journey.md` — current journey + Google Meet decision matrix (Pilot = WA only, Partner+ = call required)
+
+**Prod change — AiConfig update for OT1-Pro's own pages:**
+- AiConfig id=8 (FB page 17 "OT1-Pro", platform_page_id 1202369876301509) + AiConfig id=10 (IG page 41 "OT1-Pro", platform_page_id 17841435059805096), both on team_id=2.
+- Replaced system_prompt (now 12,840 chars), business_description, product_catalog (15 items), pricing_info (13 items), faq (14 Q&A), escalation_keywords (24), escalation_topics (4).
+- Positioning changed from self-serve SaaS ($0/$8/$29/$99) to concierge: AI Pilot / Founding Partner / White-Glove in EGP/SAR/AED/USD. Primary CTA is now WhatsApp +201026361218 for discovery call (or Google Meet via Calendly), NOT /register.
+- Script: `scripts/update-ot1-concierge-ai.php` (not committed — one-off). SCP'd to prod `/tmp`, run as www-data via tinker, then deleted.
+- Backup written to prod `/tmp/aiconfig-backup-1793715311.json` (51KB, keeps original FB + IG AiConfig as JSON).
+- Rollback: `ssh root@187.77.67.94` → `cat /tmp/aiconfig-backup-1793715311.json`, extract each config, `AiConfig::find($id)->fill($data)->save()`.
+
+**⚠️ Known open issue (not addressed in this session):** Both Page 17 (FB) and Page 41 (IG) have `is_active=false`. Webhooks for 1202369876301509 and 17841435059805096 are NOT routing to any team right now, so even with the new AiConfig, prospects messaging the brand pages see silence. Omar needs to reactivate via /connections UI (or SSH flip if tokens still valid). The daily-token-refresh job (commit 5c8dc99) may have kept the tokens alive — can verify with a Graph API ping.
+
+**⚠️ Also flagged:** Team 2 `settings.onboarding_ai_seed.system_prompt` still says "Egyptian leather bags" from a 2026-09 test. Not touched by this update (the per-page AiConfig overrides it), but should be cleaned up for consistency if the team-level seed is ever used as a template elsewhere.
+
+**No config:cache run** — this was a pure DB update via Eloquent, no .env or code change.
+

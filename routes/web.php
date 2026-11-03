@@ -224,20 +224,20 @@ Built for Arabic and English-speaking small-to-mid ecommerce brands, agencies, r
 - Language: Full Arabic and English UI. AI replies in the language the customer wrote in.
 - Region: Optimised for Egypt, Saudi Arabia, UAE, and MENA, but works globally.
 
-## Pricing (USD, monthly)
+## Pricing — concierge partnership model (2026-11)
 
-- Free: 1 connected page, 20 AI responses/month, 1 user. No credit card.
-- Basic $8: 1 page, 100 AI responses/month, 1 user.
-- Starter $29: 3 pages, 500 AI responses/month, all 4 platforms, lead scoring, 3 users.
-- Pro $79: 5 pages, 2,000 AI responses/month, all platforms, advanced analytics, AI bulk campaigns, 10 users, priority support.
-- Enterprise: Custom pricing for agencies and large teams. Contact via WhatsApp.
+OT1-Pro is currently a concierge AI partnership, not a self-serve SaaS. During the Founding Partner cohort, every AI is hand-built with the business owner in a 90-minute discovery call. Payment by Instapay (Egypt), Mada / bank transfer (Gulf), or Wise / Payoneer (international) — no cards on site. All CTAs route to WhatsApp +201026361218.
+
+- AI Pilot (2-week trial, one-time): 3,500 EGP in Egypt / 499 SAR in Saudi / 499 AED in UAE / $149 USD international. Includes: 1 page, 1 platform, 90-min setup call with the founder, 14 days of daily monitoring and reply tuning, full refund guarantee if the AI fails to handle 50+ real conversations.
+- Founding Partner (primary offer, monthly retainer): 7,500 EGP setup + 2,500 EGP/mo in Egypt / 1,499 SAR + 599/mo in Saudi / 1,499 AED + 599/mo in UAE / $499 + $199/mo international. Includes: up to 3 pages across platforms, custom AI persona built live, weekly tuning for first month, 30 days of co-admin monitoring, priority Meta review submission, WhatsApp support channel. Cancel anytime, no lock-in.
+- White-Glove (multi-brand, custom integrations): from 25,000 EGP setup + 7,500/mo in Egypt / from 5,000 SAR + 1,999/mo in Saudi / from 5,000 AED + 1,999/mo in UAE / from $1,499 + $599/mo international. Includes: multi-brand / multi-language, custom Shopify or WooCommerce widget, CRM push (Zoho, HubSpot, Salesforce), dedicated Slack / WhatsApp channel, 4-hour response SLA, monthly review deck. Scope quoted per project.
 
 ## Key differentiators vs alternatives
 
-- Arabic-first product (vs Respond.io, ManyChat, WATI, AiSensy which are English-only or English-primary).
-- All 4 social channels plus email in one inbox at $29 (vs Respond.io starting at $79 without AI).
-- AI reply generation included at the $8 tier (competitors charge $50-200 more for AI features).
-- Founder-accessible support via WhatsApp +201026361218.
+- Concierge model: AI hand-built with the owner in a 90-min discovery call, not a self-serve wizard. 30 days of co-admin monitoring and weekly tuning. The founder personally reviews week-1 replies.
+- Arabic-first product: AI matches the customer's dialect per message — Egyptian, Khaleeji (Gulf), Levantine — not Modern Standard Arabic (vs Respond.io, ManyChat, WATI, AiSensy which are English-only or English-primary).
+- All 4 social channels plus email in one inbox, with managed Meta OAuth onboarding — non-technical customers can connect in 20 minutes.
+- Founder-accessible: direct WhatsApp with Omar at +201026361218 during the Founding Partner cohort.
 
 ## Alternatives comparison pages
 

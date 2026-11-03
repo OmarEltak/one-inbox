@@ -481,80 +481,152 @@
     </div>
 </section>
 
-{{-- ═══════ PRICING ═══════ --}}
-<section id="pricing" class="bg-ink text-cream py-24 grain relative">
+{{-- ═══════ PRICING — concierge model (2026-11 pivot) ═══════ --}}
+<section id="pricing" class="bg-ink text-cream py-24 grain relative" x-data="{ currency: 'USD' }">
     <div class="max-w-7xl mx-auto px-6 relative z-10">
         <div class="max-w-2xl mb-12 fade-up">
-            <div class="text-xs uppercase tracking-widest text-emer-400 mb-4">{{ __('Pricing') }}</div>
-            <h2 class="serif text-5xl lg:text-6xl leading-[1.05] mb-4">{{ __("Pay in cash, once it's working.") }} <span class="serif-it text-emer-400">{{ __('Not before.') }}</span></h2>
-            <p class="text-cream/70 leading-relaxed">{{ __('Try any plan free for 14 days. No card needed. When you decide to keep it, we send bank details and you pay by transfer. That\'s it. No auto-renew traps.') }}</p>
+            <div class="text-xs uppercase tracking-widest text-emer-400 mb-4">{{ __('Partnership models') }}</div>
+            <h2 class="serif text-5xl lg:text-6xl leading-[1.05] mb-4">{{ __('We build it with you.') }} <span class="serif-it text-emer-400">{{ __('Not a signup form.') }}</span></h2>
+            <p class="text-cream/70 leading-relaxed">{{ __("We're a concierge AI partnership — not self-serve during the Founding Partner cohort. Each AI is hand-built with the owner in a 90-minute discovery call, then we stay as co-admin on your Page for 30 days to tune it weekly.") }}</p>
         </div>
 
+        {{-- Currency toggle --}}
+        <div class="flex justify-center mb-10 fade-up">
+            <div class="inline-flex items-center rounded-full bg-ink2 p-1 border border-cream/15">
+                @foreach (['USD' => '🌍 USD', 'EGP' => '🇪🇬 EGP', 'SAR' => '🇸🇦 SAR'] as $code => $label)
+                    <button type="button" @click="currency = '{{ $code }}'"
+                        :class="currency === '{{ $code }}' ? 'bg-emer-500 text-ink shadow' : 'text-cream/70 hover:text-cream'"
+                        class="px-5 py-2 text-xs font-semibold rounded-full transition">
+                        {{ $label }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Volume slider --}}
         <div class="mb-10 bg-ink2 rounded-2xl p-6 border border-cream/10 fade-up">
             <div class="flex items-center justify-between mb-3">
-                <label for="volume-slider" class="text-sm text-cream/80">{{ __('How many messages does your business get per month?') }}</label>
-                <span class="text-2xl font-semibold text-emer-400"><span id="slider-val">1,200</span> {{ __('msgs') }}</span>
+                <label for="volume-slider" class="text-sm text-cream/80">{{ __('About how many DMs or WhatsApp messages do you get per day?') }}</label>
+                <span class="text-2xl font-semibold text-emer-400"><span id="slider-val">50</span> {{ __('msgs/day') }}</span>
             </div>
             <input id="volume-slider" type="range" min="0" max="10" value="3" class="w-full accent-emer-500">
             <div class="flex justify-between text-[10px] text-cream/60 mt-1">
-                <span>~100</span><span>500</span><span>1k</span><span>2.5k</span><span>5k</span><span>10k+</span>
+                <span>5</span><span>20</span><span>50</span><span>100</span><span>200</span><span>500+</span>
             </div>
-            <div class="mt-4 text-sm text-cream/80">{{ __('Recommended:') }} <span id="rec-plan" class="text-emer-400 font-semibold">Starter</span> — <span id="rec-reason">{{ __('plenty of headroom for a growing shop') }}</span></div>
+            <div class="mt-4 text-sm text-cream/80">{{ __('Recommended:') }} <span id="rec-plan" class="text-emer-400 font-semibold">Founding Partner</span> — <span id="rec-reason">{{ __('right in the Partner sweet spot') }}</span></div>
         </div>
 
         <div class="grid md:grid-cols-3 gap-6">
-            {{-- Free --}}
-            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="free">
-                <div class="serif text-3xl mb-1">{{ __('Free') }}</div>
-                <div class="text-cream/60 text-sm mb-6">{{ __('Try the flow, no strings') }}</div>
-                <div class="serif text-5xl mb-6">$0</div>
+            {{-- AI Pilot --}}
+            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="pilot">
+                <div class="text-[10px] uppercase tracking-widest text-cream/50 mb-1">{{ __('14-day trial') }}</div>
+                <div class="serif text-3xl mb-1">{{ __('AI Pilot') }}</div>
+                <div class="text-cream/60 text-sm mb-6">{{ __('Prove the AI works in your voice before committing.') }}</div>
+
+                <div x-show="currency === 'USD'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">$149</div>
+                    <div class="text-cream/60 text-xs mb-6">{{ __('one-time, 14 days') }}</div>
+                </div>
+                <div x-show="currency === 'EGP'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">3,500 <span class="text-2xl">ج</span></div>
+                    <div class="text-cream/60 text-xs mb-6">{{ __('one-time, 14 days') }}</div>
+                </div>
+                <div x-show="currency === 'SAR'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">499 <span class="text-2xl">ر.س</span></div>
+                    <div class="text-cream/60 text-xs mb-6">{{ __('one-time, 14 days') }}</div>
+                </div>
+
                 <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 platform, 100 AI replies / month') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('1 team seat') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Meet-Your-AI wizard') }}</li>
-                    <li class="flex items-center gap-2 text-cream/50"><span>—</span> {{ __('Advanced routing') }}</li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('1 page, 1 platform') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('90-min setup call with Omar') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('14 days monitored daily') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('Full refund if < 50 real conversations handled') }}</span></li>
                 </ul>
-                @if(Route::has('register'))
-                    <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start free') }}</a>
-                @endif
+
+                <a href="https://wa.me/201026361218?text={{ urlencode('مرحبا، عايز الـ AI Pilot - من الموقع') }}" target="_blank" rel="noopener"
+                   class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">
+                    💬 {{ __('Start a Pilot on WhatsApp') }}
+                </a>
             </div>
-            {{-- Starter (featured) --}}
-            <div class="plan bg-cream text-ink rounded-2xl p-8 relative shadow-xl transform scale-105" data-plan="starter">
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emer-500 text-ink text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">{{ __('Most shops start here') }}</div>
-                <div class="serif text-3xl mb-1">Starter</div>
-                <div class="text-ink/70 text-sm mb-6">{{ __('For growing DMs') }}</div>
-                <div class="serif text-5xl mb-1">$29<span class="text-lg text-ink/50">/mo</span></div>
-                <div class="text-ink/60 text-xs mb-6">{{ __('or $290/yr — 2 months free') }}</div>
+
+            {{-- Founding Partner (featured) --}}
+            <div class="plan bg-cream text-ink rounded-2xl p-8 relative shadow-xl transform scale-105" data-plan="partner">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-emer-500 text-ink text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">
+                    {{ __('Most partners start here') }}
+                </div>
+                <div class="text-[10px] uppercase tracking-widest text-ink/50 mb-1">{{ __('Primary offer') }}</div>
+                <div class="serif text-3xl mb-1">{{ __('Founding Partner') }}</div>
+                <div class="text-ink/70 text-sm mb-6">{{ __('Custom AI built live. We stay co-admin 30 days.') }}</div>
+
+                <div x-show="currency === 'USD'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">$499</div>
+                    <div class="text-ink/60 text-xs mb-6" dir="ltr">+ $199 / {{ __('month') }}</div>
+                </div>
+                <div x-show="currency === 'EGP'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">7,500 <span class="text-2xl">ج</span></div>
+                    <div class="text-ink/60 text-xs mb-6" dir="ltr">+ 2,500 ج / {{ __('month') }}</div>
+                </div>
+                <div x-show="currency === 'SAR'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">1,499 <span class="text-2xl">ر.س</span></div>
+                    <div class="text-ink/60 text-xs mb-6" dir="ltr">+ 599 ر.س / {{ __('month') }}</div>
+                </div>
+
                 <ul class="space-y-2.5 text-sm text-ink/80 mb-8">
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 platforms, 2,500 AI replies / mo') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('3 team seats') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('Custom AI voice tuning') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-600">✓</span> {{ __('Founder email support') }}</li>
+                    <li class="flex items-start gap-2"><span class="text-emer-600 mt-0.5">✓</span> <span>{{ __('Up to 3 pages across platforms') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-600 mt-0.5">✓</span> <span>{{ __('Custom AI persona built live') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-600 mt-0.5">✓</span> <span>{{ __('30 days co-admin monitoring') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-600 mt-0.5">✓</span> <span>{{ __('Weekly tuning for first month') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-600 mt-0.5">✓</span> <span>{{ __('Cancel anytime, no lock-in') }}</span></li>
                 </ul>
-                @if(Route::has('register'))
-                    <a href="{{ route('register') }}" class="block w-full text-center bg-ink text-cream hover:bg-ink2 rounded-full py-3 text-sm font-semibold transition">{{ __('Start 14-day trial') }}</a>
-                @endif
+
+                <a href="https://wa.me/201026361218?text={{ urlencode('مرحبا، عايز الـ Founding Partner - من الموقع') }}" target="_blank" rel="noopener"
+                   class="block w-full text-center bg-ink text-cream hover:bg-ink2 rounded-full py-3 text-sm font-semibold transition">
+                    💬 {{ __('Become a Partner on WhatsApp') }}
+                </a>
             </div>
-            {{-- Pro --}}
-            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="pro">
-                <div class="serif text-3xl mb-1">Pro</div>
-                <div class="text-cream/60 text-sm mb-6">{{ __('Scale without hiring') }}</div>
-                <div class="serif text-5xl mb-1">$79<span class="text-lg text-cream/50">/mo</span></div>
-                <div class="text-cream/60 text-xs mb-6">{{ __('or $790/yr — 2 months free') }}</div>
+
+            {{-- White-Glove --}}
+            <div class="plan bg-ink2 border border-cream/10 rounded-2xl p-8" data-plan="whiteglove">
+                <div class="text-[10px] uppercase tracking-widest text-cream/50 mb-1">{{ __('Multi-brand / custom') }}</div>
+                <div class="serif text-3xl mb-1">{{ __('White-Glove') }}</div>
+                <div class="text-cream/60 text-sm mb-6">{{ __('For chains, groups, agencies, custom widgets.') }}</div>
+
+                <div x-show="currency === 'USD'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">{{ __('from') }} $1,499</div>
+                    <div class="text-cream/60 text-xs mb-6" dir="ltr">+ $599 / {{ __('month') }}</div>
+                </div>
+                <div x-show="currency === 'EGP'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">{{ __('from') }} 25,000 <span class="text-2xl">ج</span></div>
+                    <div class="text-cream/60 text-xs mb-6" dir="ltr">+ 7,500 ج / {{ __('month') }}</div>
+                </div>
+                <div x-show="currency === 'SAR'" x-cloak>
+                    <div class="serif text-5xl mb-1" dir="ltr">{{ __('from') }} 5,000 <span class="text-2xl">ر.س</span></div>
+                    <div class="text-cream/60 text-xs mb-6" dir="ltr">+ 1,999 ر.س / {{ __('month') }}</div>
+                </div>
+
                 <ul class="space-y-2.5 text-sm text-cream/80 mb-8">
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('All platforms, 10,000 AI replies / mo') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Unlimited team seats') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Custom AI + workflows') }}</li>
-                    <li class="flex items-center gap-2"><span class="text-emer-400">✓</span> {{ __('Priority support < 4hr') }}</li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('Multi-brand / multi-language') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('Custom Shopify / WooCommerce widget') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('Dedicated Slack / WhatsApp channel') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('4-hour response SLA') }}</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emer-400 mt-0.5">✓</span> <span>{{ __('Scope quoted per project') }}</span></li>
                 </ul>
-                @if(Route::has('register'))
-                    <a href="{{ route('register') }}" class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">{{ __('Start 14-day trial') }}</a>
-                @endif
+
+                <a href="https://wa.me/201026361218?text={{ urlencode('مرحبا، عايز White-Glove - من الموقع') }}" target="_blank" rel="noopener"
+                   class="block w-full text-center border border-cream/20 hover:bg-cream/5 rounded-full py-3 text-sm font-semibold transition text-cream">
+                    💬 {{ __('Book a scoping call') }}
+                </a>
             </div>
         </div>
-        <p class="mt-8 text-xs text-cream/60 text-center">{{ __('Custom volume, on-prem, or a franchise?') }} <a href="{{ route('contact') }}" class="underline hover:text-emer-400">{{ __('Email Omar') }}</a> — {{ __('he handles enterprise personally.') }}</p>
+
+        <p class="mt-8 text-xs text-cream/60 text-center">
+            {{ __('Payment: Instapay (Egypt) · Mada / bank transfer (Gulf) · Wise / Payoneer (international). No cards on site. Setup fee paid before onboarding.') }}
+            <br>
+            <a href="{{ route('pricing') }}" class="underline hover:text-emer-400">{{ __('Full partnership details') }} →</a>
+        </p>
     </div>
 </section>
+<style>[x-cloak] { display: none !important; }</style>
 
 {{-- ═══════ FAQ ═══════ --}}
 <section class="py-24 fade-up">
@@ -764,22 +836,22 @@ document.querySelectorAll('.tab-btn').forEach(function (btn) {
     setTimeout(typeAi, 1500);
 })();
 
-// Pricing volume slider
+// Pricing volume slider — concierge tiers (msgs/day → recommended tier)
 (function () {
     var slider = document.getElementById('volume-slider');
     if (!slider) return;
     var buckets = [
-        { msgs: 100,   plan: 'Free',    reason: 'small volume, casual DMs — the free tier fits' },
-        { msgs: 300,   plan: 'Free',    reason: 'still within the free 100/mo cap x 3 platforms' },
-        { msgs: 500,   plan: 'Starter', reason: 'extra headroom + custom voice tuning' },
-        { msgs: 1200,  plan: 'Starter', reason: 'plenty of headroom for a growing shop' },
-        { msgs: 1800,  plan: 'Starter', reason: 'still inside the 2.5k Starter cap' },
-        { msgs: 2500,  plan: 'Starter', reason: 'right at the Starter ceiling — check Pro too' },
-        { msgs: 3500,  plan: 'Pro',     reason: "over Starter's cap — Pro unlocks 10k/mo + all platforms" },
-        { msgs: 5000,  plan: 'Pro',     reason: 'Pro is the sweet spot for your volume' },
-        { msgs: 7000,  plan: 'Pro',     reason: "still inside Pro's 10k cap" },
-        { msgs: 9000,  plan: 'Pro',     reason: "approaching Pro's ceiling — plan ahead" },
-        { msgs: 12000, plan: 'Custom',  reason: 'email Omar for a custom volume plan' },
+        { msgs: 5,   plan: 'AI Pilot',         reason: @json(__("very low volume — the Pilot's 14-day refund protects you")) },
+        { msgs: 15,  plan: 'AI Pilot',         reason: @json(__("still a Pilot — prove it works before monthly commitment")) },
+        { msgs: 30,  plan: 'Founding Partner', reason: @json(__("right in the Partner sweet spot")) },
+        { msgs: 50,  plan: 'Founding Partner', reason: @json(__("ideal for Partner — one tuned AI handles your pipeline")) },
+        { msgs: 80,  plan: 'Founding Partner', reason: @json(__("Partner is still the fit — this is where it really pays off")) },
+        { msgs: 120, plan: 'Founding Partner', reason: @json(__("Partner — you're saving 15–25 hrs/week of manual replies")) },
+        { msgs: 180, plan: 'Founding Partner', reason: @json(__("still Partner, but ask about multi-page add-on")) },
+        { msgs: 220, plan: 'White-Glove',      reason: @json(__("over 200/day — multi-page or multi-platform makes White-Glove worth it")) },
+        { msgs: 300, plan: 'White-Glove',      reason: @json(__("White-Glove — dedicated channel + 4h SLA start to matter")) },
+        { msgs: 450, plan: 'White-Glove',      reason: @json(__("multi-brand territory — scope it with us")) },
+        { msgs: 700, plan: 'White-Glove',      reason: @json(__("enterprise scope — book a 45-min call")) },
     ];
     function updateSlider() {
         var i = parseInt(slider.value, 10);
@@ -789,9 +861,11 @@ document.querySelectorAll('.tab-btn').forEach(function (btn) {
         document.getElementById('rec-reason').textContent = b.reason;
         document.querySelectorAll('.plan').forEach(function (p) {
             p.classList.remove('ring-2', 'ring-emer-400');
-            if (p.dataset.plan.toLowerCase() === b.plan.toLowerCase()) {
-                p.classList.add('ring-2', 'ring-emer-400');
-            }
+            var planKey = p.dataset.plan;
+            var match = (b.plan === 'AI Pilot' && planKey === 'pilot') ||
+                        (b.plan === 'Founding Partner' && planKey === 'partner') ||
+                        (b.plan === 'White-Glove' && planKey === 'whiteglove');
+            if (match) p.classList.add('ring-2', 'ring-emer-400');
         });
     }
     slider.addEventListener('input', updateSlider);

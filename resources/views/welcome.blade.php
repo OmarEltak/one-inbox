@@ -259,173 +259,164 @@
         </div>
     </section>
 
-    {{-- ───── 6. Pricing teaser ───── --}}
-    <section class="border-t border-zinc-200 bg-zinc-50 py-24 lg:py-32">
+    {{-- ───── 6. Pricing teaser — concierge model (2026-11 pivot) ───── --}}
+    <section class="border-t border-zinc-200 bg-zinc-50 py-24 lg:py-32" x-data="{ currency: 'USD' }">
         <div class="mx-auto max-w-7xl px-6">
             <div class="mx-auto max-w-2xl text-center">
-                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-violet-600">{{ __('Pricing') }}</div>
+                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-violet-600">{{ __('Partnership models') }}</div>
                 <h2 class="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl">
-                    {{ __('Flat per workspace. Never per seat.') }}
+                    {{ __('We build your AI with you. Not a signup form.') }}
                 </h2>
                 <p class="mt-5 text-lg text-zinc-600">
-                    {{ __('Start free. Upgrade only when the AI is closing more than your time saves you.') }}
+                    {{ __('We are not self-serve during the Founding Partner cohort. Each AI is hand-built with the owner in a 90-minute discovery call, then monitored for 30 days.') }}
                 </p>
-            </div>
 
-            {{-- Scrollable plan cards --}}
-            <div class="mt-16 -mx-6 px-6 overflow-x-auto scrollbar-hide">
-                <div class="flex gap-5 pb-4 pt-6" style="width: max-content;">
-
-                    @php
-                    $plans = [
-                        [
-                            'key'     => 'free',
-                            'name'    => __('Free'),
-                            'price'   => '$0',
-                            'period'  => __('forever'),
-                            'desc'    => __('Try it with no commitment.'),
-                            'popular' => false,
-                            'features' => [
-                                __('1 connected page'),
-                                __('20 AI replies / month'),
-                                __('Unified inbox'),
-                                __('1 team member'),
-                            ],
-                            'cta'     => __('Start for free'),
-                            'href'    => route('register'),
-                            'outline' => true,
-                        ],
-                        [
-                            'key'     => 'basic',
-                            'name'    => __('Basic'),
-                            'price'   => '$8',
-                            'period'  => __('/ mo'),
-                            'desc'    => __('Just enough AI to get started.'),
-                            'popular' => false,
-                            'features' => [
-                                __('1 connected page'),
-                                __('100 AI replies / month'),
-                                __('Unified inbox'),
-                                __('1 team member'),
-                            ],
-                            'cta'     => __('Get Basic'),
-                            'href'    => route('pay-wire') . '?plan=basic',
-                            'outline' => true,
-                        ],
-                        [
-                            'key'     => 'starter',
-                            'name'    => __('Starter'),
-                            'price'   => '$29',
-                            'period'  => __('/ mo'),
-                            'desc'    => __('Your AI sales rep, 24/7.'),
-                            'popular' => false,
-                            'features' => [
-                                __('3 connected pages'),
-                                __('500 AI replies / month'),
-                                __('All 4 platforms'),
-                                __('Lead scoring'),
-                                __('3 team members'),
-                            ],
-                            'cta'     => __('Get Starter'),
-                            'href'    => route('pay-wire') . '?plan=starter',
-                            'outline' => true,
-                        ],
-                        [
-                            'key'     => 'pro',
-                            'name'    => __('Pro'),
-                            'price'   => '$79',
-                            'period'  => __('/ mo'),
-                            'desc'    => __('Built for teams that close deals.'),
-                            'popular' => true,
-                            'features' => [
-                                __('5 connected pages'),
-                                __('2,000 AI replies / month'),
-                                __('All platforms + TikTok (soon)'),
-                                __('Advanced analytics'),
-                                __('AI bulk campaigns'),
-                                __('10 team members'),
-                                __('Priority support'),
-                            ],
-                            'cta'     => __('Get Pro'),
-                            'href'    => route('pay-wire') . '?plan=pro',
-                            'outline' => false,
-                        ],
-                        [
-                            'key'     => 'enterprise',
-                            'name'    => __('Enterprise'),
-                            'price'   => __('Custom'),
-                            'period'  => '',
-                            'desc'    => __('For agencies & large teams.'),
-                            'popular' => false,
-                            'features' => [
-                                __('Unlimited pages'),
-                                __('Unlimited AI replies'),
-                                __('All platforms'),
-                                __('Custom AI voice & training'),
-                                __('White-label option'),
-                                __('Unlimited team members'),
-                                __('Dedicated onboarding & SLA'),
-                            ],
-                            'cta'     => __('Talk to sales'),
-                            'href'    => 'https://wa.me/201026361218?text=' . urlencode('Hi, I\'m interested in an Enterprise plan'),
-                            'outline' => true,
-                        ],
-                    ];
-                    @endphp
-
-                    @foreach($plans as $plan)
-                        <div class="relative flex flex-col rounded-2xl bg-white p-7 w-72 flex-shrink-0 snap-start
-                            {{ $plan['popular']
-                                ? 'border-2 border-violet-600 shadow-lg shadow-violet-100'
-                                : 'border border-zinc-200 shadow-sm' }}">
-
-                            @if($plan['popular'])
-                                <span class="absolute -top-4 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-violet-600 px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
-                                    {{ __('Most popular') }}
-                                </span>
-                            @endif
-
-                            <div class="text-xs font-bold uppercase tracking-widest {{ $plan['popular'] ? 'text-violet-600' : 'text-zinc-400' }}">
-                                {{ $plan['name'] }}
-                            </div>
-
-                            <div class="mt-4 flex items-baseline gap-1.5">
-                                <span class="text-4xl font-bold text-zinc-900">{{ $plan['price'] }}</span>
-                                @if($plan['period'])
-                                    <span class="text-sm text-zinc-500">{{ $plan['period'] }}</span>
-                                @endif
-                            </div>
-
-                            <p class="mt-2 text-sm text-zinc-500">{{ $plan['desc'] }}</p>
-
-                            <ul class="mt-6 space-y-2.5 flex-1">
-                                @foreach($plan['features'] as $feature)
-                                    <li class="flex items-start gap-2 text-sm text-zinc-700">
-                                        <svg class="mt-0.5 size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                        </svg>
-                                        {{ $feature }}
-                                    </li>
-                                @endforeach
-                            </ul>
-
-                            <a href="{{ $plan['href'] }}"
-                               @if(str_starts_with($plan['href'], 'https://wa.me')) target="_blank" @endif
-                               class="mt-8 block rounded-xl px-5 py-2.5 text-center text-sm font-semibold transition-all
-                               {{ $plan['popular']
-                                   ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-sm'
-                                   : 'border border-zinc-300 text-zinc-700 hover:border-violet-400 hover:text-violet-700 hover:bg-violet-50' }}">
-                                {{ $plan['cta'] }}
-                            </a>
-                        </div>
+                {{-- Currency toggle --}}
+                <div class="mt-8 inline-flex items-center rounded-full bg-white p-1 border border-zinc-200 shadow-sm">
+                    @foreach (['USD' => '🌍 USD', 'EGP' => '🇪🇬 EGP', 'SAR' => '🇸🇦 SAR'] as $code => $label)
+                        <button type="button" @click="currency = '{{ $code }}'"
+                            :class="currency === '{{ $code }}' ? 'bg-violet-600 text-white shadow' : 'text-zinc-600 hover:text-zinc-900'"
+                            class="px-4 py-1.5 text-xs font-semibold rounded-full transition">
+                            {{ $label }}
+                        </button>
                     @endforeach
-
                 </div>
             </div>
 
-            <p class="mx-auto mt-10 max-w-xl text-center text-sm text-zinc-500">
-                {{ __('Full plan details, channel limits, and add-ons') }}
-                <a href="{{ route('pricing') }}" class="font-semibold text-violet-600 hover:text-violet-700">{{ __('on the pricing page') }} →</a>
+            {{-- Plan cards --}}
+            <div class="mt-16 grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+
+                @php
+                $concierge = [
+                    [
+                        'key'     => 'pilot',
+                        'name'    => __('AI Pilot'),
+                        'tag'     => __('14-day trial'),
+                        'desc'    => __('A 2-week test drive. Full refund if the AI doesn\'t handle 50+ real conversations correctly.'),
+                        'popular' => false,
+                        'prices'  => [
+                            'USD' => ['amount' => '$149', 'period' => __('one-time')],
+                            'EGP' => ['amount' => '3,500 ج', 'period' => __('one-time')],
+                            'SAR' => ['amount' => '499 ر.س', 'period' => __('one-time')],
+                        ],
+                        'features' => [
+                            __('1 page, 1 platform'),
+                            __('90-min setup call with Omar'),
+                            __('14 days monitored daily'),
+                            __('Daily reply tuning'),
+                            __('Full refund guarantee'),
+                        ],
+                        'cta'     => __('Start a Pilot'),
+                        'href'    => 'https://wa.me/201026361218?text=' . urlencode('مرحبا، عايز الـ AI Pilot - من الموقع'),
+                    ],
+                    [
+                        'key'     => 'partner',
+                        'name'    => __('Founding Partner'),
+                        'tag'     => __('Most partners start here'),
+                        'desc'    => __('Our primary offer. Custom AI built in a 90-min call, we stay co-admin for 30 days.'),
+                        'popular' => true,
+                        'prices'  => [
+                            'USD' => ['amount' => '$499', 'period' => __('setup + $199/mo')],
+                            'EGP' => ['amount' => '7,500 ج', 'period' => __('setup + 2,500 ج/mo')],
+                            'SAR' => ['amount' => '1,499 ر.س', 'period' => __('setup + 599 ر.س/mo')],
+                        ],
+                        'features' => [
+                            __('Up to 3 pages across platforms'),
+                            __('Custom AI persona built live'),
+                            __('Weekly tuning for first month'),
+                            __('30 days co-admin monitoring'),
+                            __('Priority Meta review submission'),
+                            __('WhatsApp support channel'),
+                            __('Cancel anytime'),
+                        ],
+                        'cta'     => __('Become a Partner'),
+                        'href'    => 'https://wa.me/201026361218?text=' . urlencode('مرحبا، عايز الـ Founding Partner - من الموقع'),
+                    ],
+                    [
+                        'key'     => 'whiteglove',
+                        'name'    => __('White-Glove'),
+                        'tag'     => __('Multi-brand / Custom'),
+                        'desc'    => __('For clinic chains, restaurant groups, multi-brand agencies, Shopify custom widgets.'),
+                        'popular' => false,
+                        'prices'  => [
+                            'USD' => ['amount' => __('from $1,499'), 'period' => __('setup + $599/mo')],
+                            'EGP' => ['amount' => __('from 25,000 ج'), 'period' => __('setup + 7,500 ج/mo')],
+                            'SAR' => ['amount' => __('from 5,000 ر.س'), 'period' => __('setup + 1,999 ر.س/mo')],
+                        ],
+                        'features' => [
+                            __('Multi-brand / multi-language'),
+                            __('Custom Shopify / WooCommerce widget'),
+                            __('CRM push (Zoho, HubSpot, Salesforce)'),
+                            __('Dedicated Slack / WhatsApp channel'),
+                            __('4h response SLA'),
+                            __('Monthly review deck'),
+                            __('Scope quoted per project'),
+                        ],
+                        'cta'     => __('Book a scoping call'),
+                        'href'    => 'https://wa.me/201026361218?text=' . urlencode('مرحبا، عايز White-Glove - من الموقع'),
+                    ],
+                ];
+                @endphp
+
+                @foreach($concierge as $plan)
+                    <div class="relative flex flex-col rounded-2xl bg-white p-7
+                        {{ $plan['popular']
+                            ? 'border-2 border-violet-600 shadow-lg shadow-violet-100'
+                            : 'border border-zinc-200 shadow-sm' }}">
+
+                        @if($plan['popular'])
+                            <span class="absolute -top-4 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-violet-600 px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-white whitespace-nowrap">
+                                {{ $plan['tag'] }}
+                            </span>
+                        @else
+                            <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                {{ $plan['tag'] }}
+                            </span>
+                        @endif
+
+                        <div class="mt-4 text-xl font-bold text-zinc-900">
+                            {{ $plan['name'] }}
+                        </div>
+
+                        {{-- Price with currency toggle --}}
+                        @foreach ($plan['prices'] as $code => $price)
+                            <div x-show="currency === '{{ $code }}'" x-cloak>
+                                <div class="mt-3 flex items-baseline gap-1.5" dir="ltr">
+                                    <span class="text-3xl font-bold text-zinc-900">{{ $price['amount'] }}</span>
+                                </div>
+                                <div class="text-sm text-zinc-500">{{ $price['period'] }}</div>
+                            </div>
+                        @endforeach
+
+                        <p class="mt-4 text-sm text-zinc-600">{{ $plan['desc'] }}</p>
+
+                        <ul class="mt-6 space-y-2.5 flex-1">
+                            @foreach($plan['features'] as $feature)
+                                <li class="flex items-start gap-2 text-sm text-zinc-700">
+                                    <svg class="mt-0.5 size-4 shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
+                                    {{ $feature }}
+                                </li>
+                            @endforeach
+                        </ul>
+
+                        <a href="{{ $plan['href'] }}" target="_blank" rel="noopener"
+                           class="mt-8 block rounded-xl px-5 py-2.5 text-center text-sm font-semibold transition-all
+                           {{ $plan['popular']
+                               ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-sm'
+                               : 'border border-zinc-300 text-zinc-700 hover:border-violet-400 hover:text-violet-700 hover:bg-violet-50' }}">
+                            💬 {{ $plan['cta'] }}
+                        </a>
+                    </div>
+                @endforeach
+
+            </div>
+
+            <p class="mx-auto mt-10 max-w-2xl text-center text-sm text-zinc-500">
+                {{ __('Payment by Instapay (Egypt), Mada / bank transfer (Gulf), or Wise / Payoneer (international). No cards on site. Setup fee collected before onboarding begins.') }}
+                <br>
+                <a href="{{ route('pricing') }}" class="font-semibold text-violet-600 hover:text-violet-700">{{ __('Full partnership details') }} →</a>
             </p>
         </div>
     </section>
