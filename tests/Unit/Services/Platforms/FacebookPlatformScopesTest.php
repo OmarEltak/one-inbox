@@ -58,3 +58,31 @@ it('requests BOTH pages_manage_posts AND pages_manage_engagement in the FB+IG co
     expect($url)->toContain('instagram_manage_messages');
     expect($url)->toContain('business_management');
 });
+
+/*
+ * auth_type=rerequest pin — both FB OAuth URLs must include this parameter.
+ *
+ * Reason: Meta's Pages picker is sticky across OAuth runs. Without rerequest,
+ * users who previously unchecked a Page in the picker CANNOT re-tick it by
+ * re-running "Reconnect" — Meta reuses the old selection silently, no picker
+ * is shown, and the new Page's token lacks all pages_* granular scopes. The
+ * hourly pages:health-check then re-flags it as "Needs reconnect" forever.
+ *
+ * Real incident 2026-11-06: OT1-Pro FB + IG both stuck in reconnect loop
+ * for a full day because granular_scopes.pages_messaging.target_ids only
+ * listed the OTHER page (Brandk) the user had originally picked. Three
+ * reconnect clicks did nothing because Meta never re-showed the picker.
+ *
+ * Removing auth_type=rerequest will reintroduce that silent failure mode.
+ */
+it('requests auth_type=rerequest on the FB-only OAuth URL to force picker re-display', function () {
+    config(['services.meta.app_id' => 'test-app', 'services.meta.app_secret' => 'test-secret']);
+    $url = (new FacebookPlatform())->getConnectUrl();
+    expect($url)->toContain('auth_type=rerequest');
+});
+
+it('requests auth_type=rerequest on the FB+IG combined OAuth URL to force picker re-display', function () {
+    config(['services.meta.app_id' => 'test-app', 'services.meta.app_secret' => 'test-secret']);
+    $url = (new FacebookPlatform())->getInstagramViaFacebookConnectUrl();
+    expect($url)->toContain('auth_type=rerequest');
+});

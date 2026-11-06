@@ -128,6 +128,23 @@ class FacebookPlatform extends AbstractPlatform
                 // user's Page role was assigned via the Business layer rather than as
                 // a direct Page admin. Required to traverse /me/businesses/{id}/owned_pages.
                 'scope' => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,pages_manage_engagement,business_management',
+                // auth_type=rerequest added 2026-11-06. Meta's Pages picker is STICKY
+                // across OAuth runs: once a user picks a subset of Pages (or unchecks
+                // one), every subsequent /dialog/oauth silently reuses that selection
+                // without re-showing the picker. The user's /debug_token then lists
+                // granular_scopes for ONLY the previously-picked Pages, so any new
+                // Page gets is_valid=false with "pages_messaging permission(s) must
+                // be granted before impersonating a user's page" — fires on the next
+                // hourly pages:health-check tick and the "Needs reconnect" banner
+                // appears again within an hour, no matter how many times the user
+                // clicks Reconnect. Real incident 2026-11-06: OT1-Pro FB page +
+                // OT1-Pro IG-via-Meta page both stuck in this loop; granular_scopes
+                // showed pages_* granted ONLY for Brandk (105577575011406), not for
+                // OT1-Pro (1202369876301509). rerequest forces Meta to re-display
+                // the picker so the user can explicitly tick every Page they want.
+                // Safe on first-time OAuth too (Meta ignores it when there's nothing
+                // to re-request). See FacebookPlatformScopesTest for the regression pin.
+                'auth_type' => 'rerequest',
                 'response_type' => 'code',
                 'state' => $state,
             ]);
@@ -156,6 +173,14 @@ class FacebookPlatform extends AbstractPlatform
                 // dropping one.
                 // business_management added 2026-10-07 — see getConnectUrl() note.
                 'scope'         => 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_manage_posts,pages_manage_engagement,business_management,instagram_basic,instagram_manage_messages,instagram_manage_comments',
+                // auth_type=rerequest added 2026-11-06 — see getConnectUrl() note for
+                // the full "sticky Pages picker" incident writeup. Same reason: forces
+                // Meta to re-show the Pages picker so a previously-unticked IG-via-FB
+                // page can be re-granted. If a user ever OAuths with the Pages picker
+                // only ticking Page A, every later reconnect will silently inherit
+                // that selection — Page B and any linked IG account remain token-less
+                // and get stuck in the Needs-reconnect loop.
+                'auth_type'     => 'rerequest',
                 'response_type' => 'code',
                 'state'         => $state,
             ]);
