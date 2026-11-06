@@ -160,7 +160,19 @@ class PageHealthCheckCommand extends Command
 
         $appId = (string) config('services.meta.app_id');
         $apps = $sub['data'] ?? [];
-        $ourAppSubscribed = collect($apps)->contains(fn ($a) => (string) ($a['id'] ?? '') === $appId);
+
+        // Meta returns TWO shapes depending on the resource:
+        //   - graph.facebook.com/{fb_page_id}/subscribed_apps
+        //       → {"id": "<app_id>", "name": "...", "link": "...", "subscribed_fields": [...]}
+        //   - graph.facebook.com/{igbid}/subscribed_apps   (IG-via-Meta pages)
+        //       → {"app_id": "<app_id>", "subscribed_fields": [...]}        (no name/link/id)
+        // Accept either field. This was a false-positive source for IG-via-Meta pages:
+        // only the FB "id" key was checked, so a healthy IG subscription returning
+        // "app_id" would show as "not_subscribed", re-flagging the page every hour
+        // until the user reconnected — at which point it would re-flag again (incident
+        // 2026-11-06, OT1-Pro IG page 41 after the auth_type=rerequest fix).
+        $ourAppSubscribed = collect($apps)->contains(fn ($a) => (string) ($a['id'] ?? '') === $appId
+            || (string) ($a['app_id'] ?? '') === $appId);
 
         if (! $ourAppSubscribed && ! empty($appId)) {
             return [

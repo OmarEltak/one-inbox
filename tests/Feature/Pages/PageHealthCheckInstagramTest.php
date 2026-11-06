@@ -187,6 +187,68 @@ it('reports a Direct IG Login page as broken when subscribed_apps returns an emp
         ->and($err['source'])->toBe('ig_subscribed_apps');
 });
 
+/*
+ * Regression pin for the IG-via-Meta false-positive "not_subscribed" loop
+ * (incident 2026-11-06, OT1-Pro IG page 41 after the auth_type=rerequest
+ * fix finally gave the token enough grants to query the IGBID endpoint
+ * successfully, exposing a latent response-parsing bug).
+ *
+ * Meta returns TWO shapes for /{id}/subscribed_apps:
+ *   - FB page: {"id": "<app_id>", "name": "...", "link": "...", "subscribed_fields": [...]}
+ *   - IGBID : {"app_id": "<app_id>", "subscribed_fields": [...]}   (no name/link/id)
+ *
+ * The health check must accept EITHER field as the app identifier, or every
+ * healthy IG-via-Meta page re-flags as "Needs reconnect" every hour.
+ */
+it('treats an IG-via-Meta page as healthy when subscribed_apps returns the app_id shape (not id)', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['owner_id' => $user->id]);
+
+    $account = ConnectedAccount::create([
+        'team_id'          => $team->id,
+        'platform'         => 'facebook',
+        'platform_user_id' => '900000000000001',
+        'name'             => 'Acme Owner',
+        'access_token'     => 'fb-user-token',
+        'token_expires_at' => now()->addDays(60),
+        'scopes'           => ['pages_messaging', 'instagram_manage_messages'],
+        'is_active'        => true,
+        'connected_at'     => now(),
+    ]);
+
+    // IG-via-Meta page: platform=instagram, auth_type NOT set to instagram_business
+    // (that's the Direct IG flag). platform_page_id = IGBID.
+    $igViaMetaPage = Page::create([
+        'team_id'              => $team->id,
+        'platform'             => 'instagram',
+        'platform_page_id'     => '17841400000000099',
+        'connected_account_id' => $account->id,
+        'name'                 => 'IG-via-Meta',
+        'page_access_token'    => 'fb-page-token-with-ig-scopes',
+        'category'             => 'instagram_business',
+        'is_active'            => true,
+        'metadata'             => ['linked_facebook_page_id' => '100000000000099'],
+    ]);
+
+    Http::fake([
+        'graph.facebook.com/*/debug_token*' => Http::response([
+            'data' => ['is_valid' => true, 'app_id' => 'fb-app-id'],
+        ]),
+        // IGBID subscribed_apps on graph.facebook.com returns the stripped IG shape
+        // with "app_id", not "id". This IS our app subscribed — must be treated healthy.
+        'graph.facebook.com/*/subscribed_apps*' => Http::response([
+            'data' => [[
+                'app_id' => 'fb-app-id',
+                'subscribed_fields' => ['messages', 'comments'],
+            ]],
+        ]),
+    ]);
+
+    $this->artisan('pages:health-check', ['--page' => $igViaMetaPage->id])->assertExitCode(0);
+
+    expect($igViaMetaPage->fresh()->metadata['subscription_error'] ?? null)->toBeNull();
+});
+
 it('still validates Facebook pages against graph.facebook.com (the IG-business branch does not swallow FB)', function () {
     $user = User::factory()->create();
     $team = Team::factory()->create(['owner_id' => $user->id]);
