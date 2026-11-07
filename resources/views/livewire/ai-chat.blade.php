@@ -14,7 +14,7 @@
     //   (2) On Send, the user has just clicked the submit button, so
     //       activeElement === the button, NOT the textarea. We saved nothing.
     //       After the DOM morphed in the pending bubble, the textarea had no
-    //       focus — it felt like a "small reload / flash". This is Bug B.
+    //       focus — it felt like a 'small reload / flash'. This is Bug B.
     // New approach: hook `focus`/`blur`/`keyup`/`mouseup`/`select` listeners on
     // the textarea itself (re-bound after every morph via wireComposerTracking)
     // so `savedComposerSel` is ALWAYS fresh and `wasComposerFocused` is a
@@ -40,7 +40,7 @@
         if (this.isNearBottom) { this.scrollToBottom(); } else { this.showNewMessageBadge = true; }
     },
     // Bind continuous selection/focus tracking to whatever textarea currently
-    // lives inside x-ref="textInput". Safe to call repeatedly — we store the
+    // lives inside x-ref='textInput'. Safe to call repeatedly — we store the
     // bound element on composerBoundEl and skip re-binding when it's still the
     // same DOM node. After a morph the textarea may be a fresh node, so this
     // re-binds. Called once on init and again on every livewire:morphed.
@@ -60,7 +60,7 @@
         ta.addEventListener('input',    captureSel);
         ta.addEventListener('blur', (e) => {
             // Treat blur-to-body (caused by DOM morph removing the node) as
-            // "still focused" so restore fires after morphed. A real blur
+            // 'still focused' so restore fires after morphed. A real blur
             // leaves relatedTarget set to the thing the user moved focus to.
             // We also keep wasComposerFocused true when the related target is
             // our own Send button, which is the Bug B case.
