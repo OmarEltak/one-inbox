@@ -15,6 +15,7 @@ use App\Models\Team;
 use App\Contracts\AiProviderInterface;
 use App\Services\Ai\AdminChatContext;
 use App\Services\Ai\DeepAnalysisService;
+use App\Services\AiChat\ActionParser;
 use App\Services\Billing\AiCredits;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
@@ -1303,43 +1304,33 @@ class AiChat extends Component
      *
      * pending_action blocks: require user confirmation before executing.
      * action blocks: auto-execute immediately (save_memory only).
+     *
+     * Delegates parsing to ActionParser so the format-tolerant logic (fenced
+     * vs. bare-but-isolated JSON) is covered by unit tests separately from
+     * Livewire state / dispatch side effects.
      */
     protected function executeActions(string &$response, int $teamId): ?string
     {
         $results = [];
+        $parsed = (new ActionParser())->parse($response);
 
-        // Handle pending_action blocks — store for confirmation, do not execute yet
-        if (preg_match('/```pending_action\s*(\{.+?\})\s*```/s', $response, $match)) {
+        if ($parsed['pending'] !== null) {
+            $this->pendingAction = $parsed['pending'];
+            $this->pendingActionSummary = $this->describePendingAction($parsed['pending'], $teamId);
+        }
+
+        foreach ($parsed['auto'] as $action) {
             try {
-                $action = json_decode($match[1], true, 512, JSON_THROW_ON_ERROR);
-                $this->pendingAction = $action;
-                $this->pendingActionSummary = $this->describePendingAction($action, $teamId);
-            } catch (\JsonException $e) {
-                $results[] = 'Failed to parse pending action: invalid JSON.';
-            }
-
-            $response = trim(preg_replace('/```pending_action\s*\{.+?\}\s*```/s', '', $response));
-        }
-
-        // Handle action blocks — auto-execute (save_memory only)
-        if (preg_match_all('/```action\s*(\{.+?\})\s*```/s', $response, $matches)) {
-            foreach ($matches[1] as $jsonStr) {
-                try {
-                    $action = json_decode($jsonStr, true, 512, JSON_THROW_ON_ERROR);
-
-                    if (($action['action'] ?? null) === 'save_memory') {
-                        $results[] = $this->runAction($action, $teamId);
-                    }
-                } catch (\JsonException $e) {
-                    $results[] = 'Failed to parse action: invalid JSON.';
-                } catch (\Throwable $e) {
-                    Log::error('AI Chat action failed', ['error' => $e->getMessage(), 'action' => $jsonStr]);
-                    $results[] = "Action failed: {$e->getMessage()}";
+                if (($action['action'] ?? null) === 'save_memory') {
+                    $results[] = $this->runAction($action, $teamId);
                 }
+            } catch (\Throwable $e) {
+                Log::error('AI Chat action failed', ['error' => $e->getMessage(), 'action' => $action]);
+                $results[] = "Action failed: {$e->getMessage()}";
             }
-
-            $response = trim(preg_replace('/```action\s*\{.+?\}\s*```/s', '', $response));
         }
+
+        $response = $parsed['cleaned_response'];
 
         return $results ? implode("\n", $results) : null;
     }

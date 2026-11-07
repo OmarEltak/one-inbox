@@ -2,7 +2,28 @@
     isNearBottom: true,
     showNewMessageBadge: false,
     pendingPollTimer: null,
-    savedComposerSel: null,
+    // 2026-11-07: continuous focus tracking (replaces the 2026-10-13 morph-time
+    // snapshot). History: the previous version saved selection ONLY when the
+    // textarea was `document.activeElement` at `livewire:morph` fire time. That
+    // failed for two real-world paths:
+    //   (1) Reverb `AiChatTurnCompleted` arrives mid-typing. Depending on
+    //       browser timing, the morph event can fire during the DOM swap when
+    //       activeElement has already been reset to <body> — so we saved
+    //       nothing and the restore skipped. Result: focus visibly jumps out
+    //       after every arriving answer while the user is still typing.
+    //   (2) On Send, the user has just clicked the submit button, so
+    //       activeElement === the button, NOT the textarea. We saved nothing.
+    //       After the DOM morphed in the pending bubble, the textarea had no
+    //       focus — it felt like a "small reload / flash". This is Bug B.
+    // New approach: hook `focus`/`blur`/`keyup`/`mouseup`/`select` listeners on
+    // the textarea itself (re-bound after every morph via wireComposerTracking)
+    // so `savedComposerSel` is ALWAYS fresh and `wasComposerFocused` is a
+    // sticky boolean that stays true from first focus until a real blur to a
+    // non-document-body target. Restore then runs unconditionally against the
+    // re-queried textarea after morphed/commit, regardless of activeElement.
+    savedComposerSel: { start: 0, end: 0 },
+    wasComposerFocused: false,
+    composerBoundEl: null,
     scrollToBottom() {
         $nextTick(() => {
             const el = $refs.chatContainer;
@@ -18,29 +39,56 @@
     onNewContent() {
         if (this.isNearBottom) { this.scrollToBottom(); } else { this.showNewMessageBadge = true; }
     },
-    // 2026-10-13: focus-loss fix. Even with skipRender() guarding pollPendingTurns,
-    // when an answer actually arrives the component morphs and the textarea loses
-    // focus mid-typing (because sibling structure around it changes — the pending
-    // bubble gets replaced by a real answer bubble, and the pendingCount <p>
-    // appears/disappears). We save selection on 'livewire:morph' (before swap)
-    // and restore it on 'livewire:morphed' (after swap). Only applies when the
-    // user was actively typing in the composer textarea.
-    preserveComposerFocus() {
+    // Bind continuous selection/focus tracking to whatever textarea currently
+    // lives inside x-ref="textInput". Safe to call repeatedly — we store the
+    // bound element on composerBoundEl and skip re-binding when it's still the
+    // same DOM node. After a morph the textarea may be a fresh node, so this
+    // re-binds. Called once on init and again on every livewire:morphed.
+    wireComposerTracking() {
         const ta = this.$refs.textInput?.querySelector('textarea');
-        if (ta && document.activeElement === ta) {
-            this.savedComposerSel = { start: ta.selectionStart, end: ta.selectionEnd };
-        } else {
-            this.savedComposerSel = null;
-        }
+        if (!ta || ta === this.composerBoundEl) return;
+        this.composerBoundEl = ta;
+        const captureSel = () => {
+            try {
+                this.savedComposerSel = { start: ta.selectionStart ?? 0, end: ta.selectionEnd ?? 0 };
+            } catch (_) {}
+        };
+        ta.addEventListener('focus',    () => { this.wasComposerFocused = true;  captureSel(); });
+        ta.addEventListener('keyup',    captureSel);
+        ta.addEventListener('mouseup',  captureSel);
+        ta.addEventListener('select',   captureSel);
+        ta.addEventListener('input',    captureSel);
+        ta.addEventListener('blur', (e) => {
+            // Treat blur-to-body (caused by DOM morph removing the node) as
+            // "still focused" so restore fires after morphed. A real blur
+            // leaves relatedTarget set to the thing the user moved focus to.
+            // We also keep wasComposerFocused true when the related target is
+            // our own Send button, which is the Bug B case.
+            const to = e.relatedTarget;
+            if (!to || to === document.body) return; // morph-induced, stay sticky
+            // Clicking the Send button briefly focuses it, but the user's
+            // intent is to send-then-keep-typing. Stay sticky so restore puts
+            // focus back after the morph that shows the pending bubble.
+            if (to.closest && to.closest('form')) return;
+            this.wasComposerFocused = false;
+        });
     },
+    // Save is now a no-op snapshot of state captured by the live listeners;
+    // kept for name-compat with the old call sites in case anything else
+    // dispatches to it. savedComposerSel is already fresh from keyup/input.
+    preserveComposerFocus() { /* tracked live — see wireComposerTracking */ },
     restoreComposerFocus() {
-        if (!this.savedComposerSel) return;
+        if (!this.wasComposerFocused) return;
+        // Re-query AFTER morph: the textarea may be a brand-new DOM node, so
+        // this.composerBoundEl is now stale. wireComposerTracking() runs
+        // immediately after and will re-bind listeners to the new node.
         const ta = this.$refs.textInput?.querySelector('textarea');
-        if (ta && document.activeElement !== ta) {
-            ta.focus();
-            try { ta.setSelectionRange(this.savedComposerSel.start, this.savedComposerSel.end); } catch (_) {}
-        }
-        this.savedComposerSel = null;
+        if (!ta) return;
+        if (document.activeElement !== ta) ta.focus({ preventScroll: true });
+        try {
+            const s = this.savedComposerSel || { start: 0, end: 0 };
+            ta.setSelectionRange(s.start, s.end);
+        } catch (_) {}
     },
     stickToBottom() {
         // One scroll on init lands short: web fonts, images and long Arabic
@@ -73,7 +121,7 @@
         };
         this.pendingPollTimer = setInterval(tick, 8000);
     }
-}" x-init="scrollToBottom(); stickToBottom(); syncPendingWatcher()"
+}" x-init="scrollToBottom(); stickToBottom(); syncPendingWatcher(); $nextTick(() => wireComposerTracking())"
    @message-sent.window="scrollToBottom(); syncPendingWatcher()"
    @deep-analysis-ready-notify.window="
        (() => {
@@ -88,7 +136,8 @@
        })()
    "
    x-on:livewire:morph.window="preserveComposerFocus(); onNewContent()"
-   x-on:livewire:morphed.window="restoreComposerFocus()">
+   x-on:livewire:morphed.window="restoreComposerFocus(); wireComposerTracking()"
+   x-on:livewire:commit.window="restoreComposerFocus(); wireComposerTracking()">
 
     {{-- Header --}}
     <div class="px-6 py-4 border-b border-zinc-200">
@@ -446,7 +495,17 @@
                     </button>
                 </div>
             @endif
-            <form wire:submit="sendMessage" class="flex items-end gap-2" x-data="emojiPicker('message')">
+            {{-- 2026-11-07: wire:key on the composer form + stable keys on the
+                 textarea wrapper and pending-count line. Without these, Livewire's
+                 morph compared sibling slots by position — when $pendingCount
+                 toggled 0↔1 the <p> appeared/disappeared, shifting sibling index
+                 of the textarea's wrapper <div>. Morph then re-mounted the Flux
+                 textarea element from scratch, which (a) dropped focus mid-type
+                 (Bug A) and (b) made the whole composer visually flash on Send
+                 (Bug B). Stable keys tell Livewire these are the same nodes
+                 across renders, so the textarea DOM node is preserved and the
+                 flash disappears. --}}
+            <form wire:submit="sendMessage" wire:key="ai-composer-form" class="flex items-end gap-2" x-data="emojiPicker('message')">
                 <input type="file" wire:model="attachment" class="hidden" x-ref="fileInput"
                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
                 <button type="button" @click="$refs.fileInput.click()" class="flex-shrink-0 text-zinc-400 hover:text-zinc-700 cursor-pointer p-1 mb-1.5 transition-colors">
@@ -459,9 +518,10 @@
                     $chatLocked = $this->isChatLocked();
                     $pendingCount = $this->pendingChatTurnsCount();
                 @endphp
-                <div class="flex-1" x-ref="textInput">
+                <div class="flex-1" x-ref="textInput" wire:key="ai-composer-textarea-wrap">
                     <flux:textarea
                         wire:model="message"
+                        wire:key="ai-composer-textarea"
                         placeholder="{{ $chatLocked ? __('Wait for an answer to arrive before sending more…') : __('Ask about your analytics...') }}"
                         dir="auto"
                         autocomplete="off"
@@ -472,12 +532,16 @@
                         x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.sendMessage() }"
                         x-on:input="$el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 128) + 'px'"
                     />
-                    @if($pendingCount > 0)
-                        {{-- Live count driven by AiChatTurnCompleted broadcasts. --}}
-                        <p class="mt-1 text-[11px] text-zinc-400">
+                    {{-- Live count driven by AiChatTurnCompleted broadcasts.
+                         Always rendered (hidden when count==0) with a stable
+                         wire:key so morph does not shift the textarea's sibling
+                         index when the count toggles 0↔1. --}}
+                    <p wire:key="ai-composer-pending-count"
+                       class="mt-1 text-[11px] text-zinc-400 {{ $pendingCount > 0 ? '' : 'hidden' }}">
+                        @if($pendingCount > 0)
                             {{ trans_choice('{1} 1 answer still arriving…|[2,*] :count answers still arriving…', $pendingCount, ['count' => $pendingCount]) }}
-                        </p>
-                    @endif
+                        @endif
+                    </p>
                 </div>
                 <flux:button type="submit" variant="primary" wire:loading.attr="disabled" :disabled="$chatLocked" class="mb-0.5">
                     <flux:icon name="paper-airplane" variant="micro" class="size-4" />
