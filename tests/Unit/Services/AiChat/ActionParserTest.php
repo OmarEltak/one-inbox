@@ -12,6 +12,30 @@ beforeEach(function () {
     $this->parser = new ActionParser();
 });
 
+// --- clean() — display-time stripper ---------------------------------------
+
+test('clean() strips bare action JSON without executing', function () {
+    $resp = "Both going out.\n\n{\"action\": \"send_message\", \"contact_id\": 5181, \"message\": \"hi\"}\n\n{\"action\": \"send_message\", \"contact_id\": 5178, \"message\": \"ho\"}";
+    expect($this->parser->clean($resp))->toBe('Both going out.');
+});
+
+test('clean() strips fenced pending_action', function () {
+    $resp = "Queued.\n\n```pending_action\n{\"action\": \"send_bulk_message\", \"message\": \"hi\"}\n```";
+    expect($this->parser->clean($resp))->toBe('Queued.');
+});
+
+test('clean() is idempotent', function () {
+    $clean = "Just a chat message, nothing special.";
+    expect($this->parser->clean($clean))->toBe($clean);
+    expect($this->parser->clean($this->parser->clean($clean)))->toBe($clean);
+});
+
+test('clean() leaves unrelated JSON-looking fragments alone', function () {
+    $resp = 'Your pricing is {"tier": "pro", "price": 79}. Interested?';
+    // Not an action — must survive.
+    expect($this->parser->clean($resp))->toBe($resp);
+});
+
 // --- PRIMARY (fenced pending_action) ------------------------------------------------
 
 test('fenced pending_action parses as pending and is stripped from text', function () {

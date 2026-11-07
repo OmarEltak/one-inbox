@@ -46,6 +46,50 @@ class ActionParser
      *
      * @return array{pending: ?array<string,mixed>, auto: array<int,array<string,mixed>>, cleaned_response: string}
      */
+    /**
+     * Return the response with every recognised action block stripped out —
+     * no execution, no side effects. Used at display time to defend against
+     * historical AiCommand rows written before the parser shipped (or any
+     * future parser edge case) leaking raw action JSON into a chat bubble.
+     *
+     * Unlike parse(), this strips EVERY action-shaped block it finds (parse()
+     * stops at the first pending action because only one can be pending at a
+     * time, but display cleaning must remove all of them regardless).
+     *
+     * Idempotent: calling clean() on an already-clean string returns it
+     * untouched. Unrelated JSON fragments ({"tier":"pro",...}) survive —
+     * only blocks with a whitelisted `action` key are removed.
+     */
+    public function clean(string $response): string
+    {
+        $cleaned = $response;
+
+        // Strip the primary fenced forms first so the bare-candidate scan
+        // doesn't re-encounter them.
+        $cleaned = (string) preg_replace('/```pending_action\s*\{.+?\}\s*```/s', '', $cleaned);
+        $cleaned = (string) preg_replace('/```action\s*\{.+?\}\s*```/s', '', $cleaned);
+
+        // Strip any remaining fenced/bare/isolated JSON whose top-level
+        // `action` is in either whitelist.
+        foreach ($this->jsonCandidates($cleaned) as $cand) {
+            $decoded = $this->tryDecode($cand['json']);
+            if ($decoded === null || ! is_array($decoded)) {
+                continue;
+            }
+            $action = $decoded['action'] ?? null;
+            if (! is_string($action) || $action === '') {
+                continue;
+            }
+            if (in_array($action, self::PENDING_ACTIONS, true)
+                || in_array($action, self::AUTO_ACTIONS, true)
+            ) {
+                $cleaned = $this->stripOnce($cleaned, $cand['full']);
+            }
+        }
+
+        return trim($cleaned);
+    }
+
     public function parse(string $response): array
     {
         $cleaned = $response;

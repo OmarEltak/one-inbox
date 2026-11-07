@@ -62,6 +62,21 @@ class AiChat extends Component
             return;
         }
 
+        // Reap orphaned pending turns before loading. Any AiCommand stuck in
+        // 'pending' for more than an hour is dead on arrival — the queue
+        // worker crashed, the AI provider never responded, or the Reverb
+        // broadcast was lost. Without this they render forever as "1 answer
+        // still arriving…" and block future Sends via the chat-lock gate.
+        AiCommand::where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->where('created_at', '<', now()->subHour())
+            ->update([
+                'status' => 'failed',
+                'response' => __('(This request did not finish. Please try again.)'),
+            ]);
+
+        $parser = new ActionParser;
+
         // Load the last 30 turns. Pending rows (user clicked Send then
         // navigated away before the job finished) render as a typing-dots
         // bubble so the user knows their question is still being processed —
@@ -72,11 +87,14 @@ class AiChat extends Component
             ->limit(30)
             ->get()
             ->reverse()
-            ->flatMap(function (AiCommand $cmd) {
+            ->flatMap(function (AiCommand $cmd) use ($parser) {
                 if ($cmd->status === 'pending') {
                     $assistant = ['role' => 'assistant', 'content' => '…', 'pending' => true, 'command_id' => $cmd->id];
                 } else {
-                    $assistant = ['role' => 'assistant', 'content' => (string) $cmd->response, 'command_id' => $cmd->id];
+                    // Defense-in-depth: strip any residual action-block JSON
+                    // from stored responses so historical rows written before
+                    // ActionParser shipped render clean without a DB rewrite.
+                    $assistant = ['role' => 'assistant', 'content' => $parser->clean((string) $cmd->response), 'command_id' => $cmd->id];
                     // 2026-10-13: surface pull_offer action_taken so the UI can
                     // render the confirm card beneath this bubble (even across
                     // reloads / fresh mounts, not just mid-session).
@@ -135,7 +153,10 @@ class AiChat extends Component
     {
         $commandId = (int) ($payload['command_id'] ?? 0);
         $userId    = (int) ($payload['user_id'] ?? 0);
-        $response  = (string) ($payload['response'] ?? '');
+        // Idempotent clean — ProcessAiChatTurn already strips at persist
+        // time, but re-run here so any edge-case leak never surfaces in
+        // the bubble on a live broadcast swap.
+        $response  = (new ActionParser)->clean((string) ($payload['response'] ?? ''));
 
         if ($userId !== (int) Auth::id()) {
             return; // belongs to a different user on the same team
