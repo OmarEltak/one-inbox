@@ -180,13 +180,29 @@ class SendAiResponse implements ShouldQueue
         // missing and pushes for it. If everything is captured after this
         // extraction, complete the conversation and stop — the goal is met,
         // no more AI replies needed.
+        //
+        // Reopen-loop guard (2026-11-09): once a human operator manually
+        // transitioned this conversation back to ACTIVE (stamp
+        // metadata.reactivated_at — see Inbox\Index::setSalesStage), do NOT
+        // auto-complete it again even if every required field is still present.
+        // Without this, every subsequent inbound re-runs the extractor, sees
+        // all fields still filled, and re-fires Conversation::complete() —
+        // undoing the human's decision within seconds. Mirror of the spam
+        // reactivation guard below (see ARCHITECTURE §9 "Reactivation loop").
         if (! empty($aiConfig->required_capture_fields)) {
             $extractor = new CaptureExtractor($ai);
             $capture   = $extractor->extract($conversation->refresh(), $triggerMessage, $aiConfig);
 
             if ($capture['complete']) {
-                $conversation->complete('all_required_fields_captured');
-                return;
+                $reactivatedAt = data_get($conversation->metadata, 'reactivated_at');
+                if ($reactivatedAt !== null) {
+                    Log::info("AI wanted to auto-complete conversation {$conversation->id} (all capture fields present), but a human operator reactivated it — suppressing", [
+                        'reactivated_at' => $reactivatedAt,
+                    ]);
+                } else {
+                    $conversation->complete('all_required_fields_captured');
+                    return;
+                }
             }
         }
 

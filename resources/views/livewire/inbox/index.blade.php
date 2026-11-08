@@ -289,7 +289,8 @@
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 -translate-y-1"
                             @click.outside="showScoreHistory = false"
-                            class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 overflow-hidden"
+                            dir="ltr"
+                            class="absolute end-0 top-full mt-2 w-72 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 overflow-hidden"
                         >
                             <div class="p-3 border-b border-zinc-100 dark:border-zinc-700">
                                 <div class="flex items-center justify-between">
@@ -303,11 +304,15 @@
                                     @forelse($scoreHistory as $event)
                                         <div class="px-3 py-2 border-b border-zinc-50 dark:border-zinc-700/50 last:border-0">
                                             <div class="flex items-start gap-2">
-                                                <span class="text-xs font-bold mt-0.5 flex-shrink-0 {{ $event['score_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                <span class="text-xs font-bold mt-0.5 flex-shrink-0 w-7 text-end {{ $event['score_change'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
                                                     {{ $event['score_change'] >= 0 ? '+' : '' }}{{ $event['score_change'] }}
                                                 </span>
                                                 <div class="min-w-0 flex-1">
-                                                    <p class="text-xs text-zinc-700 dark:text-zinc-300 truncate">{{ $event['reason'] }}</p>
+                                                    {{-- dir="auto" prevents an Arabic app shell from flipping
+                                                         English reason strings (which made truncate chop the
+                                                         start of the sentence instead of the end).
+                                                         line-clamp-2 keeps multi-word reasons readable. --}}
+                                                    <p class="text-xs text-zinc-700 dark:text-zinc-300 line-clamp-2 break-words" dir="auto">{{ $event['reason'] }}</p>
                                                     <span class="text-xs text-zinc-400">{{ \Carbon\Carbon::parse($event['created_at'])->diffForHumans() }}</span>
                                                 </div>
                                             </div>

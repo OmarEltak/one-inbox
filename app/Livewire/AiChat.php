@@ -971,20 +971,48 @@ class AiChat extends Component
 
     public function confirmAction(): void
     {
+        // 2026-11-09: added structured logging around this whole path because
+        // users were reporting "Send didn't trigger / customer didn't receive"
+        // with no trace. Silent bail on null $pendingAction = state loss via
+        // Livewire morph / tab refresh / new mount before confirm clicked.
         if (! $this->pendingAction) {
+            Log::warning('AiChat.confirmAction: no pending action to confirm (state likely lost to morph / refresh)', [
+                'user_id' => Auth::id(),
+                'team_id' => Auth::user()?->currentTeam?->id,
+            ]);
+            // Surface to the user so they don't think the click silently worked.
+            $this->messages[] = ['role' => 'assistant', 'content' => __('The action I was about to run is no longer available — likely the page refreshed. Ask me again and I\'ll re-propose it.')];
+            $this->dispatch('message-sent');
             return;
         }
 
         $team = Auth::user()->currentTeam;
 
         if (! $team) {
+            Log::warning('AiChat.confirmAction: no current team on auth', ['user_id' => Auth::id()]);
             return;
         }
 
+        Log::info('AiChat.confirmAction: executing', [
+            'team_id' => $team->id,
+            'user_id' => Auth::id(),
+            'action_type' => $this->pendingAction['action'] ?? null,
+            'action_keys' => array_keys($this->pendingAction),
+        ]);
+
         try {
             $result = $this->runAction($this->pendingAction, $team->id);
+            Log::info('AiChat.confirmAction: result', [
+                'team_id'     => $team->id,
+                'action_type' => $this->pendingAction['action'] ?? null,
+                'result'      => Str::limit((string) $result, 300),
+            ]);
         } catch (\Throwable $e) {
-            Log::error('AI Chat confirmed action failed', ['error' => $e->getMessage(), 'action' => $this->pendingAction]);
+            Log::error('AI Chat confirmed action failed', [
+                'error'  => $e->getMessage(),
+                'trace'  => Str::limit($e->getTraceAsString(), 1000),
+                'action' => $this->pendingAction,
+            ]);
             $result = "Action failed: {$e->getMessage()}";
         }
 
@@ -1685,6 +1713,17 @@ class AiChat extends Component
         ]);
 
         SendPlatformMessage::dispatch($message->id);
+
+        // 2026-11-09: log every AI-chat→customer send so when the operator says
+        // "it didn't send" we can grep for the message_id and trace it through
+        // SendPlatformMessage's own logs to the actual platform response.
+        Log::info('AiChat.sendMessageToConversation: dispatched', [
+            'message_id'      => $message->id,
+            'conversation_id' => $conversation->id,
+            'platform'        => $conversation->platform,
+            'contact_id'      => $conversation->contact_id,
+            'text_length'     => mb_strlen($text),
+        ]);
 
         $contactName = $conversation->contact?->name ?? 'Unknown';
 
