@@ -133,9 +133,11 @@ class SendPlatformMessage implements ShouldQueue
         $subject   = $conversation->metadata['subject'] ?? 'Re: (no subject)';
         $inReplyTo = $conversation->metadata['last_message_id'] ?? null;
 
+        // THROW on no recipient — returning null here meant handle() stamped
+        // platform_sent_at=now() + green checkmark for a message that never
+        // left the server. 2026-11-09 audit caught this silent-failure path.
         if (! $toEmail) {
-            Log::error("sendViaEmail: no contact_email for conversation {$conversation->id}");
-            return null;
+            throw new \RuntimeException("sendViaEmail: no contact_email on conversation {$conversation->id} metadata — cannot deliver");
         }
 
         config([
@@ -155,19 +157,28 @@ class SendPlatformMessage implements ShouldQueue
             $headers['References']  = $inReplyTo;
         }
 
-        Mail::mailer('email_platform')->raw(
-            $message->content ?? '',
-            function ($msg) use ($fromEmail, $toEmail, $subject, $headers) {
-                $msg->from($fromEmail)->to($toEmail)->subject($subject);
-                foreach ($headers as $name => $value) {
-                    $msg->getHeaders()->addTextHeader($name, $value);
+        // Wrap SMTP send so a transport exception surfaces to handle()'s catch,
+        // which stamps metadata.send_status=failing and retries. Without this
+        // wrapper, a mid-handshake SMTP failure would propagate but a
+        // post-accept server-side bounce would NOT (SwiftMailer treats 2xx
+        // acceptance as success even if the mail is later rejected).
+        try {
+            Mail::mailer('email_platform')->raw(
+                $message->content ?? '',
+                function ($msg) use ($fromEmail, $toEmail, $subject, $headers) {
+                    $msg->from($fromEmail)->to($toEmail)->subject($subject);
+                    foreach ($headers as $name => $value) {
+                        $msg->getHeaders()->addTextHeader($name, $value);
+                    }
                 }
-            }
-        );
+            );
+        } catch (\Throwable $e) {
+            throw new \RuntimeException("SMTP send failed to {$toEmail}: " . $e->getMessage(), 0, $e);
+        }
 
         Log::info("sendViaEmail: sent from {$fromEmail} to {$toEmail} subject='{$subject}'");
 
-        return null; // SMTP does not return a message ID
+        return null; // Success — SMTP does not return a message ID; handle() stamps platform_sent_at
     }
 
     protected function sendViaMetaMessenger($page, string $recipientId, Message $message): ?string
@@ -449,8 +460,11 @@ class SendPlatformMessage implements ShouldQueue
             ])->json();
 
         if (! ($resp['ok'] ?? false)) {
-            Log::error('Slack send failed', ['channel' => $channelId, 'error' => $resp['error'] ?? null]);
-            return null;
+            $err = $resp['error'] ?? 'unknown';
+            Log::error('Slack send failed', ['channel' => $channelId, 'error' => $err]);
+            // THROW so handle() stamps metadata.send_status=failing — 2026-11-09
+            // audit caught this silent-null path leaking a green checkmark on failure.
+            throw new \RuntimeException("Slack send failed on channel {$channelId}: {$err}");
         }
         return (string) ($resp['ts'] ?? '');
     }
@@ -473,11 +487,11 @@ class SendPlatformMessage implements ShouldQueue
 
         if (! $dmResp->successful()) {
             Log::error('Discord DM channel open failed', ['user' => $userId, 'body' => $dmResp->body()]);
-            return null;
+            throw new \RuntimeException("Discord: could not open DM channel for user {$userId} (status {$dmResp->status()})");
         }
         $dmChannelId = (string) ($dmResp->json('id') ?? '');
         if ($dmChannelId === '') {
-            return null;
+            throw new \RuntimeException("Discord: DM channel opened but no id returned for user {$userId}");
         }
 
         $msgResp = Http::withHeaders(['Authorization' => 'Bot ' . $botToken])
@@ -487,7 +501,7 @@ class SendPlatformMessage implements ShouldQueue
 
         if (! $msgResp->successful()) {
             Log::error('Discord DM send failed', ['user' => $userId, 'body' => $msgResp->body()]);
-            return null;
+            throw new \RuntimeException("Discord: DM send failed to user {$userId} (status {$msgResp->status()}): " . substr($msgResp->body(), 0, 200));
         }
 
         return (string) ($msgResp->json('id') ?? '');
@@ -524,8 +538,13 @@ class SendPlatformMessage implements ShouldQueue
             return (string) $response->json('result.message_id');
         }
 
-        Log::error('Telegram send failed', ['body' => $response->body()]);
+        $body = $response->body();
+        Log::error('Telegram send failed', ['body' => $body]);
 
-        return null;
+        // THROW so handle() stamps metadata.send_status=failing — same silent-null
+        // bug that affected Slack/Discord/Email before the 2026-11-09 audit.
+        $desc = (string) ($response->json('description') ?? '');
+        $errCode = (int) ($response->json('error_code') ?? 0);
+        throw new \RuntimeException("Telegram send failed (status {$response->status()}, code {$errCode}): " . ($desc !== '' ? $desc : substr($body, 0, 200)));
     }
 }

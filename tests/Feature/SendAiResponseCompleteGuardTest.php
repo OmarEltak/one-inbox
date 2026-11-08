@@ -8,6 +8,7 @@ use App\Models\AiConfig;
 use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Support\Facades\Log;
 
 // Pins ARCHITECTURE §9 "Reactivation loop" invariant for the AUTO-COMPLETE
 // side (the spam side is already pinned by SendAiResponseSpamGuardTest):
@@ -116,6 +117,12 @@ test('after human reactivation: auto-complete is suppressed, conversation stays 
         public function processCommand(string $c, int $t): array { return ['response' => '', 'action' => null]; }
     });
 
+    // Spy on logs so we can assert the suppression log line fires — without this,
+    // test 2 proves the outcome but NOT that the guard code path was reached
+    // (removing the guard entirely while something else kept the conversation
+    // active would still pass the sales_stage assertions). Code-review 2026-11-09.
+    Log::spy();
+
     (new SendAiResponse($conv->id, $trigger->id))->handle(app(AiProviderInterface::class));
 
     $conv->refresh();
@@ -129,6 +136,13 @@ test('after human reactivation: auto-complete is suppressed, conversation stays 
     $outbound = Message::where('conversation_id', $conv->id)->where('direction', 'outbound')->first();
     expect($outbound)->not->toBeNull();
     expect($outbound->content)->toBe('Thanks for coming back!');
+
+    // Prove the guard code path ran — not just that the outcome happened to match.
+    Log::shouldHaveReceived('info')->withArgs(function ($message, $context = []) use ($conv) {
+        return str_contains((string) $message, 'auto-complete')
+            && str_contains((string) $message, 'suppressing')
+            && str_contains((string) $message, (string) $conv->id);
+    });
 });
 
 test('reactivation guard does not block a FRESH auto-complete on a never-reactivated conversation', function () {
