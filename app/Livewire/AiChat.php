@@ -77,6 +77,15 @@ class AiChat extends Component
 
         $parser = new ActionParser;
 
+        // 2026-11-09 — rehydrate pendingAction from the latest completed
+        // AiCommand so a refresh / fresh navigation preserves the confirm
+        // button that was waiting on an unanswered action proposal. Without
+        // this, user refreshes the chat tab and the pending action
+        // silently disappears (same shape as the "nothing happens" bug
+        // fixed in handleAiChatTurnCompleted, but on reload instead of on
+        // live broadcast).
+        $this->rehydratePendingAction($parser, $team->id);
+
         // Load the last 30 turns. Pending rows (user clicked Send then
         // navigated away before the job finished) render as a typing-dots
         // bubble so the user knows their question is still being processed —
@@ -153,13 +162,34 @@ class AiChat extends Component
     {
         $commandId = (int) ($payload['command_id'] ?? 0);
         $userId    = (int) ($payload['user_id'] ?? 0);
-        // Idempotent clean — ProcessAiChatTurn already strips at persist
-        // time, but re-run here so any edge-case leak never surfaces in
-        // the bubble on a live broadcast swap.
-        $response  = (new ActionParser)->clean((string) ($payload['response'] ?? ''));
 
         if ($userId !== (int) Auth::id()) {
             return; // belongs to a different user on the same team
+        }
+
+        // 2026-11-09 — parse(), not clean(). The old clean() path stripped
+        // action JSON for display but DROPPED the pending action on the
+        // floor: the operator saw a friendly AI response saying "I'll send
+        // this to 50 contacts" with no confirm button, because
+        // $this->pendingAction was never populated. executeActions() does
+        // this but was never called from the async pipeline (legacy sync-
+        // path method, orphaned after ProcessAiChatTurn shipped). Calling
+        // parse() + setting pendingAction here fixes the exact "break the
+        // UI and nothing happens" bug the user reported — see
+        // ARCHITECTURE §? to be added.
+        $parsed = (new ActionParser)->parse((string) ($payload['response'] ?? ''));
+        $response = $parsed['cleaned_response'];
+
+        if ($parsed['pending'] !== null) {
+            $teamId = (int) (Auth::user()?->currentTeam?->id ?? 0);
+            $this->pendingAction = $parsed['pending'];
+            $this->pendingActionSummary = $teamId > 0
+                ? $this->describePendingAction($parsed['pending'], $teamId)
+                : 'Execute: ' . json_encode($parsed['pending']);
+            Log::info('AiChat.handleAiChatTurnCompleted: pendingAction surfaced', [
+                'command_id'  => $commandId,
+                'action_type' => $parsed['pending']['action'] ?? null,
+            ]);
         }
 
         // 2026-10-13: re-read the AiCommand row so we can surface any
@@ -1358,6 +1388,45 @@ class AiChat extends Component
      * vs. bare-but-isolated JSON) is covered by unit tests separately from
      * Livewire state / dispatch side effects.
      */
+    /**
+     * 2026-11-09 — on mount / refresh, look for the most recent completed
+     * AiCommand whose response still carries an unconfirmed pending_action
+     * block (operator proposed → AI responded with pending_action → operator
+     * navigated away before clicking Confirm). Parse it back into
+     * $pendingAction so the confirm bar re-appears exactly where it was.
+     *
+     * Bail conditions (all safe silent no-ops):
+     *   - no AiCommand rows at all
+     *   - latest row is still pending (dots-bubble path handles it)
+     *   - latest row has action_taken already set (operator clicked once)
+     *   - response has no parseable pending_action
+     */
+    protected function rehydratePendingAction(ActionParser $parser, int $teamId): void
+    {
+        $latest = AiCommand::where('team_id', $teamId)
+            ->where('user_id', Auth::id())
+            ->where('status', 'completed')
+            ->latest('id')
+            ->first();
+
+        if (! $latest) {
+            return;
+        }
+        // Operator already acted on this turn's proposal — nothing to rehydrate.
+        $takenType = ((array) ($latest->action_taken ?? []))['type'] ?? null;
+        if ($takenType !== null && $takenType !== '') {
+            return;
+        }
+
+        $parsed = $parser->parse((string) $latest->response);
+        if ($parsed['pending'] === null) {
+            return;
+        }
+
+        $this->pendingAction = $parsed['pending'];
+        $this->pendingActionSummary = $this->describePendingAction($parsed['pending'], $teamId);
+    }
+
     protected function executeActions(string &$response, int $teamId): ?string
     {
         $results = [];
