@@ -49,7 +49,11 @@ if (! $waPage) {
 echo "Target page: id={$waPage->id}  platform={$waPage->platform}  name='{$waPage->name}'\n\n";
 
 $tomorrow = now()->addDay()->setTime(10, 0, 0);
-$instruction = "launch a WhatsApp campaign scheduled for {$tomorrow->toIso8601String()} from page id {$waPage->id} to all contacts with lead status 'hot' with this message: 'Omar from OT1-Pro — quick reminder: your 2-day free trial is still open. Want me to set it up?'";
+
+// Unambiguous instruction — matches the current prompt's messaging, in Arabic
+// (which the AI flagged as the right language), and explicitly "do it" so the
+// consultative AI doesn't double-check.
+$instruction = "schedule a WhatsApp campaign for {$tomorrow->toIso8601String()} from page_id {$waPage->id} targeting lead_status hot. Message (verbatim, Arabic): 'أهلًا بحضرتك، أنا عمر من OT1-Pro — تذكير سريع إن تجربة الأسبوعين لسه مفتوحة. نبدأ؟'. Proceed and create the scheduled campaign — do not ask me again.";
 
 echo "═══ STEP 1: AiChat::sendMessage() ═══\n";
 echo "Instruction (truncated): " . mb_substr($instruction, 0, 250) . "...\n\n";
