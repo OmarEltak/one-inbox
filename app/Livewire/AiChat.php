@@ -790,14 +790,31 @@ class AiChat extends Component
         }
 
         $swapped = false;
+        $parser = new ActionParser();
+        $teamId = (int) (Auth::user()?->currentTeam?->id ?? 0);
         foreach ($this->messages as $i => $m) {
             if (empty($m['pending']) || empty($m['command_id'])) {
                 continue;
             }
             if ($row = $completed->get((int) $m['command_id'])) {
+                // 2026-11-09 — parse() + strip action JSON + set pendingAction.
+                // Before: raw $row->response leaked pending_action blocks into
+                // the bubble whenever this Alpine safety-net poll fired before
+                // the Reverb broadcast arrived (user saw raw JSON; refreshing
+                // the page cleared it because mount() uses clean()). Three
+                // sync paths — mount, Reverb handler, this poll — must all
+                // sanitize identically, otherwise the one that doesn't wins
+                // the race under flaky network conditions.
+                $parsed = $parser->parse((string) $row->response);
+                if ($parsed['pending'] !== null && $this->pendingAction === null) {
+                    $this->pendingAction = $parsed['pending'];
+                    $this->pendingActionSummary = $teamId > 0
+                        ? $this->describePendingAction($parsed['pending'], $teamId)
+                        : 'Execute: ' . json_encode($parsed['pending']);
+                }
                 $swap = [
                     'role'       => 'assistant',
-                    'content'    => (string) $row->response,
+                    'content'    => $parsed['cleaned_response'],
                     'command_id' => (int) $row->id,
                 ];
                 // Carry the pull_offer forward if the AI emitted one.

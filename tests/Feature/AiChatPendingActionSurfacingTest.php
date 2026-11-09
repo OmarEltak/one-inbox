@@ -125,3 +125,73 @@ test('mount ignores historical AiCommand rows whose response has no action block
     Livewire::test(AiChat::class)
         ->assertSet('pendingAction', null);
 });
+
+test('pollPendingTurns safety-net strips action JSON from bubble + surfaces pendingAction', function () {
+    // Pins the 2026-11-09 UI regression: when the Reverb broadcast was dropped
+    // or arrived late, the Alpine 8s poll (syncPendingTurnsFromDb → pollPendingTurns)
+    // swapped the pending-dots bubble with the RAW $row->response — which still
+    // contained the pending_action fenced block. Content went in as raw, markdown
+    // rendered the fence as a visible code block in the bubble, and no confirm
+    // bar appeared because pendingAction was never populated on the poll path.
+    // Three sync paths (mount, Reverb, poll) must all sanitize identically.
+
+    // Simulate the race: the component is mounted WHILE a pending AiCommand is
+    // in-flight. We prime the messages array via sendMessage (which appends an
+    // optimistic placeholder with pending=>true), then flip the DB row to
+    // completed with a raw response that contains action JSON, then trigger the
+    // poll and assert that (a) bubble content is clean, (b) pendingAction fires.
+
+    $actionJson = json_encode([
+        'action'     => 'send_message',
+        'contact_id' => 42,
+        'message'    => 'poll-race test',
+    ]);
+
+    // Create a pending AiCommand (as if sendMessage just dispatched the job).
+    $cmd = AiCommand::create([
+        'team_id'  => test()->team->id,
+        'user_id'  => test()->user->id,
+        'command'  => 'send a note',
+        'response' => '',
+        'status'   => 'pending',
+    ]);
+
+    $component = Livewire::test(AiChat::class);
+
+    // Inject the optimistic placeholder the way sendMessage() would, by
+    // directly setting messages via Livewire's set() — avoids coupling the
+    // test to the full sendMessage branching logic.
+    $component->set('messages', [
+        ['role' => 'user',      'content' => 'send a note'],
+        ['role' => 'assistant', 'content' => '…', 'pending' => true, 'command_id' => $cmd->id],
+    ]);
+
+    // Now the "job" finishes — write the raw response back to the DB with the
+    // action JSON embedded as a fenced pending_action block.
+    $cmd->update([
+        'response' => "On it — here's the draft send.\n\n```pending_action\n{$actionJson}\n```\n\n",
+        'status'   => 'completed',
+    ]);
+
+    // Fire the Alpine safety-net poll (this is the exact path that was leaking
+    // raw JSON into the bubble on dropped Reverb events).
+    $component->call('pollPendingTurns');
+
+    // (a) bubble content must be clean — scan every message, none may contain
+    //     the raw pending_action fence or the JSON action key
+    $messages = $component->get('messages');
+    foreach ($messages as $m) {
+        if (($m['role'] ?? null) !== 'assistant') {
+            continue;
+        }
+        if (! empty($m['pending'])) {
+            continue; // placeholder — not what we're testing
+        }
+        expect($m['content'] ?? '')->not->toContain('pending_action', 'bubble must not contain the action fence identifier');
+        expect($m['content'] ?? '')->not->toContain('"action":', 'bubble must not contain action JSON');
+    }
+
+    // (b) pendingAction must be set so the Confirm bar renders
+    $component->assertSet('pendingAction.action', 'send_message');
+    $component->assertSet('pendingAction.contact_id', 42);
+});
