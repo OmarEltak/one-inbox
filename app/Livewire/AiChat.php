@@ -1096,12 +1096,49 @@ class AiChat extends Component
         // response re-surfaces the confirm bar after a refresh and the
         // operator can double-send.
         $lastCommand = AiCommand::where('team_id', $team->id)->where('user_id', Auth::id())->latest('id')->first();
+
+        // 2026-11-11 — enrich action_taken with authoritative details so the
+        // NEXT turn's async job (ProcessAiChatTurn) can tell the AI the send
+        // really happened, even if the SendPlatformMessage worker hasn't yet
+        // inserted the outbound Message row. Without this, the AI reads a
+        // live transcript that lags the send, sees no outbound record, and
+        // retracts its own "Done" from the previous turn.
+        $actionType = (string) ($action['action'] ?? 'unknown');
+        $enrichment = [
+            'type'         => $actionType,
+            'confirmed_at' => now()->toIso8601String(),
+            'result'       => Str::limit((string) $result, 500, ''),
+        ];
+
+        if ($actionType === 'send_message') {
+            $targetLabel = null;
+            $platform    = null;
+            try {
+                $contactId = $action['contact_id'] ?? $this->contactIdFromName($action, $team->id);
+                if ($contactId) {
+                    $contact = Contact::where('team_id', $team->id)->find($contactId);
+                    $targetLabel = $contact?->name;
+                    if ($contact) {
+                        $conv = Conversation::where('team_id', $team->id)
+                            ->where('contact_id', $contact->id)
+                            ->orderByDesc('last_message_at')
+                            ->first();
+                        $platform = $conv?->platform;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Best-effort enrichment — never block the confirm stamp.
+            }
+            $enrichment['target_label'] = $targetLabel ?: (string) ($action['contact_name'] ?? $action['contact'] ?? __('contact'));
+            $enrichment['message']      = Str::limit((string) ($action['message'] ?? ''), 500, '');
+            if ($platform) {
+                $enrichment['platform'] = $platform;
+            }
+        }
+
         $lastCommand?->update([
             'response'     => trim($lastCommand->response . "\n\n" . $done),
-            'action_taken' => array_merge((array) ($lastCommand->action_taken ?? []), [
-                'type'         => (string) ($action['action'] ?? 'unknown'),
-                'confirmed_at' => now()->toIso8601String(),
-            ]),
+            'action_taken' => array_merge((array) ($lastCommand->action_taken ?? []), $enrichment),
         ]);
 
         $this->dispatch('message-sent');

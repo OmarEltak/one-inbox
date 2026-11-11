@@ -136,7 +136,15 @@ class ProcessAiChatTurn implements ShouldQueue
 
             $recentTalk = collect($this->history)->pluck('content')->implode("\n");
 
-            $analyticsContext = $this->buildAnalyticsContext($team->id)
+            // 2026-11-11 — prepend an authoritative RECENT OPERATOR-CONFIRMED
+            // ACTIONS block. The live transcript below can lag by seconds
+            // because SendPlatformMessage is queued; without this block, the
+            // AI retracts its own "Done: Sent" when the user asks a follow-up
+            // before the worker has inserted the outbound Message row.
+            $recentActionsBlock = $this->buildRecentConfirmedActions($team->id, (int) $command->user_id, (int) $command->id);
+
+            $analyticsContext = ($recentActionsBlock !== '' ? $recentActionsBlock . "\n\n" : '')
+                . $this->buildAnalyticsContext($team->id)
                 . "\n\n" . $chatContext->mentionedContacts($team->id, $text, $recentTalk)
                 . "\n\n" . $digest
                 . $chatContext->pullOfferHint($team->id, $text);
@@ -266,6 +274,62 @@ class ProcessAiChatTurn implements ShouldQueue
             throw $lastThrowable;
         }
         throw new \RuntimeException('AI provider returned an empty response after 3 attempts.');
+    }
+
+    /**
+     * 2026-11-11 — surface recently-confirmed operator actions (send_message,
+     * etc.) to the next turn as authoritative data. The outbound Message row
+     * is written by SendPlatformMessage on a queue worker and can lag the
+     * confirm by several seconds; without this block the AI reads a stale
+     * transcript and retracts its own "Done: Sent" acknowledgement.
+     *
+     * Only emitted when at least one eligible row exists (confirmed_at set,
+     * within the last 30 min, excluding the current command). Capped at 5
+     * rows. Any failure is swallowed — context enrichment must never crash
+     * the turn.
+     */
+    protected function buildRecentConfirmedActions(int $teamId, int $userId, int $excludeCmdId): string
+    {
+        try {
+            $rows = AiCommand::where('team_id', $teamId)
+                ->where('user_id', $userId)
+                ->where('id', '!=', $excludeCmdId)
+                ->whereNotNull('action_taken')
+                ->where('created_at', '>=', now()->subMinutes(30))
+                ->latest('id')
+                ->take(5)
+                ->get(['id', 'action_taken', 'updated_at']);
+
+            $lines = [];
+            foreach ($rows as $row) {
+                $act = (array) ($row->action_taken ?? []);
+                $confirmedAt = $act['confirmed_at'] ?? null;
+                if (! $confirmedAt) {
+                    continue;
+                }
+                $type = (string) ($act['type'] ?? 'action');
+                $ts   = (string) ($row->updated_at?->format('Y-m-d H:i:s') ?? '');
+                if ($type === 'send_message') {
+                    $target  = (string) ($act['target_label'] ?? 'contact');
+                    $platform = isset($act['platform']) ? (string) $act['platform'] : 'unknown platform';
+                    $msg     = Str::limit((string) ($act['message'] ?? ''), 200, '…');
+                    $result  = (string) ($act['result'] ?? 'Sent');
+                    $lines[] = "- {$ts} — operator confirmed send_message to {$target} on {$platform}: \"{$msg}\" → {$result}";
+                } else {
+                    $result = (string) ($act['result'] ?? 'ok');
+                    $lines[] = "- {$ts} — operator confirmed {$type} → " . Str::limit($result, 200, '…');
+                }
+            }
+
+            if ($lines === []) {
+                return '';
+            }
+
+            return "RECENT OPERATOR-CONFIRMED ACTIONS (last 30 min, authoritative — these happened; the live transcript below may lag by a few seconds due to async send workers):\n"
+                . implode("\n", $lines);
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
     /**
