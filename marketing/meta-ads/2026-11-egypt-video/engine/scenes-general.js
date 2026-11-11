@@ -135,7 +135,7 @@ window.AD = {
       html: `<div class="col" style="gap:26px">
         <div data-a class="h1" style="font-size:96px">${W('ده مش موظف.')}</div>
         <div data-l class="serif ltr" style="font-size:210px;line-height:1;opacity:0">OT1-Pro</div>
-        <div data-b class="h2" style="font-size:52px;opacity:0">مساعد مبيعات بالذكاء الاصطناعي<br><span style="background:var(--yellow);color:var(--ink);border-radius:14px;padding:0 18px">مبني مخصوص للبيزنس بتاعك</span></div></div>`,
+        <div data-b class="h2" style="font-size:52px;line-height:1.6;opacity:0">مساعد مبيعات بالذكاء الاصطناعي<br><span style="background:var(--yellow);color:var(--ink);border-radius:14px;padding:0 18px">مبني مخصوص للبيزنس بتاعك</span></div></div>`,
       update(el, lt, d) {
         words(q(el, '[data-a]'), lt, 0, .2);
         const l = q(el, '[data-l]'), k = eo(p(lt, d * .3, .5)); l.style.opacity = k; l.style.letterSpacing = `${(1 - k) * 40}px`; l.style.transform = `scale(${.8 + .2 * eb(p(lt, d * .3, .5))})`;
