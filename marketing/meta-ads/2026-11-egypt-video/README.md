@@ -13,23 +13,16 @@ Never mentions any person by name (no founder name in voice, visuals or captions
 
 ## Status: ready to upload
 
-Two voice options per ad. Pick one per ad, or upload both and let Meta test them.
-
 | Ad | File | Voice | Length |
 |---|---|---|---|
-| A «غالي» | `out/ot1-pro-general-mostafa-9x16.mp4` | Mostafa (energetic) | 88s |
-| A «غالي» | `out/ot1-pro-general-sales-9x16.mp4` | Persuasive sales voice | 87s |
-| B Real estate | `out/ot1-pro-realestate-omda-9x16.mp4` | Omda (deep, premium) | 78s |
-| B Real estate | `out/ot1-pro-realestate-mahmoud-9x16.mp4` | Mahmoud Soliman (warm storyteller) | 79s |
+| A «غالي» | `out/ot1-pro-general-sales-9x16.mp4` | Persuasive sales voice (client's pick) | 82s |
+| B Real estate | `out/ot1-pro-realestate-omda-9x16.mp4` | Omda (client's pick) | 76s |
 
-All are 1080×1920 H.264/AAC, voice at about −15 LUFS, no music, subtle UI sounds, burned-in Arabic captions synced to the voice. Lengths follow the natural read; nothing was sped up or slowed down.
+Pricing in both ads (client decision, Nov 2026): **free 2-day trial, then 3,500 EGP/month**. The earlier 14-day paid Pilot, refund guarantee and 7,500 + 2,500 Founding Partner lines were removed from the voice, the screens and the captions.
 
-Re-render after any edit:
+Pronunciation fixes: «اللِّيد» (lead, long ee) and «عُمَلائك» are written with diacritics in `scripts/realestate.txt`. The «غالي» take is the approved recording with only the price line re-recorded and spliced in (loudness-matched).
 
-```bash
-python3 align.py scripts/realestate.txt audio/realestate-omda.mp3 engine/timing-realestate-omda.json 1.0
-node render.mjs realestate --voice omda
-```
+All files are 1080×1920 H.264/AAC, voice at about −15 LUFS, no music, subtle UI sounds, burned-in Arabic captions synced to the voice.
 
 ---
 
@@ -74,15 +67,15 @@ OT1-Pro مش شات بوت بيقول «تم استلام رسالتك». ده �
 
 مش تمبلت جاهز: بنبنيه معاك في مكالمة 90 دقيقة عشان يبيع بأسلوبك انت، ونفضل معاك 30 يوم نظبطه. إحنا شركاء، مش برنامج.
 
-💰 جرّبه 14 يوم بـ 3,500 جنيه، ولو ما اتعاملش مع 50 محادثة حقيقية فلوسك ترجعلك كاملة.
-🤝 الشريك المؤسس: 7,500 جنيه إعداد + 2,500 جنيه في الشهر.
+🎁 جرّبه يومين مجاناً على شغلك الحقيقي، من غير ما تدفع ولا جنيه.
+💰 وبعدها 3,500 جنيه في الشهر بس، وتلغي في أي وقت.
 🛠️ ربط بمتجرك أو الـ CRM أو كذا براند؟ بنبنيهولك.
 
 ابعتلنا كلمة «شريك» على واتساب 👇
 ```
 
 - **Headline:** `العميل قال «غالي».. وبرضه اشترى`
-- **Description:** `مساعد مبيعات AI بيقنع ويقفل 24 ساعة`
+- **Description:** `جرّبه يومين مجاناً · بعدها 3,500 جنيه/شهر`
 - **CTA button:** `إرسال رسالة` (Send WhatsApp message)
 
 **Audience A**
@@ -119,15 +112,15 @@ OT1-Pro مش شات بوت بيقول «تم استلام رسالتك». ده �
 
 إحنا شركاء مش أداة: بنبنيه معاك على مشاريعك في مكالمة 90 دقيقة، ونفضل معاك 30 يوم نظبطه.
 
-💰 تجربة 14 يوم بـ 3,500 جنيه بضمان استرداد كامل.
-🤝 الشريك المؤسس: 7,500 جنيه إعداد + 2,500 جنيه في الشهر.
+🎁 جرّبه يومين مجاناً على شغلك الحقيقي، من غير ما تدفع ولا جنيه.
+💰 وبعدها 3,500 جنيه في الشهر بس، وتلغي في أي وقت.
 🏗️ كذا مشروع أو ربط بالـ CRM (Zoho / HubSpot / Salesforce)؟ باقة مخصوص على قد شغلك.
 
 ابعتلنا كلمة «عقارات» على واتساب 👇
 ```
 
 - **Headline:** `نفس الليد.. نهايتين مختلفين`
-- **Description:** `AI بيرد ويأهّل ليدز العقارات في ثواني`
+- **Description:** `جرّبه يومين مجاناً · بعدها 3,500 جنيه/شهر`
 - **CTA button:** `إرسال رسالة` (Send WhatsApp message)
 
 **Audience B**
@@ -155,7 +148,7 @@ OT1-Pro مش شات بوت بيقول «تم استلام رسالتك». ده �
 | Score per lead + a note on every conversation | `app/Jobs/ScoreLeadJob.php` → `LeadScoreEvent.reason` / `ai_analysis` on every score change |
 | Top objections | `app/Livewire/Analytics.php::getTopObjections()` |
 | Orders/leads land in your Google Sheet | `app/Services/SalesConnectors/SalesConnectors.php` |
-| Prices, refund guarantee, 90-min call, 30 days, CRM push in White-Glove | `resources/views/pages/pricing.blade.php`, `lang/ar.json` |
+| Free 2-day trial, then 3,500 EGP/month; 90-min call; 30 days follow-up | Client-confirmed pricing (Nov 2026). ⚠️ `/pricing` and the bot prompt still show the old tiers; update them before the ads go live. |
 
 All chats, names, prices of example products, sheet rows and charts are illustrative and labelled **«مثال توضيحي»** on screen.
 

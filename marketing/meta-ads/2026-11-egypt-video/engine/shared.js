@@ -21,43 +21,39 @@ window.SH = {
     };
   },
 
-  /* Pilot card, then the Founding Partner card slides over it. swapAt: fraction of scene, or {line:n} */
+  /* Free 2-day trial card, then the monthly price card slides over it at «وبعدها». swapAt: fraction of scene, or {line:n} */
   pricing(swapAt, extra) {
     const swap = (d, S) => typeof swapAt === 'object' ? S.rel(swapAt.line) : swapAt * d;
     return {
       bg: 'em',
       html: `<div style="position:relative;width:900px;height:800px">
-        <div data-a class="price" style="position:absolute;top:10px;left:0">
-          <div class="lbl">AI PILOT · تجربة 14 يوم</div>
-          <div class="name">جرّبه الأول</div>
-          <div style="margin:8px 0 14px"><span class="amt">3,500</span> <span class="unit">جنيه · مرة واحدة</span></div>
-          <div data-g class="row" style="gap:18px;background:#ecfdf5;border:3px solid var(--em);border-radius:24px;padding:16px 22px">
-            <svg width="62" height="68" viewBox="0 0 24 26"><path d="M12 1 2 5v7c0 6.5 4.3 11.4 10 13 5.7-1.6 10-6.5 10-13V5z" fill="#00B67A"/><path d="m7 13 3.4 3.4L17 9.8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>
-            <div style="font-weight:900;font-size:34px;line-height:1.3">فلوسك ترجعلك كاملة<br><span style="font-size:26px;color:#4b5563">لو ما اتعاملش مع 50 محادثة حقيقية</span></div>
+        <div data-a class="price" style="position:absolute;top:30px;left:0;text-align:center">
+          <span class="chip">تجربة مجانية</span>
+          <div class="poster" style="font-size:190px;line-height:1.05;color:var(--em2);margin-top:10px">يومين مجاناً</div>
+          <div data-g class="row" style="justify-content:center;gap:16px;background:#ecfdf5;border:3px solid var(--em);border-radius:24px;padding:16px 22px;margin-top:6px">
+            <svg width="56" height="62" viewBox="0 0 24 26"><path d="M12 1 2 5v7c0 6.5 4.3 11.4 10 13 5.7-1.6 10-6.5 10-13V5z" fill="#00B67A"/><path d="m7 13 3.4 3.4L17 9.8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>
+            <div style="font-weight:900;font-size:34px;line-height:1.3;text-align:start">على شغلك الحقيقي<br><span style="font-size:27px;color:#4b5563">من غير ما تدفع ولا جنيه</span></div>
           </div>
         </div>
-        <div data-b class="price" style="position:absolute;top:60px;left:0;opacity:0;border:4px solid var(--yellow)">
-          <span class="chip">الأكثر طلباً</span>
-          <div class="lbl" style="margin-top:12px">FOUNDING PARTNER</div>
-          <div class="name">الشريك المؤسس</div>
-          <div><span class="amt">7,500</span> <span class="unit">جنيه إعداد</span></div>
-          <div style="font-weight:900;font-size:50px;color:var(--em2)">+ <span class="ltr">2,500</span> جنيه في الشهر</div>
-          <div class="col" style="align-items:flex-start;gap:6px;margin-top:10px">
-            <div class="check">لحد 3 صفحات على كل المنصات</div>
-            <div class="check">مبني مخصوص ليك · 30 يوم معاك</div>
+        <div data-b class="price" style="position:absolute;top:120px;left:0;opacity:0;border:4px solid var(--yellow)">
+          <span class="chip">وبعدها</span>
+          <div style="margin-top:14px"><span class="amt">3,500</span> <span class="unit">جنيه في الشهر</span></div>
+          <div class="col" style="align-items:flex-start;gap:8px;margin-top:16px">
+            <div class="check">مبني مخصوص ليك على منتجاتك وأسلوبك</div>
+            <div class="check">مكالمة 90 دقيقة + 30 يوم متابعة</div>
             <div class="check">تلغي في أي وقت</div>
           </div>
           ${extra ? `<div data-x style="opacity:0;margin-top:16px;font-weight:900;font-size:32px;background:var(--ink);color:var(--yellow);border-radius:18px;padding:12px 20px">${extra}</div>` : ''}
         </div></div>`,
       update(el, lt, d, S) {
         const sw = swap(d, S);
-        pop(q(el, '[data-a]'), lt, 0); pop(q(el, '[data-g]'), lt, Math.min(1.2, sw * .4), .4);
+        pop(q(el, '[data-a]'), lt, 0); pop(q(el, '[data-g]'), lt, Math.min(1.2, sw * .45), .4);
         const k = eo(p(lt, sw, .5)), a = q(el, '[data-a]');
         a.style.transform = `scale(${1 - .08 * k}) translateY(${-60 * k}px)`; a.style.opacity = 1 - k;
         const b = q(el, '[data-b]'); b.style.opacity = k; b.style.transform = `translateY(${(1 - k) * 300}px)`;
         if (extra) pop(q(el, '[data-x]'), lt, sw + .55 * (d - sw), .4);
       },
-      sfx: (d, S) => { const sw = swap(d, S); return [[.05, 'pop'], [Math.min(1.2, sw * .4), 'ding'], [sw, 'whoosh'], ...(extra ? [[sw + .55 * (d - sw), 'pop']] : [])]; },
+      sfx: (d, S) => { const sw = swap(d, S); return [[.05, 'pop'], [Math.min(1.2, sw * .45), 'ding'], [sw, 'whoosh'], ...(extra ? [[sw + .55 * (d - sw), 'pop']] : [])]; },
     };
   },
 
