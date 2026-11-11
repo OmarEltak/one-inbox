@@ -223,7 +223,7 @@ const v = params.get('v') || 'general';
 document.write(`<script src="shared.js"><\/script><script src="scenes-${v}.js"><\/script>`);
 </script>
 <script>
-fetch(`timing-${v}.json`).then(r => r.json()).then(t => { boot(window.AD, t); document.fonts.ready.then(() => { window.READY = true; renderAt(+(params.get('t') || 0)); }); });
+fetch(`timing-${params.get('tm') || v}.json`).then(r => r.json()).then(t => { boot(window.AD, t); document.fonts.ready.then(() => { window.READY = true; renderAt(+(params.get('t') || 0)); }); });
 </script>
 </body>
 </html>

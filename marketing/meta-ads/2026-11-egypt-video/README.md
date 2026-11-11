@@ -11,23 +11,25 @@ v2/v3 replace the v1 "missed message at 2 AM" ads. That story was the same as th
 
 Never mentions any person by name (no founder name in voice, visuals or captions).
 
-## Status
+## Status: ready to upload
 
-| | File | State |
-|---|---|---|
-| A | `out/ot1-pro-general-9x16-preview.mp4` | Visuals, captions, SFX. **Needs the voiceover.** |
-| B | `out/ot1-pro-realestate-9x16-preview.mp4` | Approved concept. Visuals, captions, SFX. **Needs the voiceover.** |
+Two voice options per ad. Pick one per ad, or upload both and let Meta test them.
 
-**Blocker: the ElevenLabs workspace is out of credits** (*"You have 425 credits remaining"*). A take costs ~1,100 (A) and ~1,170 (B) credits on `eleven_v4`. Once credits are added, finishing takes ~5 minutes per ad:
+| Ad | File | Voice | Length |
+|---|---|---|---|
+| A «غالي» | `out/ot1-pro-general-mostafa-9x16.mp4` | Mostafa (energetic) | 88s |
+| A «غالي» | `out/ot1-pro-general-sales-9x16.mp4` | Persuasive sales voice | 87s |
+| B Real estate | `out/ot1-pro-realestate-omda-9x16.mp4` | Omda (deep, premium) | 78s |
+| B Real estate | `out/ot1-pro-realestate-mahmoud-9x16.mp4` | Mahmoud Soliman (warm storyteller) | 79s |
+
+All are 1080×1920 H.264/AAC, voice at about −15 LUFS, no music, subtle UI sounds, burned-in Arabic captions synced to the voice. Lengths follow the natural read; nothing was sped up or slowed down.
+
+Re-render after any edit:
 
 ```bash
-# 1. generate the voice (ElevenLabs flow, eleven_v4, voice + text from scripts/<ad>.txt), save as audio/<ad>-raw.mp3
-# 2. align and render
-python3 align.py scripts/general.txt audio/general-raw.mp3 engine/timing-general.json <raw_seconds/89.4>
-node render.mjs general            # → out/ot1-pro-general-9x16.mp4
+python3 align.py scripts/realestate.txt audio/realestate-omda.mp3 engine/timing-realestate-omda.json 1.0
+node render.mjs realestate --voice omda
 ```
-
-The previews use estimated timing (`estimate_timing.py`). The real take re-times every scene and caption to the voice automatically.
 
 ---
 

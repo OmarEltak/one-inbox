@@ -1,5 +1,6 @@
 // Render an ad: deterministic frame capture (engine/ad.html renderAt(t)) -> ffmpeg + voiceover.
-// usage: node render.mjs <general|realestate> [--stills 1,5,12] [--fps 30]
+// usage: node render.mjs <general|realestate> [--voice omda] [--stills 1,5,12] [--fps 30]
+//   --voice X  uses audio/<ad>-X.mp3 + engine/timing-<ad>-X.json → out/ot1-pro-<ad>-X-9x16.mp4
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { spawn, execFileSync } from 'node:child_process';
@@ -14,8 +15,10 @@ const v = process.argv[2];
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const fps = +(arg('--fps') || 30);
 const stills = arg('--stills');
-const timing = JSON.parse(readFileSync(join(ROOT, `engine/timing-${v}.json`)));
-const HOLD = 0.6; // seconds of held end card after the voice ends
+const voice = arg('--voice');
+const tm = voice ? `${v}-${voice}` : v;
+const timing = JSON.parse(readFileSync(join(ROOT, `engine/timing-${tm}.json`)));
+const HOLD = 1.5; // seconds of held end card (WhatsApp button) after the voice ends
 const total = timing.duration + HOLD;
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.woff2': 'font/woff2' };
@@ -29,25 +32,25 @@ const port = srv.address().port;
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
 page.on('pageerror', e => console.error('PAGE ERROR', e.message));
-await page.goto(`http://127.0.0.1:${port}/ad.html?v=${v}`);
+await page.goto(`http://127.0.0.1:${port}/ad.html?v=${v}&tm=${tm}`);
 await page.waitForFunction(() => window.READY === true);
 
 mkdirSync(join(ROOT, 'out'), { recursive: true });
 if (stills) {
   for (const t of stills.split(',').map(Number)) {
     await page.evaluate(t => renderAt(t), t);
-    await page.screenshot({ path: join(ROOT, `out/still-${v}-${String(t).padStart(5, '0')}.png`) });
+    await page.screenshot({ path: join(ROOT, `out/still-${tm}-${String(t).padStart(5, '0')}.png`) });
   }
   console.log('stills done');
 } else {
   // soundtrack: synthesised music bed + SFX at the cues the scenes declared
   const events = await page.evaluate(() => window.SFX);
-  const evPath = join(ROOT, `out/.sfx-${v}.json`), bedPath = join(ROOT, `out/.bed-${v}.wav`);
+  const evPath = join(ROOT, `out/.sfx-${tm}.json`), bedPath = join(ROOT, `out/.bed-${tm}.wav`);
   writeFileSync(evPath, JSON.stringify(events));
   execFileSync('python3', [join(ROOT, 'soundtrack.py'), evPath, total.toFixed(3), bedPath], { stdio: 'inherit' });
-  const vo = join(ROOT, `audio/${v}-raw.mp3`);
+  const vo = join(ROOT, voice ? `audio/${v}-${voice}.mp3` : `audio/${v}-raw.mp3`);
   const withVo = !timing.placeholder && existsSync(vo);
-  const out = join(ROOT, `out/ot1-pro-${v}-9x16${withVo ? '' : '-preview'}.mp4`);
+  const out = join(ROOT, `out/ot1-pro-${tm}-9x16${withVo ? '' : '-preview'}.mp4`);
   const audioArgs = withVo
     ? ['-i', bedPath, '-i', vo, '-filter_complex', `[2:a]atempo=${timing.tempo},loudnorm=I=-15:TP=-1.5:LRA=11,apad[vo];[1:a]volume=0.22[bed];[vo][bed]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95[a]`]
     : ['-i', bedPath, '-filter_complex', `[1:a]volume=0.5[a]`];
