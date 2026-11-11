@@ -1,136 +1,167 @@
-/* Ad A — General small business (Egypt). Scene i starts on voice line `line` (see scripts/general.txt). */
+/* Ad A — General (Egypt): "مطلوب موظف" job-ad concept. Scene `line` = voice line in scripts/general.txt */
 (() => {
-const wave = (n, w) => '<svg width="' + w + '" height="40" viewBox="0 0 ' + w + ' 40">' + Array.from({ length: n }, (_, i) => { const h = 6 + 14 * Math.abs(Math.sin(i * 1.7)); return `<rect x="${i * (w / n)}" y="${20 - h}" width="${w / n * .55}" rx="1.5" height="${2 * h}" fill="#9db5ae"/>`; }).join('') + '</svg>';
-const leads = [['محمود ع.', 'سأل عن المقاس والشحن', 93, 'hot', 'سخن'], ['كريم س.', 'طلب صور تانية', 71, 'warm', 'دافي'], ['أحمد ف.', 'رجع تاني بعد يومين', 66, 'warm', 'دافي'], ['زياد م.', '«بتفرج بس»', 14, 'cold', 'بارد']];
+const poster = (extra = '') => `<div data-poster style="position:relative;width:900px;background:#fff;border-radius:34px;padding:40px 46px 46px;box-shadow:0 30px 90px rgba(0,0,0,.18);text-align:center;color:var(--ink)">
+  <div class="row" style="justify-content:space-between"><span class="chip">وظيفة خالية</span><span style="font-weight:900;font-size:28px;color:#6b7280">تعيين فوري</span></div>
+  <div data-m class="poster" style="font-size:230px;color:var(--red);margin-top:16px;opacity:0">مطلوب</div>
+  <div data-r class="h1" style="font-size:84px;opacity:0">موظف خدمة عملا</div>
+  <div data-d style="margin:26px auto 0;height:0;border-top:5px dashed #d6d0c0;width:0"></div>
+  <div data-ap style="opacity:0;margin-top:22px;font-weight:900;font-size:34px;color:#6b7280">التقديم: واتساب فقط</div>
+  ${extra}</div>`;
+const req = n => `<span class="chip" data-rq style="font-size:36px;padding:6px 30px;opacity:0">الشرط ${n} من 6</span>`;
 
 window.AD = {
   captions: [
-    'الساعة 2 بالليل… حد بعتلك على الواتساب: «لسه متاح؟ عايز أطلب.» وانت *نايم.*',
-    'الصبح ترد… تلاقيه *اشترى* *من* *غيرك.*',
-    'وعشان تلحق كل رسالة، محتاج فريق موديريتورز: *ورديات،* *ومرتبات،* *وتدريب…* ولسه برضه في رسايل *بتضيع.*',
-    'عشان كده عملنا *OT1-Pro.* ومش شات بوت بيقول «تم استلام رسالتك».',
-    'ده *مساعد* *مبيعات* بالذكاء الاصطناعي، شغال *24* *ساعة،* على الواتساب والإنستجرام والفيسبوك.',
-    'بيرد على الأسعار والمقاسات والمتاح، بيفهم العميل عايز إيه، ولو قال *«غالي»…* بيعرف يرد، ويوصّله لحد ما *يأكد* *الأوردر.*',
-    'بيسمع *الفويس* *نوت،* وبيفهم *الصور* والسكرين شوتس.',
-    'بيرد على *كومنتات* البوستات، ويحوّل المهتمين *للخاص.*',
-    'بيقولك مين العميل *الجاد* ومين بيتفرج، عشان تركز على اللي *هيشتري.*',
-    'وبيوريك أكتر حاجة *بتتطلب،* وليه الناس *بتتردد* قبل ما تشتري.',
-    'وأحلى حاجة… الأوردرات الجاهزة بتنزل لوحدها في *الشيت* *بتاعك:* الاسم، والرقم، والعنوان، والطلب. انت بس *تشحن.*',
-    'وإحنا مش هنبيعلك برنامج ونمشي. إحنا *شركا.* بنقعد معاك *90* *دقيقة* نبني الذكاء الاصطناعي بأسلوب البيزنس بتاعك، ونفضل معاك *30* *يوم* نظبطه كل أسبوع.',
-    'عايز تجرب الأول؟ التجربة 14 يوم بـ *3,500* *جنيه.* ولو ما اتعاملش مع 50 محادثة حقيقية… *فلوسك* *بترجعلك* *كاملة.*',
-    'وباقة الشريك المؤسس: *7,500* إعداد + *2,500* في الشهر… أقل من نص مرتب موظف واحد، وشغال *ليل* *ونهار.*',
-    'عايز ربط بمتجرك؟ بالسيستم بتاعك؟ كذا براند؟ أي حاجة في دماغك… *بنبنيهالك.*',
-    'دوس على الزرار، وابعتلنا على *الواتساب.* OT1-Pro… شريكك في المبيعات، *مش* *شات* *بوت.*',
+    '*مطلوب* موظف خدمة عملا.',
+    'الشروط: يشتغل *24* *ساعة…* من غير إجازة، ولا جمعة، ولا عيد.',
+    'يرد على أي رسالة *في* *ثواني،* على الواتساب والإنستجرام والفيسبوك… وحتى على *الكومنتات.*',
+    'يحفظ كل منتجاتك وأسعارك ومقاساتك… ويسمع *الفويس* *نوت،* ويفهم *الصور.*',
+    'ولما العميل يقول *«غالي»…* ما يقولوش «السعر في الخاص». يقنعه، لحد ما *يأكد* *الأوردر.*',
+    'يدّي كل عميل *سكور* من 100، ويكتب *ملاحظة* على كل محادثة: جاد ولا بيتفرج… وليه.',
+    'وكل أوردر جاهز، ينزّله في *الشيت* *بتاعك:* الاسم، والرقم، والعنوان. انت بس *تشحن.*',
+    'المرتب؟ *2,500* *جنيه* في الشهر. *مستحيل؟*',
+    'ده مش موظف. ده *OT1-Pro:* مساعد مبيعات بالذكاء الاصطناعي، *مبني* *مخصوص* للبيزنس بتاعك.',
+    'مش تمبلت جاهز. بنقعد معاك *90* *دقيقة* نعلّمه منتجاتك وأسلوبك، ونفضل معاك *30* *يوم* نظبطه كل أسبوع. إحنا *شركا،* مش برنامج.',
+    'عايز تجربه الأول؟ 14 يوم بـ *3,500* *جنيه…* ولو ما اتعاملش مع 50 محادثة حقيقية، *فلوسك* *ترجعلك* *كاملة.*',
+    'وبعدها: *7,500* إعداد + *2,500* في الشهر. وأي حاجة زيادة في دماغك… *بنبنيهالك.*',
+    'الوظيفة *اتملت.* دوس على الزرار وابعتلنا على *الواتساب.* OT1-Pro… شريكك في المبيعات، *مش* *شات* *بوت.*',
   ],
   scenes: [
-    { line: 0, // 2 AM lock screen, you're asleep
-      html: `<div style="position:relative">${C.lock('02:07', 'الجمعة', 'WhatsApp · محمود', 'لسه متاح؟ عايز أطلب')}
-        <div data-z style="position:absolute;top:560px;left:0;right:0;text-align:center;font-family:Serif;font-size:90px;color:var(--muted);opacity:0;direction:ltr">z z z</div></div>`,
-      update(el, lt, d) { pop(q(el, '.notif'), lt, .5, .45); const z = q(el, '[data-z]'); z.style.opacity = p(lt, d * .7, .5) * (.6 + .4 * Math.sin(lt * 3)); z.style.transform = `translateY(${-10 * Math.sin(lt * 2)}px)`; } },
-    { line: 1, // morning: too late
-      html: C.phone('محمود', 'آخر ظهور 2:09 ص', [
-        ['in', 'لسه متاح؟ عايز أطلب<span class="meta ltr">02:07</span>'],
-        ['out', 'صباح الخير، متاح يا فندم<span class="meta ltr">09:41</span>', false],
-        ['in', 'خلاص يا باشا، طلبته من مكان تاني<span class="meta ltr">09:52</span>'],
-      ]),
-      update(el, lt, d) { chatSeq(el, lt, [0, .5, d * .5]); } },
-    { line: 2, // moderator team: shifts, salaries, training, still lost
-      html: `<div class="col" style="gap:22px;width:900px">
-        <div class="row" style="gap:16px;width:100%">${[['وردية الصبح', '9 ص – 5 م'], ['وردية بالليل', '5 م – 1 ص'], ['وردية الفجر', '1 ص – 9 ص']].map((s, i) => `<div data-s="${i}" class="card" style="flex:1;text-align:center;opacity:0;padding:22px 12px">
-          <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="#9db5ae" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-          <div style="font-weight:900;font-size:30px">${s[0]}</div><div class="muted ltr" style="font-weight:700;font-size:24px">${s[1]}</div></div>`).join('')}</div>
-        <div class="row" style="gap:14px">${['مرتبات', 'تدريب', 'إجازات', 'غياب'].map((t, i) => `<div data-c="${i}" class="pill" style="opacity:0;font-size:30px">+ ${t}</div>`).join('')}</div>
-        <div data-u class="card" style="opacity:0;width:100%;display:flex;align-items:center;justify-content:space-between;border-color:var(--red)">
-          <div style="font-weight:900;font-size:40px">رسايل ما اتردش عليها</div><div class="serif red ltr" data-n style="font-size:110px;line-height:1">0</div></div></div>`,
+    { line: 0, bg: 'yellow', html: poster(), noWhoosh: true,
       update(el, lt, d) {
-        qa(el, '[data-s]').forEach((s, i) => pop(s, lt, i * .35, .4));
-        qa(el, '[data-c]').forEach((c, i) => pop(c, lt, 1.4 + i * .3, .35, 24));
-        pop(q(el, '[data-u]'), lt, d * .62, .4); q(el, '[data-n]').textContent = Math.round(47 * eo(p(lt, d * .62, d * .38)));
-      } },
-    { line: 3, // brand reveal, not a chatbot
-      html: `<div class="col" style="gap:40px">
-        <div data-l class="serif" style="font-size:190px;line-height:1">OT1-Pro</div>
-        <div data-b style="position:relative;opacity:0"><div class="b in" style="opacity:1;font-size:34px;max-width:none;padding:22px 30px">تم استلام رسالتك، سيتم الرد عليك في أقرب وقت</div>
-          <i data-x style="position:absolute;left:-10px;right:-10px;top:50%;height:10px;background:var(--red);border-radius:6px;transform-origin:right;transform:scaleX(0)"></i></div>
-        <div data-t class="h2" style="opacity:0">مش <span class="red">شات بوت</span></div></div>`,
+        const P = q(el, '[data-poster]'); const k = eo(p(lt, 0, .45)); P.style.transform = `translateY(${(1 - k) * 200}px) rotate(${(1 - k) * -4}deg)`; P.style.opacity = k;
+        slam(q(el, '[data-m]'), lt, .35, 0); pop(q(el, '[data-r]'), lt, .8, .35);
+        q(el, '[data-d]').style.width = (eo(p(lt, 1.1, .5)) * 100) + '%'; pop(q(el, '[data-ap]'), lt, 1.3, .3);
+      },
+      sfx: () => [[.35, 'stamp'], [.8, 'pop']] },
+
+    { line: 1, bg: 'yellow', // 24h, no days off
+      html: `<div class="col" style="gap:34px;position:relative;width:940px">${req(1)}
+        <div class="row" style="gap:26px" data-a><svg width="190" height="190" viewBox="0 0 24 24" fill="none" stroke="#0B0F0E" stroke-width="1.6"><circle cx="12" cy="12" r="10" fill="#fff"/><path data-hand d="M12 12V5.5" stroke-width="2" stroke-linecap="round"/><path data-hand2 d="M12 12l3.5 2" stroke-width="2" stroke-linecap="round"/></svg>
+          <div class="poster" style="font-size:190px;line-height:.95">24<br><span style="font-size:110px">ساعة</span></div></div>
+        <div class="row" style="gap:18px">${['إجازة', 'جمعة', 'عيد'].map((t, i) => `<div data-o="${i}" class="pill" style="opacity:0;position:relative;font-size:46px;background:#fff;border:none;padding:14px 38px">${t}<i style="position:absolute;left:14px;right:14px;top:52%;height:8px;background:var(--red);border-radius:6px;transform-origin:right;transform:scaleX(0)" data-x></i></div>`).join('')}</div>
+        <div data-n class="h2" style="opacity:0">من غير ولا يوم أوف</div></div>`,
       update(el, lt, d) {
-        const l = q(el, '[data-l]'); const k = eo(p(lt, 0, .7)); l.style.opacity = k; l.style.letterSpacing = `${(1 - k) * 30}px`;
-        pop(q(el, '[data-b]'), lt, d * .45, .4); q(el, '[data-x]').style.transform = `scaleX(${eo(p(lt, d * .62, .3))})`; pop(q(el, '[data-t]'), lt, d * .7, .35);
-      } },
-    { line: 4, // AI sales assistant, 24/7, channels
-      html: `<div class="col" style="gap:30px">
-        <div data-a class="h1">مساعد <span class="mint">مبيعات</span><br>بالذكاء الاصطناعي</div>
-        <div data-c class="row" style="gap:22px;opacity:0"><svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path data-hand d="M12 12 12 6" stroke-linecap="round"/><path d="M12 12l4 2" stroke-linecap="round"/></svg>
-          <div><div class="serif ltr" style="font-size:130px;line-height:1">24/7</div></div></div>
-        <div class="row" style="gap:16px">${[['واتساب', 'var(--wa)'], ['إنستجرام', 'var(--ig)'], ['فيسبوك', 'var(--fb)']].map((c, i) => `<div data-p="${i}" class="pill" style="opacity:0;font-size:38px"><i style="width:20px;height:20px;border-radius:50%;background:${c[1]};display:inline-block"></i>${c[0]}</div>`).join('')}</div></div>`,
+        pop(q(el, '[data-rq]'), lt, 0, .3); pop(q(el, '[data-a]'), lt, .1);
+        q(el, '[data-hand]').setAttribute('transform', `rotate(${lt * 360} 12 12)`); q(el, '[data-hand2]').setAttribute('transform', `rotate(${lt * 30} 12 12)`);
+        const s = d * .45; qa(el, '[data-o]').forEach((o, i) => { pop(o, lt, s + i * .35, .3); strike(o.querySelector('[data-x]'), lt, s + i * .35 + .25); });
+        pop(q(el, '[data-n]'), lt, d * .82, .35);
+      },
+      sfx: d => [[.05, 'pop'], ...[0, 1, 2].map(i => [d * .45 + i * .35 + .25, 'tick'])] },
+
+    { line: 2, bg: 'paper', // replies in seconds, everywhere
+      html: `<div class="col" style="gap:20px;position:relative;width:940px">${req(2)}
+        <div class="row" style="gap:22px"><div class="poster" style="font-size:150px">يرد في</div><div class="serif ltr" data-sw style="font-size:150px;color:var(--em2);line-height:1">0:00</div></div>
+        <div class="col" style="gap:14px;width:860px">${[['WhatsApp', 'var(--wa)', 'لسه متاح؟ 🙏'], ['Instagram', '#E1306C', 'عندكم مقاس L؟'], ['Facebook', '#1877F2', 'التوصيل كام يوم؟'], ['كومنت على البوست', 'var(--amber)', 'بكام؟ 🔥']].map((c, i) => `<div data-c="${i}" class="row" style="opacity:0;width:100%;background:#fff;border-radius:24px;padding:14px 22px;gap:18px;box-shadow:0 10px 26px rgba(0,0,0,.08)">
+            <i style="width:20px;height:58px;border-radius:10px;background:${c[1]};flex:none"></i><div style="flex:1"><div style="font-weight:800;font-size:22px;color:#6b7280">${c[0]}</div><div style="font-weight:900;font-size:32px">${c[2]}</div></div>
+            <span data-ok style="opacity:0;font-weight:900;font-size:28px;color:#fff;background:var(--em);border-radius:999px;padding:4px 18px">✓ اترد</span></div>`).join('')}</div></div>`,
       update(el, lt, d) {
-        pop(q(el, '[data-a]'), lt, 0); pop(q(el, '[data-c]'), lt, d * .3, .4);
-        q(el, '[data-hand]').setAttribute('transform', `rotate(${lt * 120} 12 12)`);
-        qa(el, '[data-p]').forEach((c, i) => pop(c, lt, d * .55 + i * .35, .35, 30));
-      } },
-    { line: 5, // sells + handles "expensive" + closes
-      html: `<div style="position:relative">${C.phone('محمود', 'WhatsApp', [
-        ['in', 'الهودي الأسود متاح XL؟ بكام؟'],
-        ['out', 'متاح XL يا محمود، سعره 850 جنيه والشحن يومين'],
-        ['in', 'غالي شوية'],
-        ['out', 'قطن تقيل ومش بيكش. ولو أخدت اتنين الشحن عليا. أحجزلك؟'],
-        ['in', 'تمام احجزلي اتنين'],
-      ], { example: true })}
-        <div data-ok class="pill" style="position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;background:var(--em);color:var(--ink);border-color:var(--em);font-size:36px">✓ أوردر مؤكد</div></div>`,
-      update(el, lt, d) { chatSeq(el, lt, [.1, d * .18, d * .42, d * .55, d * .78]); pop(q(el, '[data-ok]'), lt, d * .86, .35, 20); } },
-    { line: 6, // voice notes + images
-      html: C.phone('كريم', 'Instagram', [
-        ['in', `<span class="row" style="gap:12px"><b style="width:44px;height:44px;border-radius:50%;background:var(--mint);display:inline-flex;align-items:center;justify-content:center;color:var(--ink)">▶</b>${wave(28, 180)}<span class="muted ltr" style="font-size:20px">0:09</span></span>`],
-        ['in', `<span style="display:block;width:250px;height:170px;border-radius:16px;background:linear-gradient(135deg,#24443c,#183530);position:relative;overflow:hidden"><svg style="position:absolute;inset:0;margin:auto" width="120" height="120" viewBox="0 0 24 24" fill="#9db5ae"><path d="M8 3 4 6l2 4 2-1v12h8V9l2 1 2-4-4-3c-.5 1.7-2 3-4 3S8.5 4.7 8 3z"/></svg></span>`],
-        ['out', 'سمعتك يا كريم. ده موديل 214، متاح بالكحلي مقاس L و XL'],
-      ], { example: true }),
-      update(el, lt, d) { chatSeq(el, lt, [.1, d * .3, d * .6]); } },
-    { line: 7, // comments -> DM
-      html: `<div class="col" style="gap:20px;width:880px">
-        <div class="card" style="width:100%;padding:22px 26px">
-          <div class="row" style="gap:14px"><div style="width:58px;height:58px;border-radius:50%;background:var(--em);display:flex;align-items:center;justify-content:center;font-family:Serif;font-size:26px;color:var(--ink)">B</div><div style="font-weight:800;font-size:28px">براندك · بوست جديد</div></div>
-          <div style="height:170px;border-radius:18px;margin:16px 0;background:linear-gradient(135deg,#183530,#0f231e);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;gap:40px"><svg width="120" height="120" viewBox="0 0 24 24" fill="#9db5ae"><path d="M8 3 4 6l2 4 2-1v12h8V9l2 1 2-4-4-3c-.5 1.7-2 3-4 3S8.5 4.7 8 3z"/></svg><div style="font-weight:900;font-size:40px">كوليكشن الشتا<br><span class="mint">نزل النهارده</span></div></div>
-          ${[['عمر', 'بكام؟'], ['حسن', 'السعر لو سمحت'], ['مازن', 'فيه توصيل إسكندرية؟']].map((c, i) => `<div data-c="${i}" style="opacity:0;margin-top:12px">
-            <div style="font-weight:700;font-size:28px"><b>${c[0]}</b> <span class="soft">${c[1]}</span></div>
-            <div data-r style="opacity:0;font-weight:700;font-size:25px;color:var(--mint);margin-inline-start:30px">↳ رد AI: بعتلك التفاصيل في الخاص</div></div>`).join('')}
+        pop(q(el, '[data-rq]'), lt, 0, .3);
+        q(el, '[data-sw]').textContent = '0:0' + Math.min(3, Math.floor(Math.max(0, lt - .3) * 2));
+        qa(el, '[data-c]').forEach((c, i) => { const a = .5 + i * (d - 1.5) / 4; slideX(c, lt, a, .35, -160); pop(c.querySelector('[data-ok]'), lt, a + .45, .25, 10); });
+      },
+      sfx: d => [0, 1, 2, 3].flatMap(i => [[.5 + i * (d - 1.5) / 4, 'pop'], [.95 + i * (d - 1.5) / 4, 'tick']]) },
+
+    { line: 3, bg: 'paper', // knows products, hears voice notes, reads photos
+      html: `<div class="col" style="gap:24px;position:relative;width:960px">${req(3)}
+        <div class="row" style="gap:18px">${[['🧥', 'هودي', '850'], ['👕', 'تيشيرت', '450'], ['👜', 'شنطة', '1,200'], ['👟', 'كوتشي', '1,650']].map((x, i) => `<div data-p="${i}" style="opacity:0;width:215px;background:#fff;border-radius:26px;padding:18px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.08)"><div style="font-size:84px;line-height:1.1">${x[0]}</div><div style="font-weight:900;font-size:30px">${x[1]}</div><div class="ltr" style="font-weight:900;font-size:30px;color:var(--em2)">${x[2]} EGP</div></div>`).join('')}</div>
+        <div class="row" style="gap:20px;width:100%;justify-content:center">
+          <div data-v class="card" style="opacity:0;background:#fff;padding:18px 22px;color:#111"><div style="font-weight:900;font-size:26px;color:#6b7280;margin-bottom:8px">🎤 فويس نوت</div>${C.voice('0:11', 200)}<div data-vt style="opacity:0;font-weight:800;font-size:25px;margin-top:10px">«عايز الهودي ده بس كحلي»</div></div>
+          <div data-i class="card" style="opacity:0;background:#fff;padding:18px 22px;color:#111;text-align:center"><div style="font-weight:900;font-size:26px;color:#6b7280;margin-bottom:6px">📷 صورة</div><div style="font-size:96px;line-height:1.1">🧥</div><div data-it style="opacity:0;font-weight:900;font-size:25px;color:var(--em2)">✓ ده موديل 214</div></div>
+        </div></div>`,
+      update(el, lt, d) {
+        pop(q(el, '[data-rq]'), lt, 0, .3);
+        qa(el, '[data-p]').forEach((c, i) => pop(c, lt, .3 + i * .22, .3));
+        pop(q(el, '[data-v]'), lt, d * .5, .35); fade(q(el, '[data-vt]'), lt, d * .5 + .6, .3);
+        pop(q(el, '[data-i]'), lt, d * .7, .35); fade(q(el, '[data-it]'), lt, d * .7 + .5, .3);
+      },
+      sfx: d => [[.3, 'pop'], [.52, 'pop'], [.74, 'pop'], [.96, 'pop'], [d * .5, 'pop'], [d * .7, 'pop']] },
+
+    { line: 4, bg: 'yellow', // handles "expensive" and closes
+      html: `<div class="row" style="gap:26px;position:relative">
+        <div class="col" style="gap:20px;width:330px">
+          <div style="font-weight:900;font-size:34px">موظف عادي:</div>
+          <div data-bad style="opacity:0;position:relative;background:#fff;border-radius:22px;padding:14px 18px;font-weight:900;font-size:30px;color:#111">السعر في الخاص<i data-x style="position:absolute;left:-6px;right:-6px;top:50%;height:8px;background:var(--red);border-radius:6px;transform-origin:right;transform:scaleX(0)"></i></div>
+          <div style="font-weight:900;font-size:34px;margin-top:20px">OT1-Pro:</div>
+          <div data-good style="opacity:0;font-weight:900;font-size:40px;color:var(--em2);background:#fff;border-radius:22px;padding:10px 18px">بيقنع 💬 ويقفل ✓</div>
         </div>
-        <div data-dm class="pill" style="opacity:0;font-size:36px"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg> 3 محادثات جديدة في الخاص</div></div>`,
+        <div style="position:relative">${C.phone('محمود', 'WhatsApp', [
+          ['in', 'الهودي الأسود متاح XL؟ بكام؟'],
+          ['out', 'متاح يا محمود 👌 سعره 850 والشحن يومين'],
+          ['in', 'غالي شوية 😅'],
+          ['out', 'قطن تقيل ومش بيكش، ولو أخدت اتنين الشحن مجاني. أحجزلك؟'],
+          ['in', 'خلاص احجزلي اتنين 👍'],
+        ])}<div data-st class="stamp" style="color:var(--em2);font-size:72px;bottom:60px;left:50%;background:rgba(255,255,255,.92)">أوردر مؤكد ✓</div></div></div>`,
       update(el, lt, d) {
-        qa(el, '[data-c]').forEach((c, i) => { pop(c, lt, .2 + i * .45, .35, 20); fade(c.querySelector('[data-r]'), lt, d * .45 + i * .3, .3); });
-        pop(q(el, '[data-dm]'), lt, d * .75, .35);
-      } },
-    { line: 8, // lead scoring
-      html: `<div class="col" style="gap:16px;width:900px">${leads.map((l, i) => `<div data-l="${i}" class="lead" style="opacity:0">
-          <div class="nm">${l[0]}<div class="muted" style="font-size:24px;font-weight:700">${l[1]}</div></div>
-          <div class="sc ${l[3] === 'hot' ? 'red' : l[3] === 'warm' ? 'amber' : ''}" data-v="${l[2]}">0</div><span class="badge ${l[3]}">${l[4]}</span></div>`).join('')}
-        <div data-f class="pill" style="opacity:0;font-size:36px;border-color:var(--red);color:var(--red)">كلّم دول الأول</div></div>`,
+        pop(q(el, '[data-bad]'), lt, .2); strike(q(el, '[data-x]'), lt, .7);
+        const T = [.4, d * .2, d * .4, d * .55, d * .74]; chatSeq(el, lt, T);
+        pop(q(el, '[data-good]'), lt, d * .55, .35);
+        const st = q(el, '[data-st]'); const k = p(lt, d * .84, .22); st.style.opacity = k; st.style.transform = `translateX(-50%) rotate(-8deg) scale(${2.2 - 1.2 * eo(k)})`;
+      },
+      sfx: d => [[.7, 'tick'], [.4, 'pop'], [d * .2, 'pop'], [d * .4, 'pop'], [d * .55, 'pop'], [d * .74, 'pop'], [d * .84, 'stamp'], [d * .86, 'ding']] },
+
+    { line: 5, bg: 'yellow', // score + AI note per conversation
+      html: `<div class="col" style="gap:20px;position:relative;width:940px">${req(5)}
+        <div class="h2" data-h style="font-size:56px">سكور + ملاحظة على كل محادثة</div>
+        ${C.scoreCard('محمود ع.', 94, 'سأل عن المقاس والشحن وبعت عنوانه. جاهز يطلب.', '#00B67A')}
+        ${C.scoreCard('كريم س.', 61, 'عجبه الموديل، متردد بسبب السعر.', '#F59E0B')}
+        ${C.scoreCard('زياد م.', 12, 'بيتفرج بس، ما سألش عن سعر ولا مقاس.', '#9CA3AF')}</div>`,
+      update(el, lt, d) { pop(q(el, '[data-rq]'), lt, 0, .3); pop(q(el, '[data-h]'), lt, .15); qa(el, '[data-sc]').forEach((c, i) => animScore(c, lt, .6 + i * (d - 1.6) / 3)); },
+      sfx: d => [0, 1, 2].map(i => [.6 + i * (d - 1.6) / 3, 'pop']) },
+
+    { line: 6, bg: 'paper', // orders into your sheet
+      html: `<div class="col" style="gap:28px;position:relative">${req(6)}${C.sheet('أوردرات جاهزة · Google Sheet', ['الاسم', 'الرقم', 'العنوان', 'الطلب'], [
+        ['محمود ع.', '010•••4417', 'مدينة نصر', '2 هودي أسود XL'], ['كريم س.', '011•••0923', 'سموحة', 'تيشيرت L'],
+        ['أحمد ف.', '012•••5560', 'المنصورة', 'شنطة جلد'], ['حسن ي.', '015•••2209', 'طنطا', '3 تيشيرت']])}
+        <div data-ship class="pill" style="opacity:0;font-size:52px;background:var(--ink);color:var(--yellow);border:none;padding:16px 44px">📦 انت بس تشحن</div></div>`,
       update(el, lt, d) {
-        qa(el, '[data-l]').forEach((l, i) => { slideX(l, lt, .1 + i * .3, .35, -70); const v = l.querySelector('[data-v]'); v.textContent = Math.round(+v.dataset.v * eo(p(lt, .3 + i * .3, .8))); });
-        const k = p(lt, d * .6, .3); const hot = q(el, '[data-l="0"]'); hot.style.borderColor = k > .5 ? 'var(--red)' : ''; hot.style.boxShadow = k > .5 ? '0 0 40px rgba(251,113,133,.25)' : '';
-        pop(q(el, '[data-f]'), lt, d * .6, .35);
-      } },
-    { line: 9, // insights
-      html: `<div class="col" style="gap:22px;width:920px;position:relative">
-        <div class="example" style="top:-30px">مثال توضيحي</div>
-        <div data-a style="width:100%">${SH.bars('أكتر حاجة بتتطلب', [['هودي أسود', 38], ['تيشيرت أوفر', 27], ['شنطة جلد', 19]])}</div>
-        <div data-b style="width:100%;opacity:0">${SH.bars('ليه الناس بتتردد؟', [['السعر', 41], ['مصاريف الشحن', 33], ['المقاس', 18]], 'var(--amber)')}</div></div>`,
-      update(el, lt, d) { pop(q(el, '[data-a]'), lt, 0); SH.growBars(q(el, '[data-a]'), lt, .3); pop(q(el, '[data-b]'), lt, d * .45, .4); SH.growBars(q(el, '[data-b]'), lt, d * .45 + .3); } },
-    { line: 10, // orders land in your sheet
-      html: `<div class="col" style="gap:30px">${C.sheet('أوردرات جاهزة · Google Sheet', ['الاسم', 'الرقم', 'العنوان', 'الطلب'], [
-        ['محمود ع.', '010•••4417', 'مدينة نصر', '2 هودي أسود XL'], ['كريم س.', '011•••0923', 'سموحة', 'تيشيرت أوفر L'],
-        ['أحمد ف.', '012•••5560', 'المنصورة', 'شنطة جلد بني'], ['عمر ح.', '010•••7781', 'المعادي', 'هودي كحلي M'],
-        ['حسن ي.', '015•••2209', 'طنطا', '3 تيشيرت']])}
-        <div data-ship class="pill" style="opacity:0;font-size:44px;background:var(--em);color:var(--ink);border-color:var(--em)">
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0a1814" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></svg> انت بس تشحن</div></div>`,
+        pop(q(el, '[data-rq]'), lt, 0, .3); pop(q(el, '.sheet'), lt, .1);
+        qa(el, 'tbody tr').forEach((r, i) => { const a = .6 + i * (d * .5) / 4, k = eo(p(lt, a, .3)); r.style.opacity = k; r.style.transform = `translateX(${(1 - k) * -80}px)`; qa(r, 'td').forEach(td => td.style.background = lt - a < 1 ? '#d9f6e8' : '#fff'); });
+        pop(q(el, '[data-ship]'), lt, d * .78, .35);
+      },
+      sfx: d => [0, 1, 2, 3].map(i => [.6 + i * (d * .5) / 4, 'pop']).concat([[d * .78, 'ding']]) },
+
+    { line: 7, bg: 'ink', // salary punchline
+      html: `<div class="col" style="gap:20px;position:relative">
+        <div data-q class="poster" style="font-size:150px;color:var(--yellow);opacity:0">المرتب؟</div>
+        <div data-s class="row" style="gap:20px;opacity:0"><span class="serif ltr" style="font-size:230px;line-height:1">2,500</span><span style="font-weight:900;font-size:60px;line-height:1.1">جنيه<br>في الشهر</span></div>
+        <div data-st class="stamp" style="color:var(--red);font-size:150px;top:470px;left:50%;background:rgba(11,15,14,.85)">مستحيل؟</div></div>`,
       update(el, lt, d) {
-        pop(q(el, '.sheet'), lt, 0);
-        qa(el, 'tbody tr').forEach((r, i) => { const a = d * .2 + i * (d * .5) / 5; const k = eo(p(lt, a, .35)); r.style.opacity = k; r.style.transform = `translateX(${(1 - k) * -60}px)`; qa(r, 'td').forEach(td => td.style.background = lt - a < 1.2 ? '#d9f6e8' : '#fff'); });
-        pop(q(el, '[data-ship]'), lt, d * .82, .35);
-      } },
-    { line: 11, ...SH.partner('إحنا <span class="mint">شركا</span>، مش برنامج ونمشي') },
-    { line: 12, ...SH.pricing({ line: 13 }, 'شغال 24 ساعة · أقل من نص مرتب موظف واحد') },
-    { line: 14, ...SH.custom('عايز حاجة مخصوص؟', ['ربط بمتجرك Shopify / WooCommerce', 'ربط بالـ CRM', 'كذا براند', 'ودجت لموقعك']) },
-    { line: 15, ...SH.cta('ابعت كلمة «شريك» ونحدد معاك مكالمة الـ 90 دقيقة') },
+        pop(q(el, '[data-q]'), lt, .05, .3); pop(q(el, '[data-s]'), lt, d * .3, .35);
+        const st = q(el, '[data-st]'), k = p(lt, d * .74, .22); st.style.opacity = k; st.style.transform = `translateX(-50%) rotate(-7deg) scale(${2.4 - 1.4 * eo(k)})`;
+      },
+      sfx: d => [[.05, 'pop'], [d * .3, 'ding'], [d * .74, 'stamp']] },
+
+    { line: 8, bg: 'em', // reveal
+      html: `<div class="col" style="gap:26px">
+        <div data-a class="h1" style="font-size:96px">${W('ده مش موظف.')}</div>
+        <div data-l class="serif ltr" style="font-size:210px;line-height:1;opacity:0">OT1-Pro</div>
+        <div data-b class="h2" style="font-size:52px;opacity:0">مساعد مبيعات بالذكاء الاصطناعي<br><span style="background:var(--yellow);color:var(--ink);border-radius:14px;padding:0 18px">مبني مخصوص للبيزنس بتاعك</span></div></div>`,
+      update(el, lt, d) {
+        words(q(el, '[data-a]'), lt, 0, .2);
+        const l = q(el, '[data-l]'), k = eo(p(lt, d * .3, .5)); l.style.opacity = k; l.style.letterSpacing = `${(1 - k) * 40}px`; l.style.transform = `scale(${.8 + .2 * eb(p(lt, d * .3, .5))})`;
+        pop(q(el, '[data-b]'), lt, d * .55, .4);
+      },
+      sfx: d => [[d * .3 - 1.2 > 0 ? d * .3 - 1.2 : 0, 'rise'], [d * .3, 'ding']] },
+
+    { line: 9, ...SH.partner('إحنا <span class="em">شركا</span>، مش برنامج') },
+    { line: 10, ...SH.pricing({ line: 11 }, '+ أي حاجة زيادة في دماغك… بنبنيهالك') },
+
+    { line: 12, bg: 'yellow', ctaAt: 1.6,
+      html: '', topAnim: null },
   ],
 };
+
+/* last scene: the job poster comes back stamped "اتملت", then the CTA */
+const cta = SH.cta(poster(`<div data-st class="stamp" style="color:var(--em2);font-size:120px;top:120px;left:50%;background:rgba(255,255,255,.9)">اتملت ✓</div>`), 'ابعت كلمة «شريك» ونحدد معاك مكالمة الـ 90 دقيقة');
+const last = window.AD.scenes[window.AD.scenes.length - 1];
+Object.assign(last, cta, { bg: 'yellow', ctaAt: 1.6,
+  topAnim(top, lt) {
+    const P = q(top, '[data-poster]'); P.style.opacity = 1 - p(lt, 1.3, .3); P.style.transform = `scale(${.62}) translateY(${-p(lt, 1.3, .3) * 200}px)`;
+    top.style.height = (1 - eo(p(lt, 1.3, .3))) * 520 + 'px'; top.style.marginBottom = (1 - eo(p(lt, 1.3, .3))) * -120 + 'px';
+    qa(P, '[data-m],[data-r],[data-ap]').forEach(e => e.style.opacity = 1); q(P, '[data-d]').style.width = '100%';
+    const st = q(P, '[data-st]'), k = p(lt, .2, .22); st.style.opacity = k; st.style.transform = `translateX(-50%) rotate(-10deg) scale(${2.2 - 1.2 * eo(k)})`;
+  },
+  sfx: () => [[.2, 'stamp'], [1.6, 'whoosh'], [2.2, 'pop']] });
+// CTA scene on yellow needs dark text for the logo lines
+last.html = cta.html.replace('color:#d1fae5', 'color:#3f3f2f').replace('<span style="color:var(--yellow)">مش شات بوت</span>', '<span style="color:var(--red)">مش شات بوت</span>');
 })();

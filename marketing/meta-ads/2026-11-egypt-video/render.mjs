@@ -1,8 +1,8 @@
 // Render an ad: deterministic frame capture (engine/ad.html renderAt(t)) -> ffmpeg + voiceover.
 // usage: node render.mjs <general|realestate> [--stills 1,5,12] [--fps 30]
 import { createServer } from 'node:http';
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { spawn, execFileSync } from 'node:child_process';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -40,11 +40,20 @@ if (stills) {
   }
   console.log('stills done');
 } else {
-  const out = join(ROOT, `out/ot1-pro-${v}-9x16.mp4`);
+  // soundtrack: synthesised music bed + SFX at the cues the scenes declared
+  const events = await page.evaluate(() => window.SFX);
+  const evPath = join(ROOT, `out/.sfx-${v}.json`), bedPath = join(ROOT, `out/.bed-${v}.wav`);
+  writeFileSync(evPath, JSON.stringify(events));
+  execFileSync('python3', [join(ROOT, 'soundtrack.py'), evPath, total.toFixed(3), bedPath], { stdio: 'inherit' });
+  const vo = join(ROOT, `audio/${v}-raw.mp3`);
+  const withVo = !timing.placeholder && existsSync(vo);
+  const out = join(ROOT, `out/ot1-pro-${v}-9x16${withVo ? '' : '-preview'}.mp4`);
+  const audioArgs = withVo
+    ? ['-i', bedPath, '-i', vo, '-filter_complex', `[2:a]atempo=${timing.tempo},loudnorm=I=-15:TP=-1.5:LRA=11,apad[vo];[1:a]volume=0.32[bed];[vo][bed]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95[a]`]
+    : ['-i', bedPath, '-filter_complex', `[1:a]loudnorm=I=-16:TP=-1.5[a]`];
   const ff = spawn('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error',
     '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
-    '-i', join(ROOT, `audio/${v}-raw.mp3`),
-    '-filter_complex', `[1:a]atempo=${timing.tempo},loudnorm=I=-14:TP=-1.5:LRA=11,apad[a]`,
+    ...audioArgs,
     '-map', '0:v', '-map', '[a]', '-t', total.toFixed(3),
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-movflags', '+faststart',
     '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', out], { stdio: ['pipe', 'inherit', 'inherit'] });
