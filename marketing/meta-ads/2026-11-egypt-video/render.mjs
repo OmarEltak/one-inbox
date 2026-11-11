@@ -49,8 +49,8 @@ if (stills) {
   const withVo = !timing.placeholder && existsSync(vo);
   const out = join(ROOT, `out/ot1-pro-${v}-9x16${withVo ? '' : '-preview'}.mp4`);
   const audioArgs = withVo
-    ? ['-i', bedPath, '-i', vo, '-filter_complex', `[2:a]atempo=${timing.tempo},loudnorm=I=-15:TP=-1.5:LRA=11,apad[vo];[1:a]volume=0.32[bed];[vo][bed]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95[a]`]
-    : ['-i', bedPath, '-filter_complex', `[1:a]loudnorm=I=-16:TP=-1.5[a]`];
+    ? ['-i', bedPath, '-i', vo, '-filter_complex', `[2:a]atempo=${timing.tempo},loudnorm=I=-15:TP=-1.5:LRA=11,apad[vo];[1:a]volume=0.22[bed];[vo][bed]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95[a]`]
+    : ['-i', bedPath, '-filter_complex', `[1:a]volume=0.5[a]`];
   const ff = spawn('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error',
     '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
     ...audioArgs,

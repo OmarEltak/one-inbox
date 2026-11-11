@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Synthesised music bed + SFX track for the ads (no samples, no licences).
+"""SFX track for the ads (synthesised, no samples). Music bed only with --music
+(the client asked for no music: voice only + subtle SFX).
 
-usage: soundtrack.py <events.json> <duration_s> <out.wav>
+usage: soundtrack.py <events.json> <duration_s> <out.wav> [--music]
 events.json: [[t_seconds, "whoosh"|"pop"|"stamp"|"ding"|"rise"|"tick"], ...]
 Writes a stereo 48 kHz wav: soft music bed (~-30 LUFS-ish) + SFX. The VO is
 mixed on top by render.mjs.
@@ -99,7 +100,7 @@ def music(dur):
 
 def main():
     events, dur, out = json.load(open(sys.argv[1])), float(sys.argv[2]), sys.argv[3]
-    mix = music(dur)
+    mix = music(dur) if '--music' in sys.argv else np.zeros((int(dur * SR), 2))
     cache = {}
     for t, name in events:
         if name not in cache: cache[name] = sfx(name)
