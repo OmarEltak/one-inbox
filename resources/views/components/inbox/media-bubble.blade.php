@@ -20,7 +20,7 @@
         />
     </button>
     @if($message->content && $message->content !== '[image]')
-        <p class="mt-1 text-sm">{{ $message->content }}</p>
+        <p class="mt-1 text-sm" dir="auto" style="unicode-bidi: plaintext;">{{ $message->content }}</p>
     @endif
 
 @elseif($kind === 'audio')
@@ -31,7 +31,7 @@
             :sentAt="optional($message->platform_sent_at ?? $message->created_at)->format('g:i A')"
         />
         @if($message->content && ! in_array($message->content, ['[voice note]', '[audio]', '[media unavailable]'], true))
-            <p class="mt-1 text-xs italic text-zinc-500 dark:text-zinc-400">
+            <p class="mt-1 text-xs italic text-zinc-500 dark:text-zinc-400" dir="auto" style="unicode-bidi: plaintext;">
                 <span class="font-semibold">Transcript:</span> {{ $message->content }}
             </p>
         @elseif($message->content === '[media unavailable]')
@@ -60,5 +60,5 @@
     </a>
 
 @else
-    <p class="text-sm">{{ $message->content }}</p>
+    <p class="text-sm" dir="auto" style="unicode-bidi: plaintext;">{{ $message->content }}</p>
 @endif

@@ -610,7 +610,10 @@
                 @foreach($conv->messages as $message)
                     @if($message->isActivityNote())
                         <div class="flex justify-center my-1">
-                            <span class="text-xs text-zinc-400 dark:text-zinc-500 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                            {{-- 2026-11-11 — Bug 11: activity notes (e.g. "Order #1234 — 150 ج.م")
+                                 mix Arabic + Latin digits + punctuation. dir="auto" lets the Unicode
+                                 bidi algorithm resolve direction per first strong char. --}}
+                            <span class="text-xs text-zinc-400 dark:text-zinc-500 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700" dir="auto" style="unicode-bidi: plaintext;">
                                 {{ $message->content }}
                             </span>
                         </div>
@@ -680,7 +683,14 @@
                                 @if($placeholder)
                                     <p class="flex items-center gap-1.5 text-sm"><span class="text-2xl leading-none">{{ $placeholder[0] }}</span><span>{{ $placeholder[1] }}</span></p>
                                 @elseif($message->content)
-                                    <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                                    {{-- 2026-11-10 — Bug 11: dir="auto" lets the Unicode bidi
+                                         algorithm resolve direction per-paragraph based on first
+                                         strong char, so Arabic text with Western digits/punctuation
+                                         (prices like "150 ج.م", phone numbers, order IDs) doesn't
+                                         flip the trailing "—" / "." / digits to the wrong side.
+                                         `unicode-bidi: plaintext` keeps the bubble container from
+                                         imposing a parent direction on the paragraph. --}}
+                                    <p class="text-sm whitespace-pre-wrap" dir="auto" style="unicode-bidi: plaintext;">{{ $message->content }}</p>
                                 @elseif(! $message->media_url)
                                     <p class="text-sm italic opacity-60">📎 {{ __('Media') }}</p>
                                 @endif

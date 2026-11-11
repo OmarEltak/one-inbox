@@ -63,16 +63,21 @@ class AiChat extends Component
         }
 
         // Reap orphaned pending turns before loading. Any AiCommand stuck in
-        // 'pending' for more than an hour is dead on arrival — the queue
-        // worker crashed, the AI provider never responded, or the Reverb
-        // broadcast was lost. Without this they render forever as "1 answer
-        // still arriving…" and block future Sends via the chat-lock gate.
+        // 'pending' for more than ~2 minutes is almost certainly dead —
+        // ProcessAiChatTurn + DispatchDeepAnalysisJob both finish within
+        // 60-120s under normal load. Without this they render forever as
+        // a ghost dots-bubble and block future Sends via the chat-lock gate.
+        //
+        // 2026-11-10 — reduced from 1h to 2m (Bug 10). Refreshing the page
+        // mid-analysis was leaving a stale pending bubble for up to an
+        // hour. Show a terminal "Analysis interrupted — please retry"
+        // message so the operator knows to resend instead of waiting.
         AiCommand::where('user_id', Auth::id())
             ->where('status', 'pending')
-            ->where('created_at', '<', now()->subHour())
+            ->where('created_at', '<', now()->subMinutes(2))
             ->update([
-                'status' => 'failed',
-                'response' => __('(This request did not finish. Please try again.)'),
+                'status'   => 'failed',
+                'response' => __('⚠️ Analysis interrupted — please retry.'),
             ]);
 
         $parser = new ActionParser;
@@ -806,7 +811,14 @@ class AiChat extends Component
                 // sanitize identically, otherwise the one that doesn't wins
                 // the race under flaky network conditions.
                 $parsed = $parser->parse((string) $row->response);
-                if ($parsed['pending'] !== null && $this->pendingAction === null) {
+                // 2026-11-10 — do NOT re-surface pendingAction if this row has
+                // already been confirmed/cancelled (action_taken stamped).
+                // Otherwise clicking Yes-proceed executes the action, then the
+                // 8s Alpine poll re-reads the still-present pending_action
+                // fence in the stored response and re-renders the yellow bar
+                // → user can double-send. (Bug 4.)
+                $alreadyActed = ((array) ($row->action_taken ?? []))['type'] ?? null;
+                if ($parsed['pending'] !== null && $this->pendingAction === null && empty($alreadyActed)) {
                     $this->pendingAction = $parsed['pending'];
                     $this->pendingActionSummary = $teamId > 0
                         ? $this->describePendingAction($parsed['pending'], $teamId)
@@ -1047,24 +1059,30 @@ class AiChat extends Component
             'action_keys' => array_keys($this->pendingAction),
         ]);
 
+        // 2026-11-10 — pin the action locally and clear state BEFORE runAction
+        // so a double-click / retried Livewire request / re-dispatched confirm
+        // sees null $pendingAction on entry and bails via the guard above.
+        // Previously the reset happened AFTER runAction, which left a window
+        // where a second click re-fired the real send (double-send bug 4).
+        $action = $this->pendingAction;
+        $this->pendingAction = null;
+        $this->pendingActionSummary = '';
+
         try {
-            $result = $this->runAction($this->pendingAction, $team->id);
+            $result = $this->runAction($action, $team->id);
             Log::info('AiChat.confirmAction: result', [
                 'team_id'     => $team->id,
-                'action_type' => $this->pendingAction['action'] ?? null,
+                'action_type' => $action['action'] ?? null,
                 'result'      => Str::limit((string) $result, 300),
             ]);
         } catch (\Throwable $e) {
             Log::error('AI Chat confirmed action failed', [
                 'error'  => $e->getMessage(),
                 'trace'  => Str::limit($e->getTraceAsString(), 1000),
-                'action' => $this->pendingAction,
+                'action' => $action,
             ]);
             $result = "Action failed: {$e->getMessage()}";
         }
-
-        $this->pendingAction = null;
-        $this->pendingActionSummary = '';
 
         $done = __('Done: :result', ['result' => $result]);
         $this->messages[] = ['role' => 'assistant', 'content' => $done];
@@ -1072,8 +1090,19 @@ class AiChat extends Component
         // Persist the real outcome ("queued to 2, skipped 96…") on the turn
         // that proposed it, so a reload shows what happened instead of only
         // the AI's pre-confirmation draft.
+        // 2026-11-10 — also stamp action_taken so rehydratePendingAction()
+        // on next mount/refresh BAILS (bug 4 part 3). Without this stamp,
+        // the still-present ```pending_action``` fence in the AI's original
+        // response re-surfaces the confirm bar after a refresh and the
+        // operator can double-send.
         $lastCommand = AiCommand::where('team_id', $team->id)->where('user_id', Auth::id())->latest('id')->first();
-        $lastCommand?->update(['response' => trim($lastCommand->response . "\n\n" . $done)]);
+        $lastCommand?->update([
+            'response'     => trim($lastCommand->response . "\n\n" . $done),
+            'action_taken' => array_merge((array) ($lastCommand->action_taken ?? []), [
+                'type'         => (string) ($action['action'] ?? 'unknown'),
+                'confirmed_at' => now()->toIso8601String(),
+            ]),
+        ]);
 
         $this->dispatch('message-sent');
     }
@@ -1082,6 +1111,21 @@ class AiChat extends Component
     {
         $this->pendingAction = null;
         $this->pendingActionSummary = '';
+
+        // 2026-11-10 — same rehydrate-guard problem as confirmAction: a cancel
+        // without stamping action_taken means the next mount re-parses the
+        // ```pending_action``` fence and re-surfaces the confirm bar. Stamp it
+        // so rehydrate bails.
+        $team = Auth::user()?->currentTeam;
+        if ($team) {
+            $lastCommand = AiCommand::where('team_id', $team->id)->where('user_id', Auth::id())->latest('id')->first();
+            $lastCommand?->update([
+                'action_taken' => array_merge((array) ($lastCommand->action_taken ?? []), [
+                    'type'         => 'cancelled',
+                    'cancelled_at' => now()->toIso8601String(),
+                ]),
+            ]);
+        }
 
         $this->messages[] = ['role' => 'assistant', 'content' => __('Action cancelled.')];
         $this->dispatch('message-sent');

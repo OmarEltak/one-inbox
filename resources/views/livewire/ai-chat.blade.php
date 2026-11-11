@@ -137,7 +137,17 @@
    "
    x-on:livewire:morph.window="preserveComposerFocus(); onNewContent()"
    x-on:livewire:morphed.window="restoreComposerFocus(); wireComposerTracking()"
-   x-on:livewire:commit.window="restoreComposerFocus(); wireComposerTracking()">
+   x-on:livewire:commit.window="restoreComposerFocus(); wireComposerTracking()"
+   {{-- 2026-11-10 — Bug 9 fix. Flux 2.x modals (deep-analysis-confirm) run
+        their own focus-trap. On open they move focus INTO the modal; on
+        close they return focus to the element that triggered the show() —
+        which is the Send button, NOT the textarea. During a running deep
+        analysis the user's intent is to keep typing follow-ups in the
+        composer, so the trap-return clobbers that. Flux dispatches
+        `modal-close` on document when a modal closes; we hook that and
+        re-run restoreComposerFocus AFTER Flux's own focus-restore has
+        settled (same tick is too early — hence the 0ms setTimeout). --}}
+   x-on:modal-close.document="setTimeout(() => restoreComposerFocus(), 0)">
 
     {{-- Header --}}
     <div class="px-6 py-4 border-b border-zinc-200">
@@ -275,7 +285,10 @@
                                         $html = preg_replace('/<table(\s|>)/', '<div class="ai-md-table-wrap"><table$1', $html);
                                         $html = str_replace('</table>', '</table></div>', $html);
                                     @endphp
-                                    <div class="ai-md">{!! $html !!}</div>
+                                    {{-- 2026-11-10 — Bug 11: dir="auto" + unicode-bidi: plaintext
+                                         so AI responses with mixed Arabic + Western digits/punctuation
+                                         render punctuation on the correct side per paragraph. --}}
+                                    <div class="ai-md" dir="auto" style="unicode-bidi: plaintext;">{!! $html !!}</div>
                                     @if(! empty($msg['cached']) && ! empty($msg['command_id']))
                                         {{-- Cached-result affordance: user can see this was reused
                                              and can force a fresh re-run (full credits) if they need
@@ -406,8 +419,27 @@
     </div>
 
     {{-- Pending Action Confirmation Bar --}}
+    {{--
+        2026-11-10 — Bug 4 (double-send): the server now clears $pendingAction
+        and stamps action_taken BEFORE runAction executes, but Livewire's
+        request round-trip still takes ~200-800ms during which the bar is
+        visible and clickable. An eager user double-clicks → second click
+        racing on the server now hits the null-guard (good), BUT in prod
+        we observed the bar also *reappearing* on the subsequent 8s
+        Alpine syncPendingWatcher tick when the Reverb event re-set state.
+        Belt + suspenders: a local Alpine `confirming` flag flips true on
+        click and hides the bar immediately via x-show, surviving morphs
+        because Alpine state is persisted on the same DOM element. Reset
+        on Cancel so operator can reopen if they change their mind before
+        the morph removes the @if wrapper.
+    --}}
     @if($pendingAction)
-        <div class="border-t border-amber-500/30 bg-amber-500/5 px-6 py-3">
+        <div
+            x-data="{ confirming: false }"
+            x-show="!confirming"
+            x-transition.opacity.duration.100ms
+            class="border-t border-amber-500/30 bg-amber-500/5 px-6 py-3"
+        >
             <div class="mx-auto max-w-3xl">
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0 mt-0.5">
@@ -421,20 +453,21 @@
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <button
-                            wire:click="cancelAction"
+                            type="button"
+                            @click="confirming = true; $wire.cancelAction()"
                             wire:loading.attr="disabled"
                             class="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer"
                         >
                             {{ __('Cancel') }}
                         </button>
                         <button
-                            wire:click="confirmAction"
-                            wire:loading.attr="disabled"
-                            wire:target="confirmAction"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black transition-colors cursor-pointer"
+                            type="button"
+                            @click="confirming = true; $wire.confirmAction()"
+                            :disabled="confirming"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <span wire:loading.remove wire:target="confirmAction">{{ __('Yes, proceed') }}</span>
-                            <span wire:loading wire:target="confirmAction">{{ __('Running...') }}</span>
+                            <span x-show="!confirming">{{ __('Yes, proceed') }}</span>
+                            <span x-show="confirming" x-cloak>{{ __('Running...') }}</span>
                         </button>
                     </div>
                 </div>
