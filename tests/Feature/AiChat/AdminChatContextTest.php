@@ -50,13 +50,18 @@ test('a contact named in an earlier turn resolves with ID, language and transcri
         ->not->toContain('Test Shop');
 });
 
-test('the customer digest quotes real customer messages, not placeholders', function () {
+test('the customer digest quotes real customer messages and our replies, with media narrated', function () {
     $digest = app(AdminChatContext::class)->customerDigest($this->team->id);
 
+    // 2026-11-11 (Bundle C): outbound AI replies NOW appear by default
+    // (Bug 5 fix) with role tags, and media placeholders are narrated
+    // instead of being stripped (Bug 6a fix). Raw placeholder tokens
+    // like `[voice note]` should not survive — the narration replaces them.
     expect($digest)->toContain('Wagdy🍫 (contact ID:')
-        ->toContain('عايز اعرف سعر الكورس كام؟')
-        ->not->toContain('[voice note]')
-        ->not->toContain('السعر 1500 جنيه'); // outbound is not customer voice
+        ->toContain('Customer: عايز اعرف سعر الكورس كام؟')
+        ->toContain('AI: السعر 1500 جنيه')         // outbound now visible (Bug 5)
+        ->toContain('[media:')                    // voice-note was narrated (Bug 6a)
+        ->not->toContain('[voice note]');         // raw placeholder stripped
 });
 
 test('an action-only reply shows a prompt instead of an empty bubble, and typing "ابعت" confirms it', function () {

@@ -86,8 +86,17 @@ class AdminChatContext
      * included from the preview instead of being skipped — otherwise a page
      * connected today looks like it has no customers at all.
      */
-    public function customerDigest(int $teamId, int $maxConversations = 40, int $perConversation = 6, int $charBudget = 6000, ?int $pageId = null, bool $expanded = false, bool $slim = false): string
+    public function customerDigest(int $teamId, int $maxConversations = 60, int $perConversation = 5, int $charBudget = 9000, ?int $pageId = null, bool $expanded = false, bool $slim = false): string
     {
+        // 2026-11-11 (Bug 5 fix): default mode is now bidirectional too — the
+        // AI was re-opening the same sales pitch every turn because it only
+        // saw inbound messages and had no idea an Agent/AI had already replied.
+        // perConversation drops 6→5 and charBudget rises 6000→9000 to offset
+        // the ~50% extra lines per thread without exceeding the 60k prompt cap.
+        // 2026-11-11 (Bug 7 fix): maxConversations lifted 40→60 so a person
+        // whose Conversation.last_message_at is slightly older than top-40
+        // still surfaces when we have a long tail of active threads.
+        //
         // 2026-10-14: slim mode for 'list the last N people who texted' style
         // questions — we only need breadth (name + first inbound line each),
         // not depth. Packs 100-200 contacts in the same budget expanded mode
@@ -136,48 +145,63 @@ class AdminChatContext
             ->limit($maxConversations)
             ->get();
 
+        // 2026-11-11 (Bug 5 fix): always pull both directions and tag each
+        // line with Customer / Agent / AI. Default mode used to filter to
+        // inbound-only, which caused the sales AI to never see that we'd
+        // already replied and re-open the pitch each turn.
         $messageQuery = Message::whereIn('conversation_id', $conversations->pluck('id'))
-            ->unless($expanded, fn ($q) => $q->where('direction', 'inbound'))
             ->whereNotNull('content')
             ->orderByRaw('COALESCE(platform_sent_at, created_at) DESC')
             ->limit($maxConversations * 20);
 
-        // Expanded mode needs direction + sender_type so we can tag each line
-        // (Customer / Agent / AI) when both sides are present.
-        $byConversation = $expanded
-            ? $messageQuery->get(['conversation_id', 'content', 'direction', 'sender_type'])->groupBy('conversation_id')
-            : $messageQuery->get(['conversation_id', 'content'])->groupBy('conversation_id');
+        $byConversation = $messageQuery
+            ->get(['conversation_id', 'content', 'content_type', 'direction', 'sender_type'])
+            ->groupBy('conversation_id');
 
         $blocks = [];
         $used = 0;
         $previewOnly = 0;
+        $latestMessageAt = null;
         foreach ($conversations as $conversation) {
+            // 2026-11-11 (Bug 6a fix): media messages are RELABELED, not
+            // dropped. Before this the AI had no idea a customer sent an
+            // image + a text question ("how much?") and answered as if the
+            // image didn't exist.
             $rows = ($byConversation[$conversation->id] ?? collect())
-                ->reject(fn ($m) => MediaPlaceholders::isPlaceholder($m->content))
+                ->map(function ($m) {
+                    if (MediaPlaceholders::isPlaceholder($m->content)) {
+                        $m->content = MediaPlaceholders::narrate(
+                            $m->content_type ?? null,
+                            $m->content,
+                            $m->direction === 'inbound',
+                        );
+                    }
+                    return $m;
+                })
                 ->take($perConversation)
                 ->reverse()
                 ->values();
             $raw = $rows->pluck('content');
 
-            if ($expanded) {
-                $lines = $rows->map(function ($m) {
-                    $who = $m->direction === 'inbound'
-                        ? 'Customer'
-                        : ($m->sender_type === 'ai' ? 'AI' : 'Agent');
+            $lines = $rows->map(function ($m) {
+                $who = $m->direction === 'inbound'
+                    ? 'Customer'
+                    : ($m->sender_type === 'ai' ? 'AI' : 'Agent');
 
-                    return '  • ' . $who . ': ' . $this->clip($m->content, 180);
-                });
-            } else {
-                $lines = $raw->map(fn ($c) => '  • ' . $this->clip($c, 180));
-            }
+                return '  • ' . $who . ': ' . $this->clip($m->content, 180);
+            });
 
             if ($raw->isEmpty()) {
                 $preview = (string) $conversation->last_message_preview;
-                if (MediaPlaceholders::isPlaceholder($preview)) {
+                if (trim($preview) === '') {
                     continue;
                 }
-                $raw = collect([$preview]);
-                $lines = collect(['  • (last-message preview, sender unknown) ' . $this->clip($preview, 180)]);
+                $isMedia = MediaPlaceholders::isPlaceholder($preview);
+                $previewLine = $isMedia
+                    ? MediaPlaceholders::narrate(null, $preview, true)
+                    : $preview;
+                $raw = collect([$previewLine]);
+                $lines = collect(['  • (last-message preview, sender unknown) ' . $this->clip($previewLine, 180)]);
                 $previewOnly++;
             }
 
@@ -192,6 +216,11 @@ class AdminChatContext
             }
             $blocks[] = $block;
             $used += strlen($block);
+
+            if ($conversation->last_message_at !== null
+                && ($latestMessageAt === null || $conversation->last_message_at->gt($latestMessageAt))) {
+                $latestMessageAt = $conversation->last_message_at;
+            }
         }
 
         $sampled = count($blocks);
@@ -206,18 +235,127 @@ class AdminChatContext
         // without hedging the whole answer behind "sample is limited" and
         // without inventing a user-facing backfill offer.
         $note = $previewOnly > 0
-            ? "Note: {$previewOnly} of these conversations are still being backfilled in the background (we store the last-message preview immediately on page connect, and pull the full 25-message history per thread over the next hour). Answer in depth from the threads that DO have full transcripts, and for the backfilling ones just rely on the preview line. Do NOT tell the user to export chats, use Meta Business Suite, or wait — the backfill is automatic and running right now.\n"
+            ? "Note: {$previewOnly} of these conversations have no stored messages yet — only their last-message preview is stored. We store the preview immediately on page connect and pull the full 25-message history per thread over the next hour in the background. Answer in depth from the threads that DO have full transcripts, and for the backfilling ones just rely on the preview line. Do NOT tell the user to export chats, use Meta Business Suite, or wait — the backfill is automatic and running right now.\n"
             : '';
 
         $header = $expanded
             ? "=== EXPANDED CUSTOMER CONVERSATIONS{$scope} (BOTH SIDES OF EACH THREAD) ({$sampled} most recent of {$total} conversations; inbound+outbound, oldest→newest per chat) ==="
-            : "=== CUSTOMER CONVERSATIONS{$scope} ({$sampled} most recent of {$total} conversations; customer messages, oldest→newest per chat) ===";
+            : "=== CUSTOMER CONVERSATIONS{$scope} ({$sampled} most recent of {$total} conversations; customer + our replies, oldest→newest per chat) ===";
 
         $guidance = $expanded
             ? 'Use this to audit both customer messages AND how our agents/AI replied. Quote it as evidence.'
-            : 'Use this to answer what customers want, ask about, complain about, and object to. Quote it as evidence.';
+            : 'Use this to answer what customers want, ask about, complain about, and object to — AND to see what we (Agent/AI) already replied so you never re-open a sales pitch we just handled. Quote it as evidence.';
 
-        return $header . "\n" . $guidance . "\n" . $note . implode("\n", $blocks);
+        // 2026-11-11 (Bug 7 fix) — freshness header. Without this, the AI
+        // claimed stale snapshots ("still ends at Nov 8-9") without any way
+        // to say how old the snapshot actually was.
+        $snapshotAt = now()->format('Y-m-d H:i:s') . ' UTC';
+        $newestLine = $latestMessageAt
+            ? $latestMessageAt->format('Y-m-d H:i:s')
+            : 'no messages in view';
+        $freshness = "SNAPSHOT TAKEN: {$snapshotAt}. Most recent message in this view: {$newestLine}. If the operator asks about something they expect to be newer than this, say so explicitly and offer to refresh.";
+
+        return $freshness . "\n" . $header . "\n" . $guidance . "\n" . $note . implode("\n", $blocks);
+    }
+
+    /**
+     * 2026-11-11 (Bug 1 fix) — "across ALL pages" audit digest. The user
+     * complained "Facebook page has 39 conversations but I can only see 9"
+     * because the multi-page branch in ProcessAiChatTurn divided a 6000-char
+     * budget across each named page, starving every one of them. When the
+     * user explicitly asks about the TOTALITY of their chats (every page,
+     * every conversation), we loop each active page and give each a fair
+     * per-page slice of a 50 KB budget, capped at 60 KB total for safety.
+     */
+    public function allPagesDigest(int $teamId, int $perPageMax = 50, int $charBudget = 50_000): string
+    {
+        $pages = \App\Models\Page::where('team_id', $teamId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        if ($pages->isEmpty()) {
+            return "=== ALL-PAGES CUSTOMER DIGEST ===\nNo active pages are connected for this account yet.";
+        }
+
+        $pageCount = $pages->count();
+        $perPageBudget = intdiv($charBudget, max(1, $pageCount));
+
+        $blocks = [];
+        $used = 0;
+        $hardCap = 60_000;
+        foreach ($pages as $page) {
+            $block = $this->customerDigest(
+                teamId: $teamId,
+                maxConversations: $perPageMax,
+                charBudget: $perPageBudget,
+                pageId: $page->id,
+                slim: false,
+            );
+            if ($block === '') {
+                continue;
+            }
+            if ($used + strlen($block) > $hardCap) {
+                $blocks[] = "— (remaining pages omitted: hit 60 KB safety cap) —";
+                break;
+            }
+            $blocks[] = $block;
+            $used += strlen($block);
+        }
+
+        $header = "=== ALL-PAGES CUSTOMER DIGEST ({$pageCount} active pages — one block per page, in alphabetical order) ===";
+
+        return $header . "\n" . implode("\n\n", $blocks);
+    }
+
+    /**
+     * 2026-11-11 (Bug 1 fix) — detect "across every page / every chat" audit
+     * asks so the caller can switch to allPagesDigest. Deliberately narrow:
+     * must say "all/every" against pages/chats/conversations/customers, OR
+     * name >1 active page, OR ask for exhaustive enumeration. English +
+     * Arabic because Omar's user base uses both.
+     */
+    public function looksLikeAcrossAllPagesAudit(int $teamId, string $text): bool
+    {
+        $t = mb_strtolower(trim($text));
+        if ($t === '') {
+            return false;
+        }
+
+        $patterns = [
+            '/\ball\s+(pages?|chats?|conversations?|customers?|contacts?)\b/u',
+            '/\bevery\s+(page|chat|conversation|customer|contact)\b/u',
+            '/\bacross\s+(all|every)\b/u',
+            '/\btotality\b/u',
+            '/\b(list|give|show)\s+me\s+everyone\b/u',
+            '/\ball\s+the\s+people\s+who\b/u',
+            // Arabic variants
+            '/كل\s*(الصفحات|المحادثات|العملاء|الزبائن|الشات)/u',
+            '/جميع\s*(الصفحات|المحادثات|العملاء|الزبائن)/u',
+            '/كل\s*(صفحة|محادثة|عميل)/u',
+        ];
+        foreach ($patterns as $re) {
+            if (preg_match($re, $t)) {
+                return true;
+            }
+        }
+
+        // >1 active page name mentioned → treat as cross-page audit.
+        $pages = \App\Models\Page::where('team_id', $teamId)
+            ->where('is_active', true)
+            ->get(['id', 'name']);
+        $haystack = $this->normalize($text);
+        $hits = 0;
+        foreach ($pages as $p) {
+            if ($this->matchScore((string) $p->name, $haystack) > 0) {
+                $hits++;
+                if ($hits >= 2) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

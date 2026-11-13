@@ -8,9 +8,11 @@ use App\Models\Message;
 use App\Services\Ai\AdminChatContext;
 
 // Pins Phase C of the AI credit economy spec (§6): the default digest stays
-// bounded at ~6 KB of inbound-only messages, while the targeted-page expansion
-// mode blows the window out to ~30 KB and includes BOTH directions so the AI
-// can audit moderator / agent replies against the customer's complaint.
+// bounded at ~9 KB of BOTH-directions messages (updated 2026-11-11 Bug 5 fix —
+// was inbound-only, now bidirectional with role tags so the sales AI sees
+// its own prior replies and doesn't re-open the pitch), while the targeted-
+// page expansion mode blows the window out to ~30 KB with full role-tagged
+// lines so the AI can audit moderator / agent replies against the complaint.
 
 uses(Tests\TestCase::class);
 uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -61,25 +63,33 @@ beforeEach(function () {
     }
 });
 
-test('default digest returns at most ~6 KB of inbound-only messages', function () {
+test('default digest returns at most ~11 KB of bidirectional messages with role tags', function () {
     $digest = app(AdminChatContext::class)->customerDigest($this->team->id, pageId: $this->page->id);
 
-    expect(strlen($digest))->toBeLessThanOrEqual(6_500);
+    // 2026-11-11 (Bug 5 fix): default was 6 KB inbound-only; now 9 KB
+    // bidirectional. Allow a small buffer above the 9 KB budget for the
+    // freshness header + 2-3 extra bidirectional lines bleeding past the
+    // cap mid-block (cap check happens AFTER block assembly).
+    expect(strlen($digest))->toBeLessThanOrEqual(11_000);
     expect($digest)->toContain('CUSTOMER CONVERSATIONS ON PAGE "Mishkah University"')
         ->not->toContain('EXPANDED CUSTOMER CONVERSATIONS')
-        ->not->toContain('AGENT_REPLY_')
+        ->toContain('AGENT_REPLY_') // outbound AI replies NOW appear in default mode
+        ->toContain('Customer: ')
+        ->toContain('AI: ')
+        ->toContain('SNAPSHOT TAKEN:') // freshness header
         ->toContain('عايز اعرف مواعيد الكورس');
 });
 
-test('expanded digest returns up to ~30 KB and includes both directions', function () {
+test('expanded digest returns up to ~62 KB and includes both directions', function () {
     $digest = app(AdminChatContext::class)->customerDigest(
         $this->team->id,
         pageId: $this->page->id,
         expanded: true,
     );
 
+    // Expanded mode uses charBudget=60_000; allow 2 KB of framing above.
     expect(strlen($digest))->toBeGreaterThan(10_000);
-    expect(strlen($digest))->toBeLessThanOrEqual(32_000);
+    expect(strlen($digest))->toBeLessThanOrEqual(62_000);
     expect($digest)
         ->toContain('EXPANDED CUSTOMER CONVERSATIONS ON PAGE "Mishkah University"')
         ->toContain('BOTH SIDES OF EACH THREAD')

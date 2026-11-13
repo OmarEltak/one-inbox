@@ -119,7 +119,14 @@ class ProcessAiChatTurn implements ShouldQueue
             // audit of their conversations), use slim mode so we can pack
             // 100-200 contacts in the budget rather than 36 full transcripts.
             $wantsList = $chatContext->looksLikeContactListRequest($text);
-            if ($pageIds === []) {
+            // 2026-11-11 (Bug 1 fix): "every page, every chat, every customer"
+            // style audits need a dedicated path — the previous multi-page
+            // branch divided a 6000-char budget across each named page, which
+            // starved every one of them (user saw 9 of 39 FB conversations).
+            $isAcrossAll = $chatContext->looksLikeAcrossAllPagesAudit($team->id, $text);
+            if ($isAcrossAll && ! $wantsList) {
+                $digest = $chatContext->allPagesDigest($team->id);
+            } elseif ($pageIds === []) {
                 $digest = $chatContext->customerDigest($team->id, slim: $wantsList);
             } elseif (count($pageIds) === 1) {
                 $digest = $chatContext->customerDigest(
@@ -129,8 +136,10 @@ class ProcessAiChatTurn implements ShouldQueue
                     slim: $wantsList,
                 );
             } else {
+                // 2026-11-11 (Bug 1 fix): bump per-page budget 6000→10000 so
+                // multi-page asks don't starve each page down to 1-2 convos.
                 $digest = collect($pageIds)->map(fn ($id) => $chatContext->customerDigest(
-                    $team->id, charBudget: intdiv(6000, count($pageIds)), pageId: $id, slim: $wantsList,
+                    $team->id, charBudget: intdiv(10000, count($pageIds)), pageId: $id, slim: $wantsList,
                 ))->implode("\n\n");
             }
 
