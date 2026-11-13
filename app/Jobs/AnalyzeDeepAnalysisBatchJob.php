@@ -34,8 +34,19 @@ class AnalyzeDeepAnalysisBatchJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /** Per-chunk timeout (the 300s parent timeout is for the whole analysis). */
-    public int $timeout = 90;
+    /**
+     * Per-chunk timeout.
+     *
+     * 2026-11-13 — bumped 90 → 180. The NaraRouter text chain has 4 models,
+     * each with a 25s HTTP timeout. A worst-case cascade (primary timeout →
+     * fallback timeout → free safety-net timeout → final model timeout) is
+     * ~100s on big deep-analysis payloads (~30 KB per 100-contact batch).
+     * The old 90s cap fired the queue worker's SIGALRM mid-cascade, so the
+     * chunk failed with TimeoutExceededException just as the final model
+     * was about to respond. 180 gives the full cascade + response processing
+     * comfortable room while staying under the 300s parent-job timeout.
+     */
+    public int $timeout = 180;
 
     /** One retry allowed — NaraRouter transient 5xx/socket failures are common. */
     public int $tries = 2;
