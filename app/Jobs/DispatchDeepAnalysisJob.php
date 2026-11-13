@@ -11,12 +11,15 @@ use App\Models\Team;
 use App\Services\Ai\DeepAnalysisService;
 use App\Services\Billing\AiCredits;
 use App\Services\Billing\Receipt;
+use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Phase D — Deep Analysis worker (spec §5).
@@ -97,33 +100,92 @@ class DispatchDeepAnalysisJob implements ShouldQueue
                     'completed_at' => now(),
                 ]);
             } else {
+                // Parallelised path (2026-11-11): per-chunk NaraRouter calls
+                // fan out through Bus::batch so a 1000-contact cohort takes
+                // ~15-30s instead of the old 2.5-5 minute serial loop. The
+                // batch's ->then() callback dispatches FinalizeDeepAnalysisJob
+                // which performs the aggregate() call and persists the result.
+                //
+                // allowFailures(): a single failed chunk should not kill the
+                // whole run. The finalizer treats missing chunk summaries as
+                // empty, and only marks the DeepAnalysis FAILED if ALL chunks
+                // produced empty output (handled inside the finalizer).
+                //
+                // Bounded concurrency comes from the queue-worker fleet (6
+                // on prod per CLAUDE.md); we do NOT cap in-code — Laravel
+                // would just serialise excess jobs behind the available slots.
                 $cohort = $service->loadCohort($team, $analysis->cohort_filter ?? []);
 
-                $batchSummaries = [];
-                foreach ($cohort->chunk(self::BATCH_SIZE) as $chunk) {
-                    $batchSummaries[] = $service->analyzeBatch($chunk, $mode);
+                $chunks = $cohort->chunk(self::BATCH_SIZE)->values();
+
+                if ($chunks->isEmpty()) {
+                    // Empty cohort — short-circuit to an empty completed result
+                    // rather than dispatching a zero-job batch (Laravel refuses).
+                    $analysis->update([
+                        'status'       => DeepAnalysis::STATUS_COMPLETED,
+                        'result_json'  => $service->aggregate([], $mode),
+                        'token_usage'  => [
+                            'batch_count' => 0,
+                            'prompt'      => null,
+                            'completion'  => null,
+                            'total'       => null,
+                        ],
+                        'completed_at' => now(),
+                    ]);
+
+                    DeepAnalysisCompleted::dispatch(
+                        (int) $team->id,
+                        (int) $analysis->id,
+                        (string) $analysis->mode,
+                        (int) $analysis->cohort_size,
+                        $analysis->completed_at->toIso8601String(),
+                    );
+
+                    return;
                 }
 
-                $final = $service->aggregate($batchSummaries, $mode);
+                $childJobs = $chunks->map(fn ($chunk, $i) => new AnalyzeDeepAnalysisBatchJob(
+                    deepAnalysisId:  $this->deepAnalysisId,
+                    chunkIndex:      $i,
+                    conversationIds: $chunk->pluck('id')->all(),
+                    mode:            $mode,
+                ))->all();
 
-                $analysis->update([
-                    'status'       => DeepAnalysis::STATUS_COMPLETED,
-                    'result_json'  => $final,
-                    'token_usage'  => [
-                        'batch_count' => count($batchSummaries),
-                        // Real token counts would require the provider to surface
-                        // usage; placeholder keys so the UI/CLI has a stable shape.
-                        'prompt'      => null,
-                        'completion'  => null,
-                        'total'       => null,
-                    ],
-                    'completed_at' => now(),
-                ]);
+                $deepAnalysisId = $this->deepAnalysisId;
+                $chunkCount     = $chunks->count();
+                $teamId         = (int) $team->id;
+                $cohortSize     = (int) $analysis->cohort_size;
+
+                Bus::batch($childJobs)
+                    ->allowFailures()
+                    ->name("deep-analysis-{$deepAnalysisId}")
+                    ->onQueue('heavy-analysis')
+                    ->then(function (Batch $batch) use ($deepAnalysisId, $chunkCount, $teamId, $cohortSize) {
+                        FinalizeDeepAnalysisJob::dispatch(
+                            $deepAnalysisId,
+                            $chunkCount,
+                            $teamId,
+                            $cohortSize,
+                        );
+                    })
+                    ->catch(function (Batch $batch, Throwable $e) use ($deepAnalysisId) {
+                        // With allowFailures() on, this fires only on orchestration
+                        // failures (not individual chunk failures). The finalizer
+                        // scheduled by then() handles the per-chunk-failed case.
+                        Log::error('deep-analysis batch orchestration failed', [
+                            'deep_analysis_id' => $deepAnalysisId,
+                            'error'            => $e->getMessage(),
+                        ]);
+                    })
+                    ->dispatch();
+
+                // Orchestration-only: do NOT update status to COMPLETED here,
+                // and do NOT broadcast — both happen in FinalizeDeepAnalysisJob
+                // once the batch's then() callback fires. Return early.
+                return;
             }
 
-            // Dispatchable::dispatch() does not forward named parameters — it
-            // uses func_get_args() + new static(...$args) which collapses to
-            // positional. Pass positionally to match the constructor signature.
+            // Agent-audit path (single-shot, see above) — broadcast completion.
             DeepAnalysisCompleted::dispatch(
                 (int) $team->id,
                 (int) $analysis->id,
