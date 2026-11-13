@@ -80,6 +80,20 @@ class AiChat extends Component
                 'response' => __('⚠️ Analysis interrupted — please retry.'),
             ]);
 
+        // 2026-11-13 — reap stuck "⏳ Waiting for your confirmation" bubbles.
+        // Happens when the operator dismissed the deep-analysis credit modal
+        // via the X button / Esc / tab-close rather than clicking Cancel. The
+        // Livewire cancelExpensiveAction() never fires, so the stored response
+        // stays as the hourglass line and renders as a stale bubble forever.
+        // Any such row older than 10 minutes is definitely abandoned.
+        AiCommand::where('user_id', Auth::id())
+            ->where('status', 'completed')
+            ->where('response', 'like', '%Waiting for your confirmation%')
+            ->where('created_at', '<', now()->subMinutes(10))
+            ->update([
+                'response' => __('(This analysis was never confirmed — the credit prompt was dismissed.)'),
+            ]);
+
         $parser = new ActionParser;
 
         // 2026-11-09 — rehydrate pendingAction from the latest completed
@@ -1246,6 +1260,11 @@ class AiChat extends Component
             return true;
         } catch (ExpensiveActionRequiresConfirmationException $e) {
             // Modal path — stash the pending action, re-dispatch on confirm.
+            // 2026-11-13 — stash the preCreatedCommand ID too, so confirm/cancel
+            // can update its stored response. Without this the "⏳ Waiting for
+            // your confirmation" message sticks on the AiCommand row forever,
+            // rendering as a stale bubble on every subsequent mount/morph
+            // (user reported 30-min-stuck bubble).
             $this->pendingExpensiveAction = [
                 'cost'          => $e->cost,
                 'balance_after' => $e->balanceAfter,
@@ -1254,6 +1273,7 @@ class AiChat extends Component
                 'cohort_filter' => $parsed['cohort_filter'],
                 'mode'          => $parsed['mode'],
                 'operator_text' => $text,
+                'command_id'    => $preCreatedCommand?->id,
             ];
 
             $this->autoDeductOptIn = (bool) $team->auto_deduct_expensive_actions;
@@ -1308,13 +1328,18 @@ class AiChat extends Component
                 chargeMeta: ['confirmation_token' => (string) $pending['action_token']],
             );
 
-            $this->messages[] = [
-                'role'    => 'assistant',
-                'content' => __('Analysis dispatched. I\'ll let you know when it\'s ready — usually 60-120 seconds. You can keep chatting about other things.'),
-            ];
+            $dispatchedMsg = __('Analysis dispatched. I\'ll let you know when it\'s ready — usually 60-120 seconds. You can keep chatting about other things.');
+            $this->messages[] = ['role' => 'assistant', 'content' => $dispatchedMsg];
+
+            // 2026-11-13 — replace the stale "⏳ Waiting for your confirmation"
+            // response on the originating AiCommand so it doesn't render as
+            // a ghost bubble forever after confirm.
+            $this->replaceWaitingBubble($pending, $dispatchedMsg);
         } catch (\Throwable $e) {
             Log::error('AiChat::confirmExpensiveAction failed', ['error' => $e->getMessage()]);
-            $this->messages[] = ['role' => 'assistant', 'content' => __('Could not start the analysis: :msg', ['msg' => $e->getMessage()])];
+            $errMsg = __('Could not start the analysis: :msg', ['msg' => $e->getMessage()]);
+            $this->messages[] = ['role' => 'assistant', 'content' => $errMsg];
+            $this->replaceWaitingBubble($pending, $errMsg);
         } finally {
             Flux::modal('deep-analysis-confirm')->close();
             $this->dispatch('message-sent');
@@ -1323,13 +1348,45 @@ class AiChat extends Component
 
     public function cancelExpensiveAction(): void
     {
+        $pending = $this->pendingExpensiveAction;
         $this->pendingExpensiveAction = null;
         $this->autoDeductOptIn = false;
 
         Flux::modal('deep-analysis-confirm')->close();
 
-        $this->messages[] = ['role' => 'assistant', 'content' => __('Analysis cancelled.')];
+        $cancelledMsg = __('Analysis cancelled.');
+        $this->messages[] = ['role' => 'assistant', 'content' => $cancelledMsg];
+
+        // 2026-11-13 — replace the stale "⏳ Waiting for your confirmation"
+        // response on the originating AiCommand, otherwise it sticks forever
+        // and renders a stale waiting-bubble on every subsequent mount/morph.
+        $this->replaceWaitingBubble($pending, $cancelledMsg);
+
         $this->dispatch('message-sent');
+    }
+
+    /**
+     * 2026-11-13 — shared helper used by confirm + cancel to swap the stored
+     * "⏳ Waiting for your confirmation" response text with the real outcome
+     * (dispatched / cancelled / errored) so it doesn't render as a ghost.
+     * Silent best-effort: never throws.
+     *
+     * @param  array<string, mixed>|null  $pending
+     */
+    protected function replaceWaitingBubble(?array $pending, string $replacement): void
+    {
+        $cmdId = $pending['command_id'] ?? null;
+        if (! $cmdId) {
+            return;
+        }
+        try {
+            AiCommand::where('id', $cmdId)->update(['response' => $replacement]);
+        } catch (\Throwable $e) {
+            Log::warning('AiChat::replaceWaitingBubble failed', [
+                'command_id' => $cmdId,
+                'error'      => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
