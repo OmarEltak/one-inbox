@@ -110,3 +110,33 @@ test('hinted call that succeeds does NOT touch the main chain', function () {
     // mutate the main chain's active-model pointer.
     expect(Cache::get('nararouter:failover_state:text'))->toBeNull();
 });
+
+// 2026-11-13 — a mid-chain model returning 400 "The requested model is not
+// available" was killing the whole cascade, so the deep-analysis NaraRouter
+// chain never reached its 4th (fallback) model when the 3rd was retired. Fix:
+// model-availability 400s should behave like 404/5xx — try the next model in
+// the chain. Generic 400s (bad payload shape) still terminate.
+test('400 "model not available" cascades to next model in chain', function () {
+    $body = '{"error":{"type":"bad_request","message":"The requested model is not available.","request_id":"test"}}';
+    Http::fake(['router.test.invalid/*' => Http::sequence()
+        ->push(reply('skipped'), 500)                     // paid-primary 500 → next model
+        ->push($body, 400)                                 // paid-fallback 400 "not available" → next model (NOT abort)
+        ->push(reply('from free-safetynet'), 200),        // free-safetynet rescues
+    ]);
+
+    $p = new NaraRouterProvider();
+    expect(invokeCallChat($p, '', 'sys', [['role' => 'user', 'content' => 'hi']]))
+        ->toBe('from free-safetynet');
+});
+
+test('generic 400 payload error still terminates the chain (regression lock)', function () {
+    Http::fake(['router.test.invalid/*' => Http::sequence()
+        ->push(reply('skipped'), 500)                     // paid-primary 500 → next model
+        ->push('{"error":{"message":"max_tokens must be less than 8192"}}', 400) // real payload bug
+        ->push(reply('should NOT reach'), 200),           // this must NOT be returned
+    ]);
+
+    $p = new NaraRouterProvider();
+    expect(invokeCallChat($p, '', 'sys', [['role' => 'user', 'content' => 'hi']]))
+        ->toBe('');
+});

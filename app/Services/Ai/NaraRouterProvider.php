@@ -835,8 +835,46 @@ class NaraRouterProvider implements AiProviderInterface
                     'body'      => $body,
                 ]);
 
-                // Payload bug — no key or model will fix it.
+                // 400 handling — distinguish model-level availability from real
+                // payload bugs. A 400 like "The requested model is not available"
+                // is a MODEL problem, not a request-shape problem: the next model
+                // in the chain may still work. Before 2026-11-13 any 400 killed
+                // the whole cascade, so an unavailable 3rd-of-4 model stopped us
+                // from ever trying the 4th. Pattern-matched phrases below are
+                // the ones NaraRouter currently emits when a specific model is
+                // down / retired / unsupported — widen carefully as new phrases
+                // show up in prod logs. Pin #7: do NOT skip-cascade on "bad
+                // field" / "invalid" / "max_tokens" style 400s — those really
+                // are payload bugs that the next model would also fail on.
                 if ($status === 400) {
+                    $bodyLower = mb_strtolower($body);
+                    $modelUnavailablePhrases = [
+                        'not available',
+                        'not supported',
+                        'model is unavailable',
+                        'model not found',
+                        'unknown model',
+                        'deprecated',
+                        'model does not exist',
+                        'no longer available',
+                    ];
+                    $isModelUnavailable = false;
+                    foreach ($modelUnavailablePhrases as $phrase) {
+                        if (str_contains($bodyLower, $phrase)) {
+                            $isModelUnavailable = true;
+                            break;
+                        }
+                    }
+
+                    if ($isModelUnavailable) {
+                        Log::warning('NaraRouter 400 — model unavailable, trying next model', [
+                            'model' => $tryModel,
+                            'body'  => $body,
+                        ]);
+                        $lastError = "HTTP 400 (model unavailable) on {$tryModel} (key {$keyIdx})";
+                        continue; // try next model with same key
+                    }
+
                     Log::error('NaraRouter API 400 — payload error, not retrying', [
                         'model' => $tryModel,
                         'body'  => $body,
