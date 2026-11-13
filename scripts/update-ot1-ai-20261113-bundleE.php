@@ -44,9 +44,9 @@ declare(strict_types=1);
 
 use App\Models\AiConfig;
 
-$appUrl = env('APP_URL', '');
+$appUrl = (string) config('app.url', '');
 if (! str_contains($appUrl, 'ot1-pro.com')) {
-    fwrite(STDERR, "ABORT: APP_URL={$appUrl} — this script is prod-only (expects APP_URL contains ot1-pro.com). Refusing to run.\n");
+    fwrite(STDERR, "ABORT: app.url={$appUrl} — this script is prod-only (expects app.url contains ot1-pro.com). Refusing to run.\n");
     exit(1);
 }
 
