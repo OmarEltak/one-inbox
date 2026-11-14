@@ -131,13 +131,17 @@ class WhatsAppQrModal extends Component
         // Used when webhooks can't reach this server (local dev, firewall, etc.)
         $evolution = app(EvolutionApiService::class);
 
-        // If we don't have a QR yet, fetch and render it server-side
-        if (empty($this->qrDataUrl)) {
-            $base64 = $evolution->getQrCodeAsBase64($this->instanceName, $this->instanceApiKey);
-            if ($base64) {
-                $this->qrDataUrl = $base64;
-                Cache::put("evo_qr_{$this->instanceName}", $base64, 30);
-            }
+        // WhatsApp's "Link a Device" flow emits a fresh QR after the first scan
+        // (the user's phone then shows "scan again" or an approval step that reads
+        // a second QR). Previously this method only fetched a QR when qrDataUrl was
+        // empty, so the modal froze on the first QR, the user had to close/reopen
+        // the modal to get the second one, and pairing felt broken.
+        // Always fetch: if Wuzapi has nothing new, getQrCodeAsBase64 returns null and
+        // we keep the last-known QR displayed.
+        $base64 = $evolution->getQrCodeAsBase64($this->instanceName, $this->instanceApiKey);
+        if ($base64 && $base64 !== $this->qrDataUrl) {
+            $this->qrDataUrl = $base64;
+            Cache::put("evo_qr_{$this->instanceName}", $base64, 30);
         }
 
         // Check connection state directly
