@@ -23,7 +23,12 @@
 
 services:
   wuzapi:
-    image: asternic/wuzapi:latest
+    # Pinned to the digest known-good as of 2026-11-14 (contains whatsmeow fix for
+    # the "err-client-outdated" WhatsApp protocol bump that silently broke QR pairing
+    # on the prior `:latest`). When WhatsApp pushes a new protocol update and pairing
+    # starts failing again: `docker pull asternic/wuzapi:latest`, inspect the new
+    # digest, bump the line below. Named-volume data (wuzapi_data) survives the swap.
+    image: asternic/wuzapi:latest@sha256:5cc11e5bf30c09fb27034fad75ad5419bf355e787974f16deb680eceb8627473
     container_name: wuzapi
     restart: unless-stopped
     ports:
