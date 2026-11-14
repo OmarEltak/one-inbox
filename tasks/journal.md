@@ -2638,4 +2638,55 @@ creative direction). Awaiting Omar's steer.
 - `week-1-launch.md` — Calendly line replaced with "manual scheduling via WhatsApp" + Google Sheet tracking.
 - `personas-and-ads.md` — unchanged (no Calendly refs there).
 
+---
+
+## 2026-11-14 — WhatsApp QR pairing silently broken on prod (two root causes, both fixed)
+
+**Reported:** "Ur whatsapp feature isn't working after the edit U made and it just keeps going like that" (screenshot: modal stuck on "Waiting for QR code…" spinner indefinitely).
+
+**Wasn't caused by session edits.** The container had actually stopped generating QRs ~2 weeks earlier, when WhatsApp pushed a protocol update the pinned whatsmeow build no longer accepted. User only noticed now because they happened to test the feature.
+
+### Cause 1 — Wuzapi container stale (`err-client-outdated`)
+
+**Diagnosis trail:**
+1. `docker ps` on prod → Wuzapi container was up, but 3 weeks old image.
+2. `docker logs wuzapi --tail 50` → repeated `WARN Client outdated` + `INFO Login event: event=err-client-outdated` on every `/session/connect` call.
+3. `GET /session/qr` returned 200 with empty `data.QRCode`, so `WhatsAppQrModal` had nothing to render — spinner forever, no error surfaced to user.
+
+**Fix (ops-only):**
+```bash
+ssh root@187.77.67.94 'docker pull asternic/wuzapi:latest'   # Digest: sha256:5cc11e5bf30c09fb27034fad75ad5419bf355e787974f16deb680eceb8627473
+ssh root@187.77.67.94 'cd /var/www/ot1-pro.com && docker compose -f docker-compose.wuzapi.yml down && docker compose -f docker-compose.wuzapi.yml up -d'
+```
+
+Named volume `ot1-procom_wuzapi_data` preserved — no user had to re-pair (though all active WA pages were already `is_active=0` anyway because the stale container had been failing for weeks).
+
+**Verification:** Created a throwaway Wuzapi user via API, called `/session/connect`, waited 4s, hit `/session/qr` → got back a 4KB base64 PNG. Deleted the test user. Then browser-tested via `https://ot1-pro.com/connections` → clicked "Connect via QR (Beta)" → "Generate QR Code" → valid scannable QR appeared in ~4 seconds.
+
+**Made permanent via commit `60e96bd`:** `docker-compose.wuzapi.yml` now pins `image: asternic/wuzapi:latest@sha256:5cc11e5bf…` so fresh rebuilds land on the validated digest instead of whatever `:latest` happens to point to that day. Comment block above the pin explains the bump procedure for next time.
+
+### Cause 2 — WhatsApp "scan twice" flow broke our modal
+
+**Reported immediately after fix 1:** "I scan the QR code for the first time, then WhatsApp asks me to scan it for the second time, and it doesn't scan. I have to close the pop-up and press again on the connect QR button, then scan it by WhatsApp for the second time so it can log me in."
+
+**Diagnosis:** WhatsApp's "Link a Device" flow issues a second QR after the first scan is accepted (protocol-level handshake completes, then Wuzapi emits a fresh QR for the device-link step). `WhatsAppQrModal::poll()` had `if (empty($this->qrDataUrl))` gating the `/session/qr` fetch, so it would only fetch the first QR ever. The second QR arrived at Wuzapi but was never pulled into the Livewire state → stale first QR kept rendering → phone said "scan again" but there was nothing new to scan.
+
+**Also found:** `WuzapiWebhookController` doesn't populate the `evo_qr_*` Laravel cache keys that `EvolutionWebhookController` did. So the webhook-cache path in `poll()` is dead for Wuzapi-backed tenants — the direct-API `/session/qr` fetch is the ONLY QR delivery path. Which made Trap 2 even worse — there was no fallback.
+
+**Fix (commit `e62b954`):** `app/Livewire/Connections/WhatsAppQrModal.php` — removed the `if (empty($this->qrDataUrl))` guard around the fetch. Always re-poll; only update `qrDataUrl` when Wuzapi returns a non-null value AND it differs from the current one (keeps UI stable when `/session/qr` returns null between QR rotations, avoids flicker when it returns the same QR).
+
+**Verification:** User confirmed fix landed — "great it's working".
+
+### Code changes to prevent recurrence
+
+- `app/Livewire/Connections/WhatsAppQrModal.php` — class docblock added naming TRAP 1 (ops) and TRAP 2 (code) with symptom fingerprints and the "do not re-add that guard" note.
+- `app/Services/EvolutionApiService.php` — class docblock extended with "IMAGE PIN" section pointing to the compose-file digest and the bump procedure.
+- `docker-compose.wuzapi.yml` — `image:` pinned to digest with inline comment explaining why.
+- `.claude/skills/connections-architecture/SKILL.md` — WhatsApp QR trap list extended from 4 → 7 bullets (added webhook-cache non-population, two-QR flow, image-pin rotation).
+- `.claude/skills/ot1-pro-prod-ops/SKILL.md` — new section "Wuzapi image bump" with symptom fingerprint, 3-command fix, and verification script.
+
+### Unresolved / to monitor
+
+- `users.db` (the legacy pre-migration SQLite file) still contains a `team_2_NcUih7JO` row with the OT1-Pro WhatsApp JID `201026361218:42@s.whatsapp.net`. The new Wuzapi uses `main.db` and doesn't see this row, so from the gateway's POV OT1-Pro's own WhatsApp is not paired. All five WhatsApp pages are already `is_active=0` in Laravel's `pages` table anyway, so no user-facing breakage — but OT1 themselves need to re-scan to connect their own number for outbound campaigns.
+
 

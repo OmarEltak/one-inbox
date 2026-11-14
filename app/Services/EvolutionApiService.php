@@ -43,6 +43,16 @@ use Illuminate\Support\Facades\Log;
  * RUNNING WUZAPI:
  *   docker compose -f docker-compose.wuzapi.yml up -d
  *   Container exposes :8082, internal port 8080.
+ *
+ * IMAGE PIN (2026-11-14): `docker-compose.wuzapi.yml` pins the image to an
+ * explicit digest. When WhatsApp pushes a protocol update, the pinned
+ * whatsmeow build eventually goes stale and QR pairing silently breaks
+ * (`err-client-outdated` in container logs, empty QR string in /session/qr
+ * response, modal spinner forever). Fix is OPS-only, not code:
+ *   `docker pull asternic/wuzapi:latest` → read the new digest from the
+ *   output → bump the `image:` line in docker-compose.wuzapi.yml → commit
+ *   and push. Named volumes (wuzapi_data) survive the swap, so no user has
+ *   to re-pair. See skill `ot1-pro-prod-ops` "Wuzapi image bump".
  */
 class EvolutionApiService
 {

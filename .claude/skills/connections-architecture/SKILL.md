@@ -92,10 +92,13 @@ Each trap below has already cost at least one real session. If you're touching t
 
 ### WhatsApp QR (Evolution API + WUZAPI)
 
-1. **Entirely self-hosted — Evolution runs in Docker on port 8081, WUZAPI on another port.** No Meta involvement. Any production outage of Evolution kills every QR-connected WA account simultaneously.
-2. **Session persistence is Evolution-side.** Our DB stores a `platform_page_id` keyed to the Evolution instance name. If Evolution's volume is lost, every WA QR connection must be rescanned.
-3. **Two parallel send paths** — `SendPlatformMessage::sendViaWhatsApp` (user-triggered) and `SendAiResponse::sendViaWhatsApp` (AI-triggered). Both have Evolution branching. Changes must be applied to BOTH or one direction silently misroutes. See memory `project_whatsapp_parallel_send_paths.md`.
-4. **Webhook URL is set at Evolution instance creation, not per-event.** Changing `EVOLUTION_WEBHOOK_URL` in `.env` only affects NEW instances.
+1. **Entirely self-hosted — Evolution runs in Docker on port 8081, WUZAPI on another port** (prod: 127.0.0.1:8083). No Meta involvement. Any production outage of Wuzapi kills every QR-connected WA account simultaneously.
+2. **Session persistence is gateway-side.** Our DB stores a `platform_page_id` keyed to the gateway instance name. If the gateway's volume is lost, every WA QR connection must be re-scanned.
+3. **Two parallel send paths** — `SendPlatformMessage::sendViaWhatsApp` (user-triggered) and `SendAiResponse::sendViaWhatsApp` (AI-triggered). Both have gateway branching. Changes must be applied to BOTH or one direction silently misroutes. See memory `project_whatsapp_parallel_send_paths.md`.
+4. **Webhook URL is set at instance creation, not per-event.** Changing `EVOLUTION_WEBHOOK_URL` / `WUZAPI_WEBHOOK_URL` in `.env` only affects NEW instances.
+5. **`WuzapiWebhookController` does NOT populate `evo_qr_*` cache keys** the way `EvolutionWebhookController` does. The QR modal's direct-API `/session/qr` poll is the ONLY delivery path for Wuzapi-backed tenants. Don't rely on the cache path in `WhatsAppQrModal::poll()` for Wuzapi flows.
+6. **WhatsApp "Link a Device" emits TWO QRs**, not one — the second one appears only AFTER the user scans the first. `WhatsAppQrModal::poll()` MUST re-fetch `/session/qr` every tick and update `qrDataUrl` on change. The old `if (empty($qrDataUrl))` guard around the fetch was removed 2026-11-14 because it froze the modal on the first QR and the user had to close/reopen to see the second. Re-adding that guard "to save requests" ships the same bug. See class docblock on `WhatsAppQrModal`.
+7. **`asternic/wuzapi:latest` goes stale when WhatsApp pushes a protocol update** → every WebSocket handshake returns `err-client-outdated` → `/session/qr` returns 200 with empty QRCode → modal spinner never resolves, no error surfaced. `docker-compose.wuzapi.yml` now pins a specific digest. When this breaks again (eventually it will): `docker pull asternic/wuzapi:latest` on prod → bump the digest in the compose file → commit and push. Named volume `ot1-procom_wuzapi_data` survives the swap so paired tenants don't need to re-scan. First surfaced 2026-11-14. See skill `ot1-pro-prod-ops` "Wuzapi image bump".
 
 ### Telegram
 

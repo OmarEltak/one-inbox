@@ -216,6 +216,56 @@ When the user reports a 500 or you see one in logs:
    # want: HTTP 200
    ```
 
+## Wuzapi image bump (WhatsApp QR pairing silently broken)
+
+**Symptom:** The WhatsApp QR modal on `/connections` opens, the "Generate QR Code" button spins into the `qr_pending` state, and the "Waiting for QR code…" spinner never resolves. Users close the modal and reopen it; still nothing. No error is surfaced in the UI.
+
+**Root cause fingerprint (confirm before bumping):**
+```bash
+ssh root@187.77.67.94 'docker logs wuzapi --tail 50 2>&1 | grep -E "Client outdated|err-client-outdated"'
+```
+If you see repeated `Client outdated` → `err-client-outdated`, WhatsApp pushed a protocol update and the pinned whatsmeow build is no longer accepted. `/session/qr` returns 200 with an empty QRCode field, so our modal has nothing to render. This is NOT a code bug; it's an image-staleness bug. Don't edit `WhatsAppQrModal.php` trying to fix it.
+
+**Fix (3 commands, ~90 seconds end-to-end):**
+```bash
+# 1. Pull the newest build (whatsmeow usually ships a fix within 24h of WA protocol bumps)
+ssh root@187.77.67.94 'docker pull asternic/wuzapi:latest' \
+  # reads back the new digest at the end: Digest: sha256:xxxxx…
+
+# 2. Edit docker-compose.wuzapi.yml LOCALLY, bump the `image:` line to the new digest,
+#    commit and push. CI auto-deploys. (Do NOT edit the compose file on prod — see Rule 2.)
+#    Pattern: `image: asternic/wuzapi:latest@sha256:<new-digest>`
+
+# 3. After CI has synced `/var/www/ot1-pro.com` HEAD to your commit, restart the container.
+#    Named volume `ot1-procom_wuzapi_data` is preserved, so paired tenants don't re-scan.
+ssh root@187.77.67.94 'cd /var/www/ot1-pro.com \
+  && docker compose -f docker-compose.wuzapi.yml down \
+  && docker compose -f docker-compose.wuzapi.yml up -d \
+  && sleep 3 \
+  && docker logs wuzapi --tail 10'
+```
+
+**Verification:**
+```bash
+# a. Container healthy, no "Client outdated" in fresh logs
+ssh root@187.77.67.94 'docker logs wuzapi --tail 30 2>&1 | grep -i -E "outdated|error" || echo "clean startup"'
+
+# b. End-to-end: create throwaway user → connect → GET /session/qr should return a non-empty QRCode
+ssh root@187.77.67.94 'bash -s' << '"'"'EOF'"'"'
+TOK="5a56b49d3fa4a77aef54170ec3264aebf784e602430fdd361dcc06cb0cd5e4c9"  # WUZAPI_ADMIN_TOKEN
+UTOK="verify_$(date +%s)"
+curl -s -X POST http://127.0.0.1:8083/admin/users -H "Authorization: $TOK" -H "Content-Type: application/json" -d "{\"name\":\"verify_$(date +%s)\",\"token\":\"$UTOK\"}" >/dev/null
+curl -s -X POST http://127.0.0.1:8083/session/connect -H "token: $UTOK" -d "{\"Subscribe\":[\"Message\"],\"Immediate\":true}" >/dev/null
+sleep 4
+curl -s http://127.0.0.1:8083/session/qr -H "token: $UTOK" | python3 -c "import sys,json; print(\"QR length:\",len(str(json.load(sys.stdin).get(\"data\",{}).get(\"QRCode\",\"\"))))"
+# expected: QR length > 1000  (previously ~0 when stale)
+EOF
+```
+
+**Why we pin a digest instead of chasing `:latest`:** Pulling `:latest` on a fresh server could give you a VERSION OLDER than the one we validated on prod (yes, whatsmeow has shipped regressions). The pinned digest means a disaster-recovery rebuild lands on a known-good version. Trade-off: new protocol fixes don't auto-flow in — someone has to bump the digest manually when WA breaks again. That's acceptable because the symptom is loud (every new QR attempt fails, old sessions stay connected) and the bump procedure is 3 commands.
+
+**What this fix does NOT cover:** If `qrDataUrl` freezes mid-pairing after a first scan, that's a different bug — the Livewire poll stopped re-fetching. See `WhatsAppQrModal` class docblock TRAP 2 and `connections-architecture` skill WhatsApp-QR trap #6.
+
 ## The maintenance mode escape hatch
 
 For any risky sequence (multi-step .env edit + code deploy + cache rebuild + FPM reload), consider putting the app in maintenance mode first:

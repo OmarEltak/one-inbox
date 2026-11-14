@@ -11,6 +11,29 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
+/**
+ * ─── Known Wuzapi QR-pairing traps (BOTH have shipped a user-visible bug) ───
+ *
+ * TRAP 1 (ops): `asternic/wuzapi:latest` goes stale → WhatsApp protocol bump →
+ *   `err-client-outdated` on every WebSocket connect → QR endpoint returns 200
+ *   with EMPTY QRCode field → modal spinner never resolves. Nothing in this
+ *   class can fix that. See `docker-compose.wuzapi.yml` (pinned digest) and
+ *   skill `ot1-pro-prod-ops` "Wuzapi image bump" for the mitigation. Symptom
+ *   fingerprint: Wuzapi logs show repeated `Client outdated` / `err-client-outdated`.
+ *
+ * TRAP 2 (code): WhatsApp's "Link a Device" flow emits TWO QRs — the second
+ *   one appears only AFTER the user scans the first. Older versions of poll()
+ *   had `if (empty($this->qrDataUrl))` around the `/session/qr` fetch, so we
+ *   only ever showed the first QR; the user had to close and reopen the modal
+ *   to see the second. Fixed by always polling and only updating qrDataUrl
+ *   when the response differs. DO NOT re-add that guard "to save requests".
+ *
+ * Pairing runbook when this feature breaks:
+ *   1. `docker logs wuzapi --tail 50` — if you see `err-client-outdated`, it's trap 1.
+ *   2. Browser DevTools → Network → watch the `/livewire/update` calls while scanning;
+ *      if `qrDataUrl` on the Livewire payload stays identical across the "scan again"
+ *      prompt on the phone, it's trap 2.
+ */
 class WhatsAppQrModal extends Component
 {
     public bool $show = false;
