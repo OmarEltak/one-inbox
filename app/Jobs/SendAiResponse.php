@@ -540,22 +540,73 @@ class SendAiResponse implements ShouldQueue
     protected function sendViaMetaMessenger(Page $page, string $recipientId, string $text, Message $aiMessage): void
     {
         $version = config('services.meta.graph_api_version', 'v21.0');
-        $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+        $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
 
-        $response = Http::withToken($page->page_access_token)->post($url, [
-            'recipient' => ['id' => $recipientId],
+        if ($isInstagramBusiness) {
+            // Direct IG Business Login tokens (IGAA-prefixed) are minted by
+            // graph.instagram.com's auth server and are rejected by graph.facebook.com
+            // with code 190 "Cannot parse access token". /me/messages identifies the
+            // sender from the token itself — no IGBID guessing needed.
+            // Mirrors SendPlatformMessage::sendViaMetaMessenger — the two paths MUST
+            // stay in sync (see memory/project_whatsapp_parallel_send_paths.md for
+            // the general lesson).
+            $url = "https://graph.instagram.com/{$version}/me/messages";
+        } elseif ($page->platform === 'instagram') {
+            // IG via "Add via Meta" / FB Login. Post goes to the linked Facebook Page,
+            // NOT the IG account ID. Endpoint shape: /{FB_PAGE_ID}/messages.
+            $fbPageId = $page->metadata['linked_facebook_page_id'] ?? null;
+            if (! $fbPageId) {
+                Log::error('IG auto-send (FB Login) missing linked_facebook_page_id', ['page_id' => $page->id]);
+                $this->stampSendFailure($aiMessage, 'IG page is missing linked_facebook_page_id metadata — reconnect the page.');
+                return;
+            }
+            $url = "https://graph.facebook.com/{$version}/{$fbPageId}/messages";
+        } else {
+            $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+        }
+
+        $payload = [
+            'recipient'      => ['id' => $recipientId],
             'messaging_type' => 'RESPONSE',
-            'message' => ['text' => $text],
-        ]);
+            'message'        => ['text' => $text],
+        ];
+
+        $response = Http::withToken($page->page_access_token)->post($url, $payload);
 
         if ($response->successful()) {
             $aiMessage->update([
                 'platform_message_id' => $response->json('message_id'),
-                'platform_sent_at' => now(),
+                'platform_sent_at'    => now(),
             ]);
-        } else {
-            Log::error('Meta Messenger send failed', ['body' => $response->body()]);
+            return;
         }
+
+        // 24-hour-window fallback — mirrors SendPlatformMessage behaviour.
+        // Meta error_subcode 2018278 = outside the standard messaging window.
+        // Retry with HUMAN_AGENT tag which permits a 7-day window for human-like
+        // replies on an approved app.
+        $err        = $response->json('error') ?? [];
+        $errSubCode = (int) ($err['error_subcode'] ?? 0);
+        if ($errSubCode === 2018278) {
+            $taggedResponse = Http::withToken($page->page_access_token)->post($url, array_merge($payload, [
+                'messaging_type' => 'MESSAGE_TAG',
+                'tag'            => 'HUMAN_AGENT',
+            ]));
+            if ($taggedResponse->successful()) {
+                $aiMessage->update([
+                    'platform_message_id' => $taggedResponse->json('message_id'),
+                    'platform_sent_at'    => now(),
+                ]);
+                return;
+            }
+        }
+
+        Log::error('Meta Messenger send failed', [
+            'body'    => $response->body(),
+            'url'     => $url,
+            'page_id' => $page->id,
+        ]);
+        $this->stampSendFailure($aiMessage, 'Meta rejected the send: ' . substr($response->body(), 0, 200));
     }
 
     protected function sendViaWhatsApp(Page $page, string $recipientId, string $text, Message $aiMessage): void
