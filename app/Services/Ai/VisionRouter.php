@@ -22,6 +22,22 @@ class VisionRouter
 
     public function firstVisionCapableModel(): ?string
     {
+        // Prefer the explicit NARAROUTER_VISION_MODELS chain. If the operator
+        // configured a vision chain, trust that intent — don't filter against
+        // the hardcoded allowlist below (which goes stale every quarter as
+        // NaraRouter adds new vision models). This was the Nov 2026 bug: the
+        // text chain contained gpt-6.1-sol (vision-capable) but we were
+        // looking at fallback_models (text chain) AND filtering through the
+        // stale allowlist that didn't include gpt-6.1-sol.
+        $visionRaw = (string) config('services.nararouter.vision_models', '');
+        $visionChain = array_filter(array_map('trim', explode(',', $visionRaw)));
+        if (! empty($visionChain)) {
+            return (string) $visionChain[array_key_first($visionChain)];
+        }
+
+        // Fallback: scan the text chain for any model we know is vision-capable.
+        // Preserves the historical behaviour for deployments that only set
+        // NARAROUTER_TEXT_MODELS (no explicit vision chain).
         $chainRaw = (string) config('services.nararouter.fallback_models', '');
         $chain    = array_filter(array_map('trim', explode(',', $chainRaw)));
 

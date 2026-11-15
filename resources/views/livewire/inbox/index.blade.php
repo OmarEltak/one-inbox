@@ -651,9 +651,15 @@
                                 <x-inbox.media-bubble :message="$message" />
                             @elseif($message->media_url)
                                 @if($message->content_type === 'image' || str_starts_with($message->media_type ?? '', 'image/'))
-                                    <img src="{{ $message->media_url }}" alt="Shared image" class="max-w-full rounded-lg mb-1 cursor-pointer" onclick="window.open(this.src, '_blank')" loading="lazy" />
+                                    {{-- Match sizing from x-inbox.media-bubble so AI-sent images (which lack a
+                                         mediaAsset and fall to this branch) don't blow out the bubble for tall
+                                         screenshots. max-w-xs caps width, max-h-64 caps height, object-cover
+                                         preserves the aspect ratio while filling the frame. --}}
+                                    <img src="{{ $message->media_url }}" alt="Shared image"
+                                         class="max-w-xs h-auto max-h-64 object-cover rounded-lg mb-1 cursor-pointer"
+                                         onclick="window.open(this.src, '_blank')" loading="lazy" />
                                 @elseif($message->content_type === 'video' || str_starts_with($message->media_type ?? '', 'video/'))
-                                    <video src="{{ $message->media_url }}" controls class="max-w-full rounded-lg mb-1" preload="metadata"></video>
+                                    <video src="{{ $message->media_url }}" controls class="max-w-xs max-h-64 rounded-lg mb-1" preload="metadata"></video>
                                 @elseif($message->content_type === 'audio' || str_starts_with($message->media_type ?? '', 'audio/'))
                                     <audio src="{{ $message->media_url }}" controls class="w-full mb-1"></audio>
                                 @else
