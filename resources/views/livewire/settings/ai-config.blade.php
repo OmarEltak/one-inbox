@@ -296,7 +296,12 @@
                                                     @foreach($productMedia as $media)
                                                         <div class="relative group border border-zinc-200 rounded-md overflow-hidden bg-zinc-50"
                                                              wire:key="media-{{ $media->id }}">
-                                                            <img src="{{ $media->url() }}" alt="" class="w-full h-32 object-cover" />
+                                                            @if($media->kind === \App\Models\ProductMedia::KIND_VIDEO)
+                                                                <video src="{{ $media->url() }}" class="w-full h-32 object-cover bg-black" muted preload="metadata"></video>
+                                                                <span class="absolute bottom-1 end-1 bg-black/70 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">{{ __('Video') }}</span>
+                                                            @else
+                                                                <img src="{{ $media->url() }}" alt="" class="w-full h-32 object-cover" />
+                                                            @endif
 
                                                             @if($media->is_primary)
                                                                 <span class="absolute top-1 start-1 bg-amber-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
@@ -346,7 +351,7 @@
                                             <div class="flex items-center gap-3">
                                                 <input type="file"
                                                        wire:model="productMediaUploads.{{ $productId }}"
-                                                       accept="image/jpeg,image/png,image/webp,image/gif"
+                                                       accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
                                                        class="text-xs text-zinc-700 file:me-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-emerald-600 file:text-white hover:file:bg-emerald-700" />
                                                 <div wire:loading wire:target="productMediaUploads.{{ $productId }},uploadProductMedia" class="text-xs text-emerald-700 font-medium">
                                                     {{ __('Uploading…') }}

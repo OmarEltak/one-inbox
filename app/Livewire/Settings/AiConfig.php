@@ -19,6 +19,7 @@ class AiConfig extends Component
 
     public const MAX_MEDIA_PER_PRODUCT = 8;
     public const MAX_IMAGE_BYTES       = 10_485_760;   // 10 MB
+    public const MAX_VIDEO_BYTES       = 26_214_400;   // 25 MB — WA Cloud's hard cap on video is 16 MB but Meta Messenger & Telegram tolerate more; keeping a single cap that fits the majority platform
     public ?int $selectedPageId = null;
 
     // Business Info
@@ -467,9 +468,24 @@ class AiConfig extends Component
             return;
         }
 
-        $this->validate([
-            "productMediaUploads.$productId" => ['required', 'file', 'image', 'max:' . (self::MAX_IMAGE_BYTES / 1024), 'mimetypes:image/jpeg,image/png,image/webp,image/gif'],
-        ]);
+        // Decide image vs video by mime, pick the right size cap, then validate
+        // once with the appropriate mimetypes/size. Validation keeps the whitelist
+        // tight — both to protect storage and to match what the platform send
+        // APIs actually accept (no .mov on WA Cloud, no .avi anywhere, etc).
+        $incomingMime = (string) ($file->getMimeType() ?: '');
+        $isVideo = str_starts_with($incomingMime, 'video/');
+
+        if ($isVideo) {
+            $this->validate([
+                "productMediaUploads.$productId" => ['required', 'file', 'max:' . (self::MAX_VIDEO_BYTES / 1024), 'mimetypes:video/mp4,video/quicktime,video/webm'],
+            ]);
+            $kind = ProductMedia::KIND_VIDEO;
+        } else {
+            $this->validate([
+                "productMediaUploads.$productId" => ['required', 'file', 'image', 'max:' . (self::MAX_IMAGE_BYTES / 1024), 'mimetypes:image/jpeg,image/png,image/webp,image/gif'],
+            ]);
+            $kind = ProductMedia::KIND_IMAGE;
+        }
 
         $team = Auth::user()->currentTeam;
         $dir  = 'product-media/' . $team->id . '/' . $productId;
@@ -479,7 +495,7 @@ class AiConfig extends Component
             'team_id'           => $team->id,
             'ai_config_id'      => $config->id,
             'product_key'       => $productId,
-            'kind'              => ProductMedia::KIND_IMAGE,
+            'kind'              => $kind,
             'disk'              => 'public',
             'path'              => $path,
             'mime'              => $file->getMimeType() ?: 'application/octet-stream',

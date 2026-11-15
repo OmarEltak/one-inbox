@@ -764,19 +764,33 @@ class SendAiResponse implements ShouldQueue
         ]);
 
         try {
-            match ($platform) {
-                'facebook', 'instagram' => $this->sendImageViaMetaMessenger($page, $recipientId, $imageUrl, $imageMessage),
-                'whatsapp' => $this->sendImageViaWhatsApp($page, $recipientId, $imageUrl, $imageMessage),
-                'telegram' => $this->sendImageViaTelegram($page, $recipientId, $imageUrl, $imageMessage),
-                default => $this->stampSendFailure($imageMessage, "Image send not supported on platform: {$platform}"),
-            };
+            if ($media->kind === ProductMedia::KIND_VIDEO) {
+                // Promote the message's content_type so the inbox renders a
+                // <video> element instead of <img> (see inbox blade branching).
+                $imageMessage->update(['content_type' => 'video']);
+
+                match ($platform) {
+                    'facebook', 'instagram' => $this->sendVideoViaMetaMessenger($page, $recipientId, $imageUrl, $imageMessage),
+                    'whatsapp' => $this->sendVideoViaWhatsApp($page, $recipientId, $imageUrl, $imageMessage, $media),
+                    'telegram' => $this->sendVideoViaTelegram($page, $recipientId, $imageUrl, $imageMessage),
+                    default    => $this->stampSendFailure($imageMessage, "Video send not supported on platform: {$platform}"),
+                };
+            } else {
+                match ($platform) {
+                    'facebook', 'instagram' => $this->sendImageViaMetaMessenger($page, $recipientId, $imageUrl, $imageMessage),
+                    'whatsapp' => $this->sendImageViaWhatsApp($page, $recipientId, $imageUrl, $imageMessage),
+                    'telegram' => $this->sendImageViaTelegram($page, $recipientId, $imageUrl, $imageMessage),
+                    default    => $this->stampSendFailure($imageMessage, "Image send not supported on platform: {$platform}"),
+                };
+            }
         } catch (\Throwable $e) {
             Log::error('AI product-media send threw', [
                 'platform' => $platform,
                 'media_id' => $media->id,
+                'kind'     => $media->kind,
                 'error'    => $e->getMessage(),
             ]);
-            $this->stampSendFailure($imageMessage, 'Image send failed: ' . $e->getMessage());
+            $this->stampSendFailure($imageMessage, 'Media send failed: ' . $e->getMessage());
         }
     }
 
@@ -925,5 +939,126 @@ class SendAiResponse implements ShouldQueue
 
         Log::error('Telegram image send failed', ['body' => $response->body()]);
         $this->stampSendFailure($imageMessage, 'Telegram rejected the image: ' . substr($response->body(), 0, 200));
+    }
+
+    // ────────────────────────────────────────────────────────────────────
+    // Video send paths. Mirror the image paths above with the platform-
+    // specific video endpoints. Each path reuses the same success/failure
+    // stamping so the inbox UI treats failures identically.
+    // ────────────────────────────────────────────────────────────────────
+
+    protected function sendVideoViaMetaMessenger(Page $page, string $recipientId, string $videoUrl, Message $videoMessage): void
+    {
+        $version = config('services.meta.graph_api_version', 'v21.0');
+        $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+
+        if ($isInstagramBusiness) {
+            $url = "https://graph.instagram.com/{$version}/me/messages";
+        } elseif ($page->platform === 'instagram') {
+            $fbPageId = $page->metadata['linked_facebook_page_id'] ?? null;
+            if (! $fbPageId) {
+                $this->stampSendFailure($videoMessage, 'IG page missing linked_facebook_page_id metadata.');
+                return;
+            }
+            $url = "https://graph.facebook.com/{$version}/{$fbPageId}/messages";
+        } else {
+            $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+        }
+
+        $payload = [
+            'recipient'      => ['id' => $recipientId],
+            'messaging_type' => 'RESPONSE',
+            'message'        => [
+                'attachment' => [
+                    'type'    => 'video',
+                    'payload' => ['url' => $videoUrl, 'is_reusable' => true],
+                ],
+            ],
+        ];
+
+        $response = Http::withToken($page->page_access_token)->timeout(60)->post($url, $payload);
+
+        if ($response->successful()) {
+            $videoMessage->update([
+                'platform_message_id' => $response->json('message_id'),
+                'platform_sent_at'    => now(),
+            ]);
+            return;
+        }
+
+        Log::error('Meta Messenger video send failed', [
+            'body'    => $response->body(),
+            'url'     => $url,
+            'page_id' => $page->id,
+        ]);
+        $this->stampSendFailure($videoMessage, 'Meta rejected the video: ' . substr($response->body(), 0, 200));
+    }
+
+    protected function sendVideoViaWhatsApp(Page $page, string $recipientId, string $videoUrl, Message $videoMessage, ProductMedia $media): void
+    {
+        // WA QR path (Wuzapi / Evolution) — same filesystem-path pattern used
+        // for images. The ProductMedia row we were handed is authoritative.
+        if (! empty($page->metadata['gateway_mode'])) {
+            $instanceName   = $page->metadata['gateway_instance'] ?? $page->platform_page_id;
+            $instanceApiKey = $page->page_access_token;
+
+            $messageId = app(\App\Services\EvolutionApiService::class)
+                ->sendVideo($instanceName, $instanceApiKey, $recipientId, $media->absolutePath(), $media->mime);
+
+            if ($messageId) {
+                $videoMessage->update([
+                    'platform_message_id' => $messageId,
+                    'platform_sent_at'    => now(),
+                ]);
+            } else {
+                $this->stampSendFailure($videoMessage, 'WhatsApp (Wuzapi) video send failed.');
+            }
+            return;
+        }
+
+        // WA Cloud API — WhatsApp hard-caps video uploads at 16MB; our local
+        // cap of 25MB covers Messenger/Telegram tolerance. If a specific file
+        // exceeds WA's cap, Meta returns a 400 which we surface as-is.
+        $version = config('services.meta.graph_api_version', 'v21.0');
+        $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+
+        $response = Http::withToken($page->page_access_token)->timeout(60)->post($url, [
+            'messaging_product' => 'whatsapp',
+            'to'                => $recipientId,
+            'type'              => 'video',
+            'video'             => ['link' => $videoUrl],
+        ]);
+
+        if ($response->successful()) {
+            $videoMessage->update([
+                'platform_message_id' => $response->json('messages.0.id'),
+                'platform_sent_at'    => now(),
+            ]);
+            return;
+        }
+
+        Log::error('WhatsApp Cloud video send failed', ['body' => $response->body()]);
+        $this->stampSendFailure($videoMessage, 'WhatsApp Cloud API rejected video: ' . substr($response->body(), 0, 200));
+    }
+
+    protected function sendVideoViaTelegram(Page $page, string $chatId, string $videoUrl, Message $videoMessage): void
+    {
+        $botToken = $page->page_access_token;
+
+        $response = Http::timeout(60)->post("https://api.telegram.org/bot{$botToken}/sendVideo", [
+            'chat_id' => $chatId,
+            'video'   => $videoUrl,
+        ]);
+
+        if ($response->successful()) {
+            $videoMessage->update([
+                'platform_message_id' => (string) $response->json('result.message_id'),
+                'platform_sent_at'    => now(),
+            ]);
+            return;
+        }
+
+        Log::error('Telegram video send failed', ['body' => $response->body()]);
+        $this->stampSendFailure($videoMessage, 'Telegram rejected the video: ' . substr($response->body(), 0, 200));
     }
 }
