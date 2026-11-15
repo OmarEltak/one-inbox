@@ -954,11 +954,37 @@ function doPost(e) {
                                             <span x-show="copied" x-cloak>{{ __('Copied') }}</span>
                                         </button>
                                     </div>
-                                    <flux:field>
-                                        <flux:label>{{ __('Web app URL') }}</flux:label>
-                                        <flux:input wire:model="connector_sheet_url" type="url" dir="ltr" placeholder="https://script.google.com/macros/s/…/exec" />
-                                        <flux:error name="connector_sheet_url" />
-                                    </flux:field>
+                                    {{-- URL lock pattern: once a URL is saved, we display it as a masked
+                                         read-only field with an explicit Unlock button, so accidentally
+                                         clicking in + typing can't silently blank or mutate the connector.
+                                         Alpine x-data provides the locked state; wrapper div is the scope. --}}
+                                    <div x-data="{ locked: @js(! empty($connector_sheet_url)) }">
+                                        <flux:field>
+                                            <div class="flex items-center justify-between">
+                                                <flux:label>{{ __('Web app URL') }}</flux:label>
+                                                <button type="button" x-show="locked"
+                                                        x-on:click="locked = false; $nextTick(() => $refs.sheetUrlInput?.focus())"
+                                                        class="text-xs text-emerald-700 hover:text-emerald-800 underline cursor-pointer">
+                                                    {{ __('Unlock to edit') }}
+                                                </button>
+                                                <button type="button" x-show="! locked" x-cloak
+                                                        x-on:click="locked = true"
+                                                        class="text-xs text-zinc-600 hover:text-zinc-800 underline cursor-pointer">
+                                                    {{ __('Lock') }}
+                                                </button>
+                                            </div>
+                                            <flux:input x-ref="sheetUrlInput"
+                                                        wire:model="connector_sheet_url"
+                                                        type="url" dir="ltr"
+                                                        placeholder="https://script.google.com/macros/s/…/exec"
+                                                        x-bind:readonly="locked"
+                                                        x-bind:class="locked ? 'bg-zinc-100 cursor-not-allowed' : ''" />
+                                            <flux:error name="connector_sheet_url" />
+                                            <p x-show="locked" x-cloak class="mt-1 text-xs text-zinc-500">
+                                                {{ __('URL is locked to prevent accidental edits. Click Unlock to change it.') }}
+                                            </p>
+                                        </flux:field>
+                                    </div>
                                 </div>
 
                                 {{-- Excel / automations --}}
@@ -980,11 +1006,33 @@ function doPost(e) {
                                         </div>
                                     </div>
                                     <p class="text-sm text-zinc-800">{{ __('Paste any webhook URL — e.g. Power Automate "When an HTTP request is received" → "Add a row into a table" for Excel Online, or a Zapier / Make / n8n webhook. Each event is sent as JSON with named fields.') }}</p>
-                                    <flux:field>
-                                        <flux:label>{{ __('Webhook URL') }}</flux:label>
-                                        <flux:input wire:model="connector_webhook_url" type="url" dir="ltr" placeholder="https://hooks.zapier.com/…" />
-                                        <flux:error name="connector_webhook_url" />
-                                    </flux:field>
+                                    <div x-data="{ locked: @js(! empty($connector_webhook_url)) }">
+                                        <flux:field>
+                                            <div class="flex items-center justify-between">
+                                                <flux:label>{{ __('Webhook URL') }}</flux:label>
+                                                <button type="button" x-show="locked"
+                                                        x-on:click="locked = false; $nextTick(() => $refs.webhookUrlInput?.focus())"
+                                                        class="text-xs text-emerald-700 hover:text-emerald-800 underline cursor-pointer">
+                                                    {{ __('Unlock to edit') }}
+                                                </button>
+                                                <button type="button" x-show="! locked" x-cloak
+                                                        x-on:click="locked = true"
+                                                        class="text-xs text-zinc-600 hover:text-zinc-800 underline cursor-pointer">
+                                                    {{ __('Lock') }}
+                                                </button>
+                                            </div>
+                                            <flux:input x-ref="webhookUrlInput"
+                                                        wire:model="connector_webhook_url"
+                                                        type="url" dir="ltr"
+                                                        placeholder="https://hooks.zapier.com/…"
+                                                        x-bind:readonly="locked"
+                                                        x-bind:class="locked ? 'bg-zinc-100 cursor-not-allowed' : ''" />
+                                            <flux:error name="connector_webhook_url" />
+                                            <p x-show="locked" x-cloak class="mt-1 text-xs text-zinc-500">
+                                                {{ __('URL is locked to prevent accidental edits. Click Unlock to change it.') }}
+                                            </p>
+                                        </flux:field>
+                                    </div>
                                     <div class="flex flex-wrap items-center gap-2 pt-1">
                                         <flux:button type="button" size="sm" variant="outline" icon="arrow-down-tray" wire:click="exportLeads">
                                             {{ __('Download leads (Excel CSV)') }}
