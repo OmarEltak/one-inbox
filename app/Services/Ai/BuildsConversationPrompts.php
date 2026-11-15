@@ -478,15 +478,20 @@ trait BuildsConversationPrompts
                     $caption = $isPlaceholder ? '' : "\nCaption / تعليق: {$content}";
                     $content = "[صورة العميل | Customer image] Vision description (respond in the customer's language): {$desc}{$caption}";
 
-                    // Product-match hint: when the team has a product media
-                    // catalog, try to identify which product the customer's
-                    // screenshot likely shows. The AI can then confirm
-                    // ("yes, that's our burgundy tee at $44") without having
-                    // to guess. Silent empty string when no match reaches
-                    // the confidence threshold.
+                    // Product-match hint: prefer the VISUAL match done by
+                    // DescribeImage (sends customer image + product images
+                    // to vision model) over the text-overlap fallback. The
+                    // visual match catches cropped/screenshot/repost cases
+                    // the text matcher cannot ("debug screenshot" has no
+                    // overlap with "Online Course" name but visually IS
+                    // the primary image of that product).
                     $config = $msg->conversation?->page?->aiConfig;
                     if ($config) {
-                        $matchHint = app(AiMediaResolver::class)->matchCustomerImageToProducts($desc, $config);
+                        $resolver = app(AiMediaResolver::class);
+                        $matchHint = $resolver->visualMatchHint($msg->mediaAsset, $config);
+                        if ($matchHint === '') {
+                            $matchHint = $resolver->matchCustomerImageToProducts($desc, $config);
+                        }
                         if ($matchHint !== '') {
                             $content .= "\n[Product match hint for the AI]: {$matchHint}";
                         }

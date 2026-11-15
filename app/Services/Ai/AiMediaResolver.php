@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Ai;
 
 use App\Models\AiConfig;
+use App\Models\MediaAsset;
 use App\Models\ProductMedia;
 use Illuminate\Support\Collection;
 
@@ -177,6 +178,37 @@ class AiMediaResolver
             'text'        => trim((string) $stripped),
             'attachments' => $attachments,
         ];
+    }
+
+    /**
+     * Read the visual product-match result stored on the customer's MediaAsset
+     * by DescribeImage. Returns the prompt hint ("Possibly matches 'Classic
+     * Tee' — visually identified") or empty string when no match was found.
+     *
+     * This runs BEFORE the text-overlap matcher because it's more accurate:
+     * the vision model actually saw both images and compared them, instead of
+     * guessing from captions. Falls back silently when DescribeImage hasn't
+     * written a match (older messages, vision failures, no product media).
+     */
+    public function visualMatchHint(MediaAsset $asset, AiConfig $config): string
+    {
+        $matchedId = $asset->metadata['product_match_id'] ?? null;
+        if (! $matchedId) {
+            return '';
+        }
+
+        $catalog = collect((array) ($config->product_catalog ?? []))->keyBy('id');
+        $product = $catalog->get($matchedId);
+        if (! $product) {
+            return ''; // product deleted since the match was recorded
+        }
+
+        $name = trim((string) ($product['name'] ?? ''));
+        if ($name === '') {
+            $name = 'Product ' . substr((string) $matchedId, 0, 8);
+        }
+
+        return sprintf('Visually matches "%s" (confirmed by vision comparison against catalog).', $name);
     }
 
     /**
