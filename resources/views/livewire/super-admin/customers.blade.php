@@ -101,6 +101,14 @@
                                     {{ __('Reset Password') }}
                                 </flux:button>
                             @endif
+                            @if($team->owner && ! $team->owner->isSuperAdmin())
+                                <form method="POST" action="{{ route('super-admin.customers.impersonate', $team) }}">
+                                    @csrf
+                                    <flux:button type="submit" size="sm" variant="outline" icon="user-circle">
+                                        {{ __('Login as owner') }}
+                                    </flux:button>
+                                </form>
+                            @endif
                             <flux:button
                                 wire:click="deleteCustomer({{ $team->id }})"
                                 wire:confirm="{{ __('Delete customer :name and its owner? This cannot be undone.', ['name' => $team->name]) }}"

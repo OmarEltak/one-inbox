@@ -394,8 +394,61 @@ Route::middleware(['auth', 'verified', 'team', 'throttle:60,1'])->group(function
         Route::get('blog', \App\Livewire\SuperAdmin\Blog\Index::class)->name('blog.index');
         Route::get('blog/create', \App\Livewire\SuperAdmin\Blog\Editor::class)->name('blog.create');
         Route::get('blog/{post}/edit', \App\Livewire\SuperAdmin\Blog\Editor::class)->name('blog.edit');
+
+        // Session-based impersonation: super-admin logs in as the target team's owner.
+        // Exit route sits OUTSIDE this group (impersonated user is no longer super-admin).
+        Route::post('customers/{team}/impersonate', function (\App\Models\Team $team) {
+            $team->loadMissing('owner');
+            abort_if(! $team->owner, 404);
+            abort_if($team->owner->isSuperAdmin(), 403);
+
+            $adminId = \Illuminate\Support\Facades\Auth::id();
+
+            // Land in the clicked team, not whichever team the owner last switched to —
+            // otherwise support work ends up in the wrong workspace.
+            $team->owner->forceFill(['current_team_id' => $team->id])->save();
+
+            \Illuminate\Support\Facades\Auth::login($team->owner);
+
+            // Regenerate session ID after a privilege change to defeat session fixation,
+            // then re-stamp impersonator_id (regenerate preserves data, but writing it
+            // AFTER the regenerate makes the intent explicit).
+            session()->regenerate();
+            session(['impersonator_id' => $adminId]);
+
+            \Illuminate\Support\Facades\Log::warning('Super-admin impersonation started', [
+                'admin_id'       => $adminId,
+                'target_user_id' => $team->owner->id,
+                'team_id'        => $team->id,
+            ]);
+
+            return redirect()->route('dashboard');
+        })->name('customers.impersonate');
     });
+
 });
+
+// Impersonation exit — sits outside the super-admin + verified + team gates so
+// the impersonated customer (whose email may not be verified) can always leave.
+// Only runs when the session carries an impersonator_id written by the
+// super-admin.customers.impersonate route.
+Route::middleware('auth')->post('impersonate/exit', function () {
+    $originalId = session('impersonator_id');
+    abort_if(! $originalId, 403);
+
+    \Illuminate\Support\Facades\Log::warning('Super-admin impersonation ended', [
+        'admin_id'          => $originalId,
+        'impersonated_user' => \Illuminate\Support\Facades\Auth::id(),
+    ]);
+
+    session()->forget('impersonator_id');
+    \Illuminate\Support\Facades\Auth::login(\App\Models\User::findOrFail($originalId));
+
+    // Mirror the regenerate on enter — fresh session ID after returning to admin.
+    session()->regenerate();
+
+    return redirect()->route('super-admin.customers');
+})->name('impersonate.exit');
 
 // Team creation (for users without a team)
 Route::middleware(['auth'])->group(function () {

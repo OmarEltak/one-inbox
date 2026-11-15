@@ -5,6 +5,16 @@
     </head>
     <body class="min-h-screen">
 
+        @if(session('impersonator_id'))
+            <div class="bg-amber-500 text-black px-4 py-2 flex items-center justify-between text-sm">
+                <span>{{ __('You are logged in as :name. All actions are logged.', ['name' => auth()->user()->name]) }}</span>
+                <form method="POST" action="{{ url('/impersonate/exit') }}">
+                    @csrf
+                    <button type="submit" class="underline font-semibold cursor-pointer">{{ __('Exit impersonation') }}</button>
+                </form>
+            </div>
+        @endif
+
         @php
             $user = auth()->user();
             $team = $user?->currentTeam;
