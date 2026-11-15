@@ -1017,16 +1017,18 @@ function doPost(e) {
                                 @endif
 
                                 <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-200">
-                                    {{-- These two buttons live INSIDE the outer <form wire:submit="saveConfig">
-                                         that wraps all tabs. wire:click on flux:button inside a wire:submit
-                                         form gets intercepted by Livewire's form handler and the click
-                                         silently no-ops. Using x-on:click.prevent.stop with $wire.<method>()
-                                         bypasses the form entirely — Alpine calls Livewire directly without
-                                         touching form submit, and .prevent stops the native form submit. --}}
+                                    {{-- Native <button type=button> with wire:click. Earlier commits chased
+                                         ghosts (flux:button form-swallowing, @disabled directive, Alpine
+                                         $wire.call) — browser inspection proved the buttons were sitting
+                                         outside any x-data scope, so x-on:click was never bound. On a
+                                         native button inside a wire:submit form, type="button" + wire:click
+                                         Just Works™ — Livewire's own click handler bypasses form submit.
+                                         Verified against the actual DOM after deploy. --}}
                                     <button
                                         type="button"
-                                        x-on:click.prevent.stop="$wire.saveConnectors()"
+                                        wire:click="saveConnectors"
                                         wire:loading.attr="disabled"
+                                        wire:target="saveConnectors"
                                         class="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <span wire:loading.remove wire:target="saveConnectors">{{ __('Save connectors') }}</span>
@@ -1034,8 +1036,9 @@ function doPost(e) {
                                     </button>
                                     <button
                                         type="button"
-                                        x-on:click.prevent.stop="$wire.sendTestRow()"
+                                        wire:click="sendTestRow"
                                         wire:loading.attr="disabled"
+                                        wire:target="sendTestRow"
                                         class="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <span wire:loading.remove wire:target="sendTestRow">{{ __('Send a test row') }}</span>
