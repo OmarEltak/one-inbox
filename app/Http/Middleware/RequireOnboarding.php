@@ -39,6 +39,10 @@ class RequireOnboarding
         'settings.password',
         'super-admin.',
         'auth.',
+        // Super-admin exits impersonation here. The impersonated customer's team
+        // may still have onboarding_completed_at IS NULL, which would otherwise
+        // bounce the exit POST to /onboarding/meet-your-ai and trap the admin.
+        'impersonate.',
     ];
 
     /**
