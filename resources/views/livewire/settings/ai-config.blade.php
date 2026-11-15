@@ -1017,11 +1017,17 @@ function doPost(e) {
                                 @endif
 
                                 <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-200">
-                                    <flux:button type="button" variant="primary" wire:click="saveConnectors" wire:loading.attr="disabled" :disabled="! $hasConfig">
-                                        {{ __('Save connectors') }}
+                                    {{-- No :disabled attribute: saveConnectors / sendTestRow already guard
+                                         with `! $config` and addError(), so UI-level disable was redundant
+                                         and (with Flux's attribute coercion) rendered as HTML disabled even
+                                         when hasConfig was true — swallowing wire:click. --}}
+                                    <flux:button type="button" variant="primary" wire:click="saveConnectors" wire:loading.attr="disabled">
+                                        <span wire:loading.remove wire:target="saveConnectors">{{ __('Save connectors') }}</span>
+                                        <span wire:loading wire:target="saveConnectors">{{ __('Saving…') }}</span>
                                     </flux:button>
-                                    <flux:button type="button" variant="outline" wire:click="sendTestRow" wire:loading.attr="disabled" :disabled="! $hasConfig">
-                                        {{ __('Send a test row') }}
+                                    <flux:button type="button" variant="outline" wire:click="sendTestRow" wire:loading.attr="disabled">
+                                        <span wire:loading.remove wire:target="sendTestRow">{{ __('Send a test row') }}</span>
+                                        <span wire:loading wire:target="sendTestRow">{{ __('Sending…') }}</span>
                                     </flux:button>
                                     <x-action-message on="connectors-saved" class="text-green-700">
                                         {{ __('Saved.') }}
