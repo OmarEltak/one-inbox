@@ -264,8 +264,10 @@
                             </div>
 
                             @forelse($product_catalog as $i => $product)
-                                @php($productId = $product['id'] ?? null)
-                                @php($productMedia = $productId ? ($mediaByProduct[$productId] ?? collect()) : collect())
+                                @php
+                                    $productId = $product['id'] ?? null;
+                                    $productMedia = $productId ? ($mediaByProduct[$productId] ?? collect()) : collect();
+                                @endphp
                                 <div class="mb-4 border border-zinc-200 rounded-lg p-3 bg-white/50" wire:key="product-{{ $productId ?: $i }}">
                                     <div class="flex gap-3 items-start">
                                         <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -346,16 +348,19 @@
                                                        wire:model="productMediaUploads.{{ $productId }}"
                                                        accept="image/jpeg,image/png,image/webp,image/gif"
                                                        class="text-xs text-zinc-700 file:me-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-emerald-600 file:text-white hover:file:bg-emerald-700" />
-                                                <flux:button size="sm" variant="ghost" type="button"
-                                                             wire:click="uploadProductMedia('{{ $productId }}')"
-                                                             class="!bg-emerald-600 !text-white hover:!bg-emerald-700">
+                                                <button type="button"
+                                                        wire:click="uploadProductMedia('{{ $productId }}')"
+                                                        class="text-xs px-3 py-1.5 rounded bg-emerald-600 text-white hover:bg-emerald-700">
                                                     {{ __('Upload') }}
-                                                </flux:button>
+                                                </button>
                                                 <div wire:loading wire:target="productMediaUploads.{{ $productId }},uploadProductMedia" class="text-xs text-zinc-500">
                                                     {{ __('Uploading…') }}
                                                 </div>
                                             </div>
-                                            @error("productMediaUploads.$productId")
+                                            @php
+                                                $uploadErrorKey = 'productMediaUploads.'.$productId;
+                                            @endphp
+                                            @error($uploadErrorKey)
                                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                                             @enderror
                                         </div>
