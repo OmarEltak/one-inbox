@@ -6,6 +6,7 @@ use App\Models\AiConfig;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Team;
+use App\Services\Ai\AiMediaResolver;
 
 /**
  * ══ ARCHITECTURE REFERENCE §8, §9, §10 ══
@@ -288,6 +289,14 @@ trait BuildsConversationPrompts
             $parts[] = "Products/Services: " . json_encode($config->product_catalog);
         }
 
+        // Product media catalog — tells the AI what images it can attach via
+        // [[SEND_MEDIA:product_id=...]] markers. Empty string when the team
+        // hasn't uploaded any media, so the whole block is skipped.
+        $mediaSnippet = app(AiMediaResolver::class)->catalogSnippet($config);
+        if ($mediaSnippet !== '') {
+            $parts[] = $mediaSnippet;
+        }
+
         if ($config->pricing_info) {
             $parts[] = "Pricing: " . json_encode($config->pricing_info);
         }
@@ -468,6 +477,20 @@ trait BuildsConversationPrompts
                 if ($desc !== '') {
                     $caption = $isPlaceholder ? '' : "\nCaption / تعليق: {$content}";
                     $content = "[صورة العميل | Customer image] Vision description (respond in the customer's language): {$desc}{$caption}";
+
+                    // Product-match hint: when the team has a product media
+                    // catalog, try to identify which product the customer's
+                    // screenshot likely shows. The AI can then confirm
+                    // ("yes, that's our burgundy tee at $44") without having
+                    // to guess. Silent empty string when no match reaches
+                    // the confidence threshold.
+                    $config = $msg->conversation?->page?->aiConfig;
+                    if ($config) {
+                        $matchHint = app(AiMediaResolver::class)->matchCustomerImageToProducts($desc, $config);
+                        if ($matchHint !== '') {
+                            $content .= "\n[Product match hint for the AI]: {$matchHint}";
+                        }
+                    }
                 }
             }
 

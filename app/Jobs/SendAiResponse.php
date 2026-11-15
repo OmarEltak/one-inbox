@@ -8,11 +8,13 @@ use App\Events\AiResponseSent;
 use App\Exceptions\AiAllProvidersUnavailable;
 use App\Exceptions\AiQuotaExhausted;
 use App\Http\Middleware\EnforcePlanLimits;
+use App\Services\Ai\AiMediaResolver;
 use App\Services\Ai\CaptureExtractor;
 use App\Services\Billing\AiCredits;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Page;
+use App\Models\ProductMedia;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -298,17 +300,44 @@ class SendAiResponse implements ShouldQueue
                 return;
             }
 
+            // Phase 1B: parse [[SEND_MEDIA:...]] markers out of the AI reply
+            // BEFORE persisting. The visible body is the stripped text; the
+            // resolved ProductMedia rows are sent as follow-up image messages
+            // on whichever platform this conversation lives on. Do NOT store
+            // the marker in Message.content — customers must never see it.
+            $extracted = app(AiMediaResolver::class)->extractMarkers($responseText, $aiConfig);
+            $visibleText = $extracted['text'];
+            /** @var \Illuminate\Support\Collection<int, ProductMedia> $attachments */
+            $attachments = $extracted['attachments'];
+
+            // If the AI's entire body was just a marker (empty after stripping),
+            // keep a tiny whitespace so the Message row has non-null content
+            // and the platform text-send doesn't try to post an empty body.
+            if ($visibleText === '' && $attachments->isNotEmpty()) {
+                $visibleText = '';
+            }
+
             // Store the AI message in our database
             $aiMessage = Message::create([
                 'conversation_id' => $conversation->id,
                 'direction' => 'outbound',
                 'sender_type' => 'ai',
                 'content_type' => 'text',
-                'content' => $responseText,
+                'content' => $visibleText,
             ]);
 
-            // Send through the platform
-            $this->sendToPlatform($conversation, $responseText, $aiMessage);
+            // Send through the platform (text body first; skip when body is
+            // empty-and-attachments-only so we don't post a blank message).
+            if ($visibleText !== '') {
+                $this->sendToPlatform($conversation, $visibleText, $aiMessage);
+            }
+
+            // Then send each attachment as its own outbound image message.
+            // Failures are logged but don't fail the parent send — the
+            // customer still got the text reply.
+            foreach ($attachments as $media) {
+                $this->sendMediaToPlatform($conversation, $media);
+            }
 
             $conversation->update([
                 'last_message_at' => now(),
@@ -694,5 +723,194 @@ class SendAiResponse implements ShouldQueue
         } else {
             Log::error('Telegram send failed', ['body' => $response->body()]);
         }
+    }
+
+    /**
+     * Dispatch one AI-selected product image to the conversation's platform.
+     * Creates its own outbound Message row (content_type='image') so the
+     * inbox UI renders it alongside the text reply; sends via platform-
+     * specific endpoint. Errors are stamped on the image Message but never
+     * propagated — a failed image send must not undo the already-delivered
+     * text reply.
+     */
+    protected function sendMediaToPlatform(Conversation $conversation, ProductMedia $media): void
+    {
+        $page        = $conversation->page;
+        $platform    = $conversation->platform;
+        $recipientId = $conversation->platform_conversation_id;
+        $imageUrl    = $media->url();
+
+        $imageMessage = Message::create([
+            'conversation_id' => $conversation->id,
+            'direction'       => 'outbound',
+            'sender_type'     => 'ai',
+            'content_type'    => 'image',
+            'content'         => '',
+            'media_url'       => $imageUrl,
+            'media_type'      => $media->mime,
+        ]);
+
+        try {
+            match ($platform) {
+                'facebook', 'instagram' => $this->sendImageViaMetaMessenger($page, $recipientId, $imageUrl, $imageMessage),
+                'whatsapp' => $this->sendImageViaWhatsApp($page, $recipientId, $imageUrl, $imageMessage),
+                'telegram' => $this->sendImageViaTelegram($page, $recipientId, $imageUrl, $imageMessage),
+                default => $this->stampSendFailure($imageMessage, "Image send not supported on platform: {$platform}"),
+            };
+        } catch (\Throwable $e) {
+            Log::error('AI product-media send threw', [
+                'platform' => $platform,
+                'media_id' => $media->id,
+                'error'    => $e->getMessage(),
+            ]);
+            $this->stampSendFailure($imageMessage, 'Image send failed: ' . $e->getMessage());
+        }
+    }
+
+    protected function sendImageViaMetaMessenger(Page $page, string $recipientId, string $imageUrl, Message $imageMessage): void
+    {
+        $version = config('services.meta.graph_api_version', 'v21.0');
+        $isInstagramBusiness = ($page->metadata['auth_type'] ?? null) === 'instagram_business';
+
+        if ($isInstagramBusiness) {
+            $url = "https://graph.instagram.com/{$version}/me/messages";
+        } elseif ($page->platform === 'instagram') {
+            $fbPageId = $page->metadata['linked_facebook_page_id'] ?? null;
+            if (! $fbPageId) {
+                $this->stampSendFailure($imageMessage, 'IG page missing linked_facebook_page_id metadata.');
+                return;
+            }
+            $url = "https://graph.facebook.com/{$version}/{$fbPageId}/messages";
+        } else {
+            $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+        }
+
+        $payload = [
+            'recipient'      => ['id' => $recipientId],
+            'messaging_type' => 'RESPONSE',
+            'message'        => [
+                'attachment' => [
+                    'type'    => 'image',
+                    'payload' => ['url' => $imageUrl, 'is_reusable' => true],
+                ],
+            ],
+        ];
+
+        $response = Http::withToken($page->page_access_token)->post($url, $payload);
+
+        if ($response->successful()) {
+            $imageMessage->update([
+                'platform_message_id' => $response->json('message_id'),
+                'platform_sent_at'    => now(),
+            ]);
+            return;
+        }
+
+        $err        = $response->json('error') ?? [];
+        $errSubCode = (int) ($err['error_subcode'] ?? 0);
+        if ($errSubCode === 2018278) {
+            $tagged = Http::withToken($page->page_access_token)->post($url, array_merge($payload, [
+                'messaging_type' => 'MESSAGE_TAG',
+                'tag'            => 'HUMAN_AGENT',
+            ]));
+            if ($tagged->successful()) {
+                $imageMessage->update([
+                    'platform_message_id' => $tagged->json('message_id'),
+                    'platform_sent_at'    => now(),
+                ]);
+                return;
+            }
+        }
+
+        Log::error('Meta Messenger image send failed', [
+            'body'    => $response->body(),
+            'url'     => $url,
+            'page_id' => $page->id,
+        ]);
+        $this->stampSendFailure($imageMessage, 'Meta rejected the image: ' . substr($response->body(), 0, 200));
+    }
+
+    protected function sendImageViaWhatsApp(Page $page, string $recipientId, string $imageUrl, Message $imageMessage): void
+    {
+        // WA QR path (Wuzapi / Evolution) — the Evolution service wants a
+        // filesystem path + mime type, not a URL (it base64-encodes the file
+        // for upload). We reverse-resolve the storage URL to its ProductMedia
+        // row via the message's media_url and pull the absolute path.
+        if (! empty($page->metadata['gateway_mode'])) {
+            $media = ProductMedia::where('path', ltrim(parse_url($imageUrl, PHP_URL_PATH) ?? '', '/'))
+                ->orWhere(function ($q) use ($imageUrl) {
+                    // Match on the storage-relative path (/storage/<path> → <path>)
+                    $path = ltrim(parse_url($imageUrl, PHP_URL_PATH) ?? '', '/');
+                    if (str_starts_with($path, 'storage/')) {
+                        $q->where('path', substr($path, strlen('storage/')));
+                    }
+                })
+                ->first();
+
+            if (! $media) {
+                $this->stampSendFailure($imageMessage, 'Could not resolve local path for Wuzapi image send.');
+                return;
+            }
+
+            $instanceName   = $page->metadata['gateway_instance'] ?? $page->platform_page_id;
+            $instanceApiKey = $page->page_access_token;
+
+            $messageId = app(\App\Services\EvolutionApiService::class)
+                ->sendImage($instanceName, $instanceApiKey, $recipientId, $media->absolutePath(), $media->mime);
+
+            if ($messageId) {
+                $imageMessage->update([
+                    'platform_message_id' => $messageId,
+                    'platform_sent_at'    => now(),
+                ]);
+            } else {
+                $this->stampSendFailure($imageMessage, 'WhatsApp (Wuzapi) image send failed.');
+            }
+            return;
+        }
+
+        // WA Cloud API — `link` form requires the image to be publicly
+        // reachable (our storage URL is served by nginx under /storage/).
+        $version = config('services.meta.graph_api_version', 'v21.0');
+        $url = "https://graph.facebook.com/{$version}/{$page->platform_page_id}/messages";
+
+        $response = Http::withToken($page->page_access_token)->post($url, [
+            'messaging_product' => 'whatsapp',
+            'to'                => $recipientId,
+            'type'              => 'image',
+            'image'             => ['link' => $imageUrl],
+        ]);
+
+        if ($response->successful()) {
+            $imageMessage->update([
+                'platform_message_id' => $response->json('messages.0.id'),
+                'platform_sent_at'    => now(),
+            ]);
+            return;
+        }
+
+        Log::error('WhatsApp Cloud image send failed', ['body' => $response->body()]);
+        $this->stampSendFailure($imageMessage, 'WhatsApp Cloud API rejected image: ' . substr($response->body(), 0, 200));
+    }
+
+    protected function sendImageViaTelegram(Page $page, string $chatId, string $imageUrl, Message $imageMessage): void
+    {
+        $botToken = $page->page_access_token;
+
+        $response = Http::post("https://api.telegram.org/bot{$botToken}/sendPhoto", [
+            'chat_id' => $chatId,
+            'photo'   => $imageUrl,
+        ]);
+
+        if ($response->successful()) {
+            $imageMessage->update([
+                'platform_message_id' => (string) $response->json('result.message_id'),
+                'platform_sent_at'    => now(),
+            ]);
+            return;
+        }
+
+        Log::error('Telegram image send failed', ['body' => $response->body()]);
+        $this->stampSendFailure($imageMessage, 'Telegram rejected the image: ' . substr($response->body(), 0, 200));
     }
 }
