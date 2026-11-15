@@ -3166,5 +3166,9 @@
     "Saving…": "جارٍ الحفظ…",
     "Sending…": "جارٍ الإرسال…",
     "Power Automate (Excel)": "Power Automate (Excel)",
-    "Video": "فيديو"
+    "Video": "فيديو",
+    "Copy Apps Script code": "انسخ كود Apps Script",
+    "Copied — paste into Apps Script": "تم النسخ — الصقه في Apps Script",
+    "Show code": "إظهار الكود",
+    "Hide code": "إخفاء الكود"
 }

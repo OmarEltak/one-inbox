@@ -906,7 +906,7 @@
                                 @endunless
 
                                 {{-- Google Sheets --}}
-                                <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3" x-data="{ copied: false }">
+                                <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3" x-data="{ copied: false, showCode: false }">
                                     <div class="flex items-center justify-between gap-3">
                                         <h3 class="text-sm font-semibold text-zinc-900">{{ __('Google Sheets') }}</h3>
                                         <a href="https://sheets.new" target="_blank" rel="noopener"
@@ -938,8 +938,10 @@
                                                class="text-emerald-700 underline">{{ __('deployment help') }}</a>
                                         </li>
                                     </ol>
-                                    <div class="relative">
-                                        <pre x-ref="code" dir="ltr" class="overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs leading-relaxed text-zinc-100">@verbatim
+                                    {{-- Hidden code source (used for clipboard + optional preview). Kept
+                                         inside a <pre> so copying preserves newlines; display:none keeps
+                                         it out of the layout. Alpine toggles a visible preview below. --}}
+                                    <pre x-ref="code" dir="ltr" class="hidden">@verbatim
 function doPost(e) {
   var data = JSON.parse(e.postData.contents);
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
@@ -947,13 +949,28 @@ function doPost(e) {
   sheet.appendRow(data.row);
   return ContentService.createTextOutput('ok');
 }@endverbatim</pre>
+                                    <div class="flex flex-wrap items-center gap-2">
                                         <button type="button"
                                                 @click="navigator.clipboard.writeText($refs.code.innerText.trim()); copied = true; setTimeout(() => copied = false, 2000)"
-                                                class="absolute top-2 end-2 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-900 hover:bg-zinc-100 cursor-pointer">
-                                            <span x-show="!copied">{{ __('Copy') }}</span>
-                                            <span x-show="copied" x-cloak>{{ __('Copied') }}</span>
+                                                class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 cursor-pointer">
+                                            <flux:icon name="document-duplicate" class="w-3.5 h-3.5" />
+                                            <span x-show="!copied">{{ __('Copy Apps Script code') }}</span>
+                                            <span x-show="copied" x-cloak>{{ __('Copied — paste into Apps Script') }}</span>
+                                        </button>
+                                        <button type="button" x-on:click="showCode = ! showCode"
+                                                class="text-xs text-zinc-600 hover:text-zinc-900 underline cursor-pointer">
+                                            <span x-show="!showCode">{{ __('Show code') }}</span>
+                                            <span x-show="showCode" x-cloak>{{ __('Hide code') }}</span>
                                         </button>
                                     </div>
+                                    <pre x-show="showCode" x-cloak dir="ltr" class="overflow-x-auto rounded-lg bg-zinc-900 p-2 text-[11px] leading-snug text-zinc-100 max-h-40">@verbatim
+function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  if (sheet.getLastRow() === 0) sheet.appendRow(data.headers);
+  sheet.appendRow(data.row);
+  return ContentService.createTextOutput('ok');
+}@endverbatim</pre>
                                     {{-- URL lock pattern: once a URL is saved, we display it as a masked
                                          read-only field with an explicit Unlock button, so accidentally
                                          clicking in + typing can't silently blank or mutate the connector.
