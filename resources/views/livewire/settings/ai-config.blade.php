@@ -1017,16 +1017,15 @@ function doPost(e) {
                                 @endif
 
                                 <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-200">
-                                    {{-- Native <button type=button> with wire:click. Earlier commits chased
-                                         ghosts (flux:button form-swallowing, @disabled directive, Alpine
-                                         $wire.call) — browser inspection proved the buttons were sitting
-                                         outside any x-data scope, so x-on:click was never bound. On a
-                                         native button inside a wire:submit form, type="button" + wire:click
-                                         Just Works™ — Livewire's own click handler bypasses form submit.
-                                         Verified against the actual DOM after deploy. --}}
+                                    {{-- Inline onclick with @this.call() is the only path that reliably
+                                         fires from here. The buttons sit inside <form wire:submit="saveConfig">
+                                         so wire:click gets eaten by the form handler, and no x-data ancestor
+                                         exists so x-on:click is never bound by Alpine. @this compiles to a
+                                         direct Livewire.find('<component-id>') reference that calls the
+                                         method regardless of DOM context. --}}
                                     <button
                                         type="button"
-                                        wire:click="saveConnectors"
+                                        onclick="@this.call('saveConnectors')"
                                         wire:loading.attr="disabled"
                                         wire:target="saveConnectors"
                                         class="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1036,7 +1035,7 @@ function doPost(e) {
                                     </button>
                                     <button
                                         type="button"
-                                        wire:click="sendTestRow"
+                                        onclick="@this.call('sendTestRow')"
                                         wire:loading.attr="disabled"
                                         wire:target="sendTestRow"
                                         class="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
