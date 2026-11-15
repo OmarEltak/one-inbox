@@ -96,13 +96,15 @@ class AiMediaResolver
         }
 
         return "══ PRODUCT MEDIA YOU CAN ATTACH ══\n"
-            . "When the customer asks to see a product, or when showing an image would clearly help close the sale, you MAY attach images by adding a marker on its own line in your reply:\n\n"
-            . "  [[SEND_MEDIA:product_id=<id>]]                        ← sends the primary image\n"
-            . "  [[SEND_MEDIA:product_id=<id>,variant=<label>]]        ← sends a specific variant\n\n"
+            . "When the customer asks to see a product, or when showing images would clearly help close the sale, add a marker on its own line in your reply:\n\n"
+            . "  [[SEND_MEDIA:product_id=<id>]]                        ← sends ALL images for that product (up to " . self::MAX_ATTACHMENTS_PER_REPLY . ")\n"
+            . "  [[SEND_MEDIA:product_id=<id>,variant=<label>]]        ← sends ONE specific variant/view\n"
+            . "  [[SEND_MEDIA:product_id=<id>,primary]]                ← sends ONLY the primary image\n\n"
             . "Rules:\n"
-            . "  • Only attach when the customer asked to see it OR a visual clearly adds value. Do NOT spam images.\n"
-            . "  • Maximum " . self::MAX_ATTACHMENTS_PER_REPLY . " images per reply.\n"
-            . "  • The marker will be stripped from the visible text — write your reply as usual, then add the marker(s) below.\n"
+            . "  • When the customer asks 'صور' / 'can I see images' / 'show me' / 'كل الصور' / 'all images' — use the FIRST form so they see every angle. Do NOT send just one.\n"
+            . "  • When the customer asks for a specific color/view (e.g. 'the burgundy one') — use the VARIANT form.\n"
+            . "  • Hard cap: maximum " . self::MAX_ATTACHMENTS_PER_REPLY . " images per reply TOTAL across all markers. If you ask for more they are silently dropped.\n"
+            . "  • The marker is stripped from the visible text — write your reply as usual, then add the marker(s) at the end.\n"
             . "  • If the product_id is not in the list below, do NOT invent one. Ask the customer for more detail instead.\n\n"
             . "Available:\n"
             . implode("\n", $lines);
@@ -140,16 +142,16 @@ class AiMediaResolver
                 continue;
             }
 
-            $media = $this->resolveMedia($config, $productId, $args['variant'] ?? null);
-            if (! $media || in_array($media->id, $seenMediaIds, true)) {
-                continue;
-            }
-
-            $seenMediaIds[] = $media->id;
-            $attachments->push($media);
-
-            if ($attachments->count() >= self::MAX_ATTACHMENTS_PER_REPLY) {
-                break;
+            $resolved = $this->resolveMedia($config, $productId, $args);
+            foreach ($resolved as $media) {
+                if (in_array($media->id, $seenMediaIds, true)) {
+                    continue;
+                }
+                $seenMediaIds[] = $media->id;
+                $attachments->push($media);
+                if ($attachments->count() >= self::MAX_ATTACHMENTS_PER_REPLY) {
+                    break 2;
+                }
             }
         }
 
@@ -238,37 +240,54 @@ class AiMediaResolver
     }
 
     /**
-     * Resolve product_id + optional variant to a single ProductMedia row.
-     * Precedence:
-     *   1. allow_ai_autosend=true AND variant_label matches (case-insensitive substring)
-     *   2. allow_ai_autosend=true AND is_primary=true
-     *   3. allow_ai_autosend=true, oldest display_order
-     * Returns null if no sendable media exists for this product.
+     * Resolve a marker to zero or more ProductMedia rows.
+     *
+     * Behaviour per marker shape:
+     *   - variant=<label>  → single row matching that variant (substring,
+     *                         case-insensitive). Falls back to primary if no
+     *                         variant hit, so the AI still sends *something*.
+     *   - primary (flag)   → single row where is_primary=true, else first.
+     *   - no qualifier     → ALL autosendable rows for the product, ordered
+     *                         by display_order (then id). Customers asking
+     *                         'can I see images?' expect every view, not one.
+     *
+     * Only rows with allow_ai_autosend=true are ever returned.
      */
-    protected function resolveMedia(AiConfig $config, string $productId, ?string $variant): ?ProductMedia
+    protected function resolveMedia(AiConfig $config, string $productId, array $args): \Illuminate\Support\Collection
     {
-        $query = ProductMedia::where('ai_config_id', $config->id)
+        $base = ProductMedia::where('ai_config_id', $config->id)
             ->where('product_key', $productId)
-            ->where('allow_ai_autosend', true);
+            ->where('allow_ai_autosend', true)
+            ->orderBy('display_order')
+            ->orderBy('id');
 
+        $variant = $args['variant'] ?? null;
         if ($variant !== null && trim($variant) !== '') {
-            $wantedVariant = trim($variant);
-            $candidates = (clone $query)->get();
-            foreach ($candidates as $media) {
+            $wanted = trim($variant);
+            $all = $base->get();
+            foreach ($all as $media) {
                 $label = (string) $media->variant_label;
-                if ($label !== '' && stripos($label, $wantedVariant) !== false) {
-                    return $media;
+                if ($label !== '' && stripos($label, $wanted) !== false) {
+                    return collect([$media]);
                 }
             }
-            // Fall through: no variant match → use primary/first below.
+            // No variant match — fall back to primary so the customer sees something.
+            $primary = $all->firstWhere('is_primary', true) ?? $all->first();
+            return $primary ? collect([$primary]) : collect();
         }
 
-        $primary = (clone $query)->where('is_primary', true)->first();
-        if ($primary) {
-            return $primary;
+        $primaryOnly = array_key_exists('primary', $args)
+            || ($args['primary'] ?? null) === 'true'
+            || ($args['primary'] ?? null) === '1';
+
+        if ($primaryOnly) {
+            $primary = (clone $base)->where('is_primary', true)->first() ?? (clone $base)->first();
+            return $primary ? collect([$primary]) : collect();
         }
 
-        return $query->orderBy('display_order')->orderBy('id')->first();
+        // Default: return ALL sendable rows for the product. The outer loop
+        // in extractMarkers applies the per-reply cap after dedupe.
+        return $base->get();
     }
 
     /**
