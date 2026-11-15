@@ -5,13 +5,20 @@ namespace App\Livewire\Settings;
 use App\Jobs\PushSalesConnectorRow;
 use App\Models\AiConfig as AiConfigModel;
 use App\Models\Conversation;
+use App\Models\ProductMedia;
 use App\Services\SalesConnectors\SalesConnectors;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class AiConfig extends Component
 {
+    use WithFileUploads;
+
+    public const MAX_MEDIA_PER_PRODUCT = 8;
+    public const MAX_IMAGE_BYTES       = 10_485_760;   // 10 MB
     public ?int $selectedPageId = null;
 
     // Business Info
@@ -73,6 +80,10 @@ class AiConfig extends Component
     public bool   $hasConfig = false;
     public string $activeTab = 'sales_goal'; // sales_goal | knowledge | behavior | handoff | advanced
 
+    // Product media — Livewire file upload slots keyed by product UUID.
+    // Each key points to a single TemporaryUploadedFile; cleared after persisting.
+    public array $productMediaUploads = [];
+
     public function mount(): void
     {
         $team = Auth::user()->currentTeam;
@@ -113,7 +124,7 @@ class AiConfig extends Component
             $this->hasConfig = true;
             $this->business_description = $config->business_description ?? '';
             $this->additional_instructions = $config->system_prompt ?? '';
-            $this->product_catalog = $config->product_catalog ?? [];
+            $this->product_catalog = $this->ensureProductIds($config->product_catalog ?? []);
             $this->pricing_info = $config->pricing_info ?? [];
             $this->faq = $config->faq ?? [];
             $this->tone = $config->tone ?? 'friendly';
@@ -374,13 +385,200 @@ class AiConfig extends Component
 
     public function addProduct(): void
     {
-        $this->product_catalog[] = ['name' => '', 'description' => '', 'price' => ''];
+        $this->product_catalog[] = [
+            'id'          => (string) Str::uuid(),
+            'name'        => '',
+            'description' => '',
+            'price'       => '',
+        ];
     }
 
     public function removeProduct(int $index): void
     {
+        $removed = $this->product_catalog[$index] ?? null;
         unset($this->product_catalog[$index]);
         $this->product_catalog = array_values($this->product_catalog);
+
+        // Cascade: drop any media attached to that product so storage doesn't leak.
+        if (! empty($removed['id'] ?? null)) {
+            $config = $this->selectedConfig();
+            if ($config) {
+                $this->deleteMediaFor($config, (string) $removed['id']);
+            }
+        }
+    }
+
+    /**
+     * Assign a stable UUID to any product entry that doesn't have one yet.
+     * Older rows saved before the media feature won't have ids — this backfills
+     * them in memory so the UI and product_media rows can reference them.
+     */
+    protected function ensureProductIds(array $catalog): array
+    {
+        return array_values(array_map(static function ($product) {
+            $product = is_array($product) ? $product : [];
+            if (empty($product['id'] ?? null)) {
+                $product['id'] = (string) Str::uuid();
+            }
+
+            return $product;
+        }, $catalog));
+    }
+
+    // --- Product media ---
+
+    public function uploadProductMedia(string $productId): void
+    {
+        $file = $this->productMediaUploads[$productId] ?? null;
+        if (! $file) {
+            return;
+        }
+
+        $config = $this->selectedConfig();
+        if (! $config) {
+            $this->addError('productMediaUploads.' . $productId, __('Save the product first, then add media.'));
+            return;
+        }
+
+        if (! $this->productBelongsToCatalog($productId)) {
+            $this->addError('productMediaUploads.' . $productId, __('Save the product first, then add media.'));
+            return;
+        }
+
+        $existingCount = ProductMedia::where('ai_config_id', $config->id)
+            ->where('product_key', $productId)
+            ->count();
+        if ($existingCount >= self::MAX_MEDIA_PER_PRODUCT) {
+            $this->addError('productMediaUploads.' . $productId, __('Up to :n media per product.', ['n' => self::MAX_MEDIA_PER_PRODUCT]));
+            $this->productMediaUploads[$productId] = null;
+            return;
+        }
+
+        $this->validate([
+            "productMediaUploads.$productId" => ['required', 'file', 'image', 'max:' . (self::MAX_IMAGE_BYTES / 1024), 'mimetypes:image/jpeg,image/png,image/webp,image/gif'],
+        ]);
+
+        $team = Auth::user()->currentTeam;
+        $dir  = 'product-media/' . $team->id . '/' . $productId;
+        $path = $file->store($dir, 'public');
+
+        ProductMedia::create([
+            'team_id'           => $team->id,
+            'ai_config_id'      => $config->id,
+            'product_key'       => $productId,
+            'kind'              => ProductMedia::KIND_IMAGE,
+            'disk'              => 'public',
+            'path'              => $path,
+            'mime'              => $file->getMimeType() ?: 'application/octet-stream',
+            'size_bytes'        => $file->getSize() ?: 0,
+            'is_primary'        => $existingCount === 0, // first upload auto-becomes primary
+            'allow_ai_autosend' => true,
+            'display_order'     => $existingCount,
+        ]);
+
+        $this->productMediaUploads[$productId] = null;
+        $this->dispatch('product-media-uploaded');
+    }
+
+    public function removeProductMedia(int $mediaId): void
+    {
+        $config = $this->selectedConfig();
+        if (! $config) {
+            return;
+        }
+
+        $media = ProductMedia::where('id', $mediaId)->where('ai_config_id', $config->id)->first();
+        if (! $media) {
+            return;
+        }
+
+        $productKey = $media->product_key;
+        $wasPrimary = $media->is_primary;
+
+        Storage::disk($media->disk)->delete($media->path);
+        $media->delete();
+
+        // Promote next-oldest to primary if we removed the primary.
+        if ($wasPrimary) {
+            $next = ProductMedia::where('ai_config_id', $config->id)
+                ->where('product_key', $productKey)
+                ->orderBy('display_order')
+                ->orderBy('id')
+                ->first();
+            if ($next) {
+                $next->update(['is_primary' => true]);
+            }
+        }
+    }
+
+    public function setPrimaryProductMedia(int $mediaId): void
+    {
+        $config = $this->selectedConfig();
+        if (! $config) {
+            return;
+        }
+
+        $media = ProductMedia::where('id', $mediaId)->where('ai_config_id', $config->id)->first();
+        if (! $media) {
+            return;
+        }
+
+        ProductMedia::where('ai_config_id', $config->id)
+            ->where('product_key', $media->product_key)
+            ->update(['is_primary' => false]);
+        $media->update(['is_primary' => true]);
+    }
+
+    public function toggleAutosendProductMedia(int $mediaId): void
+    {
+        $config = $this->selectedConfig();
+        if (! $config) {
+            return;
+        }
+
+        $media = ProductMedia::where('id', $mediaId)->where('ai_config_id', $config->id)->first();
+        if (! $media) {
+            return;
+        }
+
+        $media->update(['allow_ai_autosend' => ! $media->allow_ai_autosend]);
+    }
+
+    public function updateVariantLabel(int $mediaId, string $label): void
+    {
+        $config = $this->selectedConfig();
+        if (! $config) {
+            return;
+        }
+
+        $media = ProductMedia::where('id', $mediaId)->where('ai_config_id', $config->id)->first();
+        if (! $media) {
+            return;
+        }
+
+        $media->update(['variant_label' => trim(mb_substr($label, 0, 80)) ?: null]);
+    }
+
+    protected function productBelongsToCatalog(string $productId): bool
+    {
+        foreach ($this->product_catalog as $p) {
+            if (($p['id'] ?? null) === $productId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function deleteMediaFor(AiConfigModel $config, string $productId): void
+    {
+        $rows = ProductMedia::where('ai_config_id', $config->id)
+            ->where('product_key', $productId)
+            ->get();
+        foreach ($rows as $row) {
+            Storage::disk($row->disk)->delete($row->path);
+            $row->delete();
+        }
     }
 
     public function addPricing(): void
@@ -687,8 +885,14 @@ class AiConfig extends Component
 
     public function render()
     {
+        $config = $this->selectedConfig();
+        $mediaByProduct = $config
+            ? $config->productMedia()->get()->groupBy('product_key')
+            : collect();
+
         return view('livewire.settings.ai-config', [
-            'pages' => $this->getPages(),
+            'pages'          => $this->getPages(),
+            'mediaByProduct' => $mediaByProduct,
         ])->layout('layouts.app', ['title' => 'AI Configuration']);
     }
 }

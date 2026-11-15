@@ -264,13 +264,106 @@
                             </div>
 
                             @forelse($product_catalog as $i => $product)
-                                <div class="flex gap-3 mb-3 items-start" wire:key="product-{{ $i }}">
-                                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <flux:input wire:model="product_catalog.{{ $i }}.name" placeholder="{{ __('Product name') }}" size="sm" class="text-zinc-900" />
-                                        <flux:input wire:model="product_catalog.{{ $i }}.description" placeholder="{{ __('Short description') }}" size="sm" class="text-zinc-900" />
-                                        <flux:input wire:model="product_catalog.{{ $i }}.price" placeholder="{{ __('Price (e.g. $25)') }}" size="sm" class="text-zinc-900" />
+                                @php($productId = $product['id'] ?? null)
+                                @php($productMedia = $productId ? ($mediaByProduct[$productId] ?? collect()) : collect())
+                                <div class="mb-4 border border-zinc-200 rounded-lg p-3 bg-white/50" wire:key="product-{{ $productId ?: $i }}">
+                                    <div class="flex gap-3 items-start">
+                                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <flux:input wire:model="product_catalog.{{ $i }}.name" placeholder="{{ __('Product name') }}" size="sm" class="text-zinc-900" />
+                                            <flux:input wire:model="product_catalog.{{ $i }}.description" placeholder="{{ __('Short description') }}" size="sm" class="text-zinc-900" />
+                                            <flux:input wire:model="product_catalog.{{ $i }}.price" placeholder="{{ __('Price (e.g. $25)') }}" size="sm" class="text-zinc-900" />
+                                        </div>
+                                        <flux:button size="sm" variant="ghost" wire:click="removeProduct({{ $i }})" type="button" icon="x-mark" class="mt-0.5"
+                                                     wire:confirm="{{ __('Remove this product and its uploaded media?') }}" />
                                     </div>
-                                    <flux:button size="sm" variant="ghost" wire:click="removeProduct({{ $i }})" type="button" icon="x-mark" class="mt-0.5" />
+
+                                    {{-- Product media: images the AI can send when the customer asks --}}
+                                    @if($productId && $hasConfig)
+                                        <div class="mt-3 pt-3 border-t border-zinc-200">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <flux:text size="sm" class="text-zinc-700 font-medium">
+                                                    {{ __('Media (:count/:max)', ['count' => $productMedia->count(), 'max' => \App\Livewire\Settings\AiConfig::MAX_MEDIA_PER_PRODUCT]) }}
+                                                </flux:text>
+                                                <flux:text size="xs" class="text-zinc-500">
+                                                    {{ __('Images the AI can attach when a customer asks to see this product.') }}
+                                                </flux:text>
+                                            </div>
+
+                                            @if($productMedia->isNotEmpty())
+                                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                                                    @foreach($productMedia as $media)
+                                                        <div class="relative group border border-zinc-200 rounded-md overflow-hidden bg-zinc-50"
+                                                             wire:key="media-{{ $media->id }}">
+                                                            <img src="{{ $media->url() }}" alt="" class="w-full h-32 object-cover" />
+
+                                                            @if($media->is_primary)
+                                                                <span class="absolute top-1 start-1 bg-amber-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
+                                                                    {{ __('Primary') }}
+                                                                </span>
+                                                            @endif
+
+                                                            <div class="p-2 space-y-1.5 text-xs">
+                                                                <input type="text"
+                                                                       value="{{ $media->variant_label }}"
+                                                                       placeholder="{{ __('Variant (e.g. burgundy)') }}"
+                                                                       class="w-full text-xs px-1.5 py-1 border border-zinc-300 rounded text-zinc-900"
+                                                                       dir="auto"
+                                                                       wire:change="updateVariantLabel({{ $media->id }}, $event.target.value)" />
+
+                                                                <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                                                    <input type="checkbox"
+                                                                           {{ $media->allow_ai_autosend ? 'checked' : '' }}
+                                                                           wire:click="toggleAutosendProductMedia({{ $media->id }})"
+                                                                           class="rounded border-zinc-300" />
+                                                                    <span class="text-zinc-700">{{ __('AI may auto-send') }}</span>
+                                                                </label>
+
+                                                                <div class="flex items-center justify-between pt-1">
+                                                                    @if(! $media->is_primary)
+                                                                        <button type="button"
+                                                                                wire:click="setPrimaryProductMedia({{ $media->id }})"
+                                                                                class="text-amber-600 hover:text-amber-700 underline">
+                                                                            {{ __('Make primary') }}
+                                                                        </button>
+                                                                    @else
+                                                                        <span>&nbsp;</span>
+                                                                    @endif
+                                                                    <button type="button"
+                                                                            wire:click="removeProductMedia({{ $media->id }})"
+                                                                            wire:confirm="{{ __('Delete this image?') }}"
+                                                                            class="text-red-600 hover:text-red-700">
+                                                                        {{ __('Delete') }}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
+                                            <div class="flex items-center gap-3">
+                                                <input type="file"
+                                                       wire:model="productMediaUploads.{{ $productId }}"
+                                                       accept="image/jpeg,image/png,image/webp,image/gif"
+                                                       class="text-xs text-zinc-700 file:me-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-emerald-600 file:text-white hover:file:bg-emerald-700" />
+                                                <flux:button size="sm" variant="ghost" type="button"
+                                                             wire:click="uploadProductMedia('{{ $productId }}')"
+                                                             class="!bg-emerald-600 !text-white hover:!bg-emerald-700">
+                                                    {{ __('Upload') }}
+                                                </flux:button>
+                                                <div wire:loading wire:target="productMediaUploads.{{ $productId }},uploadProductMedia" class="text-xs text-zinc-500">
+                                                    {{ __('Uploading…') }}
+                                                </div>
+                                            </div>
+                                            @error("productMediaUploads.$productId")
+                                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    @elseif($productId && ! $hasConfig)
+                                        <div class="mt-3 pt-3 border-t border-zinc-200 text-xs text-zinc-500">
+                                            {{ __('Save this page’s config first, then you can upload product images here.') }}
+                                        </div>
+                                    @endif
                                 </div>
                             @empty
                                 <div class="text-sm text-zinc-900 py-2">{{ __('No products added yet. Click "Add" to get started.') }}</div>

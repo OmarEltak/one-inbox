@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * ══ ARCHITECTURE REFERENCE §5, §6 ══
@@ -217,6 +218,11 @@ class AiConfig extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function productMedia(): HasMany
+    {
+        return $this->hasMany(ProductMedia::class)->orderBy('display_order')->orderBy('id');
     }
 
     public function getRandomDelay(): int
