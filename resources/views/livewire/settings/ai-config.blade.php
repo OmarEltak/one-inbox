@@ -907,12 +907,36 @@
 
                                 {{-- Google Sheets --}}
                                 <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3" x-data="{ copied: false }">
-                                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('Google Sheets') }}</h3>
-                                    <ol class="list-decimal ps-5 space-y-1 text-sm text-zinc-800">
-                                        <li>{{ __('Open your Google Sheet → Extensions → Apps Script.') }}</li>
-                                        <li>{{ __('Replace everything with the code below and click Save.') }}</li>
-                                        <li>{{ __('Deploy → New deployment → type "Web app" → Execute as: Me, Who has access: Anyone → Deploy.') }}</li>
-                                        <li>{{ __('Copy the Web app URL (ends with /exec) and paste it here.') }}</li>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <h3 class="text-sm font-semibold text-zinc-900">{{ __('Google Sheets') }}</h3>
+                                        <a href="https://sheets.new" target="_blank" rel="noopener"
+                                           class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                            <flux:icon name="plus" class="w-3.5 h-3.5" />
+                                            {{ __('Create a new Google Sheet') }}
+                                        </a>
+                                    </div>
+                                    <ol class="list-decimal ps-5 space-y-1.5 text-sm text-zinc-800">
+                                        <li>
+                                            {{ __('Create a new sheet using the green button above, or') }}
+                                            <a href="https://docs.google.com/spreadsheets/u/0/" target="_blank" rel="noopener" class="text-emerald-700 underline">{{ __('open an existing one') }}</a>.
+                                        </li>
+                                        <li>
+                                            {{ __('In the sheet, click') }}
+                                            <span class="font-semibold">{{ __('Extensions → Apps Script') }}</span>
+                                            ({{ __('opens a new tab with a code editor') }}).
+                                        </li>
+                                        <li>{{ __('Delete the sample code, paste the code below, and click the save icon.') }}</li>
+                                        <li>
+                                            {{ __('Click') }} <span class="font-semibold">Deploy → New deployment</span> ·
+                                            {{ __('choose') }} <span class="font-semibold">Web app</span> ·
+                                            {{ __('set') }} <span class="font-semibold">Execute as: Me</span> ·
+                                            <span class="font-semibold">{{ __('Who has access: Anyone') }}</span> · {{ __('click Deploy.') }}
+                                        </li>
+                                        <li>
+                                            {{ __('Copy the Web app URL (ends with /exec) from the confirmation dialog and paste it below.') }}
+                                            <a href="https://developers.google.com/apps-script/concepts/deployments#types_of_deployments" target="_blank" rel="noopener"
+                                               class="text-emerald-700 underline">{{ __('deployment help') }}</a>
+                                        </li>
                                     </ol>
                                     <div class="relative">
                                         <pre x-ref="code" dir="ltr" class="overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs leading-relaxed text-zinc-100">@verbatim
@@ -939,7 +963,22 @@ function doPost(e) {
 
                                 {{-- Excel / automations --}}
                                 <div class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
-                                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('Excel, Zapier, Make or your CRM') }}</h3>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <h3 class="text-sm font-semibold text-zinc-900">{{ __('Excel, Zapier, Make or your CRM') }}</h3>
+                                        <div class="flex items-center gap-2">
+                                            <a href="https://zapier.com/apps/webhook/integrations" target="_blank" rel="noopener"
+                                               class="text-xs text-emerald-700 underline hover:no-underline">Zapier</a>
+                                            <span class="text-zinc-300">·</span>
+                                            <a href="https://www.make.com/en/integrations/webhooks" target="_blank" rel="noopener"
+                                               class="text-xs text-emerald-700 underline hover:no-underline">Make</a>
+                                            <span class="text-zinc-300">·</span>
+                                            <a href="https://make.powerautomate.com/" target="_blank" rel="noopener"
+                                               class="text-xs text-emerald-700 underline hover:no-underline">Power Automate (Excel)</a>
+                                            <span class="text-zinc-300">·</span>
+                                            <a href="https://n8n.io/" target="_blank" rel="noopener"
+                                               class="text-xs text-emerald-700 underline hover:no-underline">n8n</a>
+                                        </div>
+                                    </div>
                                     <p class="text-sm text-zinc-800">{{ __('Paste any webhook URL — e.g. Power Automate "When an HTTP request is received" → "Add a row into a table" for Excel Online, or a Zapier / Make / n8n webhook. Each event is sent as JSON with named fields.') }}</p>
                                     <flux:field>
                                         <flux:label>{{ __('Webhook URL') }}</flux:label>
