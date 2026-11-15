@@ -427,6 +427,19 @@ class AiConfig extends Component
 
     // --- Product media ---
 
+    /**
+     * Livewire fires this when any key in $productMediaUploads is assigned
+     * (i.e. the user picks a file). Auto-upload without a separate button click.
+     * $value is the TemporaryUploadedFile (or null on reset); $key is the product UUID.
+     */
+    public function updatedProductMediaUploads($value, string $key): void
+    {
+        if ($value === null) {
+            return;
+        }
+        $this->uploadProductMedia($key);
+    }
+
     public function uploadProductMedia(string $productId): void
     {
         $file = $this->productMediaUploads[$productId] ?? null;
