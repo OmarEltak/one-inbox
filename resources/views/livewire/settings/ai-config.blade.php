@@ -1017,18 +1017,30 @@ function doPost(e) {
                                 @endif
 
                                 <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-zinc-200">
-                                    {{-- No :disabled attribute: saveConnectors / sendTestRow already guard
-                                         with `! $config` and addError(), so UI-level disable was redundant
-                                         and (with Flux's attribute coercion) rendered as HTML disabled even
-                                         when hasConfig was true — swallowing wire:click. --}}
-                                    <flux:button type="button" variant="primary" wire:click="saveConnectors" wire:loading.attr="disabled">
+                                    {{-- These two buttons live INSIDE the outer <form wire:submit="saveConfig">
+                                         that wraps all tabs. wire:click on flux:button inside a wire:submit
+                                         form gets intercepted by Livewire's form handler and the click
+                                         silently no-ops. Using x-on:click.prevent.stop with $wire.<method>()
+                                         bypasses the form entirely — Alpine calls Livewire directly without
+                                         touching form submit, and .prevent stops the native form submit. --}}
+                                    <button
+                                        type="button"
+                                        x-on:click.prevent.stop="$wire.saveConnectors()"
+                                        wire:loading.attr="disabled"
+                                        class="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
                                         <span wire:loading.remove wire:target="saveConnectors">{{ __('Save connectors') }}</span>
                                         <span wire:loading wire:target="saveConnectors">{{ __('Saving…') }}</span>
-                                    </flux:button>
-                                    <flux:button type="button" variant="outline" wire:click="sendTestRow" wire:loading.attr="disabled">
+                                    </button>
+                                    <button
+                                        type="button"
+                                        x-on:click.prevent.stop="$wire.sendTestRow()"
+                                        wire:loading.attr="disabled"
+                                        class="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
                                         <span wire:loading.remove wire:target="sendTestRow">{{ __('Send a test row') }}</span>
                                         <span wire:loading wire:target="sendTestRow">{{ __('Sending…') }}</span>
-                                    </flux:button>
+                                    </button>
                                     <x-action-message on="connectors-saved" class="text-green-700">
                                         {{ __('Saved.') }}
                                     </x-action-message>
