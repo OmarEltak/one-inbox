@@ -31,7 +31,8 @@ use Illuminate\Support\Collection;
  */
 class AiMediaResolver
 {
-    public const MAX_ATTACHMENTS_PER_REPLY = 4;
+    public const MAX_ATTACHMENTS_PER_REPLY = 8;
+    public const MAX_PER_MARKER = 5;
 
     private const MARKER_PATTERN = '/\[\[\s*SEND_MEDIA\s*:\s*([^\]]+?)\s*\]\]/i';
 
@@ -97,13 +98,14 @@ class AiMediaResolver
 
         return "══ PRODUCT MEDIA YOU CAN ATTACH ══\n"
             . "When the customer asks to see a product, or when showing images would clearly help close the sale, add a marker on its own line in your reply:\n\n"
-            . "  [[SEND_MEDIA:product_id=<id>]]                        ← sends ALL images for that product (up to " . self::MAX_ATTACHMENTS_PER_REPLY . ")\n"
+            . "  [[SEND_MEDIA:product_id=<id>]]                        ← sends up to " . self::MAX_PER_MARKER . " images for that product\n"
             . "  [[SEND_MEDIA:product_id=<id>,variant=<label>]]        ← sends ONE specific variant/view\n"
             . "  [[SEND_MEDIA:product_id=<id>,primary]]                ← sends ONLY the primary image\n\n"
             . "Rules:\n"
-            . "  • When the customer asks 'صور' / 'can I see images' / 'show me' / 'كل الصور' / 'all images' — use the FIRST form so they see every angle. Do NOT send just one.\n"
+            . "  • When the customer asks 'صور' / 'can I see images' / 'show me' / 'كل الصور' / 'all images' — use the FIRST form.\n"
+            . "  • When the customer asks about TWO OR MORE products at once (e.g. 'images of both courses' / 'صور الكورسين' / 'all products') — emit ONE marker per product on separate lines. Do NOT try to combine them.\n"
             . "  • When the customer asks for a specific color/view (e.g. 'the burgundy one') — use the VARIANT form.\n"
-            . "  • Hard cap: maximum " . self::MAX_ATTACHMENTS_PER_REPLY . " images per reply TOTAL across all markers. If you ask for more they are silently dropped.\n"
+            . "  • Hard caps enforced by the system: " . self::MAX_PER_MARKER . " images per single marker, " . self::MAX_ATTACHMENTS_PER_REPLY . " images per reply total. Images beyond the limits are silently dropped.\n"
             . "  • The marker is stripped from the visible text — write your reply as usual, then add the marker(s) at the end.\n"
             . "  • If the product_id is not in the list below, do NOT invent one. Ask the customer for more detail instead.\n\n"
             . "Available:\n"
@@ -143,14 +145,23 @@ class AiMediaResolver
             }
 
             $resolved = $this->resolveMedia($config, $productId, $args);
+            // Per-marker cap: one product can't eat the entire per-reply budget.
+            // Without this, a customer asking for "both courses" lost all the
+            // second product's images because marker #1 consumed the full cap.
+            $takenFromThisMarker = 0;
             foreach ($resolved as $media) {
                 if (in_array($media->id, $seenMediaIds, true)) {
                     continue;
                 }
                 $seenMediaIds[] = $media->id;
                 $attachments->push($media);
+                $takenFromThisMarker++;
+
                 if ($attachments->count() >= self::MAX_ATTACHMENTS_PER_REPLY) {
                     break 2;
+                }
+                if ($takenFromThisMarker >= self::MAX_PER_MARKER) {
+                    break;
                 }
             }
         }

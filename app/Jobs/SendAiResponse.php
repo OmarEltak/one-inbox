@@ -117,9 +117,22 @@ class SendAiResponse implements ShouldQueue
         // Per-contact daily AI reply cap. Prevents a single troll or overly
         // chatty customer from burning all of your provider tokens. Rolls the
         // 24h window lazily so no cron job is required.
+        //
+        // Human-override: if an operator un-escalated this conversation AFTER
+        // an auto-escalation (reactivated_at > escalated_at), skip the cap
+        // check. Otherwise the very next inbound message re-escalates in
+        // seconds and the human's choice is undone — same trap already
+        // pinned for spam in CLAUDE.md pin #10, applied here for the escalation
+        // path. The human explicitly said "AI, keep helping this customer";
+        // we respect that for the rest of the 24h cap window.
+        $meta           = $conversation->metadata ?? [];
+        $reactivatedAt  = $meta['reactivated_at'] ?? null;
+        $escalatedAt    = $meta['escalated_at']   ?? null;
+        $humanOverride  = $reactivatedAt && (! $escalatedAt || $reactivatedAt > $escalatedAt);
+
         $contact = $conversation->contact;
         $cap     = (int) ($aiConfig->contact_ai_reply_cap ?? 20);
-        if ($contact && ! $contact->canReceiveAiReply($cap)) {
+        if (! $humanOverride && $contact && ! $contact->canReceiveAiReply($cap)) {
             $conversation->escalate('contact_ai_reply_cap_reached');
             broadcast(new AiLimitReached($team->id));
             return;
