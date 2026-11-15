@@ -299,7 +299,14 @@ class AiMediaResolver
         $parts = preg_split('/\s*,\s*/', $argString) ?: [];
         $args = [];
         foreach ($parts as $part) {
+            $part = trim($part);
+            if ($part === '') {
+                continue;
+            }
+            // Flag-style token with no '=' → treat as presence flag (value = true).
+            // Lets the AI write ',primary' as documented without needing ',primary=true'.
             if (! str_contains($part, '=')) {
+                $args[strtolower($part)] = true;
                 continue;
             }
             [$k, $v] = explode('=', $part, 2);
