@@ -771,12 +771,12 @@ class SendAiResponse implements ShouldQueue
             }
         }
 
-        // Order lines: every bulleted line that starts with "شال" (the only
-        // product family Lavin sells). Captures one or more lines so multi-
-        // item orders like "3 شال كبير أسود + 2 شال صغير بيج" surface
-        // correctly. Collapses them into a single string separated by " + "
+        // Order lines: every bulleted line that contains "شال" anywhere —
+        // matches both "- 2 × شال كبير أسود" (prefixed qty) and "- شال كبير
+        // أسود × 2" (suffixed qty) so the AI can emit either and still get
+        // parsed. Collapses multiple lines into one " + "-separated string
         // for the sheet's Order column.
-        if (preg_match_all('/^\s*[-•]\s*(شال[^\n]+?)\s*$/mu', $text, $allMatches)) {
+        if (preg_match_all('/^\s*[-•]\s*([^\n]*شال[^\n]*)$/mu', $text, $allMatches)) {
             $lines = array_map(fn ($l) => trim(preg_replace('/\s+/', ' ', $l)), $allMatches[1]);
             $summary = implode(' + ', $lines);
             if ($summary !== '') {
