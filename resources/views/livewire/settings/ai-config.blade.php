@@ -991,7 +991,7 @@ function doPost(e) {
                                                 </button>
                                             </div>
                                             <flux:input x-ref="sheetUrlInput"
-                                                        wire:model="connector_sheet_url"
+                                                        wire:model.blur="connector_sheet_url"
                                                         type="url" dir="ltr"
                                                         placeholder="https://script.google.com/macros/s/…/exec"
                                                         x-bind:readonly="locked"
@@ -1039,7 +1039,7 @@ function doPost(e) {
                                                 </button>
                                             </div>
                                             <flux:input x-ref="webhookUrlInput"
-                                                        wire:model="connector_webhook_url"
+                                                        wire:model.blur="connector_webhook_url"
                                                         type="url" dir="ltr"
                                                         placeholder="https://hooks.zapier.com/…"
                                                         x-bind:readonly="locked"
@@ -1108,9 +1108,13 @@ function doPost(e) {
                                         <span wire:loading.remove wire:target="sendTestRow">{{ __('Send a test row') }}</span>
                                         <span wire:loading wire:target="sendTestRow">{{ __('Sending…') }}</span>
                                     </button>
-                                    <x-action-message on="connectors-saved" class="text-green-700">
+                                    <div x-data="{ shown: false, t: null }"
+                                         x-on:connectors-saved.window="clearTimeout(t); shown = true; t = setTimeout(() => shown = false, 3000)"
+                                         x-show="shown" x-cloak
+                                         class="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800">
+                                        <flux:icon name="check-circle" class="w-4 h-4" />
                                         {{ __('Saved.') }}
-                                    </x-action-message>
+                                    </div>
                                 </div>
                             </section>
                         @endif {{-- /Connectors tab --}}

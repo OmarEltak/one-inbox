@@ -744,8 +744,14 @@ class AiConfig extends Component
             return;
         }
 
-        $this->connector_sheet_url = trim($this->connector_sheet_url);
-        $this->connector_webhook_url = trim($this->connector_webhook_url);
+        // Safety-net flush: if a wire:model is still deferred (e.g. user clicked
+        // Save without blurring the input), the Livewire 3 action pipeline
+        // should have already synced it — but if an onclick="@this.call()"
+        // escape hatch fires without flushing, we'd lose the typed URL silently.
+        // Trimming null-coalesced defaults guarantees string ops below won't
+        // null-trim-error even when the frontend never pushed a value.
+        $this->connector_sheet_url = trim((string) $this->connector_sheet_url);
+        $this->connector_webhook_url = trim((string) $this->connector_webhook_url);
 
         $this->validate([
             'connector_sheet_url'   => ['nullable', 'url', 'max:2000'],
@@ -768,7 +774,12 @@ class AiConfig extends Component
         $settings['events'] = array_values(array_intersect(SalesConnectors::EVENTS, $this->connector_events));
         $config->update(['sales_connectors' => $settings]);
 
+        // Dispatch to the browser so Alpine x-on:connectors-saved.window picks it
+        // up — more reliable across impersonation session boundaries than the
+        // component-scoped x-action-message pattern, which couples the toast to
+        // the specific Livewire component instance that mounted on page load.
         $this->dispatch('connectors-saved');
+        $this->js('window.dispatchEvent(new CustomEvent(\'connectors-saved\'))');
     }
 
     /** Appends one "Test row" (built from this page's latest chat) so the operator can see it land. */
