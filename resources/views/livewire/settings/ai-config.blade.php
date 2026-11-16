@@ -991,7 +991,7 @@ function doPost(e) {
                                                 </button>
                                             </div>
                                             <flux:input x-ref="sheetUrlInput"
-                                                        wire:model.blur="connector_sheet_url"
+                                                        wire:model.live="connector_sheet_url"
                                                         type="url" dir="ltr"
                                                         placeholder="https://script.google.com/macros/s/…/exec"
                                                         x-bind:readonly="locked"
@@ -1039,7 +1039,7 @@ function doPost(e) {
                                                 </button>
                                             </div>
                                             <flux:input x-ref="webhookUrlInput"
-                                                        wire:model.blur="connector_webhook_url"
+                                                        wire:model.live="connector_webhook_url"
                                                         type="url" dir="ltr"
                                                         placeholder="https://hooks.zapier.com/…"
                                                         x-bind:readonly="locked"
