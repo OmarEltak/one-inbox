@@ -330,6 +330,22 @@ class SendAiResponse implements ShouldQueue
                 $visibleText = '';
             }
 
+            // Order-confirmation parser: when the AI emits "سجلت الأوردر" (its
+            // trained final-confirmation marker — see Lavin's system prompt
+            // Rule #6), extract the structured order details from the message
+            // itself and stamp them onto conversation.captured_data. This is
+            // way more reliable than running an LLM extractor against random
+            // customer turns, which was producing garbage like
+            // "Product: الزيتون" (a neighborhood name) because the customer
+            // mentioned it in address text.
+            //
+            // Format expected (match Rule #6 in the system prompt):
+            //   - الاسم: <name>
+            //   - شال <size> <color> × <qty>   (one or more lines)
+            //   - العنوان: <address>
+            //   - رقم التواصل: <phone>
+            $this->parseAiOrderConfirmation($conversation, $visibleText);
+
             // Store the AI message in our database
             $aiMessage = Message::create([
                 'conversation_id' => $conversation->id,
@@ -716,6 +732,61 @@ class SendAiResponse implements ShouldQueue
         $meta['send_error']     = $error;
         $meta['send_error_raw'] = $error;
         $aiMessage->update(['metadata' => $meta]);
+    }
+
+    /**
+     * Parse the AI's "سجلت الأوردر" confirmation message and stamp the
+     * structured order details onto conversation.captured_data. Idempotent:
+     * only fires when the marker phrase is present AND the captured_data
+     * hasn't been stamped by a previous parse of the same conversation
+     * (captured_data.order_summary already set).
+     *
+     * This runs BEFORE the Message row is persisted so complete() can
+     * see the full captured state when the required-fields check runs.
+     */
+    protected function parseAiOrderConfirmation(Conversation $conversation, string $text): void
+    {
+        if (! str_contains($text, 'سجلت الأوردر')) {
+            return;
+        }
+
+        $captured = (array) ($conversation->captured_data ?? []);
+
+        // Name: "- الاسم: <name>" or "الاسم: <name>" — handles both bullet
+        // and plain-line forms without the leading dash.
+        if (empty($captured['name']) && preg_match('/[-•]?\s*الاسم\s*[:：]\s*(.+)/u', $text, $m)) {
+            $captured['name'] = trim(preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '');
+        }
+
+        // Address: "- العنوان: <address>"
+        if (empty($captured['address']) && preg_match('/[-•]?\s*العنوان\s*[:：]\s*(.+)/u', $text, $m)) {
+            $captured['address'] = trim(preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '');
+        }
+
+        // Phone: "- رقم التواصل: <phone>" or "رقم التواصل: <phone>"
+        if (empty($captured['phone']) && preg_match('/[-•]?\s*رقم\s+التواصل\s*[:：]\s*([+\d\s\-()]+)/u', $text, $m)) {
+            $digits = preg_replace('/[^\d+]/', '', $m[1]) ?? '';
+            if (strlen($digits) >= 7) {
+                $captured['phone'] = $digits;
+            }
+        }
+
+        // Order lines: every bulleted line that starts with "شال" (the only
+        // product family Lavin sells). Captures one or more lines so multi-
+        // item orders like "3 شال كبير أسود + 2 شال صغير بيج" surface
+        // correctly. Collapses them into a single string separated by " + "
+        // for the sheet's Order column.
+        if (preg_match_all('/^\s*[-•]\s*(شال[^\n]+?)\s*$/mu', $text, $allMatches)) {
+            $lines = array_map(fn ($l) => trim(preg_replace('/\s+/', ' ', $l)), $allMatches[1]);
+            $summary = implode(' + ', $lines);
+            if ($summary !== '') {
+                $captured['order_summary'] = $summary;
+            }
+        }
+
+        if ($captured !== (array) ($conversation->captured_data ?? [])) {
+            $conversation->update(['captured_data' => $captured]);
+        }
     }
 
     protected function sendViaTelegram(Page $page, string $chatId, string $text, Message $aiMessage): void

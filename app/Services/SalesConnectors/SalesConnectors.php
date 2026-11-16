@@ -78,21 +78,29 @@ class SalesConnectors
             ->where('direction', 'inbound')->whereNotNull('content')
             ->latest('id')->value('content');
 
-        // Order column: combine product + color + quantity into one readable
-        // string so the shop owner sees "شال كبير أسود × 2" in a single cell
-        // instead of needing to piece together three fields from a JSON dump.
-        // Falls back gracefully when only some fields are captured.
-        $orderParts = [];
-        if (! empty($captured['product']))  $orderParts[] = (string) $captured['product'];
-        if (! empty($captured['color']))    $orderParts[] = (string) $captured['color'];
-        $orderString = implode(' ', $orderParts);
-        if (! empty($captured['quantity'])) {
-            $orderString = trim($orderString . ' × ' . $captured['quantity']);
+        // Order column: prefer the structured order_summary that SendAiResponse
+        // parses from the AI's confirmation message (clean, authoritative format
+        // like "شال كبير أسود × 1 + شال صغير بيج × 2"). Falls back to the
+        // raw product/color/quantity triple only if the parser hasn't run yet
+        // (e.g. older rows pre-this-commit, or convs the AI never confirmed).
+        $orderString = (string) ($captured['order_summary'] ?? '');
+        if ($orderString === '') {
+            $orderParts = [];
+            if (! empty($captured['product']))  $orderParts[] = (string) $captured['product'];
+            if (! empty($captured['color']))    $orderParts[] = (string) $captured['color'];
+            $orderString = implode(' ', $orderParts);
+            if (! empty($captured['quantity'])) {
+                $orderString = trim($orderString . ' × ' . $captured['quantity']);
+            }
         }
 
         return array_combine(self::HEADERS, [
             ($at ? \Illuminate\Support\Carbon::parse($at) : now())->toDateTimeString(),
-            (string) ($captured['name'] ?? $contact?->name ?? ''),
+            // Name column: NO fallback to contact->name. Contact names come from
+            // WhatsApp display names which are nicknames, emoji, or usernames —
+            // useless for shipping. Empty cell forces the operator (or the AI
+            // follow-up loop) to capture the real name.
+            (string) ($captured['name'] ?? ''),
             (string) ($captured['phone'] ?? $contact?->phone ?? ''),
             $orderString,
             (string) ($captured['address'] ?? ''),
