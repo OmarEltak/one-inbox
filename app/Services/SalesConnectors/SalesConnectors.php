@@ -94,6 +94,15 @@ class SalesConnectors
             }
         }
 
+        // Google Sheets auto-strips leading zeros from anything that parses as
+        // a number ("01091960842" becomes 1091960842). Prefix phone + conv ID
+        // with a leading apostrophe — Sheets treats apostrophe-prefixed cells
+        // as literal text, so the leading zero stays visible. Apps Script's
+        // appendRow() honours this convention.
+        $phoneRaw = (string) ($captured['phone'] ?? $contact?->phone ?? '');
+        $phone = $phoneRaw !== '' ? "'" . $phoneRaw : '';
+        $convIdStr = "'" . (string) $conversation->id;
+
         return array_combine(self::HEADERS, [
             ($at ? \Illuminate\Support\Carbon::parse($at) : now())->toDateTimeString(),
             // Name column: NO fallback to contact->name. Contact names come from
@@ -101,7 +110,7 @@ class SalesConnectors
             // useless for shipping. Empty cell forces the operator (or the AI
             // follow-up loop) to capture the real name.
             (string) ($captured['name'] ?? ''),
-            (string) ($captured['phone'] ?? $contact?->phone ?? ''),
+            $phone,
             $orderString,
             (string) ($captured['address'] ?? ''),
             (string) $conversation->platform,
@@ -113,7 +122,7 @@ class SalesConnectors
                 self::EVENT_DEAL_CLOSED   => 'Deal closed',
                 default                   => 'Test row',
             },
-            (string) $conversation->id,
+            $convIdStr,
         ]);
     }
 
