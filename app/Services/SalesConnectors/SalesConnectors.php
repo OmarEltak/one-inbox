@@ -30,7 +30,11 @@ class SalesConnectors
 
     public const EVENTS = [self::EVENT_LEAD_CAPTURED, self::EVENT_DEAL_CLOSED];
 
-    public const HEADERS = ['Date', 'Event', 'Contact', 'Phone', 'Email', 'Channel', 'Page', 'Lead status', 'Captured info', 'Last customer message', 'Conversation ID'];
+    // Column order optimised for e-commerce operators: the fields they need
+    // to fulfill an order (Name, Phone, Order details, Address) come first,
+    // then the ones they look at for context (Channel, Status, Last message),
+    // then the audit columns (Event, Conv ID). Keep in sync with row() below.
+    public const HEADERS = ['Date', 'Name', 'Phone', 'Order', 'Address', 'Channel', 'Page', 'Status', 'Last message', 'Event', 'Conversation ID'];
 
     /** Test seam for DNS resolution (host => list of IPs, or false). */
     public static ?\Closure $resolver = null;
@@ -74,21 +78,33 @@ class SalesConnectors
             ->where('direction', 'inbound')->whereNotNull('content')
             ->latest('id')->value('content');
 
+        // Order column: combine product + color + quantity into one readable
+        // string so the shop owner sees "شال كبير أسود × 2" in a single cell
+        // instead of needing to piece together three fields from a JSON dump.
+        // Falls back gracefully when only some fields are captured.
+        $orderParts = [];
+        if (! empty($captured['product']))  $orderParts[] = (string) $captured['product'];
+        if (! empty($captured['color']))    $orderParts[] = (string) $captured['color'];
+        $orderString = implode(' ', $orderParts);
+        if (! empty($captured['quantity'])) {
+            $orderString = trim($orderString . ' × ' . $captured['quantity']);
+        }
+
         return array_combine(self::HEADERS, [
             ($at ? \Illuminate\Support\Carbon::parse($at) : now())->toDateTimeString(),
+            (string) ($captured['name'] ?? $contact?->name ?? ''),
+            (string) ($captured['phone'] ?? $contact?->phone ?? ''),
+            $orderString,
+            (string) ($captured['address'] ?? ''),
+            (string) $conversation->platform,
+            (string) ($conversation->page?->name ?? ''),
+            (string) ($contact?->lead_status ?? ''),
+            Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $lastMessage) ?? ''), 300),
             match ($event) {
                 self::EVENT_LEAD_CAPTURED => 'Required info captured',
                 self::EVENT_DEAL_CLOSED   => 'Deal closed',
                 default                   => 'Test row',
             },
-            (string) ($captured['name'] ?? $contact?->name ?? ''),
-            (string) ($captured['phone'] ?? $contact?->phone ?? ''),
-            (string) ($captured['email'] ?? $contact?->email ?? ''),
-            (string) $conversation->platform,
-            (string) ($conversation->page?->name ?? ''),
-            (string) ($contact?->lead_status ?? ''),
-            collect($captured)->map(fn ($v, $k) => Str::headline((string) $k) . ': ' . (is_scalar($v) ? $v : json_encode($v, JSON_UNESCAPED_UNICODE)))->implode(' · '),
-            Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $lastMessage) ?? ''), 300),
             (string) $conversation->id,
         ]);
     }

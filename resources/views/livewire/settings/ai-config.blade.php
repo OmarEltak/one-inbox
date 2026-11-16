@@ -945,7 +945,10 @@
 function doPost(e) {
   var data = JSON.parse(e.postData.contents);
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  if (sheet.getLastRow() === 0) sheet.appendRow(data.headers);
+  var cur = sheet.getLastRow() === 0 ? [] : sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), data.headers.length)).getValues()[0];
+  if (cur.join('|') !== data.headers.join('|')) {
+    sheet.getRange(1, 1, 1, data.headers.length).setValues([data.headers]);
+  }
   sheet.appendRow(data.row);
   return ContentService.createTextOutput('ok');
 }@endverbatim</pre>
@@ -967,7 +970,10 @@ function doPost(e) {
 function doPost(e) {
   var data = JSON.parse(e.postData.contents);
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  if (sheet.getLastRow() === 0) sheet.appendRow(data.headers);
+  var cur = sheet.getLastRow() === 0 ? [] : sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), data.headers.length)).getValues()[0];
+  if (cur.join('|') !== data.headers.join('|')) {
+    sheet.getRange(1, 1, 1, data.headers.length).setValues([data.headers]);
+  }
   sheet.appendRow(data.row);
   return ContentService.createTextOutput('ok');
 }@endverbatim</pre>
