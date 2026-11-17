@@ -51,6 +51,19 @@ class SalesConnectors
             return;
         }
 
+        // Only confirmed orders land in the sheet. captured['confirmed_at']
+        // is set ONLY by SendAiResponse::parseAiOrderConfirmation when the
+        // AI emits "سجلت الأوردر" — so leads still in discovery never pollute
+        // the sheet, even if complete() fires on partial captured_data.
+        $captured = (array) ($conversation->captured_data ?? []);
+        if (empty($captured['confirmed_at'])) {
+            \Illuminate\Support\Facades\Log::info('SalesConnectors::notify: skipping unconfirmed convo', [
+                'conversation_id' => $conversation->id,
+                'event'           => $event,
+            ]);
+            return;
+        }
+
         PushSalesConnectorRow::dispatch($conversation->id, $event)->afterCommit();
     }
 
@@ -95,11 +108,17 @@ class SalesConnectors
         }
 
         // Google Sheets auto-strips leading zeros from anything that parses as
-        // a number ("01091960842" becomes 1091960842). Prefix phone + conv ID
-        // with a leading apostrophe — Sheets treats apostrophe-prefixed cells
-        // as literal text, so the leading zero stays visible. Apps Script's
-        // appendRow() honours this convention.
-        $phoneRaw = (string) ($captured['phone'] ?? $contact?->phone ?? '');
+        // a number ("01091960842" becomes 1091960842). Prefix with apostrophe —
+        // Sheets treats apostrophe-prefixed cells as literal text, so the
+        // leading zero stays visible. Apps Script's appendRow() honours this.
+        //
+        // IMPORTANT: NO fallback to $contact->phone. Contact phones on WhatsApp
+        // are the sender's WhatsApp number — NOT necessarily their shipping
+        // contact number (the customer might type a different one for the
+        // delivery). Shipping company needs the number the CUSTOMER typed in
+        // their order confirmation. Empty here means "not captured yet" —
+        // operator sees the gap and chases via chat.
+        $phoneRaw = (string) ($captured['phone'] ?? '');
         $phone = $phoneRaw !== '' ? "'" . $phoneRaw : '';
         $convIdStr = "'" . (string) $conversation->id;
 

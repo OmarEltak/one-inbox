@@ -736,13 +736,22 @@ class SendAiResponse implements ShouldQueue
 
     /**
      * Parse the AI's "سجلت الأوردر" confirmation message and stamp the
-     * structured order details onto conversation.captured_data. Idempotent:
-     * only fires when the marker phrase is present AND the captured_data
-     * hasn't been stamped by a previous parse of the same conversation
-     * (captured_data.order_summary already set).
+     * structured order details onto conversation.captured_data + mark the
+     * conversation as a confirmed order. This is the ONLY code path that
+     * sets captured['confirmed_at'] — SalesConnectors uses that flag to
+     * decide whether a conversation is sheet-worthy.
      *
-     * This runs BEFORE the Message row is persisted so complete() can
-     * see the full captured state when the required-fields check runs.
+     * Runs BEFORE the Message row is persisted so complete() sees the
+     * full captured state when checking required fields.
+     *
+     * Handles real-world AI variance observed on prod:
+     *   - Arabic numerals (١٢٣٤٥٦٧٨٩٠) + Western (0-9)
+     *   - "1 × شال كبير أسود" vs "شال كبير أسود × 1" (either order)
+     *   - Multi-item lines joined with " + " on a single line
+     *   - Missing name/phone lines — captured keys stay empty, don't invent
+     *   - Multi-line addresses (take EVERYTHING after "العنوان:" up to the
+     *     next bullet, not just one line, because customers often spread
+     *     the address across turns and the AI echoes both)
      */
     protected function parseAiOrderConfirmation(Conversation $conversation, string $text): void
     {
@@ -752,37 +761,58 @@ class SendAiResponse implements ShouldQueue
 
         $captured = (array) ($conversation->captured_data ?? []);
 
-        // Name: "- الاسم: <name>" or "الاسم: <name>" — handles both bullet
-        // and plain-line forms without the leading dash.
-        if (empty($captured['name']) && preg_match('/[-•]?\s*الاسم\s*[:：]\s*(.+)/u', $text, $m)) {
-            $captured['name'] = trim(preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '');
+        // Normalise Arabic-Indic digits → Western so int/str processing works.
+        $westernised = strtr($text, [
+            '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4',
+            '٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
+        ]);
+
+        // Name — only if the customer actually provided one in the conversation
+        // and the AI echoed it on the "الاسم:" line.
+        if (empty($captured['name']) && preg_match('/[-•]?\s*الاسم\s*[:：]\s*([^\n]+)/u', $text, $m)) {
+            $name = trim(preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '');
+            if ($name !== '' && mb_strlen($name) >= 2) {
+                $captured['name'] = $name;
+            }
         }
 
-        // Address: "- العنوان: <address>"
-        if (empty($captured['address']) && preg_match('/[-•]?\s*العنوان\s*[:：]\s*(.+)/u', $text, $m)) {
-            $captured['address'] = trim(preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '');
-        }
-
-        // Phone: "- رقم التواصل: <phone>" or "رقم التواصل: <phone>"
-        if (empty($captured['phone']) && preg_match('/[-•]?\s*رقم\s+التواصل\s*[:：]\s*([+\d\s\-()]+)/u', $text, $m)) {
+        // Phone — same, only from the AI's explicit "رقم التواصل:" line.
+        if (empty($captured['phone']) && preg_match('/[-•]?\s*رقم\s+التواصل\s*[:：]\s*([+\d\s\-()]+)/u', $westernised, $m)) {
             $digits = preg_replace('/[^\d+]/', '', $m[1]) ?? '';
             if (strlen($digits) >= 7) {
                 $captured['phone'] = $digits;
             }
         }
 
-        // Order lines: every bulleted line that contains "شال" anywhere —
-        // matches both "- 2 × شال كبير أسود" (prefixed qty) and "- شال كبير
-        // أسود × 2" (suffixed qty) so the AI can emit either and still get
-        // parsed. Collapses multiple lines into one " + "-separated string
-        // for the sheet's Order column.
+        // Address — greedy match everything from "العنوان:" until the next
+        // bullet-prefixed structured line (الإجمالي / رقم التواصل / التوصيل)
+        // so multi-line / wrapped addresses are captured in full.
+        if (preg_match('/[-•]?\s*العنوان\s*[:：]\s*(.+?)(?=\n\s*[-•]\s*(?:الإجمالي|رقم\s+التواصل|التوصيل)|\z)/us', $text, $m)) {
+            $addr = trim(preg_replace('/\s+/u', ' ', preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '') ?? '');
+            // Always overwrite — the AI's confirmation address is authoritative
+            // (it may have asked for clarification and combined multiple turns).
+            if ($addr !== '') {
+                $captured['address'] = $addr;
+            }
+        }
+
+        // Order lines: any bullet-prefixed line containing "شال".
         if (preg_match_all('/^\s*[-•]\s*([^\n]*شال[^\n]*)$/mu', $text, $allMatches)) {
-            $lines = array_map(fn ($l) => trim(preg_replace('/\s+/', ' ', $l)), $allMatches[1]);
+            $lines = array_map(fn ($l) => trim(preg_replace('/\s+/u', ' ', $l)), $allMatches[1]);
+            // Westernise digits inside each line too so "× ١" becomes "× 1".
+            $lines = array_map(fn ($l) => strtr($l, [
+                '٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4',
+                '٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
+            ]), $lines);
             $summary = implode(' + ', $lines);
             if ($summary !== '') {
                 $captured['order_summary'] = $summary;
             }
         }
+
+        // Mark the conversation as a REAL confirmed order. This is the single
+        // source of truth for "does this row belong in the sheet".
+        $captured['confirmed_at'] = now()->toIso8601String();
 
         if ($captured !== (array) ($conversation->captured_data ?? [])) {
             $conversation->update(['captured_data' => $captured]);
