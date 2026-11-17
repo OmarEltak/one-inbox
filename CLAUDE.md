@@ -141,3 +141,19 @@ See `examples/` in the skill's repo for real case studies from this codebase.
 **Development flow**: work in `C:\Users\NanoChip\Herd\one-inbox\` → push to `main` → auto-deploys to prod. Never edit files directly on the VPS.
 
 **Prod .env**: lives only on the VPS at `/var/www/ot1-pro.com/.env` (mode 600, not in git). If you need to change a prod env var, SSH in and edit it directly, then `php artisan config:cache`.
+
+## ⚖️ IRON LAWS (permanent, project-wide — apply to EVERY session forever, 2026-11-17)
+
+These laws are NOT session-scoped and NOT suggestions. They apply to every action in this project by any session going forward. Violating them is considered a project-level failure, not a per-session bug.
+
+### LAW #1 — NEVER ship a fix that requires customers to reconnect / re-scan QR / re-authenticate
+Customers do NOT re-connect on demand. Every reconnect requires them to:
+  - Log into a dashboard they don't live in
+  - Open OAuth popups
+  - Re-scan a QR with their phone
+  - Trust us again after a scary error
+
+Any fix whose happy path or required recovery step includes "ask the customer to reconnect / re-scan / re-authenticate" is **REJECTED outright**. Find a server-side solution: upgrade the library, add retry logic, add token-refresh pathway, add graceful degradation, surface a clearer in-app notice that does NOT require re-auth. If after serious investigation the ONLY option left is reconnect, STOP, flag it as a design-level problem, and ask the owner before writing a single line of code. Do NOT silently ship a solution that depends on customer reconnect.
+
+### LAW #2 — NEVER ship a fix without testing it on prod first
+Fast-feedback discipline: after committing + deploying, run a real-data verification against prod via tinker, curl, or an equivalent end-to-end probe BEFORE telling the user "it's shipped" or "it works". Tests on a dev machine do NOT count — differences between dev SQLite and prod MySQL, env flags, worker state, cached views, and OAuth tokens have all caused "it works locally" lies this project remembers (pin #6 captures the same lesson for `config:cache`). Minimum verification: invoke the changed code path on prod with real data, read back the observable effect (DB state / log entry / sheet row / HTTP response body), and confirm it matches the intent — THEN report success to the user.
