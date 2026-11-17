@@ -767,20 +767,27 @@ class SendAiResponse implements ShouldQueue
             '٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9',
         ]);
 
-        // Name — only if the customer actually provided one in the conversation
-        // and the AI echoed it on the "الاسم:" line.
-        if (empty($captured['name']) && preg_match('/[-•]?\s*الاسم\s*[:：]\s*([^\n]+)/u', $text, $m)) {
+        // Name — ALWAYS overwrite from the AI's "الاسم:" line. The AI
+        // confirmation is authoritative; any pre-existing captured['name']
+        // from the earlier LLM extractor (which can pull random words like
+        // colour names out of mid-conversation text) must be replaced.
+        $parsedName = null;
+        if (preg_match('/[-•]?\s*الاسم\s*[:：]\s*([^\n]+)/u', $text, $m)) {
             $name = trim(preg_replace('/[\x{200f}\x{200e}]+/u', '', $m[1]) ?? '');
             if ($name !== '' && mb_strlen($name) >= 2) {
                 $captured['name'] = $name;
+                $parsedName = $name;
             }
         }
 
-        // Phone — same, only from the AI's explicit "رقم التواصل:" line.
-        if (empty($captured['phone']) && preg_match('/[-•]?\s*رقم\s+التواصل\s*[:：]\s*([+\d\s\-()]+)/u', $westernised, $m)) {
+        // Phone — ALWAYS overwrite from the AI's "رقم التواصل:" line (same
+        // authority reasoning as name).
+        $parsedPhone = null;
+        if (preg_match('/[-•]?\s*رقم\s+التواصل\s*[:：]\s*([+\d\s\-()]+)/u', $westernised, $m)) {
             $digits = preg_replace('/[^\d+]/', '', $m[1]) ?? '';
             if (strlen($digits) >= 7) {
                 $captured['phone'] = $digits;
+                $parsedPhone = $digits;
             }
         }
 
@@ -810,9 +817,32 @@ class SendAiResponse implements ShouldQueue
             }
         }
 
-        // Mark the conversation as a REAL confirmed order. This is the single
-        // source of truth for "does this row belong in the sheet".
-        $captured['confirmed_at'] = now()->toIso8601String();
+        // STRICT VALIDATOR: only mark the conversation as a REAL confirmed
+        // order if the AI message actually carried ALL four required pieces
+        // (name line, phone line, address, and at least one شال line). This
+        // is the defensive gate Lavin asked for — the system prompt tells the
+        // AI never to confirm without all data, but LLMs violate their own
+        // rules ~40% of the time under pressure. When this check fails, we
+        // still keep the captured fields (useful operator context) but do
+        // NOT stamp confirmed_at — so SalesConnectors::notify skips the row
+        // and the sheet stays clean of half-confirmed orders.
+        $hasOrderLine = ! empty($captured['order_summary']);
+        $hasAddress   = ! empty($captured['address']);
+        $hasAll = $parsedName !== null && $parsedPhone !== null && $hasAddress && $hasOrderLine;
+
+        if ($hasAll) {
+            $captured['confirmed_at'] = now()->toIso8601String();
+        } else {
+            $missing = [];
+            if ($parsedName === null)  $missing[] = 'name_line';
+            if ($parsedPhone === null) $missing[] = 'phone_line';
+            if (! $hasAddress)         $missing[] = 'address';
+            if (! $hasOrderLine)       $missing[] = 'order_line';
+            \Illuminate\Support\Facades\Log::warning('AI emitted سجلت الأوردر but confirmation was incomplete', [
+                'conversation_id' => $conversation->id,
+                'missing'         => $missing,
+            ]);
+        }
 
         if ($captured !== (array) ($conversation->captured_data ?? [])) {
             $conversation->update(['captured_data' => $captured]);

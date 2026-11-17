@@ -32,9 +32,12 @@ class SalesConnectors
 
     // Column order optimised for e-commerce operators: the fields they need
     // to fulfill an order (Name, Phone, Order details, Address) come first,
-    // then the ones they look at for context (Channel, Status, Last message),
-    // then the audit columns (Event, Conv ID). Keep in sync with row() below.
-    public const HEADERS = ['Date', 'Name', 'Phone', 'Order', 'Address', 'Channel', 'Page', 'Status', 'Last message', 'Event', 'Conversation ID'];
+    // then the ones they look at for context (Channel, Last message), then
+    // the audit columns (Event, Conv ID). Dropped "Status" — rows only land
+    // here when a confirmed order exists (per confirmed_at gate), so every
+    // row is by definition a hot lead/converted deal. Column was redundant
+    // and would always read "hot". Keep in sync with row() below.
+    public const HEADERS = ['Date', 'Name', 'Phone', 'Order', 'Address', 'Channel', 'Page', 'Last message', 'Event', 'Conversation ID'];
 
     /** Test seam for DNS resolution (host => list of IPs, or false). */
     public static ?\Closure $resolver = null;
@@ -134,7 +137,6 @@ class SalesConnectors
             (string) ($captured['address'] ?? ''),
             (string) $conversation->platform,
             (string) ($conversation->page?->name ?? ''),
-            (string) ($contact?->lead_status ?? ''),
             Str::limit(trim(preg_replace('/\s+/u', ' ', (string) $lastMessage) ?? ''), 300),
             match ($event) {
                 self::EVENT_LEAD_CAPTURED => 'Required info captured',
