@@ -378,7 +378,7 @@ class SendPlatformMessage implements ShouldQueue
                 };
 
                 if (! $mediaMsgId) {
-                    throw new \RuntimeException("WhatsApp (Wuzapi) media send failed — instance '{$instanceName}' may be disconnected. Re-scan the QR code.");
+                    throw new \RuntimeException($evolution->describeLastFailure());
                 }
                 return $mediaMsgId;
             }
@@ -412,7 +412,7 @@ class SendPlatformMessage implements ShouldQueue
                 };
 
                 if (! $mediaMsgId) {
-                    throw new \RuntimeException("WhatsApp (Wuzapi) media send failed — instance '{$instanceName}' may be disconnected. Re-scan the QR code.");
+                    throw new \RuntimeException($evolution->describeLastFailure());
                 }
                 return $mediaMsgId;
             }
@@ -426,11 +426,11 @@ class SendPlatformMessage implements ShouldQueue
 
         if (! $messageId) {
             Log::error('Evolution send failed', ['instance' => $instanceName, 'to' => $recipientId]);
-            // Wuzapi returns HTTP 500 "no session" when the paired device has been
-            // unlinked on the phone (loggedIn=false). Silent null-return here made
-            // the failure invisible in the inbox — throw so the outer catch stamps
-            // metadata.send_status and the user sees "Not delivered" on the bubble.
-            throw new \RuntimeException("WhatsApp (Wuzapi) send failed — instance '{$instanceName}' may be disconnected. Re-scan the QR code.");
+            // Classify the Wuzapi failure so the operator sees the REAL reason
+            // ("per-recipient LID issue" vs "actually disconnected") instead of
+            // the historical one-size-fits-all "re-scan the QR" message that was
+            // false for ~1.7% of sends (per-recipient LID resolution failures).
+            throw new \RuntimeException($evolution->describeLastFailure());
         }
 
         return $messageId;

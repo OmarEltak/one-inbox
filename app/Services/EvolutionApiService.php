@@ -270,7 +270,48 @@ class EvolutionApiService
             'body'     => $resp->body(),
         ]);
 
+        // Expose the last failure reason on the service so callers can read it
+        // without changing the method's return type (which is widely used).
+        // Mirrors Laravel's own "session has errors" pattern.
+        $this->lastFailureBody = $resp->body();
+        $this->lastFailureStatus = $resp->status();
+
         return null;
+    }
+
+    /** Last Wuzapi failure body + status, set by send methods on failure. */
+    public ?string $lastFailureBody = null;
+    public ?int $lastFailureStatus = null;
+
+    /**
+     * Human-readable classification of the last send failure. Lets callers
+     * surface the real reason to operators instead of a generic
+     * "WhatsApp is disconnected" message when the actual cause is per-recipient.
+     */
+    public function describeLastFailure(): string
+    {
+        $body = (string) ($this->lastFailureBody ?? '');
+        if ($body === '') return 'Unknown failure.';
+
+        // "no LID found for X@s.whatsapp.net from server" = WhatsApp's new
+        // Linked-ID protocol couldn't resolve this specific recipient. Instance
+        // is fine, only this contact is unreachable from this instance.
+        if (str_contains($body, 'no LID found')) {
+            return 'This specific recipient is unreachable from WhatsApp\'s servers (LID resolution failure). Your WhatsApp connection is fine — only this contact affected. Ask them to message you again to refresh their identifier.';
+        }
+
+        // "not logged in" / "no session" = real disconnect, needs re-scan.
+        if (str_contains($body, 'not logged in') || str_contains($body, 'no session')
+            || str_contains($body, 'websocket is not connected')) {
+            return 'WhatsApp is disconnected. Re-scan the QR code on the Connections page.';
+        }
+
+        // Generic 500 with no useful body
+        if ($this->lastFailureStatus === 500) {
+            return 'WhatsApp send failed (status 500). If this persists across many customers, re-scan the QR code; otherwise it\'s likely a per-recipient issue.';
+        }
+
+        return 'WhatsApp send failed (status ' . ($this->lastFailureStatus ?? '?') . ').';
     }
 
     // ─── Instance Lifecycle ───────────────────────────────────────────────

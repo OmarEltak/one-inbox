@@ -679,8 +679,8 @@ class SendAiResponse implements ShouldQueue
             $instanceName   = $page->metadata['gateway_instance'] ?? $page->platform_page_id;
             $instanceApiKey = $page->page_access_token;
 
-            $messageId = app(\App\Services\EvolutionApiService::class)
-                ->sendText($instanceName, $instanceApiKey, $recipientId, $text);
+            $evolution = app(\App\Services\EvolutionApiService::class);
+            $messageId = $evolution->sendText($instanceName, $instanceApiKey, $recipientId, $text);
 
             if ($messageId) {
                 $aiMessage->update([
@@ -692,7 +692,10 @@ class SendAiResponse implements ShouldQueue
                     'instance' => $instanceName,
                     'to'       => $recipientId,
                 ]);
-                $this->stampSendFailure($aiMessage, "WhatsApp is disconnected. Re-scan the QR code on the Connections page.");
+                // Show the actual failure reason (LID-resolution vs real
+                // disconnect vs something else) instead of the old blanket
+                // "re-scan the QR" message that misled operators ~1.7% of sends.
+                $this->stampSendFailure($aiMessage, $evolution->describeLastFailure());
             }
             return;
         }
