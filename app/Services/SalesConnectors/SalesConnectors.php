@@ -58,8 +58,9 @@ class SalesConnectors
 
         // Only confirmed orders land in the sheet. captured['confirmed_at']
         // is set ONLY by SendAiResponse::parseAiOrderConfirmation when the
-        // AI emits "سجلت الأوردر" — so leads still in discovery never pollute
-        // the sheet, even if complete() fires on partial captured_data.
+        // AI emits "سجلت الأوردر", OR by Conversation::complete() when the
+        // LLM extractor captures all required fields. Discovery convos never
+        // pollute the sheet either way.
         $captured = (array) ($conversation->captured_data ?? []);
         if (empty($captured['confirmed_at'])) {
             \Illuminate\Support\Facades\Log::info('SalesConnectors::notify: skipping unconfirmed convo', [
@@ -68,6 +69,35 @@ class SalesConnectors
             ]);
             return;
         }
+
+        // Dedupe: don't push the same (conversation, event) combo twice within
+        // 10 minutes. 10 min window catches accidental double-fires (complete()
+        // retriggered by reactivation, admin manually un/re-escalating, a test
+        // script calling both paths) while still permitting a legitimate re-push
+        // after an operator corrects captured_data later. The flag is stored in
+        // captured_data so it round-trips with the conversation even across
+        // worker restarts and process boundaries.
+        $pushedKey = 'sheet_pushed_' . $event . '_at';
+        $lastPush  = $captured[$pushedKey] ?? null;
+        if ($lastPush) {
+            $ago = \Carbon\Carbon::parse($lastPush)->diffInSeconds(now());
+            if ($ago < 600) {
+                \Illuminate\Support\Facades\Log::info('SalesConnectors::notify: skipping duplicate push within 10min window', [
+                    'conversation_id' => $conversation->id,
+                    'event'           => $event,
+                    'last_push'       => $lastPush,
+                    'seconds_ago'     => $ago,
+                ]);
+                return;
+            }
+        }
+
+        // Stamp the push timestamp BEFORE dispatching. If the queue job fails,
+        // the next retry via notify() within 10min will still be blocked, which
+        // is the right behaviour — the job itself retries internally. We don't
+        // want a failed push to open a dedupe window for new pushes either.
+        $captured[$pushedKey] = now()->toIso8601String();
+        $conversation->update(['captured_data' => $captured]);
 
         PushSalesConnectorRow::dispatch($conversation->id, $event)->afterCommit();
     }
