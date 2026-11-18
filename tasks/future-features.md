@@ -185,6 +185,73 @@ Add a `business_type` column on `teams`. During onboarding wizard, user picks on
 
 ---
 
+## Customer asks AI something it can't answer (order status, shipment location, etc.)
+
+**Context (2026-11-18):** Rule #11 already detects "where is my order?" intent and tells AI not to re-run the order flow. But the AI's current response ("هبلغ الإدارة") is vague — operator may miss the ping, customer waits silent.
+
+### 4 options ranked by effort
+
+**Option A — Escalation with context tag + real-time owner ping (30 min)**
+- AI reply: "هبلغ الإدارة فورًا — هيتواصلوا معاك خلال دقائق 🙏"
+- Set `sales_stage = escalated`, `escalation_reason = 'status_check'`
+- Fire web push + WhatsApp notification to owner's own phone: "عميل عنده استفسار على طلب — conv #X — رد خلال 5 دقائق"
+- Plumbing exists (broadcast() + owner WhatsApp already used by escalation flow)
+- **Ship this first — covers the pain point with zero new infra**
+
+**Option B — "Estimated delivery" reply from our own data (~1 day)**
+- AI knows order date from our DB. AI knows shipping SLA from config ("1-3 business days")
+- AI can respond: "طلبك كان من يومين — المفروض يوصلك اليوم أو بكرة. لو ماوصلش بكرة، راسلينا."
+- Covers 80% of status-check cases without real shipping integration
+- No external API, no cost
+
+**Option C — Real shipping company integrations (~1 day per company)**
+- Bosta / Mylerz / Aramex / R2R APIs
+- AI actually fetches tracking status
+- Only worth it if customer uses one of these + gives us their API key
+- Egyptian shipping landscape: Bosta has decent public API, R2R is a nightmare
+
+**Option D — Order status column in sheet, owner updates manually**
+- Owner marks `shipped / delivered / returned` in the sheet
+- AI reads status when customer asks
+- Reality: nobody updates sheets diligently. Will stay empty. Skip.
+
+**Recommended path:** A now, B when a customer complains about vague escalations, C only if a customer strongly requests it and has API access.
+
+---
+
+## Customer page with order history + VIP alerts (upsell feature)
+
+**Context (2026-11-18, Lavin owner thinking out loud):** Same customer places 3 orders over a year → 3 sheet rows. No aggregated "customer view" showing lifetime value, reorder patterns, VIP flagging.
+
+### Two layers — ship incrementally
+
+**Layer 1 — Enhance existing /contacts page with order history (~1 day)**
+- `app/Livewire/Contacts/Index.php` already has a select-contact detail panel
+- Add to the panel:
+  - **Orders tab** — chronological list of confirmed orders from conversations where `contact_id = X` and `captured_data.confirmed_at IS NOT NULL`
+  - **LTV card** — sum of order totals (requires parsing `order_summary` into price, or adding `order_total` to captured_data)
+  - **First order / last order dates**
+  - **Reorder frequency** — "last ordered 23 days ago"
+  - **Quick action**: "Send WhatsApp" button opens composer with context
+- All data already in DB, just needs aggregation + UI work
+
+**Layer 2 — VIP customer WhatsApp alerts to owner (premium tier, ~2 days)**
+- Owner tags customers as VIP on the contacts detail page
+- When a VIP customer places an order, owner's own WhatsApp number gets a notification: "🔔 Dr. Y just placed a new order — 2 شال كبير بني — total 485 ج.م"
+- Expand to rule-based alerts:
+  - Repeat customer (≥ 2 prior orders) → ping
+  - Order value above threshold → ping
+  - Specific product bought → ping (useful for high-margin items)
+- Plumbing exists: we already send owner-WhatsApp pings for escalations
+
+**Pricing play:** this is a premium-tier feature. "Customer history + VIP alerts" is a clear selling point above the base sheet-export tier.
+
+**Scope progression:** Layer 1 pays off immediately for every existing customer (operators stop hunting through sheets). Layer 2 is the Pro-tier differentiator.
+
+**Revisit when:** first customer explicitly asks "which of my customers orders the most?" OR "can you alert me when X orders?" OR when designing Pro tier features.
+
+---
+
 ## Sheet row UPDATE (not just append) when customer modifies order
 
 **Problem:** Dedupe blocks any second push — meaning if customer adds an item after confirming (e.g. "and add a 3rd one for my sister"), the sheet doesn't reflect it.
