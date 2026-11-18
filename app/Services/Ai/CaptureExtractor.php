@@ -126,10 +126,31 @@ class CaptureExtractor
 
     private function extractPhone(string $content): ?string
     {
-        // International or local — 7 to 15 digits allowing +, spaces, dashes, parens.
+        // Tokenise on whitespace/commas/newlines first so "01000386318 01064244810"
+        // yields TWO candidates (not one 20-digit monster). Without this the old
+        // greedy regex `[0-9\s\-().]{6,20}` happily spanned whitespace between
+        // two separate numbers and returned the concatenated garbage —
+        // observed on نورهان مجدي's conv ("01000386318010642448" as a single
+        // "phone" in the sheet).
+        //
+        // Returns the FIRST valid phone (7-15 digits after stripping punct).
+        // If customer sends two, we honour the first and let the operator sort
+        // out which is active during delivery.
+        $tokens = preg_split('/[\s,،;\|\/]+/u', $content) ?: [];
+        foreach ($tokens as $tok) {
+            if (preg_match('/^\+?[0-9][0-9\-().]*[0-9]$/', $tok)) {
+                $digits = preg_replace('/[^0-9+]/', '', $tok);
+                if ($digits !== null && strlen($digits) >= 7 && strlen($digits) <= 15) {
+                    return $digits;
+                }
+            }
+        }
+        // Fallback: run the historic greedy regex ONCE, but strip whitespace from
+        // the match so even a loose `0100 0386 318` collapses correctly.
         if (preg_match('/\+?[0-9][0-9\s\-().]{6,20}[0-9]/', $content, $m)) {
             $digits = preg_replace('/[^0-9+]/', '', $m[0]);
-            if (strlen($digits) >= 7) {
+            // Reject if the result is unreasonably long (two numbers smushed).
+            if (strlen($digits) >= 7 && strlen($digits) <= 15) {
                 return $digits;
             }
         }
