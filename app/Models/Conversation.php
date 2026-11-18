@@ -94,10 +94,27 @@ class Conversation extends Model
     {
         $alreadyCompleted = $this->sales_stage === self::STAGE_COMPLETED;
 
+        // Stamp confirmed_at on captured_data too. SalesConnectors::notify uses
+        // this flag as its single source of truth for "is this a real order?"
+        // Before this line, complete() set metadata.completed_at but notify()
+        // only looked at captured_data.confirmed_at — which was only set by
+        // parseAiOrderConfirmation when the AI emitted the exact structured
+        // "سجلت الأوردر" message. So conversations where the LLM extractor
+        // caught all required fields but the AI never emitted the structured
+        // recap would complete() silently without reaching the sheet. Setting
+        // the flag here fixes the "aya reda" / "اسراء محمود" / "أميرة السيد"
+        // class of missed orders.
+        $captured = (array) ($this->captured_data ?? []);
+        if (empty($captured['confirmed_at'])) {
+            $captured['confirmed_at'] = now()->toIso8601String();
+            $this->captured_data = $captured;
+        }
+
         $this->update([
-            'sales_stage' => self::STAGE_COMPLETED,
-            'ai_paused'   => true,
-            'metadata'    => array_merge($this->metadata ?? [], [
+            'sales_stage'   => self::STAGE_COMPLETED,
+            'ai_paused'     => true,
+            'captured_data' => $this->captured_data,
+            'metadata'      => array_merge($this->metadata ?? [], [
                 'completion_reason' => $reason,
                 'completed_at'      => now()->toIso8601String(),
             ]),
