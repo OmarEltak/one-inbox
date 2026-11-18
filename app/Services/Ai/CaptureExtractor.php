@@ -133,23 +133,31 @@ class CaptureExtractor
         // observed on نورهان مجدي's conv ("01000386318010642448" as a single
         // "phone" in the sheet).
         //
-        // Returns the FIRST valid phone (7-15 digits after stripping punct).
-        // If customer sends two, we honour the first and let the operator sort
-        // out which is active during delivery.
+        // When the customer sends TWO valid phones, we keep both — joined with
+        // " / " so the shipping operator can see both and pick one. Example:
+        // "01000386318 01064244810" → "01000386318 / 01064244810". More than
+        // two phones is unusual; we cap at 2 to avoid runaway strings.
         $tokens = preg_split('/[\s,،;\|\/]+/u', $content) ?: [];
+        $valid = [];
         foreach ($tokens as $tok) {
             if (preg_match('/^\+?[0-9][0-9\-().]*[0-9]$/', $tok)) {
                 $digits = preg_replace('/[^0-9+]/', '', $tok);
-                if ($digits !== null && strlen($digits) >= 7 && strlen($digits) <= 15) {
-                    return $digits;
+                if ($digits !== null && strlen($digits) >= 7 && strlen($digits) <= 15
+                    && ! in_array($digits, $valid, true)) {
+                    $valid[] = $digits;
+                    if (count($valid) === 2) break; // cap at 2
                 }
             }
         }
+        if (! empty($valid)) {
+            return implode(' / ', $valid);
+        }
         // Fallback: run the historic greedy regex ONCE, but strip whitespace from
-        // the match so even a loose `0100 0386 318` collapses correctly.
+        // the match so even a loose `0100 0386 318` collapses correctly. Still
+        // rejected if the result is implausibly long (two numbers smushed by
+        // a customer without whitespace, which the tokeniser can't split).
         if (preg_match('/\+?[0-9][0-9\s\-().]{6,20}[0-9]/', $content, $m)) {
             $digits = preg_replace('/[^0-9+]/', '', $m[0]);
-            // Reject if the result is unreasonably long (two numbers smushed).
             if (strlen($digits) >= 7 && strlen($digits) <= 15) {
                 return $digits;
             }
