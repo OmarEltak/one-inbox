@@ -70,26 +70,21 @@ class SalesConnectors
             return;
         }
 
-        // Dedupe: don't push the same (conversation, event) combo twice within
-        // 10 minutes. 10 min window catches accidental double-fires (complete()
-        // retriggered by reactivation, admin manually un/re-escalating, a test
-        // script calling both paths) while still permitting a legitimate re-push
-        // after an operator corrects captured_data later. The flag is stored in
-        // captured_data so it round-trips with the conversation even across
-        // worker restarts and process boundaries.
+        // Lifetime dedupe: push each (conversation, event) tuple AT MOST ONCE
+        // forever. When a late-order customer re-sends their name/phone/address
+        // chasing "where's my order?", the extractor re-captures the fields and
+        // complete() re-fires, which previously produced duplicate sheet rows
+        // (observed: ايه محمد رضا twice with different phone formats). Operator
+        // can force a re-push by manually clearing captured_data.sheet_pushed_<event>_at
+        // — but by default, one row per conversation per event, forever.
         $pushedKey = 'sheet_pushed_' . $event . '_at';
-        $lastPush  = $captured[$pushedKey] ?? null;
-        if ($lastPush) {
-            $ago = \Carbon\Carbon::parse($lastPush)->diffInSeconds(now());
-            if ($ago < 600) {
-                \Illuminate\Support\Facades\Log::info('SalesConnectors::notify: skipping duplicate push within 10min window', [
-                    'conversation_id' => $conversation->id,
-                    'event'           => $event,
-                    'last_push'       => $lastPush,
-                    'seconds_ago'     => $ago,
-                ]);
-                return;
-            }
+        if (! empty($captured[$pushedKey])) {
+            \Illuminate\Support\Facades\Log::info('SalesConnectors::notify: skipping already-pushed conversation', [
+                'conversation_id' => $conversation->id,
+                'event'           => $event,
+                'last_push'       => $captured[$pushedKey],
+            ]);
+            return;
         }
 
         // Stamp the push timestamp BEFORE dispatching. If the queue job fails,
