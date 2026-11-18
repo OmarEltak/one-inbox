@@ -16,6 +16,13 @@ use Illuminate\Support\Str;
  * POSTs one sales row to the page's configured sheet / webhook URLs.
  * Single attempt on purpose: a retry would re-append to the target that
  * already succeeded (duplicate rows). Failures are shown in the tab instead.
+ *
+ * HTTP timeout is 45s because Google Apps Script worst-case response is
+ * ~30s (cold start + sheet append + render), and 20s silently dropped
+ * ~15% of real pushes (observed 2026-11-18: 3 of 8 retries timed out at
+ * 20s and would have been lost rows; same 3 succeeded on retry with
+ * longer timeout). At 45s we clear the Apps Script tail without blocking
+ * the queue worker unreasonably.
  */
 class PushSalesConnectorRow implements ShouldQueue
 {
@@ -53,7 +60,7 @@ class PushSalesConnectorRow implements ShouldQueue
             }
 
             try {
-                $response = Http::timeout(20)->acceptJson()->post($url, $payload);
+                $response = Http::timeout(45)->acceptJson()->post($url, $payload);
                 if ($response->failed()) {
                     $errors[] = "{$host}: HTTP {$response->status()}";
                 }
