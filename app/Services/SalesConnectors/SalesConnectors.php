@@ -70,6 +70,24 @@ class SalesConnectors
             return;
         }
 
+        // Second quality gate: even with confirmed_at, require BOTH a name AND
+        // at least one of (order_summary | product). Observed pollution: status-
+        // check convos (نورهان asking "where is my order?") AND AI-confused
+        // name-capture (والنبيتي — the AI wrote a color as the name). Both
+        // had confirmed_at stamped by complete() but were operationally
+        // useless for the shipping operator.
+        $hasName  = ! empty($captured['name']);
+        $hasOrder = ! empty($captured['order_summary']) || ! empty($captured['product']);
+        if (! $hasName || ! $hasOrder) {
+            \Illuminate\Support\Facades\Log::warning('SalesConnectors::notify: skipping confirmed but incomplete convo', [
+                'conversation_id' => $conversation->id,
+                'event'           => $event,
+                'has_name'        => $hasName,
+                'has_order'       => $hasOrder,
+            ]);
+            return;
+        }
+
         // Lifetime dedupe: push each (conversation, event) tuple AT MOST ONCE
         // forever. When a late-order customer re-sends their name/phone/address
         // chasing "where's my order?", the extractor re-captures the fields and
