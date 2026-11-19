@@ -150,7 +150,15 @@ class SalesConnectors
         // operator sees the gap and chases via chat.
         $phoneRaw = (string) ($captured['phone'] ?? '');
         $phone = $phoneRaw !== '' ? "'" . $phoneRaw : '';
-        $convIdStr = "'" . (string) $conversation->id;
+
+        // Conversation ID: NO apostrophe prefix. The Apps Script dedupe
+        // compares conv_id from payload against conv_id stored in the sheet;
+        // getValues() strips the leading apostrophe on read, so "'9430" from
+        // the payload never matches "9430" in storage — dedupe silently fails
+        // and duplicates leak in. Bare numeric string works because conv_ids
+        // are auto-increment integers starting from 1 (no leading zeros to
+        // preserve, no precision loss for the realistic range).
+        $convIdStr = (string) $conversation->id;
 
         return array_combine(self::HEADERS, [
             ($at ? \Illuminate\Support\Carbon::parse($at) : now())->toDateTimeString(),
